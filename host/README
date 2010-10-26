@@ -1,0 +1,25 @@
+This is proof-of-concept test code for Ubertooth.  Expect many changes over
+the coming months.
+
+Usage:
+
+./ubertooth-dump | ./btrx.py -b -i -
+
+You must have gr-bluetooth installed.  This btrx.py is taken from an older
+release of gr-bluetooth.  We'll fix that at some point, perhaps with changes
+in gr-bluetooth, perhaps by moving a bunch of the gr-bluetooth code here or
+into a new library.
+
+If you have a USRP, you can use demod.py to produce test input for btrx.py -b.
+
+As an alternative to using ubertooth-dump, you can use a usb serial driver to
+communicate with the Ubertooth.  For example in Linux you can unload the
+usbserial driver and reload it with:
+
+modprobe usbserial vendor=0xffff product=0x0005
+
+Then you can talk to the Ubertooth with a terminal program such as minicom.
+When you use the usbserial driver instead of ubertooth-dump, data transfer
+speed will be restricted - too slow for streaming rx but good for testing
+other things.  See the firmware source code for things you can do here.  All
+this is subject to change, of course.

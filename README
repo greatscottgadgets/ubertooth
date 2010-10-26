@@ -1,0 +1,7 @@
+This is Project Ubertooth, an open source wireless development platform
+suitable for Bluetooth experimentation.  Ubertooth is primarily a hardware
+product, but sample firmware and host code (software to be executed on a
+general purpose computer connected by USB to an Ubertooth board) are provided.
+
+The first hardware revision is called Ubertooth Zero and was demonstrated at
+ToorCon 12 on October 24th, 2010.
