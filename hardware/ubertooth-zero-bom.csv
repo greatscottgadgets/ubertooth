@@ -1,0 +1,33 @@
+"Reference
+Designator","Manufacturer","Manufacturer
+Part Number","Description","Supplier","Supplier
+Part Number","Price
+Each","Quantity","Extended
+Price","Notes"
+"C61,81","Murata","GRM1555C1HR50CZ01D","CAP CER .5PF 50V C0G 0402","Mouser","81-GRM36C0R5C50",0.03,2,0.06,
+"C62","Murata","GRM1555C1H5R6DZ01D","CAP CER 5.6PF 50V C0G 0402","Mouser","81-GRM1555C1H5R6DZ1D",0.03,1,0.03,
+"C421,431","Murata","GRM1555C1H270JZ01D","CAP CER 27PF 50V 5% C0G 0402","Mouser","81-GRM1555C1H270JZ01",0.03,2,0.06,
+"C1,4,5","Murata","GRM1555C1H680JZ01D","CAP CER 68PF 50V 5% C0G 0402","Mouser","81-GRM1555C1H680JZ1D",0.03,3,0.09,
+"C3","Murata","GRM155R71E103KA01D","CAP CER 10000PF 25V 10% X7R 0402","Mouser","81-GRM36X103K25",0.03,1,0.03,
+"C2,6,7,16,71","Murata","GRM155R61A104KA01D","CAP CER .1UF 10V 10% X5R 0402","Mouser","81-GRM155R61A104KA01",0.02,4,0.08,
+"L62","Murata","LQG15HS5N6S02D","INDUCTOR 5.6NH 300MA 0402","Mouser","81-LQG15HS5N6S02D",0.04,1,0.04,
+"L61,81","Murata","LQW15AN7N5J00D","INDUCTOR 7.5NH 570MA 0402","Mouser","81-LQW15AN7N5J00D",0.31,2,0.62,
+"L71","Murata","LQW15AN27NJ00D","INDUCTOR 27NH 280MA 0402","Mouser","81-LQW15AN27NJ00D",0.31,1,0.31,
+"R451","KOA Speer","RK73H1ETTP4302F","Thick Film Resistor 1/16W 43K 1% 0402","Mouser","660-RK73H1ETTP4302F",0.06,1,0.06,
+"U1","Texas Instruments","CC2400-RTB1","IC RF TXRX 2.4GHZ LP 48-QFN","Mouser","595-CC2400-RTB1",9.14,1,9.14,
+"J3","Connector City","CONREVSMA003.031","Reverse Polarized SMA Connector","Mouser","712-CONREVSMA003.031",3.08,1,3.08,"Lower cost alternative: SparkFun WRL-00592 $1.95, SMA also an option"
+"U2","NXP","LPC1758FBD80,551","ARM Cortex M3 Micro Controller","Mouser","771-LPC1758FBD80551",8.67,1,8.67,"may substitute LPC175x"
+"X1","Abracon","ABMM2-16.000MHZ-E2-T","Crystal +/-20PPM 16MHz","Mouser","815-ABMM2-16-E2T",1.16,1,1.16,
+"X2","Molex","48037-1000","USB & Firewire Connector TYPE A RA SHLDED PLG SMT AU","Mouser","538-48037-1000",2.22,1,2.22,"better price at Digi-Key"
+"U5","NXP","IP4220CZ6,125","ESD Suppressor USB2.0 ESD PROTECT DUAL","Mouser","771-IP4220CZ6-T/R",0.18,1,0.18,
+"U4","Microchip","MCP1801T-1802I/OT","Low Dropout (LDO) Regulators Hi PSRR 150 mA LDO Vin 10V max Vout 1.8V","Mouser","579-MCP1801T-1802IOT",0.52,1,0.52,
+"U3","Vishay/Siliconix","SI9183DT-33-T1-E3","Low Dropout (LDO) Regulator 150mA 3.3V","Mouser","781-SI9183DT-33-E3",0.28,1,0.28,
+"C14,15,17,18,20,22","TDK","C1608X7R1E104K","CAP CER 0603 0.1uF 25volts X7R 10%","Mouser","810-C1608X7R1E104K",0.03,6,0.18,
+"R5,6,7,8,9,11","Xicon","301-330-RC","Thick Film Resistor 1/16W 330OHMS 5% 0603","Mouser","301-330-RC",0.03,6,0.18,
+"R1,10,13","Xicon","301-10K-RC","Thick Film Resistor 1/16W 10KOHMS 5% 0603","Mouser","301-10K-RC",0.03,2,0.06,
+"C9","TDK","C1608C0G1H101J","CAP CER 0603 100pF 50volts C0G 5% ","Mouser","810-C1608C0G1H101J",0.03,1,0.03,
+"C8","TDK","C1608C0G1H221J","CAP CER 0603 220pF 50volts C0G 5%","Mouser","810-C1608C0G1H221J",0.03,1,0.03,
+"R4","Xicon","301-1.5K-RC","Thick Film Resistor 1/16W 1.5KOHMS 5%","Mouser","301-1.5K-RC",0.03,1,0.03,
+"R2,3","Vishay/Dale","CRCW060333R0FKEA","Thick Film Resistor 1/10W 33ohms 1% 0603","Mouser","71-CRCW0603-33-E3",0.06,2,0.12,
+"C19,21,23,24","Murata","GRM188R60J105KA01J","CAP CER 0603 1uF 6.3volts X5R 10% ","Mouser","81-GRM18R60J105KA01J",0.04,4,0.16,
+"LEDs",,,"0603 LED, various colors",,,0.10,6,0.60,
