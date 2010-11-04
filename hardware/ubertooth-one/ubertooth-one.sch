@@ -1,4 +1,5 @@
-EESchema Schematic File Version 2  date Wed Nov  3 19:58:18 2010
+EESchema Schematic File Version 2  date Wed Nov  3 22:50:43 2010
+LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -29,9 +30,10 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-EELAYER 43  0
+LIBS:ubertooth-one-cache
+EELAYER 24  0
 EELAYER END
-$Descr A4 11700 8267
+$Descr User 17000 11000
 Sheet 1 1
 Title ""
 Date "4 nov 2010"
@@ -42,4 +44,13 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+$Comp
+L LPC175X U?
+U 1 1 4CD23A14
+P 11400 5550
+F 0 "U?" H 11400 5650 60  0000 C CNN
+F 1 "LPC175X" H 11400 5450 60  0000 C CNN
+	1    11400 5550
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
