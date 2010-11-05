@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Wed Nov  3 22:50:43 2010
+EESchema Schematic File Version 2  date Thu Nov  4 21:27:38 2010
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -44,6 +44,15 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+$Comp
+L CC2400 U?
+U 1 1 4CD3795B
+P 6350 2900
+F 0 "U?" H 6350 3000 60  0000 C CNN
+F 1 "CC2400" H 6350 2800 60  0000 C CNN
+	1    6350 2900
+	1    0    0    -1  
+$EndComp
 $Comp
 L LPC175X U?
 U 1 1 4CD23A14
