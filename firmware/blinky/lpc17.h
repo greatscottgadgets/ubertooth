@@ -723,7 +723,7 @@
 #define PINMODE3_P1_26MODE (0x3 << 20)
 #define PINMODE3_P1_27MODE (0x3 << 22)
 #define PINMODE3_P1_28MODE (0x3 << 24)
-#define PINMODE3_P1.29MODE (0x3 << 26)
+#define PINMODE3_P1_29MODE (0x3 << 26)
 #define PINMODE3_P1_30MODE (0x3 << 28)
 #define PINMODE3_P1_31MODE (0x3 << 30)
 
@@ -1694,8 +1694,8 @@
 #define HcRhDescriptorA      LPC17_REG(0x5000C048)
 #define HcRhDescriptorB      LPC17_REG(0x5000C04C)
 #define HcRhStatus           LPC17_REG(0x5000C050)
-#define HcRhPortStatus       LPC17_REG(0x5000C054)
-#define HcRhPortStatus       LPC17_REG(0x5000C058)
+#define HcRhPortStatus1      LPC17_REG(0x5000C054)
+#define HcRhPortStatus2      LPC17_REG(0x5000C058)
 #define Module_ID_Ver_Rev_ID LPC17_REG(0x5000C0FC)
 
 
@@ -1887,65 +1887,65 @@
  */
 
 /* UARTn Interrupt Enable Register (U0IER - 0x4000 C004, U2IER - 0x4009 8004, U3IER - 0x4009 C004) */
-#define UnIER_RBR_Interrupt_Enable            (0x1 << 0)
-#define UnIER_THRE_Interrupt_Enable           (0x1 << 1)
-#define UnIER_RX_Line_Status_Interrupt_Enable (0x1 << 2)
-#define UnIER_ABEOIntEn                       (0x1 << 8)
-#define UnIER_ABTOIntEn                       (0x1 << 9)
+#define UIER_RBR_Interrupt_Enable            (0x1 << 0)
+#define UIER_THRE_Interrupt_Enable           (0x1 << 1)
+#define UIER_RX_Line_Status_Interrupt_Enable (0x1 << 2)
+#define UIER_ABEOIntEn                       (0x1 << 8)
+#define UIER_ABTOIntEn                       (0x1 << 9)
 
 /* UARTn Interrupt Identification Register (U0IIR - 0x4000 C008, U2IIR - 0x4009 8008, U3IIR - 0x4009 C008) */
-#define UnIIR_IntStatus   (0x1 << 0)
-#define UnIIR_IntId       (0x7 << 1)
-#define UnIIR_FIFO Enable (0x3 << 6)
-#define UnIIR_ABEOInt     (0x1 << 8)
-#define UnIIR_ABTOInt     (0x1 << 9)
+#define UIIR_IntStatus   (0x1 << 0)
+#define UIIR_IntId       (0x7 << 1)
+#define UIIR_FIFO Enable (0x3 << 6)
+#define UIIR_ABEOInt     (0x1 << 8)
+#define UIIR_ABTOInt     (0x1 << 9)
 
 /* UARTn FIFO Control Register (U0FCR - 0x4000 C008, U2FCR - 0x4009 8008, U3FCR - 0x4009 C008) */
-#define UnFCR_FIFO_Enable      (0x1 << 0)
-#define UnFCR_RX_FIFO_Reset    (0x1 << 1)
-#define UnFCR_TX_FIFO_Reset    (0x1 << 2)
-#define UnFCR_DMA_Mode_Select  (0x1 << 3)
-#define UnFCR_RX_Trigger_Level (0x3 << 6)
+#define UFCR_FIFO_Enable      (0x1 << 0)
+#define UFCR_RX_FIFO_Reset    (0x1 << 1)
+#define UFCR_TX_FIFO_Reset    (0x1 << 2)
+#define UFCR_DMA_Mode_Select  (0x1 << 3)
+#define UFCR_RX_Trigger_Level (0x3 << 6)
 
 /* UARTn Line Control Register (U0LCR - 0x4000 C00C, U2LCR - 0x4009 800C, U3LCR - 0x4009 C00C) */
-#define UnLCR_Word_Length_Select (0x3 << 0)
-#define UnLCR_Stop_Bit_Select    (0x1 << 2)
-#define UnLCR_Parity_Enable      (0x1 << 3)
-#define UnLCR_Parity_Select      (0x3 << 4)
-#define UnLCR_Break_Control      (0x1 << 6)
-#define UnLCR_DLAB               (0x1 << 7)
+#define ULCR_Word_Length_Select (0x3 << 0)
+#define ULCR_Stop_Bit_Select    (0x1 << 2)
+#define ULCR_Parity_Enable      (0x1 << 3)
+#define ULCR_Parity_Select      (0x3 << 4)
+#define ULCR_Break_Control      (0x1 << 6)
+#define ULCR_DLAB               (0x1 << 7)
 
 /* UARTn Line Status Register (U0LSR - 0x4000 C014, U2LSR - 0x4009 8014, U3LSR - 0x4009 C014) */
-#define UnLSR_RDR  (0x1 << 0)
-#define UnLSR_OE   (0x1 << 1)
-#define UnLSR_PE   (0x1 << 2)
-#define UnLSR_FE   (0x1 << 3)
-#define UnLSR_BI   (0x1 << 4)
-#define UnLSR_THRE (0x1 << 5)
-#define UnLSR_TEMT (0x1 << 6)
-#define UnLSR_RXFE (0x1 << 7)
+#define ULSR_RDR  (0x1 << 0)
+#define ULSR_OE   (0x1 << 1)
+#define ULSR_PE   (0x1 << 2)
+#define ULSR_FE   (0x1 << 3)
+#define ULSR_BI   (0x1 << 4)
+#define ULSR_THRE (0x1 << 5)
+#define ULSR_TEMT (0x1 << 6)
+#define ULSR_RXFE (0x1 << 7)
 
 /* skipped UARTn Scratch Pad Register (U0SCR - 0x4000 C01C, U2SCR - 0x4009 801C U3SCR - 0x4009 C01C) */
 
 /* UARTn Auto-baud Control Register (U0ACR - 0x4000 C020, U2ACR - 0x4009 8020, U3ACR - 0x4009 C020) */
-#define UnACR_Start       (0x1 << 0)
-#define UnACR_Mode        (0x1 << 1)
-#define UnACR_AutoRestart (0x1 << 2)
-#define UnACR_ABEOIntClr  (0x1 << 8)
-#define UnACR_ABTOIntClr  (0x1 << 9)
+#define UACR_Start       (0x1 << 0)
+#define UACR_Mode        (0x1 << 1)
+#define UACR_AutoRestart (0x1 << 2)
+#define UACR_ABEOIntClr  (0x1 << 8)
+#define UACR_ABTOIntClr  (0x1 << 9)
 
 /* UARTn IrDA Control Register (U0ICR - 0x4000 C024, U2ICR - 0x4009 8024, U3ICR - 0x4009 C024) */
-#define UnICR_IrDAEn     (0x1 << 0)
-#define UnICR_IrDAInv    (0x1 << 1)
-#define UnICR_FixPulseEn (0x1 << 2)
-#define UnICR_PulseDiv   (0x7 << 3)
+#define UICR_IrDAEn     (0x1 << 0)
+#define UICR_IrDAInv    (0x1 << 1)
+#define UICR_FixPulseEn (0x1 << 2)
+#define UICR_PulseDiv   (0x7 << 3)
 
 /* UARTn Fractional Divider Register (U0FDR - 0x4000 C028, U2FDR - 0x4009 8028, U3FDR - 0x4009 C028) */
-#define UnFDR_DIVADDVAL (0xF << 0)
-#define UnFDR_MULVAL    (0xF << 4)
+#define UFDR_DIVADDVAL (0xF << 0)
+#define UFDR_MULVAL    (0xF << 4)
 
 /* UARTn Transmit Enable Register (U0TER - 0x4000 C030, U2TER - 0x4009 8030, U3TER - 0x4009 C030) */
-#define UnTER_TXEN (0x1 << 7)
+#define UTER_TXEN (0x1 << 7)
 
 /* UART 1 registers */
 
@@ -2139,141 +2139,141 @@
 #define CANWAKEFLAGS LPC17_REG(0x400FC114) /* read the wake-up state of the CAN channels */
 
 /* CAN Mode register (CAN1MOD - 0x4004 4000, CAN2MOD - 0x4004 8000) */
-#define CANnMOD_RM  (0x1 << 0)
-#define CANnMOD_LOM (0x1 << 1)
-#define CANnMOD_STM (0x1 << 2)
-#define CANnMOD_TPM (0x1 << 3)
-#define CANnMOD_SM  (0x1 << 4)
-#define CANnMOD_RPM (0x1 << 5)
-#define CANnMOD_TM  (0x1 << 7)
+#define CANMOD_RM  (0x1 << 0)
+#define CANMOD_LOM (0x1 << 1)
+#define CANMOD_STM (0x1 << 2)
+#define CANMOD_TPM (0x1 << 3)
+#define CANMOD_SM  (0x1 << 4)
+#define CANMOD_RPM (0x1 << 5)
+#define CANMOD_TM  (0x1 << 7)
 
 /* CAN Command Register (CAN1CMR - 0x4004 x004, CAN2CMR - 0x4004 8004) */
-#define CANnCMR_TR   (0x1 << 0)
-#define CANnCMR_AT   (0x1 << 1)
-#define CANnCMR_RRB  (0x1 << 2)
-#define CANnCMR_CDO  (0x1 << 3)
-#define CANnCMR_SRR  (0x1 << 4)
-#define CANnCMR_STB1 (0x1 << 5)
-#define CANnCMR_STB2 (0x1 << 6)
-#define CANnCMR_STB3 (0x1 << 7)
+#define CANCMR_TR   (0x1 << 0)
+#define CANCMR_AT   (0x1 << 1)
+#define CANCMR_RRB  (0x1 << 2)
+#define CANCMR_CDO  (0x1 << 3)
+#define CANCMR_SRR  (0x1 << 4)
+#define CANCMR_STB1 (0x1 << 5)
+#define CANCMR_STB2 (0x1 << 6)
+#define CANCMR_STB3 (0x1 << 7)
 
 /* CAN Global Status Register (CAN1GSR - 0x4004 x008, CAN2GSR - 0x4004 8008) */
-#define CANnGSR_RBS   (0x1 << 0)
-#define CANnGSR_DOS   (0x1 << 1)
-#define CANnGSR_TBS   (0x1 << 2)
-#define CANnGSR_TCS   (0x1 << 3)
-#define CANnGSR_RS    (0x1 << 4)
-#define CANnGSR_TS    (0x1 << 5)
-#define CANnGSR_ES    (0x1 << 6)
-#define CANnGSR_BS    (0x1 << 7)
-#define CANnGSR_RXERR (0xFF << 16)
-#define CANnGSR_TXERR (0xFF << 24)
+#define CANGSR_RBS   (0x1 << 0)
+#define CANGSR_DOS   (0x1 << 1)
+#define CANGSR_TBS   (0x1 << 2)
+#define CANGSR_TCS   (0x1 << 3)
+#define CANGSR_RS    (0x1 << 4)
+#define CANGSR_TS    (0x1 << 5)
+#define CANGSR_ES    (0x1 << 6)
+#define CANGSR_BS    (0x1 << 7)
+#define CANGSR_RXERR (0xFF << 16)
+#define CANGSR_TXERR (0xFF << 24)
 
 /* CAN Interrupt and Capture Register (CAN1ICR - 0x4004 400C, CAN2ICR - 0x4004 800C) */
-#define CANnICR_RI     (0x1 << 0)
-#define CANnICR_TI1    (0x1 << 1)
-#define CANnICR_EI     (0x1 << 2)
-#define CANnICR_DOI    (0x1 << 3)
-#define CANnICR_WUI    (0x1 << 4)
-#define CANnICR_EPI    (0x1 << 5)
-#define CANnICR_ALI    (0x1 << 6)
-#define CANnICR_BEI    (0x1 << 7)
-#define CANnICR_IDI    (0x1 << 8)
-#define CANnICR_TI2    (0x1 << 9)
-#define CANnICR_TI3    (0x1 << 10)
-#define CANnICR_ERRBIT (0x1F << 16)
-#define CANnICR_ERRDIR (0x1 << 21)
-#define CANnICR_ERRC   (0x3 << 22)
-#define CANnICR_ALCBIT (0xFF << 24)
+#define CANICR_RI     (0x1 << 0)
+#define CANICR_TI1    (0x1 << 1)
+#define CANICR_EI     (0x1 << 2)
+#define CANICR_DOI    (0x1 << 3)
+#define CANICR_WUI    (0x1 << 4)
+#define CANICR_EPI    (0x1 << 5)
+#define CANICR_ALI    (0x1 << 6)
+#define CANICR_BEI    (0x1 << 7)
+#define CANICR_IDI    (0x1 << 8)
+#define CANICR_TI2    (0x1 << 9)
+#define CANICR_TI3    (0x1 << 10)
+#define CANICR_ERRBIT (0x1F << 16)
+#define CANICR_ERRDIR (0x1 << 21)
+#define CANICR_ERRC   (0x3 << 22)
+#define CANICR_ALCBIT (0xFF << 24)
 
 /* CAN Interrupt Enable Register (CAN1IER - 0x4004 4010, CAN2IER - 0x4004 8010) */
-#define CANnIER_RIE  (0x1 << 0)
-#define CANnIER_TIE1 (0x1 << 1)
-#define CANnIER_EIE  (0x1 << 2)
-#define CANnIER_DOIE (0x1 << 3)
-#define CANnIER_WUIE (0x1 << 4)
-#define CANnIER_EPIE (0x1 << 5)
-#define CANnIER_ALIE (0x1 << 6)
-#define CANnIER_BEIE (0x1 << 7)
-#define CANnIER_IDIE (0x1 << 8)
-#define CANnIER_TIE2 (0x1 << 9)
-#define CANnIER_TIE3 (0x1 << 10)
+#define CANIER_RIE  (0x1 << 0)
+#define CANIER_TIE1 (0x1 << 1)
+#define CANIER_EIE  (0x1 << 2)
+#define CANIER_DOIE (0x1 << 3)
+#define CANIER_WUIE (0x1 << 4)
+#define CANIER_EPIE (0x1 << 5)
+#define CANIER_ALIE (0x1 << 6)
+#define CANIER_BEIE (0x1 << 7)
+#define CANIER_IDIE (0x1 << 8)
+#define CANIER_TIE2 (0x1 << 9)
+#define CANIER_TIE3 (0x1 << 10)
 
 /* CAN Bus Timing Register (CAN1BTR - 0x4004 4014, CAN2BTR - 0x4004 8014) */
-#define CANnBTR_BRP   (0x3FF << 0)
-#define CANnBTR_SJW   (0x3 << 14)
-#define CANnBTR_TESG1 (0xF << 16)
-#define CANnBTR_TESG2 (0x7 << 20)
-#define CANnBTR_SAM   (0x1 << 23)
+#define CANBTR_BRP   (0x3FF << 0)
+#define CANBTR_SJW   (0x3 << 14)
+#define CANBTR_TESG1 (0xF << 16)
+#define CANBTR_TESG2 (0x7 << 20)
+#define CANBTR_SAM   (0x1 << 23)
 
 /* skipped CAN Error Warning Limit register (CAN1EWL - 0x4004 4018, CAN2EWL - 0x4004 8018) */
 
 /* CAN Status Register (CAN1SR - 0x4004 401C, CAN2SR - 0x4004 801C) */
-#define CANnSR_RBS  (0x1 << 0)
-#define CANnSR_DOS  (0x1 << 1)
-#define CANnSR_TBS1 (0x1 << 2)
-#define CANnSR_TCS1 (0x1 << 3)
-#define CANnSR_RS   (0x1 << 4)
-#define CANnSR_TS1  (0x1 << 5)
-#define CANnSR_ES   (0x1 << 6)
-#define CANnSR_BS   (0x1 << 7)
-#define CANnSR_RBS  (0x1 << 8)
-#define CANnSR_DOS  (0x1 << 9)
-#define CANnSR_TBS2 (0x1 << 10)
-#define CANnSR_TCS2 (0x1 << 11)
-#define CANnSR_RS   (0x1 << 12)
-#define CANnSR_TS2  (0x1 << 13)
-#define CANnSR_ES   (0x1 << 14)
-#define CANnSR_BS   (0x1 << 15)
-#define CANnSR_RBS  (0x1 << 16)
-#define CANnSR_DOS  (0x1 << 17)
-#define CANnSR_TBS3 (0x1 << 18)
-#define CANnSR_TCS3 (0x1 << 19)
-#define CANnSR_RS   (0x1 << 20)
-#define CANnSR_TS3  (0x1 << 21)
-#define CANnSR_ES   (0x1 << 22)
-#define CANnSR_BS   (0x1 << 23)
+#define CANSR_RBS1 (0x1 << 0)
+#define CANSR_DOS1 (0x1 << 1)
+#define CANSR_TBS1 (0x1 << 2)
+#define CANSR_TCS1 (0x1 << 3)
+#define CANSR_RS1  (0x1 << 4)
+#define CANSR_TS1  (0x1 << 5)
+#define CANSR_ES1  (0x1 << 6)
+#define CANSR_BS1  (0x1 << 7)
+#define CANSR_RBS2 (0x1 << 8)
+#define CANSR_DOS2 (0x1 << 9)
+#define CANSR_TBS2 (0x1 << 10)
+#define CANSR_TCS2 (0x1 << 11)
+#define CANSR_RS2  (0x1 << 12)
+#define CANSR_TS2  (0x1 << 13)
+#define CANSR_ES2  (0x1 << 14)
+#define CANSR_BS2  (0x1 << 15)
+#define CANSR_RBS3 (0x1 << 16)
+#define CANSR_DOS3 (0x1 << 17)
+#define CANSR_TBS3 (0x1 << 18)
+#define CANSR_TCS3 (0x1 << 19)
+#define CANSR_RS3  (0x1 << 20)
+#define CANSR_TS3  (0x1 << 21)
+#define CANSR_ES3  (0x1 << 22)
+#define CANSR_BS3  (0x1 << 23)
 
 /* CAN Receive Frame Status register (CAN1RFS - 0x4004 4020, CAN2RFS - 0x4004 8020) */
-#define CANnRFS_ID_Index (0x3FF << 0)
-#define CANnRFS_BP       (0x1 << 10)
-#define CANnRFS_DLC      (0xF << 16)
-#define CANnRFS_RTR      (0x1 << 30)
-#define CANnRFS_FF       (0x1 << 31)
+#define CANRFS_ID_Index (0x3FF << 0)
+#define CANRFS_BP       (0x1 << 10)
+#define CANRFS_DLC      (0xF << 16)
+#define CANRFS_RTR      (0x1 << 30)
+#define CANRFS_FF       (0x1 << 31)
 
 /* skipped CAN Receive Identifier register (CAN1RID - 0x4004 4024, CAN2RID - 0x4004 8024) */
 
 /* CAN Receive Data register A (CAN1RDA - 0x4004 4028, CAN2RDA - 0x4004 8028) */
-#define CANnRDA_Data_1 (0xFF << 0)
-#define CANnRDA_Data_2 (0xFF << 8)
-#define CANnRDA_Data_3 (0xFF << 16)
-#define CANnRDA_Data_4 (0xFF << 24)
+#define CANRDA_Data_1 (0xFF << 0)
+#define CANRDA_Data_2 (0xFF << 8)
+#define CANRDA_Data_3 (0xFF << 16)
+#define CANRDA_Data_4 (0xFF << 24)
 
 /* CAN Receive Data register B (CAN1RDB - 0x4004 402C, CAN2RDB - 0x4004 802C) */
-#define CANnRDB_Data_5 (0xFF << 0)
-#define CANnRDB_Data_6 (0xFF << 8)
-#define CANnRDB_Data_7 (0xFF << 16)
-#define CANnRDB_Data_8 (0xFF << 24)
+#define CANRDB_Data_5 (0xFF << 0)
+#define CANRDB_Data_6 (0xFF << 8)
+#define CANRDB_Data_7 (0xFF << 16)
+#define CANRDB_Data_8 (0xFF << 24)
 
 /* CAN Transmit Frame Information register (CAN1TFI[1/2/3] - 0x4004 40[30/ 40/50], CAN2TFI[1/2/3] - 0x4004 80[30/40/50]) */
-#define CANnTFIm_PRIO (0xFF << 0)
-#define CANnTFIm_DLC  (0xF << 16)
-#define CANnTFIm_RTR  (0x1 << 30)
-#define CANnTFIm_FF   (0x1 << 31)
+#define CANTFIm_PRIO (0xFF << 0)
+#define CANTFIm_DLC  (0xF << 16)
+#define CANTFIm_RTR  (0x1 << 30)
+#define CANTFIm_FF   (0x1 << 31)
 
 /* skipped CAN Transmit Identifier register (CAN1TID[1/2/3] - 0x4004 40[34/44/54], CAN2TID[1/2/3] - 0x4004 80[34/44/54]) */
 
 /* CAN Transmit Data register A (CAN1TDA[1/2/3] - 0x4004 40[38/48/58], CAN2TDA[1/2/3] - 0x4004 80[38/48/58]) */
-#define CANnTDAm_Data_1 (0xFF << 0)
-#define CANnTDAm_Data_2 (0xFF << 8)
-#define CANnTDAm_Data_3 (0xFF << 16)
-#define CANnTDAm_Data_4 (0xFF << 24)
+#define CANTDAm_Data_1 (0xFF << 0)
+#define CANTDAm_Data_2 (0xFF << 8)
+#define CANTDAm_Data_3 (0xFF << 16)
+#define CANTDAm_Data_4 (0xFF << 24)
 
 /* CAN Transmit Data register B (CAN1TDB[1/2/3] - 0x4004 40[3C/4C/5C], CAN2TDB[1/2/3] - 0x4004 80[3C/4C/5C]) */
-#define CANnTDBm_Data_5 (0xFF << 0)
-#define CANnTDBm_Data_6 (0xFF << 8)
-#define CANnTDBm_Data_7 (0xFF << 16)
-#define CANnTDBm_Data_8 (0xFF << 24)
+#define CANTDBm_Data_5 (0xFF << 0)
+#define CANTDBm_Data_6 (0xFF << 8)
+#define CANTDBm_Data_7 (0xFF << 16)
+#define CANTDBm_Data_8 (0xFF << 24)
 
 /* CAN Sleep Clear register (CANSLEEPCLR - 0x400F C110) */
 #define CANSLEEPCLR_CAN1SLEEP (0x1 << 1)
@@ -2460,54 +2460,54 @@
 #define SSP1DMACR LPC17_REG(0x40030024) /* DMACR DMA Control Register */
 
 /* SSPn Control Register 0 (SSP0CR0 - 0x4008 8000, SSP1CR0 - 0x4003 0000) */
-#define SSPnCR0_DSS  (0xF << 0)
-#define SSPnCR0_FRF  (0x3 << 4)
-#define SSPnCR0_CPOL (0x1 << 6)
-#define SSPnCR0_CPHA (0x1 << 7)
-#define SSPnCR0_SCR  (0xFF << 8)
+#define SSPCR0_DSS  (0xF << 0)
+#define SSPCR0_FRF  (0x3 << 4)
+#define SSPCR0_CPOL (0x1 << 6)
+#define SSPCR0_CPHA (0x1 << 7)
+#define SSPCR0_SCR  (0xFF << 8)
 
 /* SSPn Control Register 1 (SSP0CR1 - 0x4008 8004, SSP1CR1 - 0x4003 0004) */
-#define SSPnCR1_LBM (0x1 << 0)
-#define SSPnCR1_SSE (0x1 << 1)
-#define SSPnCR1_MS  (0x1 << 2)
-#define SSPnCR1_SOD (0x1 << 3)
+#define SSPCR1_LBM (0x1 << 0)
+#define SSPCR1_SSE (0x1 << 1)
+#define SSPCR1_MS  (0x1 << 2)
+#define SSPCR1_SOD (0x1 << 3)
 
 /* skipped SSPn Data Register (SSP0DR - 0x4008 8008, SSP1DR - 0x4003 0008) */
 
 /* SSPn Status Register (SSP0SR - 0x4008 800C, SSP1SR - 0x4003 000C) */
-#define SSPnSR_TFE (0x1 << 0)
-#define SSPnSR_TNF (0x1 << 1)
-#define SSPnSR_RNE (0x1 << 2)
-#define SSPnSR_RFF (0x1 << 3)
-#define SSPnSR_BSY (0x1 << 4)
+#define SSPSR_TFE (0x1 << 0)
+#define SSPSR_TNF (0x1 << 1)
+#define SSPSR_RNE (0x1 << 2)
+#define SSPSR_RFF (0x1 << 3)
+#define SSPSR_BSY (0x1 << 4)
 
 /* skipped SSPn Clock Prescale Register (SSP0CPSR - 0x4008 8010, SSP1CPSR - 0x4003 0010) */
 
 /* SSPn Interrupt Mask Set/Clear Register (SSP0IMSC - 0x4008 8014, SSP1IMSC - 0x4003 0014) */
-#define SSPnIMSC_RORIM (0x1 << 0)
-#define SSPnIMSC_RTIM  (0x1 << 1)
-#define SSPnIMSC_RXIM  (0x1 << 2)
-#define SSPnIMSC_TXIM  (0x1 << 3)
+#define SSPIMSC_RORIM (0x1 << 0)
+#define SSPIMSC_RTIM  (0x1 << 1)
+#define SSPIMSC_RXIM  (0x1 << 2)
+#define SSPIMSC_TXIM  (0x1 << 3)
 
 /* SSPn Raw Interrupt Status Register (SSP0RIS - 0x4008 8018, SSP1RIS - 0x4003 0018) */
-#define SSPnRIS_RORRIS (0x1 << 0)
-#define SSPnRIS_RTRIS  (0x1 << 1)
-#define SSPnRIS_RXRIS  (0x1 << 2)
-#define SSPnRIS_TXRIS  (0x1 << 3)
+#define SSPRIS_RORRIS (0x1 << 0)
+#define SSPRIS_RTRIS  (0x1 << 1)
+#define SSPRIS_RXRIS  (0x1 << 2)
+#define SSPRIS_TXRIS  (0x1 << 3)
 
 /* SSPn Masked Interrupt Status Register (SSP0MIS - 0x4008 801C, SSP1MIS - 0x4003 001C) */
-#define SSPnMIS_RORMIS (0x1 << 0)
-#define SSPnMIS_RTMIS  (0x1 << 1)
-#define SSPnMIS_RXMIS  (0x1 << 2)
-#define SSPnMIS_TXMIS  (0x1 << 3)
+#define SSPMIS_RORMIS (0x1 << 0)
+#define SSPMIS_RTMIS  (0x1 << 1)
+#define SSPMIS_RXMIS  (0x1 << 2)
+#define SSPMIS_TXMIS  (0x1 << 3)
 
 /* SSPn Interrupt Clear Register (SSP0ICR - 0x4008 8020, SSP1ICR - 0x4003 0020) */
-#define SSPnICR_RORIC (0x1 << 0)
-#define SSPnICR_RTIC  (0x1 << 1)
+#define SSPICR_RORIC (0x1 << 0)
+#define SSPICR_RTIC  (0x1 << 1)
 
 /* SSPn DMA Control Register (SSP0DMACR - 0x4008 8024, SSP1DMACR - 0x4003 0024) */
-#define SSPnDMACR_RXDMAE (0x1 << 0)
-#define SSPnDMACR_TXDMAE (0x1 << 1)
+#define SSPDMACR_RXDMAE (0x1 << 0)
+#define SSPDMACR_TXDMAE (0x1 << 1)
 
 
 /* I2C registers */
@@ -2772,20 +2772,20 @@
 #define T3CTCR LPC17_REG(0x40094070) /* CTCR Count Control Register */
 
 /* Interrupt Register (T[0/1/2/3]IR - 0x4000 4000, 0x4000 8000, 0x4009 0000, 0x4009 4000) */
-#define TnIR_MR0_Interrupt (0x1 << 0)
-#define TnIR_MR1_Interrupt (0x1 << 1)
-#define TnIR_MR2 Interrupt (0x1 << 2)
-#define TnIR_MR3_Interrupt (0x1 << 3)
-#define TnIR_CR0_Interrupt (0x1 << 4)
-#define TnIR_CR1_Interrupt (0x1 << 5)
+#define TIR_MR0_Interrupt (0x1 << 0)
+#define TIR_MR1_Interrupt (0x1 << 1)
+#define TIR_MR2 Interrupt (0x1 << 2)
+#define TIR_MR3_Interrupt (0x1 << 3)
+#define TIR_CR0_Interrupt (0x1 << 4)
+#define TIR_CR1_Interrupt (0x1 << 5)
 
 /* Timer Control Register (T[0/1/2/3]CR - 0x4000 4004, 0x4000 8004, 0x4009 0004, 0x4009 4004) */
-#define TnTCR_Counter_Enable (0x1 << 0)
-#define TnTCR_Counter_Reset  (0x1 << 1)
+#define TCR_Counter_Enable (0x1 << 0)
+#define TCR_Counter_Reset  (0x1 << 1)
 
 /* Count Control Register (T[0/1/2/3]CTCR - 0x4000 4070, 0x4000 8070, 0x4009 0070, 0x4009 4070) */
-#define TnCTCR_Counter_Timer_Mode (0x3 << 0)
-#define TnCTCR_Count_Input_Select (0x3 << 2)
+#define TCTCR_Counter_Timer_Mode (0x3 << 0)
+#define TCTCR_Count_Input_Select (0x3 << 2)
 
 /*
  * skipped:
@@ -2797,38 +2797,38 @@
  */
 
 /* Match Control Register (T[0/1/2/3]MCR - 0x4000 4014, 0x4000 8014, 0x4009 0014, 0x4009 4014) */
-#define TnMCR_MR0I (0x1 << 0)
-#define TnMCR_MR0R (0x1 << 1)
-#define TnMCR_MR0S (0x1 << 2)
-#define TnMCR_MR1I (0x1 << 3)
-#define TnMCR_MR1R (0x1 << 4)
-#define TnMCR_MR1S (0x1 << 5)
-#define TnMCR_MR2I (0x1 << 6)
-#define TnMCR_MR2R (0x1 << 7)
-#define TnMCR_MR2S (0x1 << 8)
-#define TnMCR_MR3I (0x1 << 9)
-#define TnMCR_MR3R (0x1 << 10)
-#define TnMCR_MR3S (0x1 << 11)
+#define TMCR_MR0I (0x1 << 0)
+#define TMCR_MR0R (0x1 << 1)
+#define TMCR_MR0S (0x1 << 2)
+#define TMCR_MR1I (0x1 << 3)
+#define TMCR_MR1R (0x1 << 4)
+#define TMCR_MR1S (0x1 << 5)
+#define TMCR_MR2I (0x1 << 6)
+#define TMCR_MR2R (0x1 << 7)
+#define TMCR_MR2S (0x1 << 8)
+#define TMCR_MR3I (0x1 << 9)
+#define TMCR_MR3R (0x1 << 10)
+#define TMCR_MR3S (0x1 << 11)
 
 /* skipped Capture Registers (CR0 - CR1) */
 
 /* Capture Control Register (T[0/1/2/3]CCR - 0x4000 4028, 0x4000 8028, 0x4009 0028, 0x4009 4028) */
-#define TnCCR_CAP0RE (0x1 << 0)
-#define TnCCR_CAP0FE (0x1 << 1)
-#define TnCCR_CAP0I  (0x1 << 2)
-#define TnCCR_CAP1RE (0x1 << 3)
-#define TnCCR_CAP1FE (0x1 << 4)
-#define TnCCR_CAP1I  (0x1 << 5)
+#define TCCR_CAP0RE (0x1 << 0)
+#define TCCR_CAP0FE (0x1 << 1)
+#define TCCR_CAP0I  (0x1 << 2)
+#define TCCR_CAP1RE (0x1 << 3)
+#define TCCR_CAP1FE (0x1 << 4)
+#define TCCR_CAP1I  (0x1 << 5)
 
 /* External Match Register (T[0/1/2/3]EMR - 0x4000 403C, 0x4000 803C, 0x4009 003C, 0x4009 403C) */
-#define TnEMR_EM0  (0x1 << 0)
-#define TnEMR_EM1  (0x1 << 1)
-#define TnEMR_EM2  (0x1 << 2)
-#define TnEMR_EM3  (0x1 << 3)
-#define TnEMR_EMC0 (0x3 << 4)
-#define TnEMR_EMC1 (0x3 << 6)
-#define TnEMR_EMC2 (0x3 << 8)
-#define TnEMR_EMC3 (0x3 << 10)
+#define TEMR_EM0  (0x1 << 0)
+#define TEMR_EM1  (0x1 << 1)
+#define TEMR_EM2  (0x1 << 2)
+#define TEMR_EM3  (0x1 << 3)
+#define TEMR_EMC0 (0x3 << 4)
+#define TEMR_EMC1 (0x3 << 6)
+#define TEMR_EMC2 (0x3 << 8)
+#define TEMR_EMC3 (0x3 << 10)
 
 
 /* repetitive interrupt timer registers */
@@ -2904,20 +2904,20 @@
 #define PWM1CTCR LPC17_REG(0x40018070) /* CTCR Count Control Register */
 
 /* PWM Interrupt Register (PWM1IR - 0x4001 8000) */
-#define PWM1IR_PWMMR0 Interrupt  (0x1 << 0)
-#define PWM1IR_PWMMR1 Interrupt  (0x1 << 1)
-#define PWM1IR_PWMMR2 Interrupt  (0x1 << 2)
-#define PWM1IR_PWMMR3 Interrupt  (0x1 << 3)
-#define PWM1IR_PWMCAP0 Interrupt (0x1 << 4)
-#define PWM1IR_PWMCAP1 Interrupt (0x1 << 5)
-#define PWM1IR_PWMMR4 Interrupt  (0x1 << 8)
-#define PWM1IR_PWMMR5 Interrupt  (0x1 << 9)
-#define PWM1IR_PWMMR6 Interrupt  (0x1 << 10)
+#define PWM1IR_PWMMR0_Interrupt  (0x1 << 0)
+#define PWM1IR_PWMMR1_Interrupt  (0x1 << 1)
+#define PWM1IR_PWMMR2_Interrupt  (0x1 << 2)
+#define PWM1IR_PWMMR3_Interrupt  (0x1 << 3)
+#define PWM1IR_PWMCAP0_Interrupt (0x1 << 4)
+#define PWM1IR_PWMCAP1_Interrupt (0x1 << 5)
+#define PWM1IR_PWMMR4_Interrupt  (0x1 << 8)
+#define PWM1IR_PWMMR5_Interrupt  (0x1 << 9)
+#define PWM1IR_PWMMR6_Interrupt  (0x1 << 10)
 
 /* PWM Timer Control Register (PWM1TCR 0x4001 8004) */
-#define PWM1TCR_Counter Enable (0x1 << 0)
-#define PWM1TCR_Counter Reset  (0x1 << 1)
-#define PWM1TCR_PWM Enable     (0x1 << 3)
+#define PWM1TCR_Counter_Enable (0x1 << 0)
+#define PWM1TCR_Counter_Reset  (0x1 << 1)
+#define PWM1TCR_PWM_Enable     (0x1 << 3)
 
 /* PWM Count Control Register (PWM1CTCR - 0x4001 8070) */
 #define PWM1CTCR_Counter_Timer_Mode (0x3 << 0)
