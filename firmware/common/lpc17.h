@@ -28,6 +28,11 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
+
+#ifndef __LPC17_H
+#define __LPC17_H
+
+#include <stdint.h>
  
 #define LPC17_REG(a)   (*(volatile uint32_t *)(a))
 #define LPC17_REG8(a)  (*(volatile uint8_t *)(a))
@@ -3737,3 +3742,5 @@
 
 /* Flash Module Status Clear register (FMSTATCLR - 0x0x4008 4FE8) */
 #define FMSTATCLR_SIG_DONE_CLR (0x1 << 2)
+
+#endif /* __LPC17_H */

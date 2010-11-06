@@ -19,20 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ubertooth.h"
+#ifndef __UBERTOOTH_TYPES_H
+#define __UBERTOOTH_TYPES_H
 
-int main()
-{
-	gpio_init();
+#include <stdint.h>
 
-	while (1) {
-		USRLED_SET;
-		TXLED_SET;
-		RXLED_SET;
-		wait(1);
-		USRLED_CLR;
-		TXLED_CLR;
-		RXLED_CLR;
-		wait(1);
-	}
-}
+#define u8 uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
+
+#endif

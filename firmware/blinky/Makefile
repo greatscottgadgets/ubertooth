@@ -66,7 +66,8 @@ TARGET = blinky
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c \
-	LPC17xx_Interrupts.c
+	../common/LPC17xx_Interrupts.c \
+	../common/ubertooth.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 
@@ -94,13 +95,13 @@ OPT = 0
 DEBUG = dwarf-2 -g3
 
 # Linker Script for the current MCU
-LINKER_SCRIPT = LPC17xx_Linker_Script.ld
+LINKER_SCRIPT = ../common/LPC17xx_Linker_Script.ld
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS =
+EXTRAINCDIRS = ../common
 
 # Compiler flag to set the C Standard level.
 #     c89   = "ANSI" C
@@ -110,7 +111,7 @@ EXTRAINCDIRS =
 CSTANDARD = -std=gnu99
 
 # Place -D or -U options here for C sources
-CDEFS  = -DBOARD=BOARD_$(BOARD) $(COMPILE_OPTS)
+CDEFS  = -D$(BOARD) $(COMPILE_OPTS)
 
 # Place -D or -U options here for ASM sources
 ADEFS = 
