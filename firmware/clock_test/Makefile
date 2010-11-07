@@ -62,7 +62,7 @@ FORMAT = ihex
 OUTDIR = .
 
 # Target file name (without extension).
-TARGET = cc2400_test
+TARGET = clock_test
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c \
