@@ -1,0 +1,31 @@
+usb_test.c implements a USB serial (CDC) interface.  After flashing the
+Ubertooth board, unplug the board from USB and plug it in again.  A new USB
+device should be detected.  For example (on Linux):
+
+# dmesg
+
+[134437.193956] usb 8-1.2: New USB device found, idVendor=ffff, idProduct=0005
+[134437.193962] usb 8-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[134437.193969] usb 8-1.2: Product: Ubertooth Zero
+[134437.193974] usb 8-1.2: Manufacturer: Great Scott Gadgets
+[134437.193980] usb 8-1.2: SerialNumber: 00000001
+
+The USBLED should be illuminated at this point.
+
+Further testing of the USB serial interface can be done by attaching a USB
+serial driver to the device.  On Linux, you can do this by disconnecting the
+Ubertooth board (and any other USB serial devices) and then:
+
+# modprobe -r usbserial
+# modprobe usbserial vendor=0xffff product=0x0005
+
+Then connect the Ubertooth board.  You should now have a new USB serial port:
+
+# dmesg
+
+[135221.849162] usbserial_generic 8-1.2:1.1: generic converter detected
+[135221.849391] usb 8-1.2: generic converter now attached to ttyUSB1
+
+You can connect to this port (for example with minicom) and type some
+characters.  Each character should echo back to the screen, and USRLED should
+toggle on or off with each character typed.

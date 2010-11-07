@@ -42,10 +42,13 @@
 #define PIN_BTGR   (1 << 31) /* P1.31 */
 
 /* indicator LED control */
+#define USRLED     (FIO0PIN & PIN_USRLED)
 #define USRLED_SET (FIO0SET = PIN_USRLED)
 #define USRLED_CLR (FIO0CLR = PIN_USRLED)
+#define RXLED      (FIO4PIN & PIN_RXLED)
 #define RXLED_SET  (FIO4SET = PIN_RXLED)
 #define RXLED_CLR  (FIO4CLR = PIN_RXLED)
+#define TXLED      (FIO4PIN & PIN_TXLED)
 #define TXLED_SET  (FIO4SET = PIN_TXLED)
 #define TXLED_CLR  (FIO4CLR = PIN_TXLED)
 

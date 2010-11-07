@@ -65,14 +65,14 @@ void gpio_init()
 }
 
 /*
- * Every application that uses both USB and the CC2400 should start with this.
+ * Every application that uses the main oscillator (including any that use both
+ * USB and the CC2400) should start with this.
  */
 void ubertooth_init()
 {
 	gpio_init();
 	cc2400_init();
 	clock_start();
-	//FIXME usb setup
 }
 
 void atest_init()
