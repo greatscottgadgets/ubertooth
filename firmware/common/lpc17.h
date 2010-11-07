@@ -115,7 +115,7 @@
 /* Clock Source Select register (CLKSRCSEL - 0x400F C10C) */
 #define CLKSRCSEL_CLKSRC (0x3 << 4)
 
-/* PLL1 Control register (PLL0CON - 0x400F C080) */
+/* PLL0 Control register (PLL0CON - 0x400F C080) */
 #define PLL0CON_PLLE0 (0x1 << 0)
 #define PLL0CON_PLLC0 (0x1 << 1)
 
@@ -130,7 +130,8 @@
 #define PLL0STAT_PLLC0_STAT (0x1 << 25)
 #define PLL0STAT_PLOCK0     (0x1 << 26)
 
-/* skipped PLL0 Feed register (PLL0FEED - 0x400F C08C) */
+/* PLL0 Feed register (PLL0FEED - 0x400F C08C) */
+#define PLL0FEED_SEQUENCE PLL0FEED = 0xAA; PLL0FEED = 0x55
 
 /* PLL1 Control register (PLL1CON - 0x400F C0A0)  */
 #define PLL1CON_PLLE1 (0x1 << 0)
@@ -148,7 +149,7 @@
 #define PLL1STAT_PLOCK1     (0x1 << 10)
 
 /* PLL1 Feed register (PLL1FEED - 0x400F C0AC) */
-#define PLL1FEED_PLL1FEED (0xFF << 0)
+#define PLL1FEED_SEQUENCE PLL1FEED = 0xAA; PLL1FEED = 0x55;
 
 /* CPU Clock Configuration register (CCLKCFG - 0x400F C104) */
 #define CCLKCFG_CCLKSEL (0xFF << 0)

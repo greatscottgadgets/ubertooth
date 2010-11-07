@@ -72,6 +72,16 @@
 #define BTGR_CLR   (FIO1CLR = PIN_BTGR)
 #define MISO       (FIO1PIN & PIN_MISO)
 
+/* clock configuration */
+#define CCLKSEL 3 /* CPU clock is PLL0 divided by four */
+#define MSEL0 24
+#define NSEL0 1
+#define MSEL1 34
+#define PSEL1 0
+
+/* flash accelerator configuration */
+#define FLASHTIM 0x4 /* up to 100 MHz CPU clock */
+
 void wait(u8 seconds);
 void gpio_init();
 void ubertooth_init();
@@ -83,5 +93,6 @@ void cc2400_set(u8 reg, u32 val);
 u8 cc2400_status();
 u8 cc2400_strobe(u8 reg);
 void cc2400_reset();
+void clock_start();
 
 #endif /* __UBERTOOTH_H */

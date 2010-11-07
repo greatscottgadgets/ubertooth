@@ -1,0 +1,5 @@
+clock_test.c powers up the CC2400 wireless transceiver, activates its
+oscillator, turns on the CC2400's clock output, and switches the LPC175x
+oscillator to this clock source.
+
+On success USRLED flashes faster than once per second.

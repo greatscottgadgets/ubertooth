@@ -29,8 +29,11 @@ int main()
 	cc2400_init();
 	RXLED_SET;
 
-	while (cc2400_get(AGCCTRL) != 0xf700);
-	USRLED_SET;
-
-	while (1);
+	clock_start();
+	while (1) {
+		USRLED_SET;
+		wait(2);
+		USRLED_CLR;
+		wait(2);
+	}
 }

@@ -70,8 +70,8 @@ void gpio_init()
 void ubertooth_init()
 {
 	gpio_init();
-	//FIXME cc2400_init();
-	//FIXME clock setup
+	cc2400_init();
+	clock_start();
 	//FIXME usb setup
 }
 
@@ -189,15 +189,95 @@ u8 cc2400_strobe(u8 reg)
 	return cc2400_spi(8, reg);
 }
 
+/*
+ * Warning: This should only be called when running on the internal oscillator.
+ * Otherwise use clock_start().
+ */
 void cc2400_reset()
 {
-	//FIXME handle clock
 	cc2400_set(MAIN, 0x0000);
 	while (cc2400_get(MAIN) != 0x0000);
 	cc2400_set(MAIN, 0x8000);
 	while (cc2400_get(MAIN) != 0x8000);
 }
 
-//FIXME clock setup
+/* activate the CC2400's 16 MHz oscillator and sync LPC175x to it */
+void clock_start()
+{
+	/* configure flash accelerator for higher clock rate */
+	FLASHCFG = (0x03A | (FLASHTIM << 12));
+
+	/* switch to the internal oscillator if necessary */
+	CLKSRCSEL = 0;
+
+	/* disconnect PLL0 */
+	PLL0CON &= ~PLL0CON_PLLC0;
+	PLL0FEED_SEQUENCE;
+	while (PLL0STAT & PLL0STAT_PLLC0_STAT);
+
+	/* turn off PLL0 */
+	PLL0CON &= ~PLL0CON_PLLE0;
+	PLL0FEED_SEQUENCE;
+	while (PLL0STAT & PLL0STAT_PLLE0_STAT);
+
+	/* temporarily set CPU clock divider to 1 */
+	CCLKCFG = 0;
+
+	/* configure CC2400 oscillator */
+	cc2400_reset();
+	cc2400_set(IOCFG, (GIO_ZERO << 9) | (GIO_CLK_16M << 3));
+	cc2400_strobe(SXOSCON);
+	while (!(cc2400_status() & XOSC16M_STABLE));
+
+	/* activate main oscillator */
+	SCS = SCS_OSCEN;
+	while (!(SCS & SCS_OSCSTAT));
+
+	/*
+	 * errata sheet says we must select peripheral clock before enabling and
+	 * connecting PLL0
+ 	 */
+	PCLKSEL0  = 0;
+	PCLKSEL1  = 0;
+
+	/* switch to main oscillator */
+	CLKSRCSEL = 1;
+
+	/* configure PLL0 */
+	PLL0CFG = (MSEL0 << 0) | (NSEL0 << 16);
+	PLL0FEED_SEQUENCE;
+
+	/* turn on PLL0 */
+	PLL0CON |= PLL0CON_PLLE0;
+	PLL0FEED_SEQUENCE;
+	while (!(PLL0STAT & PLL0STAT_PLLE0_STAT));
+
+	/* set CPU clock divider */
+	CCLKCFG = CCLKSEL;
+
+	/* connect PLL0 */
+	PLL0CON |= PLL0CON_PLLC0;
+	PLL0FEED_SEQUENCE;
+	while (!(PLL0STAT & PLL0STAT_PLLC0_STAT));
+
+	/* configure PLL1 */
+	PLL1CFG = (MSEL1 << 0) | (PSEL1 << 5);
+	PLL1FEED_SEQUENCE;
+
+	/* turn on PLL1 */
+	PLL1CON |= PLL1CON_PLLE1;
+	PLL1FEED_SEQUENCE;
+	while (!(PLL1STAT & PLL1STAT_PLLE1_STAT));
+	while (!(PLL1STAT & PLL1STAT_PLOCK1));
+
+	/* connect PLL1 */
+	PLL1CON |= PLL1CON_PLLC1;
+	PLL1FEED_SEQUENCE;
+	while (!(PLL1STAT & PLL1STAT_PLLC1_STAT));
+
+	//FIXME
+	PCONP = 0x042887DE;        /* Power Control for Peripherals      */
+}
+
 //FIXME ssp
 //FIXME tx/rx
