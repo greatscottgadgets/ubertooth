@@ -274,9 +274,6 @@ void clock_start()
 	PLL1CON |= PLL1CON_PLLC1;
 	PLL1FEED_SEQUENCE;
 	while (!(PLL1STAT & PLL1STAT_PLLC1_STAT));
-
-	//FIXME
-	PCONP = 0x042887DE;        /* Power Control for Peripherals      */
 }
 
 //FIXME ssp
