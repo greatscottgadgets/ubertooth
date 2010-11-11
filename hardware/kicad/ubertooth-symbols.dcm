@@ -1,3 +1,7 @@
-EESchema-DOCLIB  Version 2.0  Date: Thu Nov  4 21:21:09 2010
+EESchema-DOCLIB  Version 2.0  Date: Thu Nov 11 08:18:56 2010
+#
+$CMP IP4221CZ6
+D Dual USB 2.0 integrated quad with ESD protection
+$ENDCMP
 #
 #End Doc Library
