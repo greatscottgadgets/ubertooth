@@ -37,7 +37,7 @@ $Descr User 17000 11000
 Sheet 1 1
 Title "Ubertooth One"
 Date "11 nov 2010"
-Rev "$Rev: $ "
+Rev "$Rev$ "
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
 Comment2 ""
