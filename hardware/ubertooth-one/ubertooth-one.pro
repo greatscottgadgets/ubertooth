@@ -1,5 +1,5 @@
-update=Wed Nov  3 22:41:00 2010
-last_client=eeschema
+update=Thu Nov 11 12:28:18 2010
+last_client=pcbnew
 [general]
 version=1
 [eeschema]
@@ -69,3 +69,33 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
+[pcbnew]
+version=1
+PadDrlX=320
+PadDimH=600
+PadDimV=600
+BoardThickness=630
+SgPcb45=1
+TxtPcbV=800
+TxtPcbH=600
+TxtModV=600
+TxtModH=600
+TxtModW=120
+VEgarde=100
+DrawLar=150
+EdgeLar=150
+TxtLar=120
+MSegLar=150
+LastNetListRead=
+[pcbnew/libraries]
+LibDir=
+LibName1=sockets
+LibName2=connect
+LibName3=discret
+LibName4=pin_array
+LibName5=divers
+LibName6=libcms
+LibName7=display
+LibName8=valves
+LibName9=led
+LibName10=dip_sockets
