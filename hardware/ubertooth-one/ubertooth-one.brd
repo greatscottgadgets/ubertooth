@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Thu Nov 11 12:28:15 2010
+PCBNEW-BOARD Version 1 date Fri Nov 12 07:46:43 2010
 
 # Created by Pcbnew(2010-04-21 BZR 23xx)-stable
 
@@ -20,7 +20,7 @@ $EndGENERAL
 $SHEETDESCR
 Sheet A4 11700 8267
 Title "Ubertooth One"
-Date "11 nov 2010"
+Date "12 nov 2010"
 Rev "$Rev: $"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -39,8 +39,8 @@ TrackWidth 80
 TrackClearence 100
 ZoneClearence 200
 TrackMinWidth 80
-DrawSegmWidth 150
-EdgeSegmWidth 150
+DrawSegmWidth 80
+EdgeSegmWidth 80
 ViaSize 350
 ViaDrill 250
 ViaMinSize 350
@@ -50,14 +50,14 @@ MicroViaDrill 50
 MicroViasAllowed 0
 MicroViaMinSize 200
 MicroViaMinDrill 50
-TextPcbWidth 120
-TextPcbSize 600 800
-EdgeModWidth 150
-TextModSize 600 600
-TextModWidth 120
-PadSize 600 600
-PadDrill 320
-Pad2MaskClearance 100
+TextPcbWidth 80
+TextPcbSize 394 394
+EdgeModWidth 80
+TextModSize 394 394
+TextModWidth 80
+PadSize 1575 591
+PadDrill 0
+Pad2MaskClearance 40
 AuxiliaryAxisOrg 0 0
 $EndSETUP
 

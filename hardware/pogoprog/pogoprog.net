@@ -1,0 +1,144 @@
+# EESchema Netlist Version 1.1 created  Fri Nov 12 16:20:43 2010
+(
+ ( /4CDDA7E7 SM0603 C1 100nF
+  ( 1 3V3 )
+  ( 2 GND )
+ )
+ ( /4CDDB3EB SM1206POL C2 10μF
+  ( 1 /VBUS )
+  ( 2 GND )
+ )
+ ( /4CDDB263 SM0603 C3 100nF
+  ( 1 /VBUS )
+  ( 2 GND )
+ )
+ ( /4CDDA608 LED-0603 D1 TXLED
+  ( 1 N-000019 )
+  ( 2 N-000020 )
+ )
+ ( /4CDDA621 LED-0603 D2 RXLED
+  ( 1 N-000017 )
+  ( 2 N-000018 )
+ )
+ ( /4CDDCB6A USB-KOBICONN-154-15320-E J1 USB-MINI-B
+  ( 1 /VBUS )
+  ( 2 N-000026 )
+  ( 3 N-000023 )
+  ( 4 ? )
+  ( 5 GND )
+ )
+ ( /4CDDAFDF POGOPIN-6 P1 CONN_6
+  ( 1 GND )
+  ( 2 N-000003 )
+  ( 3 N-000024 )
+  ( 4 N-000004 )
+  ( 5 N-000022 )
+  ( 6 N-000005 )
+ )
+ ( /4CDDB0FC SM0603 R1 DNP
+  ( 1 N-000024 )
+  ( 2 3V3 )
+ )
+ ( /4CDDB10B SM0603 R2 DNP
+  ( 1 /VBUS )
+  ( 2 N-000024 )
+ )
+ ( /4CDDA629 SM0603 R3 330
+  ( 1 3V3 )
+  ( 2 N-000019 )
+ )
+ ( /4CDDA631 SM0603 R4 330
+  ( 1 3V3 )
+  ( 2 N-000017 )
+ )
+ ( /4CDDA5D6 SSOP28 U1 FT232RL
+  ( 1 N-000004 )
+  ( 2 N-000003 )
+  ( 3 N-000005 )
+  ( 4 3V3 )
+  ( 5 N-000022 )
+  ( 6 ? )
+  ( 7 GND )
+  ( 8 ? )
+  ( 9 ? )
+  ( 10 ? )
+  ( 11 ? )
+  ( 12 ? )
+  ( 13 ? )
+  ( 14 ? )
+  ( 15 N-000023 )
+  ( 16 N-000026 )
+  ( 17 3V3 )
+  ( 18 GND )
+  ( 19 ? )
+  ( 20 /VBUS )
+  ( 21 GND )
+  ( 22 N-000018 )
+  ( 23 N-000020 )
+  ( 24 ? )
+  ( 25 GND )
+  ( 26 GND )
+  ( 27 ? )
+  ( 28 ? )
+ )
+)
+*
+{ Allowed footprints by component:
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$component C2
+ CP*
+ SM*
+$endlist
+$component C3
+ SM*
+ C?
+ C1-1
+$endlist
+$component D1
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D2
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$endfootprintlist
+}
