@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri Nov 12 21:16:20 2010
+EESchema Schematic File Version 2  date Sat Nov 13 09:45:15 2010
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -36,7 +36,7 @@ EELAYER END
 $Descr A4 11700 8267
 Sheet 1 1
 Title "Ubertooth Pogoprog"
-Date "12 nov 2010"
+Date "13 nov 2010"
 Rev "$Rev$"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -44,6 +44,24 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+Text Label 4100 3250 1    40   ~ 0
+VOUT
+Text Label 6450 4500 0    40   ~ 0
+D+
+Text Label 6450 4400 0    40   ~ 0
+D-
+Text Label 6450 3800 0    40   ~ 0
+RXLED
+Text Label 6450 3700 0    40   ~ 0
+TXLED
+Text Label 5050 3600 0    40   ~ 0
+RXD
+Text Label 5050 3400 0    40   ~ 0
+RTS
+Text Label 5050 3300 0    40   ~ 0
+DTR
+Text Label 5050 3200 0    40   ~ 0
+TXD
 NoConn ~ 6400 5150
 $Comp
 L USB-MINI-B J1
