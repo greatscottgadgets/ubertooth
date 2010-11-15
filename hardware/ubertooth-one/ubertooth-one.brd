@@ -21,7 +21,7 @@ $SHEETDESCR
 Sheet User 6000 4000
 Title "Ubertooth One"
 Date "15 nov 2010"
-Rev "$Rev: $"
+Rev "$Rev$"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
 Comment2 ""
@@ -4604,7 +4604,7 @@ Po 295 295
 $EndPAD
 $EndMODULE  VQFN16
 $TEXTPCB
-Te "$Rev: $"
+Te "$Rev$"
 Po 30748 16319 500 600 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
