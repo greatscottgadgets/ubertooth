@@ -1,4 +1,4 @@
-update=Sat Nov 13 09:46:40 2010
+update=Mon Nov 15 10:20:25 2010
 version=1
 last_client=pcbnew
 [cvpcb]
@@ -82,9 +82,9 @@ LibName30=contrib
 LibName31=valves
 [pcbnew]
 version=1
-PadDrlX=0
-PadDimH=984
-PadDimV=787
+PadDrlX=355
+PadDimH=355
+PadDimV=355
 BoardThickness=630
 SgPcb45=1
 TxtPcbV=800
@@ -96,7 +96,7 @@ VEgarde=20
 DrawLar=150
 EdgeLar=150
 TxtLar=120
-MSegLar=150
+MSegLar=80
 LastNetListRead=pogoprog.net
 [pcbnew/libraries]
 LibDir=../kicad

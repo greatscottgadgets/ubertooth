@@ -1,4 +1,4 @@
-update=Fri Nov 12 07:46:45 2010
+update=Mon Nov 15 15:28:52 2010
 last_client=pcbnew
 [general]
 version=1
@@ -69,11 +69,16 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [pcbnew]
 version=1
-PadDrlX=0
-PadDimH=1575
-PadDimV=591
+PadDrlX=130
+PadDimH=197
+PadDimV=197
 BoardThickness=630
 SgPcb45=1
 TxtPcbV=394
@@ -86,7 +91,7 @@ DrawLar=80
 EdgeLar=80
 TxtLar=80
 MSegLar=80
-LastNetListRead=
+LastNetListRead=ubertooth-one.net
 [pcbnew/libraries]
 LibDir=../kicad
 LibName1=sockets
