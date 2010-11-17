@@ -65,7 +65,7 @@ FORMAT = ihex
 OUTDIR = .
 
 # Target file name (without extension).
-TARGET = usb_test
+TARGET = bt_simple
 
 # Library paths
 LIBS_PATH = ../common

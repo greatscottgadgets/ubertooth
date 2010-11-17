@@ -1,1 +1,7 @@
-This firmware does nothing useful yet.
+For testing a new board, the recommended sequence is:
+
+	1. blinky
+	2. cc2400_test
+	3. clock_test
+	4. usb_test
+	5. bt_simple

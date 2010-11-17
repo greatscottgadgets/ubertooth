@@ -40,6 +40,7 @@
 #define PIN_MISO   (1 << 14) /* P1.14 */
 #define PIN_GIO6   (1 << 15) /* P1.15 */
 #define PIN_BTGR   (1 << 31) /* P1.31 */
+#define PIN_SSEL0  (1 << 9 ) /* P2.9  */
 
 /* indicator LED control */
 #define USRLED     (FIO0PIN & PIN_USRLED)
@@ -51,6 +52,10 @@
 #define TXLED      (FIO4PIN & PIN_TXLED)
 #define TXLED_SET  (FIO4SET = PIN_TXLED)
 #define TXLED_CLR  (FIO4CLR = PIN_TXLED)
+
+/* SSEL0 (SPI slave select) control */
+#define SSEL0_SET  (FIO2SET = PIN_SSEL0)
+#define SSEL0_CLR  (FIO2CLR = PIN_SSEL0)
 
 /* 1V8 regulator control */
 #define CC1V8_SET  (FIO1SET = PIN_CC1V8)
@@ -75,8 +80,14 @@
 #define BTGR_CLR   (FIO1CLR = PIN_BTGR)
 #define MISO       (FIO1PIN & PIN_MISO)
 
-/* clock configuration */
-#define CCLKSEL 3 /* CPU clock is PLL0 divided by four */
+/*
+ * clock configuration
+ *
+ * main oscillator:  16 MHz
+ * CPU clock (PLL0): 100 MHz
+ * USB clock (PLL1): 48 MHz
+ */
+#define CCLKSEL 3
 #define MSEL0 24
 #define NSEL0 1
 #define MSEL1 34
@@ -88,6 +99,7 @@
 void wait(u8 seconds);
 void gpio_init();
 void ubertooth_init();
+void ssp0_init();
 void atest_init();
 void cc2400_init();
 u32 cc2400_spi(u8 len, u32 data);

@@ -52,7 +52,7 @@ void gpio_init()
 	FIO0DIR = PIN_USRLED;
 	FIO1DIR = (PIN_CC3V3 | PIN_RX | PIN_TX | PIN_CSN |
 			PIN_SCLK | PIN_MOSI | PIN_CC1V8 | PIN_BTGR);
-	FIO2DIR = 0;
+	FIO2DIR = PIN_SSEL0;
 	FIO3DIR = 0;
 	FIO4DIR = (PIN_RXLED | PIN_TXLED);
 
@@ -73,6 +73,34 @@ void ubertooth_init()
 	gpio_init();
 	cc2400_init();
 	clock_start();
+}
+
+/* configure SSP0 for CC2400's secondary serial data interface */
+void ssp0_init()
+{
+	/* set P0.15 as SCK0 */
+	PINSEL0 = (PINSEL0 & ~(3 << 30)) | (2 << 30);
+
+	/* set P1.16 as SSEL0 */
+	PINSEL1 = (PINSEL1 & ~(3 << 0)) | (2 << 0);
+
+	/* set P1.17 as MISO0 */
+	PINSEL1 = (PINSEL1 & ~(3 << 2)) | (2 << 2);
+
+	/* set P1.18 as MOSI0 */
+	PINSEL1 = (PINSEL1 & ~(3 << 4)) | (2 << 4);
+
+	/*
+	 * P2.9 is a GPIO output connected directly to P1.16 (SSEL0).  Since the
+	 * CC2400 doesn't have a slave select output, we control it with this.
+	 * P2.9 should already be configured by gpio_init().  We set it high by
+	 * default because it is an active low signal.
+	 */
+	SSEL0_SET;
+
+	/* configure SSP0 */
+	SSP0CR0 = (0x7 /* 8 bit transfer */ | SSPCR0_CPOL | SSPCR0_CPHA);
+	SSP0CR1 = (SSPCR1_MS | SSPCR1_SOD);
 }
 
 void atest_init()
