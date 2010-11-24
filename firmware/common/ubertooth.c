@@ -265,7 +265,7 @@ void clock_start()
 	 * errata sheet says we must select peripheral clock before enabling and
 	 * connecting PLL0
  	 */
-	PCLKSEL0  = 0;
+	PCLKSEL0  = (2 << 2); /* TIMER0 at cclk/2 (50 MHz) */
 	PCLKSEL1  = 0;
 
 	/* switch to main oscillator */

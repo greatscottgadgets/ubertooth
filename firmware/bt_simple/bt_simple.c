@@ -127,7 +127,7 @@ static void dma_init()
 	rx_err = 0;
 }
 
-void DMA_IRQHandler (void)
+void DMA_IRQHandler()
 {
 	/* interrupt on channel 0 */
 	if (DMACIntStat & (1 << 0)) {
