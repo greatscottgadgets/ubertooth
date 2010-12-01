@@ -166,11 +166,12 @@ int dequeue()
 	u8 t = tail & 0xFF;
 
 	/* fail if queue is empty */
-	if (h == t)
+	if (h == t) {
+		USRLED_CLR;
 		return 0;
+	}
 
 	USBHwEPWrite(BULK_IN_EP, (u8 *)&fifo[h], sizeof(usb_pkt_rx));
-	USRLED_CLR;
 	++head;
 
 	return 1;
@@ -268,25 +269,9 @@ static u8 abVendorReqData[sizeof(ctrl_msg_t)];
 
 static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
 {
-	//if (!(bEPStatus & EP_STATUS_DATA))
-		//dequeue();
-	if (!(bEPStatus & EPSTAT_B1FULL))
-		dequeue();
-	if (!(bEPStatus & EPSTAT_B2FULL))
+	if (!(bEPStatus & EP_STATUS_DATA))
 		dequeue();
 }
-
-/*
-static void usb_frame_handler(u16 wFrame)
-{
-	//if (!(bEPStatus & EP_STATUS_DATA))
-		//dequeue();
-	if (!(bEPStatus & EPSTAT_B1FULL))
-		dequeue();
-	if (!(bEPStatus & EPSTAT_B2FULL))
-		dequeue();
-}
-*/
 
 static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
 {
@@ -326,12 +311,11 @@ int ubertooth_usb_init()
 	USBRegisterRequestHandler(REQTYPE_TYPE_VENDOR, usb_vendor_request_handler, abVendorReqData);
 
 	// register endpoints
-	USBHwRegisterEPIntHandler(BULK_IN_EP, usb_bulk_in_handler);
-	USBHwRegisterEPIntHandler(BULK_OUT_EP, usb_bulk_out_handler);
-	//USBHwRegisterFrameHandler(usb_frame_handler);
+	//USBHwRegisterEPIntHandler(BULK_IN_EP, usb_bulk_in_handler);
+	//USBHwRegisterEPIntHandler(BULK_OUT_EP, usb_bulk_out_handler);
 
 	// enable USB interrupts
-	ISER0 |= ISER0_ISE_USB;
+	//ISER0 |= ISER0_ISE_USB;
 	
 	// connect to bus
 	USBHwConnect(TRUE);
@@ -500,6 +484,7 @@ void cc2400_txtest()
 void bt_stream_rx()
 {
 	u8 *tmp = NULL;
+	u8 epstat;
 	int i;
 
 	RXLED_SET;
@@ -529,7 +514,15 @@ void bt_stream_rx()
 			else
 				status |= FIFO_OVERFLOW;
 		}
-		usb_bulk_in_handler(BULK_IN_EP, 0); //FIXME
+
+		/* send via USB */
+		epstat = USBHwEPGetStatus(BULK_IN_EP);
+		if (!(epstat & EPSTAT_B1FULL))
+			dequeue();
+		if (!(epstat & EPSTAT_B2FULL))
+			dequeue();
+		USBHwISR();
+
 		rx_tc = 0;
 		rx_err = 0;
 	}
@@ -542,9 +535,9 @@ int main()
 	ubertooth_init();
 	clkn_init();
 	ubertooth_usb_init();
-	USBHwNakIntEnable(INAK_BI);
 
 	while (1) {
+		USBHwISR();
 		if (rx_pkts)
 			bt_stream_rx();
 	}
