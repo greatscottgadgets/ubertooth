@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Tue Nov 30 22:02:09 2010
+PCBNEW-BOARD Version 1 date Tue Nov 30 22:06:17 2010
 
 # Created by Pcbnew(2010-04-21 BZR 23xx)-stable
 
@@ -9,7 +9,7 @@ EnabledLayers 1FFF8001
 Links 249
 NoConn 0
 Di 19959 11882 44279 21647
-Ndraw 15
+Ndraw 14
 Ntrack 1158
 Nzone 0
 BoardThickness 630
@@ -4682,11 +4682,6 @@ Ro 0.000000 0.000000 0.000000
 $EndSHAPE3D
 $EndMODULE  SM0603
 $TEXTPCB
-Te "1"
-Po 32421 19508 394 394 80 0
-De 20 0 0 Normal
-$EndTEXTPCB
-$TEXTPCB
 Te "http://ubertooth.sourceforge.net/"
 Po 27300 18400 394 630 80 0
 De 20 0 0 Normal
@@ -7078,7 +7073,7 @@ ZLayer 0
 ZAux 16 E
 ZClearance 70 T
 ZMinThickness 80
-ZOptions 0 16 F 80 160
+ZOptions 0 16 S 80 160
 ZCorner 42800 19850 0
 ZCorner 44050 18600 0
 ZCorner 44050 14050 0
@@ -8890,7 +8885,7 @@ ZLayer 15
 ZAux 14 E
 ZClearance 70 T
 ZMinThickness 80
-ZOptions 0 16 F 80 160
+ZOptions 0 16 S 80 160
 ZCorner 42800 19850 0
 ZCorner 44050 18600 0
 ZCorner 44050 14050 0
