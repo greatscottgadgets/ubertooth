@@ -82,6 +82,24 @@ u8 rxbuf2[DMA_SIZE];
 u8 *active_rxbuf = &rxbuf1[0];
 u8 *idle_rxbuf = &rxbuf2[0];
 
+enum ubertooth_usb_commands {
+	/* most of these are unimplemented */
+	UBERTOOTH_PING        = 0,
+	UBERTOOTH_RX_SYMBOLS  = 1,
+	UBERTOOTH_TX_SYMBOLS  = 2,
+	UBERTOOTH_GET_USRLED  = 3,
+	UBERTOOTH_SET_USRLED  = 4,
+	UBERTOOTH_GET_RXLED   = 5,
+	UBERTOOTH_SET_RXLED   = 6,
+	UBERTOOTH_GET_TXLED   = 7,
+	UBERTOOTH_SET_TXLED   = 8,
+	UBERTOOTH_GET_1V8     = 9,
+	UBERTOOTH_SET_1V8     = 10,
+	UBERTOOTH_GET_CHANNEL = 11,
+	UBERTOOTH_SET_CHANNEL = 12,
+	UBERTOOTH_RESET       = 13
+};
+
 /* DMA linked list items */
 typedef struct {
 	u32 src;
@@ -261,8 +279,7 @@ static const u8 abDescriptors[] = {
 };
 
 typedef struct {
-	u8 len;
-	u8 reserved[7];
+	u8 reserved[8];
 } ctrl_msg_t;
 
 static u8 abVendorReqData[sizeof(ctrl_msg_t)];
@@ -279,15 +296,14 @@ static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
 
 static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
 {
-	ctrl_msg_t *msg;
+	//ctrl_msg_t *msg;
 
-	msg = (ctrl_msg_t *)*ppbData;
+	//msg = (ctrl_msg_t *)*ppbData;
 
 	switch (pSetup->bRequest) {
 
-	/* RX command */
-	case 0x01:
-		rx_pkts += msg->len;
+	case UBERTOOTH_RX_SYMBOLS:
+		rx_pkts += pSetup->wValue;
 		if (rx_pkts == 0)
 			rx_pkts = 0xFFFFFFFF;
 		*piLen = 0;
