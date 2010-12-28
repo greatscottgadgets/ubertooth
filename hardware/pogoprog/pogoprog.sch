@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sat Nov 13 09:45:15 2010
+EESchema Schematic File Version 2  date Mon Dec 27 10:34:05 2010
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -36,7 +36,7 @@ EELAYER END
 $Descr A4 11700 8267
 Sheet 1 1
 Title "Ubertooth Pogoprog"
-Date "13 nov 2010"
+Date "27 dec 2010"
 Rev "$Rev$"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -44,43 +44,10 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-Text Label 4100 3250 1    40   ~ 0
-VOUT
-Text Label 6450 4500 0    40   ~ 0
-D+
-Text Label 6450 4400 0    40   ~ 0
-D-
-Text Label 6450 3800 0    40   ~ 0
-RXLED
-Text Label 6450 3700 0    40   ~ 0
-TXLED
-Text Label 5050 3600 0    40   ~ 0
-RXD
-Text Label 5050 3400 0    40   ~ 0
-RTS
-Text Label 5050 3300 0    40   ~ 0
-DTR
-Text Label 5050 3200 0    40   ~ 0
-TXD
-NoConn ~ 6400 5150
-$Comp
-L USB-MINI-B J1
-U 1 1 4CDDCB6A
-P 6500 5400
-F 0 "J1" H 6500 5700 60  0000 C CNN
-F 1 "USB-MINI-B" H 6500 5050 60  0000 C CNN
-	1    6500 5400
-	0    1    1    0   
-$EndComp
-$Comp
-L CP1 C2
-U 1 1 4CDDB3EB
-P 7250 4300
-F 0 "C2" H 7300 4400 50  0000 L CNN
-F 1 "10μF" H 7300 4200 50  0000 L CNN
-	1    7250 4300
-	1    0    0    -1  
-$EndComp
+Wire Wire Line
+	5100 3400 4000 3400
+Wire Wire Line
+	4000 3400 4000 3050
 Connection ~ 7550 4000
 Wire Wire Line
 	7550 4100 7550 4000
@@ -139,17 +106,9 @@ Wire Wire Line
 Wire Wire Line
 	5000 3800 5100 3800
 Wire Wire Line
-	4000 3050 4000 3300
-Wire Wire Line
-	4000 3300 5100 3300
-Wire Wire Line
 	4200 3050 4200 3200
 Wire Wire Line
 	4200 3200 5100 3200
-Wire Wire Line
-	4400 3050 4400 3400
-Wire Wire Line
-	4400 3400 5100 3400
 Wire Wire Line
 	7750 4000 6400 4000
 Wire Wire Line
@@ -170,6 +129,47 @@ Wire Wire Line
 Wire Wire Line
 	7250 4100 7250 4000
 Connection ~ 7250 4000
+Wire Wire Line
+	4400 3050 4400 3300
+Wire Wire Line
+	4400 3300 5100 3300
+Text Label 4100 3250 1    40   ~ 0
+VOUT
+Text Label 6450 4500 0    40   ~ 0
+D+
+Text Label 6450 4400 0    40   ~ 0
+D-
+Text Label 6450 3800 0    40   ~ 0
+RXLED
+Text Label 6450 3700 0    40   ~ 0
+TXLED
+Text Label 5050 3600 0    40   ~ 0
+RXD
+Text Label 5050 3400 0    40   ~ 0
+RTS
+Text Label 5050 3300 0    40   ~ 0
+DTR
+Text Label 5050 3200 0    40   ~ 0
+TXD
+NoConn ~ 6400 5150
+$Comp
+L USB-MINI-B J1
+U 1 1 4CDDCB6A
+P 6500 5400
+F 0 "J1" H 6500 5700 60  0000 C CNN
+F 1 "USB-MINI-B" H 6500 5050 60  0000 C CNN
+	1    6500 5400
+	0    1    1    0   
+$EndComp
+$Comp
+L CP1 C2
+U 1 1 4CDDB3EB
+P 7250 4300
+F 0 "C2" H 7300 4400 50  0000 L CNN
+F 1 "10μF" H 7300 4200 50  0000 L CNN
+	1    7250 4300
+	1    0    0    -1  
+$EndComp
 $Comp
 L GND #PWR01
 U 1 1 4CDDB287
