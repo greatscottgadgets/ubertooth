@@ -309,6 +309,34 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		*piLen = 0;
 		break;
 
+	case UBERTOOTH_SET_USRLED:
+		if (pSetup->wValue)
+			USRLED_SET;
+		else
+			USRLED_CLR;
+		break;
+
+	case UBERTOOTH_SET_RXLED:
+		if (pSetup->wValue)
+			RXLED_SET;
+		else
+			RXLED_CLR;
+		break;
+
+	case UBERTOOTH_SET_TXLED:
+		if (pSetup->wValue)
+			TXLED_SET;
+		else
+			TXLED_CLR;
+		break;
+
+	case UBERTOOTH_SET_1V8:
+		if (pSetup->wValue)
+			CC1V8_SET;
+		else
+			CC1V8_CLR;
+		break;
+
 	default:
 		return FALSE;
 	}
