@@ -83,10 +83,9 @@ u8 *active_rxbuf = &rxbuf1[0];
 u8 *idle_rxbuf = &rxbuf2[0];
 
 enum ubertooth_usb_commands {
-	/* most of these are unimplemented */
 	UBERTOOTH_PING        = 0,
 	UBERTOOTH_RX_SYMBOLS  = 1,
-	UBERTOOTH_TX_SYMBOLS  = 2,
+	UBERTOOTH_TX_SYMBOLS  = 2, /* not implemented */
 	UBERTOOTH_GET_USRLED  = 3,
 	UBERTOOTH_SET_USRLED  = 4,
 	UBERTOOTH_GET_RXLED   = 5,
@@ -95,9 +94,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_TXLED   = 8,
 	UBERTOOTH_GET_1V8     = 9,
 	UBERTOOTH_SET_1V8     = 10,
-	UBERTOOTH_GET_CHANNEL = 11,
-	UBERTOOTH_SET_CHANNEL = 12,
-	UBERTOOTH_RESET       = 13
+	UBERTOOTH_GET_CHANNEL = 11, /* not implemented */
+	UBERTOOTH_SET_CHANNEL = 12, /* not implemented */
+	UBERTOOTH_RESET       = 13 /* not implemented */
 };
 
 /* DMA linked list items */
@@ -297,17 +296,24 @@ static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
 
 static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
 {
-	//ctrl_msg_t *msg;
-
-	//msg = (ctrl_msg_t *)*ppbData;
+	u8 *pbData = *ppbData;
 
 	switch (pSetup->bRequest) {
+
+	case UBERTOOTH_PING:
+		*piLen = 0;
+		break;
 
 	case UBERTOOTH_RX_SYMBOLS:
 		rx_pkts += pSetup->wValue;
 		if (rx_pkts == 0)
 			rx_pkts = 0xFFFFFFFF;
 		*piLen = 0;
+		break;
+
+	case UBERTOOTH_GET_USRLED:
+		pbData[0] = (USRLED) ? 1 : 0;
+		*piLen = 1;
 		break;
 
 	case UBERTOOTH_SET_USRLED:
@@ -317,6 +323,11 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			USRLED_CLR;
 		break;
 
+	case UBERTOOTH_GET_RXLED:
+		pbData[0] = (RXLED) ? 1 : 0;
+		*piLen = 1;
+		break;
+
 	case UBERTOOTH_SET_RXLED:
 		if (pSetup->wValue)
 			RXLED_SET;
@@ -324,11 +335,21 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			RXLED_CLR;
 		break;
 
+	case UBERTOOTH_GET_TXLED:
+		pbData[0] = (TXLED) ? 1 : 0;
+		*piLen = 1;
+		break;
+
 	case UBERTOOTH_SET_TXLED:
 		if (pSetup->wValue)
 			TXLED_SET;
 		else
 			TXLED_CLR;
+		break;
+
+	case UBERTOOTH_GET_1V8:
+		pbData[0] = (CC1V8) ? 1 : 0;
+		*piLen = 1;
 		break;
 
 	case UBERTOOTH_SET_1V8:
