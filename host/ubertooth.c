@@ -117,13 +117,13 @@ static int stream_rx(int xfer_size, u16 num_blocks)
 	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
 			num_blocks, xfer_size);
 
-	send_cmd_rx_syms(xfer_blocks);
+	send_cmd_rx_syms(num_blocks);
 
 	while (num_xfers--) {
 		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
 				&transferred, TIMEOUT);
 		if (r < 0) {
-			printf("[Read] returned: %d , failed to read\n", r);
+			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
 			return -1;
 		}
 		if (transferred != xfer_size) {
