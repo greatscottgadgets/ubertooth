@@ -58,6 +58,7 @@
 #define SSEL0_CLR  (FIO2CLR = PIN_SSEL0)
 
 /* 1V8 regulator control */
+#define CC1V8      (FIO1PIN & PIN_CC1V8)
 #define CC1V8_SET  (FIO1SET = PIN_CC1V8)
 #define CC1V8_CLR  (FIO1CLR = PIN_CC1V8)
 
