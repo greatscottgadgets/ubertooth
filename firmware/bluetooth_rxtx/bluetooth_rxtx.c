@@ -50,6 +50,10 @@
 #include "usbapi.h"
 #include "usbhw_lpc.h"
 
+#define IAP_LOCATION 0x1FFF1FF1
+typedef void (*IAP)(u32[], u32[]);
+IAP iap_entry = (IAP)IAP_LOCATION;
+
 /*
  * CLK100NS is a free-running clock with a period of 100ns.  It resets every
  * 2^15 * 10^5 cycles (about 5.5 minutes) and is used to compute CLKN.
@@ -96,7 +100,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_1V8     = 10,
 	UBERTOOTH_GET_CHANNEL = 11, /* not implemented */
 	UBERTOOTH_SET_CHANNEL = 12, /* not implemented */
-	UBERTOOTH_RESET       = 13 /* not implemented */
+	UBERTOOTH_RESET       = 13, /* not implemented */
+	UBERTOOTH_GET_SERIAL  = 14,
+	UBERTOOTH_GET_PARTNUM = 15
 };
 
 /* DMA linked list items */
@@ -278,11 +284,7 @@ static const u8 abDescriptors[] = {
 	0
 };
 
-typedef struct {
-	u8 reserved[8];
-} ctrl_msg_t;
-
-static u8 abVendorReqData[sizeof(ctrl_msg_t)];
+static u8 abVendorReqData[17];
 
 static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
 {
@@ -297,6 +299,8 @@ static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
 static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
 {
 	u8 *pbData = *ppbData;
+	u32 command[5];
+	u32 result[5];
 
 	switch (pSetup->bRequest) {
 
@@ -357,6 +361,40 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			CC1V8_SET;
 		else
 			CC1V8_CLR;
+		break;
+
+	case UBERTOOTH_GET_PARTNUM:
+		command[0] = 54; /* read part number */
+		iap_entry(command, result);
+		pbData[0] = result[0] & 0xFF; /* status */
+		pbData[1] = result[1] & 0xFF;
+		pbData[2] = (result[1] >> 8) & 0xFF;
+		pbData[3] = (result[1] >> 16) & 0xFF;
+		pbData[4] = (result[1] >> 24) & 0xFF;
+		*piLen = 5;
+		break;
+
+	case UBERTOOTH_GET_SERIAL:
+		command[0] = 58; /* read device serial number */
+		iap_entry(command, result);
+		pbData[0] = result[0] & 0xFF; /* status */
+		pbData[1] = result[1] & 0xFF;
+		pbData[2] = (result[1] >> 8) & 0xFF;
+		pbData[3] = (result[1] >> 16) & 0xFF;
+		pbData[4] = (result[1] >> 24) & 0xFF;
+		pbData[5] = result[2] & 0xFF;
+		pbData[6] = (result[2] >> 8) & 0xFF;
+		pbData[7] = (result[2] >> 16) & 0xFF;
+		pbData[8] = (result[2] >> 24) & 0xFF;
+		pbData[9] = result[3] & 0xFF;
+		pbData[10] = (result[3] >> 8) & 0xFF;
+		pbData[11] = (result[3] >> 16) & 0xFF;
+		pbData[12] = (result[3] >> 24) & 0xFF;
+		pbData[13] = result[4] & 0xFF;
+		pbData[14] = (result[4] >> 8) & 0xFF;
+		pbData[15] = (result[4] >> 16) & 0xFF;
+		pbData[16] = (result[4] >> 24) & 0xFF;
+		*piLen = 17;
 		break;
 
 	default:
