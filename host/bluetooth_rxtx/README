@@ -1,0 +1,15 @@
+This is host code for use with bluetooth_rxtx firmware.
+
+ubertooth-dump.c: dumps a raw Bluetooth symbol stream from an Ubertooth board
+running the bluetooth_rxtx firmware.
+
+Usage:
+
+./ubertooth-dump | ./btrx.py -b -i -
+
+You must have gr-bluetooth installed.  This btrx.py is taken from an older
+release of gr-bluetooth.  We'll fix that at some point, perhaps with changes
+in gr-bluetooth, perhaps by moving a bunch of the gr-bluetooth code here or
+into a new library.
+
+If you have a USRP, you can use demod.py to produce test input for btrx.py -b.
