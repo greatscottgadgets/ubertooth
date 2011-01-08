@@ -1,3 +1,6 @@
+This code and the corresponding firmware are deprecated.  Use bluetooth_rxtx
+instead.
+
 This is proof-of-concept test code for Ubertooth.  Expect many changes over
 the coming months.
 

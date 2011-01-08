@@ -1,6 +1,4 @@
-This doesn't work yet.
+bluetooth_rxtx.c performs Bluetooth functions controlled by a custom USB
+interface.
 
-working on time stamped Bluetooth stuff
-
-This is intended ultimately to become an implementation of a unified USB
-interface for control of various Bluetooth functions.
+You can use the bluetooth_rxtx/ubertooth-dump host code with this firmware.

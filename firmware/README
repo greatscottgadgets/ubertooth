@@ -4,4 +4,7 @@ For testing a new board, the recommended sequence is:
 	2. cc2400_test
 	3. clock_test
 	4. usb_test
-	5. bt_simple
+	5. bluetooth_rxtx
+
+The preferred firmware for Bluetooth functions is bluetooth_rxtx.  The
+bt_simple firmware is deprecated.

@@ -1,3 +1,5 @@
+This firmware is deprecated.  Use bluetooth_rxtx instead.
+
 bt_simple.c performs very simple Bluetooth functions controlled by a USB serial
 interface.  The interface is similar to that of usb_test.c.
 
