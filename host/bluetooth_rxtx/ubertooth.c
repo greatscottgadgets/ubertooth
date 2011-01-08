@@ -147,35 +147,51 @@ static int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_b
 	}
 }
 
-int main(void)
+void ubertooth_stop(struct libusb_device_handle *devh)
 {
-	int r = 1;
+	libusb_release_interface(devh, 0);
+	libusb_close(devh);
+	libusb_exit(NULL);
+}
+
+struct libusb_device_handle* ubertooth_start()
+{
+	int r;
 	struct libusb_device_handle *devh = NULL;
 
 	r = libusb_init(NULL);
 	if (r < 0) {
 		fprintf(stderr, "libusb_init failed (got 1.0?)\n");
-		exit(1);
+		return NULL;
 	}
 
 	devh = find_ubertooth_device();
 	if (devh == NULL) {
 		fprintf(stderr, "could not find Ubertooth device\n");
-		goto out;
+		ubertooth_stop(devh);
+		return NULL;
 	}
 
 	r = libusb_claim_interface(devh, 0);
 	if (r < 0) {
 		fprintf(stderr, "usb_claim_interface error %d\n", r);
-		goto out;
+		ubertooth_stop(devh);
+		return NULL;
 	}
+
+	return devh;
+}
+
+int main()
+{
+	struct libusb_device_handle *devh = ubertooth_start();
+
+	if (devh == NULL)
+		return 1;
 
 	while (1)
 		stream_rx(devh, 512, 0xFFFF);
 
-	libusb_release_interface(devh, 0);
-out:
-	libusb_close(devh);
-	libusb_exit(NULL);
-	return r >= 0 ? r : -r;
+	ubertooth_stop(devh);
+	return 0;
 }
