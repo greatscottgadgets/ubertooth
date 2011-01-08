@@ -20,11 +20,11 @@
 CC = gcc
 LIBUSB=/usr/lib/libusb.la
 
-all: ubertooth-dump
+all: ubertooth-simple
 
-ubertooth-dump:
-	$(CC) -g -O2 -Wall -MT ubertooth-dump.o -MD -MP -MF "./ubertooth-dump.Po" -c -o ubertooth-dump.o ubertooth-dump.c
-	libtool --tag=blahbah --mode=link gcc -g -O2 -g -Wall -o ubertooth-dump  ubertooth-dump.o $(LIBUSB)
+ubertooth-simple:
+	$(CC) -g -O2 -Wall -MT ubertooth-simple.o -MD -MP -MF "./ubertooth-simple.Po" -c -o ubertooth-simple.o ubertooth-simple.c
+	libtool --tag=blahbah --mode=link gcc -g -O2 -g -Wall -o ubertooth-simple  ubertooth-simple.o $(LIBUSB)
 
 clean:
-	rm -f ubertooth-dump *.o *.Po
+	rm -f ubertooth-simple *.o *.Po

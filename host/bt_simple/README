@@ -1,12 +1,12 @@
 This is proof-of-concept test code for Ubertooth.  Expect many changes over
 the coming months.
 
-ubertooth-dump.c: dumps a raw Bluetooth symbol stream from an Ubertooth board
+ubertooth-simple.c: dumps a raw Bluetooth symbol stream from an Ubertooth board
 running the bt-simple firmware.
 
 Usage:
 
-./ubertooth-dump | ./btrx.py -b -i -
+./ubertooth-simple | ./btrx.py -b -i -
 
 You must have gr-bluetooth installed.  This btrx.py is taken from an older
 release of gr-bluetooth.  We'll fix that at some point, perhaps with changes
