@@ -5,7 +5,7 @@ running the bluetooth_rxtx firmware.
 
 Usage:
 
-./ubertooth-dump | ../bt_simple/btrx.py -b -i -
+./ubertooth-dump 2>/dev/null | ../bt_simple/btrx.py -b -i -
 
 You must have gr-bluetooth installed.  This btrx.py is taken from an older
 release of gr-bluetooth.  We'll fix that at some point, perhaps with changes
