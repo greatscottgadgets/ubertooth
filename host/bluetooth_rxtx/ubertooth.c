@@ -53,12 +53,6 @@ enum ubertooth_usb_commands {
     UBERTOOTH_RESET       = 13
 };
 
-static struct libusb_device_handle *devh = NULL;
-
-typedef struct {
-	u8 reserved[8];
-} ctrl_msg_t;
-
 /*
  * USB packet for Bluetooth RX (64 total bytes)
  */
@@ -72,13 +66,14 @@ typedef struct {
 	u8     data[50];
 } usb_pkt_rx;
 
-static int find_ubertooth_device(void)
+struct libusb_device_handle* find_ubertooth_device(void)
 {
+	struct libusb_device_handle *devh = NULL;
 	devh = libusb_open_device_with_vid_pid(NULL, VENDORID, PRODUCTID);
-	return devh ? 0 : -1;
+	return devh;
 }
 
-static int send_cmd_rx_syms(u16 num)
+static int send_cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
 {
 	int r;
 
@@ -90,7 +85,7 @@ static int send_cmd_rx_syms(u16 num)
 	}
 }
 
-static int stream_rx(int xfer_size, u16 num_blocks)
+static int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 {
 	u8 buffer[BUFFER_SIZE];
 	int r;
@@ -117,7 +112,7 @@ static int stream_rx(int xfer_size, u16 num_blocks)
 	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
 			num_blocks, xfer_size);
 
-	send_cmd_rx_syms(num_blocks);
+	send_cmd_rx_syms(devh, num_blocks);
 
 	while (num_xfers--) {
 		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
@@ -155,6 +150,7 @@ static int stream_rx(int xfer_size, u16 num_blocks)
 int main(void)
 {
 	int r = 1;
+	struct libusb_device_handle *devh = NULL;
 
 	r = libusb_init(NULL);
 	if (r < 0) {
@@ -162,8 +158,8 @@ int main(void)
 		exit(1);
 	}
 
-	r = find_ubertooth_device();
-	if (r < 0) {
+	devh = find_ubertooth_device();
+	if (devh == NULL) {
 		fprintf(stderr, "could not find Ubertooth device\n");
 		goto out;
 	}
@@ -175,7 +171,7 @@ int main(void)
 	}
 
 	while (1)
-		stream_rx(512, 0xFFFF);
+		stream_rx(devh, 512, 0xFFFF);
 
 	libusb_release_interface(devh, 0);
 out:
