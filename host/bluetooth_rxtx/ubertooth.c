@@ -31,18 +31,6 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 	return devh;
 }
 
-int send_cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, num, 0,
-			NULL, 0, 1000);
-	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
-		return r;
-	}
-}
-
 int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 {
 	u8 buffer[BUFFER_SIZE];
@@ -70,7 +58,7 @@ int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
 			num_blocks, xfer_size);
 
-	send_cmd_rx_syms(devh, num_blocks);
+	cmd_rx_syms(devh, num_blocks);
 
 	while (num_xfers--) {
 		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
@@ -139,4 +127,97 @@ struct libusb_device_handle* ubertooth_start()
 	}
 
 	return devh;
+}
+
+int cmd_ping(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_PING, 0, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, num, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_set_usrled(struct libusb_device_handle* devh, u16 state)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_USRLED, state, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_get_usrled(struct libusb_device_handle* devh)
+{
+	u8 state;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_USRLED, 0, 0,
+			&state, 1, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return state;
+}
+
+int cmd_get_partnum(struct libusb_device_handle* devh)
+{
+	u8 result[5];
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_PARTNUM, 0, 0,
+			result, 5, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	if (result[0] != 0) {
+		fprintf(stderr, "result not zero: %d\n", result[0]);
+		return 0;
+	}
+	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
+}
+
+int cmd_get_serial(struct libusb_device_handle* devh)
+{
+	u8 result[17];
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_SERIAL, 0, 0,
+			result, 17, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	if (result[0] != 0) {
+		fprintf(stderr, "result not zero: %d\n", result[0]);
+		return 0;
+	}
+	printf("%08x\n", result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24));
+	printf("%08x\n", result[5] | (result[6] << 8) | (result[7] << 16) | (result[8] << 24));
+	printf("%08x\n", result[9] | (result[10] << 8) | (result[11] << 16) | (result[12] << 24));
+	printf("%08x\n", result[13] | (result[14] << 8) | (result[15] << 16) | (result[16] << 24));
+	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
 }

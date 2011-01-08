@@ -48,7 +48,9 @@ enum ubertooth_usb_commands {
     UBERTOOTH_SET_1V8     = 10,
     UBERTOOTH_GET_CHANNEL = 11,
     UBERTOOTH_SET_CHANNEL = 12,
-    UBERTOOTH_RESET       = 13
+    UBERTOOTH_RESET       = 13,
+	UBERTOOTH_GET_SERIAL  = 14,
+	UBERTOOTH_GET_PARTNUM = 15
 };
 
 /*
@@ -67,4 +69,9 @@ typedef struct {
 struct libusb_device_handle* ubertooth_start();
 void ubertooth_stop(struct libusb_device_handle *devh);
 int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks);
-int send_cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
+int cmd_ping(struct libusb_device_handle* devh);
+int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
+int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
+int cmd_get_usrled(struct libusb_device_handle* devh);
+int cmd_get_partnum(struct libusb_device_handle* devh);
+int cmd_get_serial(struct libusb_device_handle* devh);
