@@ -19,11 +19,17 @@
 
 CC = gcc
 LIBUSB = usb-1.0
+LIBBTBB = libbtbb
+LIBBTBB_PATH = /home/mossmann/src/gr-bluetooth/src/libbtbb
 
-all: ubertooth-dump
+all: ubertooth-dump test
 
 ubertooth-dump:
 	$(CC) -l $(LIBUSB) ubertooth-dump.c ubertooth.c -o ubertooth-dump
 
+# static linking for now
+test:
+	$(CC) -I $(LIBBTBB_PATH) -l $(LIBUSB) test.c ubertooth.c $(LIBBTBB_PATH)/bluetooth_packet.c $(LIBBTBB_PATH)/bluetooth_piconet.c -o test
+
 clean:
-	rm -f ubertooth-dump
+	rm -f ubertooth-dump test
