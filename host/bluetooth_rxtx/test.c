@@ -26,20 +26,79 @@
 #define NUM_BANKS 10
 #define BANK_LEN 400
 
+enum buffer_status {
+	IDLE = 0,
+	FILLING = 1,
+	EMPTYING = 2
+};
+
 char symbols[NUM_BANKS][BANK_LEN];
 u8 bank = 0;
 u8 channel = 39;
 piconet pn;
+u8 rx_buf1[BUFFER_SIZE];
+u8 rx_buf2[BUFFER_SIZE];
+struct libusb_transfer *rx_xfer1 = NULL;
+struct libusb_transfer *rx_xfer2 = NULL;
+int rx_xfer1_state = IDLE;
+int rx_xfer2_state = IDLE;
+
+static void cb_xfer1(struct libusb_transfer *xfer)
+{
+	int r;
+
+	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
+		fprintf(stderr, "rx_xfer1 status: %d\n", xfer->status);
+		libusb_free_transfer(xfer);
+		rx_xfer1 = NULL;
+		return;
+	}
+
+	rx_xfer1_state = EMPTYING;
+
+	if (rx_xfer2_state == IDLE) {
+		rx_xfer2_state = FILLING;
+		r = libusb_submit_transfer(rx_xfer2);
+		if (r < 0)
+			fprintf(stderr, "rx_xfer2 submission from callback: %d\n", r);
+	} else {
+		fprintf(stderr, "rx_xfer2 not yet idle: %u\n", rx_xfer2_state);
+	}
+}
+
+static void cb_xfer2(struct libusb_transfer *xfer)
+{
+	int r;
+
+	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
+		fprintf(stderr, "rx_xfer2 status: %d\n", xfer->status);
+		libusb_free_transfer(xfer);
+		rx_xfer2 = NULL;
+		return;
+	}
+
+	rx_xfer2_state = EMPTYING;
+
+	if (rx_xfer1_state == IDLE) {
+		rx_xfer1_state = FILLING;
+		r = libusb_submit_transfer(rx_xfer1);
+		if (r < 0)
+			fprintf(stderr, "rx_xfer1 submission from callback: %d\n", r);
+	} else {
+		fprintf(stderr, "rx_xfer1 not yet idle: %u\n", rx_xfer1_state);
+	}
+}
 
 /* this should probably be moved to ubertooth.c and perhaps combined with stream_rx() */
 int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 {
-	u8 buffer[BUFFER_SIZE];
+	u8 *buffer = NULL;
 	int r;
 	int i, j, k, m;
 	int xfer_blocks;
 	int num_xfers;
-	int transferred;
+	int *state = NULL;
+	//int transferred;
 	u32 time; /* in 100 nanosecond units */
 	u32 clkn; /* native (local) clock in 625 us */
 	packet pkt;
@@ -62,19 +121,42 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
 			num_blocks, xfer_size);
 
+	rx_xfer1 = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(rx_xfer1, devh, DATA_IN, rx_buf1,
+			xfer_size, cb_xfer1, NULL, TIMEOUT);
+
+	rx_xfer2 = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(rx_xfer2, devh, DATA_IN, rx_buf2,
+			xfer_size, cb_xfer2, NULL, TIMEOUT);
+
 	cmd_rx_syms(devh, num_blocks);
 
-	while (num_xfers--) {
-		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
-				&transferred, TIMEOUT);
-		if (r < 0) {
-			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
-			return -1;
+	rx_xfer1_state = FILLING;
+	r = libusb_submit_transfer(rx_xfer1);
+	if (r < 0) {
+		fprintf(stderr, "rx_xfer1 submission: %d\n", r);
+		return -1;
+	}
+
+	while (1) {
+		while (1) {
+			r = libusb_handle_events(NULL);
+			if (r < 0) {
+				fprintf(stderr, "libusb_handle_events: %d\n", r);
+				return -1;
+			}
+			if (rx_xfer1_state == EMPTYING) {
+				buffer = &rx_buf1[0];
+				state = &rx_xfer1_state;
+				break;
+			}
+			if (rx_xfer2_state == EMPTYING) {
+				buffer = &rx_buf2[0];
+				state = &rx_xfer2_state;
+				break;
+			}
 		}
-		if (transferred != xfer_size) {
-			fprintf(stderr, "bad data read size (%d)\n", transferred);
-			return -1;
-		}
+
 		//fprintf(stderr, "transferred %d bytes\n", transferred);
 
 		/* process each received block */
@@ -123,7 +205,6 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 				pkt.clkn = clkn;
 				pkt.channel = channel;
 
-
 				if (pkt.LAP == pn.LAP && header_present(&pkt)) {
 					printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 							channel, pkt.LAP, time + r * 10, clkn);
@@ -131,8 +212,8 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 						exit(0);
 				}
 			}
-
 		}
+		*state = IDLE;
 		fflush(stderr);
 	}
 }
@@ -156,9 +237,11 @@ int main()
 	pn.have_clk6 = 0;
 	pn.have_clk27 = 0;
 
-	while (1)
-		rx_lap(devh, 512, 0xFFFF);
+	rx_lap(devh, 512, 0xFFFF);
 
+	//FIXME make sure xfers are not active
+	libusb_free_transfer(rx_xfer1);
+	libusb_free_transfer(rx_xfer2);
 	ubertooth_stop(devh);
 
 	return 0;
