@@ -78,6 +78,7 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 	//int transferred;
 	u32 time; /* in 100 nanosecond units */
 	u32 clkn; /* native (local) clock in 625 us */
+	u8 clkn_high;
 	packet pkt;
 	char syms[BANK_LEN * NUM_BANKS];
 
@@ -130,6 +131,7 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 					| (full_buf[5 + 64 * i] << 8)
 					| (full_buf[6 + 64 * i] << 16)
 					| (full_buf[7 + 64 * i] << 24);
+			clkn_high = full_buf[3 + 64 * i];
 			//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			//for (j = 64 * i + 14; j < 64 * i + 64; j++) {
 			for (j = 0; j < 50; j++) {
@@ -152,7 +154,7 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 			r = sniff_ac(syms, BANK_LEN);
 			if  (r > -1) {
 
-				clkn = (time + r * 10) / 6250; //FIXME short wraparound
+				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
 
 				//FIXME put into initializer in btbb
 				for (j = 0; j < (BANK_LEN * NUM_BANKS - r); j++)
