@@ -113,8 +113,8 @@ void atest_init()
 	/* P0.25 is ATEST1, P0.26 is ATEST2 */
 	PINSEL1 &= ~((0x3 << 20) | (0x3 << 18)); // set as GPIO
 	FIO0DIR &= ~((0x3 << 25)); // set as input
-	PINMODE1 |= ((0x3 << 19)); // no pull-up/pull-down
-	PINMODE1 &= ~((0x3 << 18)); // no pull-up/pull-down
+	PINMODE1 |= ((0x5 << 19)); // no pull-up/pull-down
+	PINMODE1 &= ~((0x5 << 18)); // no pull-up/pull-down
 }
 
 void cc2400_init()
