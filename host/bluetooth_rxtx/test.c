@@ -79,7 +79,7 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 	u32 time; /* in 100 nanosecond units */
 	u32 clkn; /* native (local) clock in 625 us */
 	u8 clkn_high;
-	packet *pkt;
+	packet pkt;
 	char syms[BANK_LEN * NUM_BANKS];
 
 	/*
@@ -151,26 +151,19 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 					syms[m++] = symbols[(j + 1 + bank) % NUM_BANKS][k];
 			bank = (bank + 1) % NUM_BANKS;
 
-			pkt = sniff_ac(syms, BANK_LEN);
+			r = sniff_ac(syms, BANK_LEN);
+			if  (r > -1) {
 
-			if  (pkt != NULL) {
-
-				r = pkt->start - syms;
 				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
 
-				//FIXME put into initializer in btbb
-				for (j = 0; j < (BANK_LEN * NUM_BANKS - r); j++)
-					pkt->symbols[j] = syms[r + j];
-				pkt->length = BANK_LEN * NUM_BANKS - r;
+				init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+				pkt.clkn = clkn;
+				pkt.channel = channel;
 
-				/* if clkn and channel are known: */
-				pkt->clkn = clkn;
-				pkt->channel = channel;
-
-				if (pkt->LAP == pn.LAP && header_present(pkt)) {
+				if (pkt.LAP == pn.LAP && header_present(&pkt)) {
 					printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-							channel, pkt->LAP, time + r * 10, clkn);
-					if (UAP_from_header(pkt, &pn))
+							channel, pkt.LAP, time + r * 10, clkn);
+					if (UAP_from_header(&pkt, &pn))
 						exit(0);
 				}
 			}
