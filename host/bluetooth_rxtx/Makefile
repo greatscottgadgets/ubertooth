@@ -22,14 +22,16 @@ LIBUSB = usb-1.0
 LIBBTBB = libbtbb
 LIBBTBB_PATH = /home/mossmann/src/gr-bluetooth/src/libbtbb
 
-all: ubertooth-dump test
+all: ubertooth-dump ubertooth-lap test
 
 ubertooth-dump:
 	$(CC) -l $(LIBUSB) ubertooth-dump.c ubertooth.c -o ubertooth-dump
 
 # static linking for now
+ubertooth-lap:
+	$(CC) -I $(LIBBTBB_PATH) -l $(LIBUSB) ubertooth-lap.c ubertooth.c $(LIBBTBB_PATH)/bluetooth_packet.c $(LIBBTBB_PATH)/bluetooth_piconet.c -o ubertooth-lap
 test:
 	$(CC) -I $(LIBBTBB_PATH) -l $(LIBUSB) test.c ubertooth.c $(LIBBTBB_PATH)/bluetooth_packet.c $(LIBBTBB_PATH)/bluetooth_piconet.c -o test
 
 clean:
-	rm -f ubertooth-dump test
+	rm -f ubertooth-dump ubertooth-lap test

@@ -1,13 +1,12 @@
 This is host code for use with bluetooth_rxtx firmware.
 
-ubertooth-dump.c: dumps a raw Bluetooth symbol stream from an Ubertooth board
-running the bluetooth_rxtx firmware.
+ubertooth-lap.c: sniffs a single Bluetooth channel and outputs LAPs of observed
+packets.
 
-Usage:
+This links to libbtbb in the gr-bluetooth repository.  Somefeller needs to
+learn me how to put together this here Makefile properlike.
 
-./ubertooth-dump 2>/dev/null | ../bt_simple/btrx.py -b -i -
-
-You must have gr-bluetooth installed.  This btrx.py is taken from an older
-release of gr-bluetooth.  We'll fix that at some point, perhaps with changes
-in gr-bluetooth, perhaps by moving a bunch of the gr-bluetooth code here or
-into a new library.
+ubertooth-dump.c: dumps a raw Bluetooth symbol stream from an Ubertooth board.
+If you pipe it into xxd, you should see various ones and zeros.  If you pipe it
+into dd, you can find out the transfer rate (should be 1 MB/s).  Timestamps are
+dumped to stderr.
