@@ -180,17 +180,8 @@ int main()
 	if (devh == NULL)
 		return 1;
 
+	init_piconet(&pn);
 	pn.LAP = 0x4831dd;
-	pn.got_first_packet = 0;
-	pn.packets_observed = 0;
-	pn.total_packets_observed = 0;
-	pn.hop_reversal_inited = 0;
-	pn.afh = 0;
-	pn.looks_like_afh = 0;
-	pn.have_UAP = 0;
-	pn.have_NAP = 0;
-	pn.have_clk6 = 0;
-	pn.have_clk27 = 0;
 
 	rx_lap(devh, 512, 0);
 
