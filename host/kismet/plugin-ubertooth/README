@@ -1,0 +1,101 @@
+Kismet-Ubertooth
+
+0.  NOT COMPLETE
+
+1.  What is Kismet-Ubertooth
+2.  Caveats
+3.  Compiling
+4.  Installing
+5.  Using
+
+0.  NOT COMPLETE
+
+*** THIS CODE IS CURRENTLY NOT COMPLETE ***
+
+Unless you're in contact with me and are helping develop it, it's not likely to
+do what you want.  It does nothing useful.  What it should be able to do in the
+near future:
+
+* Control an Ubertooth Zero or Ubertooth One
+* Read pcap files
+* Print debug info about packets
+* Log to pcap file
+
+1.  What is Kismet-Ubertooth
+
+	Kismet-Ubertooth is a Kismet plugin which provides Bluetooth support in
+	Kismet.  It relies on libbtbb (Bluetooth baseband) which currently resides
+	in the gr-bluetooth repository (http://gr-bluetooth.sourceforge.net/) but
+	does not require GNU Radio.  Kismet-Ubertooth performs passive monitoring
+	of Bluetooth networks using the Ubertooth platform
+	(http://ubertooth.sourceforge.net/).
+
+	It CAN NOT BE USED with 802.11 wi-fi cards, it is a completely different
+	protocol.  If you do not have an Ubertooth but have a Bluetooth adapter,
+	try the btscan plugin instead.  It performs active scanning of discoverable
+	Bluetooth devices.  Better yet, build yourself an Ubertooth One.
+
+	Kismet-Ubertooth defines the decoders, loggers, and UI controls for
+	Bluetooth networks in a common fashion, and supports reading and writing
+	Bluetooth baseband pcap files.
+
+	The Bluetooth baseband protocol is the air interface of Bluetooth.  It
+	operates in the 2.4 GHz ISM band.  There is a separate interface known as
+	HCI (Host Controller Interface) that operates between a host computer and
+	an attached Bluetooth adapter.  Kismet-Ubertooth uses special hardware to
+	directly access the baseband layer.  It does not operate at the HCI layer.
+	Try hcidump if you want to access HCI.
+
+2.  Caveats
+
+	This code is currently only partially developed and may not provide full
+	functionality.
+
+	This code has only been tested on Linux.  This code MAY work on other
+	platforms, but currently it is only developed with Linux as a target.
+
+3.  Compiling
+
+	Compiling the Kismet-Ubertooth plugin requires the Kismet source be
+	installed and configured.  The libbtbb library must also be installed.
+
+	By default, Kismet-Ubertooth expects the Kismet source to be in
+	/usr/src/kismet; this can be overridden by setting the KIS_SRC_DIR
+	environment variable:
+
+		cd plugin-ubertooth
+		KIS_SRC_DIR=/home/foo/src/kismet make
+
+4.  Installing
+
+	Kismet plugins may be installed system-wide in the plugins directory (by
+	default, /usr/local/lib/kismet/) or in the users home directory
+	(~/.kismet/plugins)
+
+	The default installation path can be overridden with the KIS_DEST_DIR
+	variable if you have not installed Kismet in the default location and
+	wish to install the plugin in the system-wide plugins directory:
+
+        cd plugin-ubertooth
+        KIS_DEST_DIR=/usr KIS_SRC_DIR=/home/foo/src/kismet make install
+
+    Plugins can be installed in the current users home directory with:
+
+        cd plugin-ubertooth
+        make userinstall
+
+5.  Using
+
+	Once the plugin is loaded, Kismet will automatically understand and
+	decode pcap files with the Bluetooth link data.
+
+	To capture from an Ubertooth Zero or Ubertooth One, plug in the USB device,
+	and define a capture source in Kismet using the interface 'ubertooth'.  The
+	device will be automatically detected.
+
+	If you have multiple Ubertooth devices connected, Kismet-Ubertooth uses the
+	first one it finds.  Kismet-Ubertooth currently is not capable of using
+	multiple Ubertooth devices simultaneously.
+
+	To enable pcap logging, the logfile must be turned on by adding
+	'pcapbtbb' to the logtypes= line of the kismet.conf.
