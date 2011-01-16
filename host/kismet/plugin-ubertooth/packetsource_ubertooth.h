@@ -82,12 +82,11 @@ public:
 	virtual int FetchDescriptor();
 	virtual int Poll();
 
-	unsigned int channel;
-
-	uint8_t *empty_buf;
-	uint8_t *full_buf;
-	bool really_full;
-	struct libusb_transfer *rx_xfer;
+	struct ubertooth_bt_pkt {
+		char *data;
+		int len;
+		int channel;
+	};
 
 protected:
 	virtual void FetchRadioData(kis_packet *in_packet) { };
@@ -103,14 +102,6 @@ protected:
 
 	struct libusb_device_handle* devh;
 
-	struct ubertooth_bt_pkt {
-		char *data;
-		int len;
-		int channel;
-	};
-
-	pthread_mutex_t packet_lock;
-    
 	// FD pipes
 	int fake_fd[2];
 
@@ -128,7 +119,19 @@ protected:
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
 
+	unsigned int channel;
+
+	uint8_t *empty_buf;
+	uint8_t *full_buf;
+	bool really_full;
+	struct libusb_transfer *rx_xfer;
+
+	pthread_mutex_t packet_lock;
+
+	friend void enqueue(PacketSource_Ubertooth *, packet *, int);
+	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
+
 };
 
 #endif

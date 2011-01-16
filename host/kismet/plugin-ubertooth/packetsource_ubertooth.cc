@@ -91,7 +91,8 @@ int PacketSource_Ubertooth::AutotypeProbe(string in_device) {
 /* bulk transfer callback for libusb */
 void cb_xfer(struct libusb_transfer *xfer)
 {
-	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) xfer->user_data;
+	PacketSource_Ubertooth *ubertooth =
+			(PacketSource_Ubertooth *) xfer->user_data;
 	int r;
 	u8 *tmp;
 
@@ -121,8 +122,48 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
+void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt, int channel)
+{
+	//FIXME should use tun_format() or similar
+	char *data = new char[14];
+	int len = 14;
+	uint32_t lap = pkt->LAP;
+	data[0] = data[1] = data[2] = data[3] = data[4] = data[5] = 0x00;
+	data[6] = data[7] = data[8] = 0x00;
+	data[9] = (lap >> 16) & 0xff;
+	data[10] = (lap >> 8) & 0xff;
+	data[11] = lap & 0xff;
+	data[12] = 0xff;
+	data[13] = 0xf0;
+
+	// Lock the packet queue, throw away when there are more than 20 in the queue
+	// that haven't been handled, raise the file descriptor hot if we need to
+	pthread_mutex_lock(&(ubertooth->packet_lock));
+
+	if (ubertooth->packet_queue.size() > 20) {
+		// printf("debug - thread packet queue to big\n");
+	} else {
+		struct PacketSource_Ubertooth::ubertooth_bt_pkt *rpkt =
+				new PacketSource_Ubertooth::ubertooth_bt_pkt;
+		rpkt->data = data;
+		rpkt->len = len;
+		rpkt->channel = channel;
+
+		ubertooth->packet_queue.push_back(rpkt);
+		if (ubertooth->pending_packet == 0) {
+			// printf("debug - writing to fakefd\n");
+			ubertooth->pending_packet = 1;
+			write(ubertooth->fake_fd[1], data, 1);
+		}
+
+	}
+	pthread_mutex_unlock(&(ubertooth->packet_lock));
+
+}
+
 // Capture thread to fake async io
-void *ubertooth_cap_thread(void *arg) {
+void *ubertooth_cap_thread(void *arg)
+{
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
 	int r;
 	int i, j, k, m;
@@ -207,7 +248,7 @@ void *ubertooth_cap_thread(void *arg) {
 
 				printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 							ubertooth->channel, pkt.LAP, time + r * 10, clkn);
-				//FIXME enqueue the packet
+				enqueue(ubertooth, &pkt, ubertooth->channel);
 			}
 		}
 		ubertooth->really_full = 0;
@@ -228,21 +269,20 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 
-	//FIXME 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
 		_MSG("Ubertooth '" + name + "' failed to make a pipe() (this is really "
 			 "weird): " + string(strerror(errno)), MSGFLAG_ERROR);
-		//usb_close(devh);
-		//devh = NULL;
+		ubertooth_stop(devh);
+		devh = NULL;
 		return 0;
 	}
 
 	if (pthread_mutex_init(&packet_lock, NULL) < 0) {
 		_MSG("Ubertooth '" + name + "' failed to initialize pthread mutex: " +
 			 string(strerror(errno)), MSGFLAG_ERROR);
-		//usb_close(devh);
-		//devh = NULL;
+		ubertooth_stop(devh);
+		devh = NULL;
 		return 0;
 	}
 
