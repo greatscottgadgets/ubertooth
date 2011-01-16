@@ -88,14 +88,133 @@ int PacketSource_Ubertooth::AutotypeProbe(string in_device) {
 	}
 }
 
+/* bulk transfer callback for libusb */
+void cb_xfer(struct libusb_transfer *xfer)
+{
+	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) xfer->user_data;
+	int r;
+	u8 *tmp;
+
+	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
+		fprintf(stderr, "rx_xfer status: %d\n", xfer->status);
+		libusb_free_transfer(xfer);
+		ubertooth->rx_xfer = NULL;
+		return;
+	}
+
+	while (ubertooth->really_full)
+		fprintf(stderr, "uh oh, full_buf not emptied\n");
+
+	tmp = ubertooth->full_buf;
+	ubertooth->full_buf = ubertooth->empty_buf;
+	ubertooth->empty_buf = tmp;
+	ubertooth->really_full = 1;
+
+	ubertooth->rx_xfer->buffer = ubertooth->empty_buf;
+
+	while (1) {
+		r = libusb_submit_transfer(ubertooth->rx_xfer);
+		if (r < 0)
+			fprintf(stderr, "rx_xfer submission from callback: %d\n", r);
+		else
+			break;
+	}
+}
+
 // Capture thread to fake async io
 void *ubertooth_cap_thread(void *arg) {
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
+	int r;
+	int i, j, k, m;
+	int xfer_size = 512;
+	int xfer_blocks;
+	uint32_t time; /* in 100 nanosecond units */
+	uint32_t clkn; /* native (local) clock in 625 us */
+	uint8_t clkn_high;
+	char syms[BANK_LEN * NUM_BANKS];
+	packet pkt;
 
-	while (ubertooth->thread_active);
-		//FIXME main ubertooth loop
-		//enqueue stuff
+	/*
+	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
+	 * payload).  A transfer consists of one or more blocks.  Consecutive
+	 * blocks should be approximately 400 microseconds apart (timestamps about
+	 * 4000 apart in units of 100 nanoseconds).
+	 */
 
+	if (xfer_size > BUFFER_SIZE)
+		xfer_size = BUFFER_SIZE;
+	xfer_blocks = xfer_size / 64;
+	xfer_size = xfer_blocks * 64;
+
+	fprintf(stderr, "rx blocks of 64 bytes in %d byte transfers\n", xfer_size);
+
+	ubertooth->empty_buf = &(ubertooth->rx_buf1[0]);
+	ubertooth->full_buf = &(ubertooth->rx_buf2[0]);
+	ubertooth->really_full = 0;
+	ubertooth->rx_xfer = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(ubertooth->rx_xfer, ubertooth->devh, DATA_IN,
+			ubertooth->empty_buf, xfer_size, cb_xfer, ubertooth, TIMEOUT);
+
+	cmd_rx_syms(ubertooth->devh, 0);
+
+	r = libusb_submit_transfer(ubertooth->rx_xfer);
+	if (r < 0) {
+		fprintf(stderr, "rx_xfer submission: %d\n", r);
+		goto out;
+	}
+
+	while (ubertooth->thread_active) {
+		while (!ubertooth->really_full) {
+			r = libusb_handle_events(NULL);
+			if (r < 0) {
+				fprintf(stderr, "libusb_handle_events: %d\n", r);
+				goto out;
+			}
+		}
+
+		/* process each received block */
+		for (i = 0; i < xfer_blocks; i++) {
+			time = ubertooth->full_buf[4 + 64 * i]
+					| (ubertooth->full_buf[5 + 64 * i] << 8)
+					| (ubertooth->full_buf[6 + 64 * i] << 16)
+					| (ubertooth->full_buf[7 + 64 * i] << 24);
+			clkn_high = ubertooth->full_buf[3 + 64 * i];
+			//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+			for (j = 0; j < 50; j++) {
+				/* output one byte for each received symbol (0 or 1) */
+				for (k = 0; k < 8; k++) {
+					//printf("%c", (full_buf[j] & 0x80) >> 7 );
+					ubertooth->symbols[ubertooth->bank][j * 8 + k] =
+							(ubertooth->full_buf[j + 14 + i * 64] & 0x80) >> 7;
+					ubertooth->full_buf[j + 14 + i * 64] <<= 1;
+				}
+			}
+
+			/* awfully repetitious */
+			m = 0;
+			for (j = 0; j < NUM_BANKS; j++)
+				for (k = 0; k < BANK_LEN; k++)
+					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+							% NUM_BANKS][k];
+			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
+
+			r = sniff_ac(syms, BANK_LEN);
+			if  (r > -1) {
+
+				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+
+				init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+
+				printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
+							ubertooth->channel, pkt.LAP, time + r * 10, clkn);
+				//FIXME enqueue the packet
+			}
+		}
+		ubertooth->really_full = 0;
+		fflush(stderr);
+	}
+
+out:
 	ubertooth->thread_active = -1;
 	close(ubertooth->fake_fd[1]);
 	ubertooth->fake_fd[1] = -1;
