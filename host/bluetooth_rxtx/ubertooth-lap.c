@@ -22,7 +22,7 @@
 #include "ubertooth.h"
 #include "bluetooth_packet.h"
 
-#define NUM_BANKS 10
+#define NUM_BANKS 2
 #define BANK_LEN 400
 
 char symbols[NUM_BANKS][BANK_LEN];
