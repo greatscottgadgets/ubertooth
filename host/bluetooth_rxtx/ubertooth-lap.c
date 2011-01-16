@@ -20,7 +20,7 @@
  */
 
 #include "ubertooth.h"
-#include "bluetooth_packet.h"
+#include <bluetooth_packet.h>
 
 #define NUM_BANKS 2
 #define BANK_LEN 400
