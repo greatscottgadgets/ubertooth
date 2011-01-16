@@ -28,7 +28,15 @@
 
 #include <packetsource.h>
 
+extern "C" {
+	#include <bluetooth_packet.h>
+	#include "ubertooth.h"
+}
+
 #define USE_PACKETSOURCE_UBERTOOTH
+
+#define NUM_BANKS 2
+#define BANK_LEN 400
 
 class PacketSource_Ubertooth : public KisPacketSource {
 public:
@@ -76,6 +84,11 @@ public:
 
 	unsigned int channel;
 
+	uint8_t *empty_buf;
+	uint8_t *full_buf;
+	bool really_full;
+	struct libusb_transfer *rx_xfer;
+
 protected:
 	virtual void FetchRadioData(kis_packet *in_packet) { };
 
@@ -109,6 +122,11 @@ protected:
 
 	// Error from thread
 	string thread_error;
+
+	char symbols[NUM_BANKS][BANK_LEN];
+	int bank;
+	uint8_t rx_buf1[BUFFER_SIZE];
+	uint8_t rx_buf2[BUFFER_SIZE];
 
 	friend void *ubertooth_cap_thread(void *);
 };

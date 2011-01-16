@@ -53,7 +53,12 @@ PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, str
 
 	pending_packet = 0;
 
-	channel = 0;
+	channel = 39;
+	bank = 0;
+	empty_buf = NULL;
+	full_buf = NULL;
+	really_full = false;
+	rx_xfer = NULL;
 
 	btbb_packet_id = globalreg->packetchain->RegisterPacketComponent("UBERTOOTH");
 }
@@ -97,14 +102,14 @@ void *ubertooth_cap_thread(void *arg) {
 	pthread_exit((void *) 0);
 }
 
-	//FIXME 
 int PacketSource_Ubertooth::OpenSource() {
-	//if ((devh = usb_open(dev)) == NULL) {
-		//_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev + "': " +
-			 //string(strerror(errno)), MSGFLAG_ERROR);
-		//return 0;
-	//}
+	if ((devh = ubertooth_start()) == NULL) {
+		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev + "': " +
+				string(strerror(errno)), MSGFLAG_ERROR);
+		return 0;
+	}
 
+	//FIXME 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
 		_MSG("Ubertooth '" + name + "' failed to make a pipe() (this is really "
@@ -143,11 +148,12 @@ int PacketSource_Ubertooth::CloseSource() {
 		pthread_mutex_destroy(&packet_lock);
 	}
 
-	// Close the USB dev
-	//if (devh) {
-		//usb_close(devh);
-		//devh = NULL;
-	//}
+	if (devh) {
+		//FIXME make sure xfers are not active
+		libusb_free_transfer(rx_xfer);
+		ubertooth_stop(devh);
+		devh = NULL;
+	}
 
 	if (fake_fd[0] >= 0) {
 		close(fake_fd[0]);
