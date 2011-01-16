@@ -1,12 +1,13 @@
 This is host code for use with bluetooth_rxtx firmware.
 
-ubertooth-lap.c: sniffs a single Bluetooth channel and outputs LAPs of observed
+ubertooth-lap: sniffs a single Bluetooth channel and outputs LAPs of observed
 packets.
 
-This links to libbtbb in the gr-bluetooth repository.  Somefeller needs to
-learn me how to put together this here Makefile properlike.
+This links to libbtbb from the gr-bluetooth repository.  Note that libbtbb can
+be compiled and installed separately from the rest of gr-bluetooth and does not
+require GNU Radio to be installed.
 
-ubertooth-dump.c: dumps a raw Bluetooth symbol stream from an Ubertooth board.
+ubertooth-dump: dumps a raw Bluetooth symbol stream from an Ubertooth board.
 If you pipe it into xxd, you should see various ones and zeros.  If you pipe it
 into dd, you can find out the transfer rate (should be 1 MB/s).  Timestamps are
 dumped to stderr.

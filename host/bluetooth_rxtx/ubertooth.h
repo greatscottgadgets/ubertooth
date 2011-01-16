@@ -19,6 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __UBERTOOTH_H__
+#define __UBERTOOTH_H__
+
 #include <libusb-1.0/libusb.h>
 
 #define u8 uint8_t
@@ -75,3 +78,5 @@ int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
 int cmd_get_usrled(struct libusb_device_handle* devh);
 int cmd_get_partnum(struct libusb_device_handle* devh);
 int cmd_get_serial(struct libusb_device_handle* devh);
+
+#endif

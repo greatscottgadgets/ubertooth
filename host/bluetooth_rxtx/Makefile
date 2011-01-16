@@ -26,9 +26,9 @@ all: ubertooth-dump ubertooth-lap test
 ubertooth-dump:
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-dump.c ubertooth.c -o ubertooth-dump
 
-# static linking for now
 ubertooth-lap:
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-lap.c ubertooth.c -o ubertooth-lap
+
 test:
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) test.c ubertooth.c -o test
 
