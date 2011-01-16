@@ -1,5 +1,7 @@
 KIS_SRC_DIR ?= /usr/src/kismet
 KIS_INC_DIR ?= $(KIS_SRC_DIR)
+RXTX_SRC_DIR ?= ../../bluetooth_rxtx
+RXTX_INC_DIR ?= $(RXTX_SRC_DIR)
 
 include $(KIS_SRC_DIR)/Makefile.inc
 
@@ -8,11 +10,11 @@ top_builddir = $(BLDHOME)
 
 PLUGINLDFLAGS ?= $(LDFLAGS)
 PLUGINLDFLAGS += -shared -rdynamic
-LIBS	+= -lstdc++ -lusb -lpthread
-CFLAGS	+= -I/usr/include -I$(KIS_INC_DIR) -g -fPIC
+LIBS	+= -lstdc++ -lusb-1.0 -lpthread -lbtbb
+CFLAGS	+= -I/usr/include -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 
 SRVOBJS = packetsource_ubertooth.o packet_btbb.o packet_btbb_types.o \
-			tracker_btbb.o kismet_ubertooth.o
+			tracker_btbb.o kismet_ubertooth.o $(RXTX_SRC_DIR)/ubertooth.o
 SRVOUT	= ubertooth.so
 
 CLIOBJS = ubertooth_ui.o
