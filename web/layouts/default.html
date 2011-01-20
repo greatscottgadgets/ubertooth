@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Project Ubertooth - <%= @item[:title] %></title>
+    <link rel="stylesheet" type="text/css" href="/style.css" media="screen">
+    <meta name="generator" content="nanoc 3.1.6">
+  </head>
+  <body>
+    <div id="main">
+      <%= yield %>
+    </div>
+    <div id="sidebar">
+      <h3>Project Ubertooth</h3>
+      <ul>
+        <li><a href="/">home</a></li>
+        <li><a href="http://sourceforge.net/projects/ubertooth/">download</a></li>
+      </ul>
+      <h2>hardware</h2>
+      <ul>
+        <li><a href="/hardware/zero">Ubertooth Zero</a></li>
+        <li><a href="/hardware/one">Ubertooth One</a></li>
+        <li><a href="/hardware/build">build guide</a></li>
+        <li><a href="/hardware/program">programming</a></li>
+      </ul>
+      <h2>firmware</h2>
+      <ul>
+        <li><a href="/firmware/develop">developing</a></li>
+      </ul>
+      <h2>host code</h2>
+      <ul>
+        <li><a href="/host/develop">developing</a></li>
+      </ul>
+      <h2>help</h2>
+      <ul>
+        <li><a href="https://lists.sourceforge.net/lists/listinfo/ubertooth-general">mailing list</a></li>
+      </ul>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+--- 
+title: Programming
+---
+<h1>Programming</h1>
+
+<p>This page describes how to load firmware onto an Ubertooth One or Ubertooth
+Zero.  Other pages describe how to write <a
+href="/firmware/develop">firmware</a> or <a href="/host/develop">host code</a>
+for the platform.</p>
+
+<p>There are three ways to program an Ubertooth board: the USB bootloader, the
+ISP bootloader, and JTAG.</p>
+
+<h2>USB bootloader</h2>
+
+<p>This will probably be the preferred method to load code onto an Ubertooth
+Zero or Ubertooth One in the future, but there is no USB bootloader yet.  This
+method will only work for Ubertooth boards that have had the USB bootloader
+firmware previously installed.  For a newly constructed device without
+firmware, one of the other two programming methods is required.</p>
+
+<h2>ISP bootloader</h2>
+
+<p>The LPC175x features an In-System Programming (ISP) bootloader that allows
+code to be loaded over a serial interface.  In order to use ISP, you will need
+<a href="http://sourceforge.net/projects/lpc21isp/">lpc21isp</a> and a 3.3V
+serial programming device such as one of the following:</p>
+
+<h3>Pogoprog</h3>
+
+<p>The official Ubertooth ISP programmer is Pogoprog, an open source board that
+can be assembled using a process similar to Ubertooth One assembly.</p>
+
+<h3>an FTDI Basic Breakout - 3.3V</h3>
+
+<p>You can use SparkFun's <a href="http://www.sparkfun.com/products/9873">FTDI
+Basic Breakout - 3.3V</a> to program an Ubertooth.  Adafruit's <a
+href="http://www.adafruit.com/index.php?main_page=product_info&products_id=284">FTDI
+Friend</a> is a similar board that should work as well.  To allow lpc21isp to
+automatically activate the LPC175x's ISP bootloader, you must modify the board
+in one of two ways.</p>
+
+<h4>method one: the easy way</h4>
+
+<p>Just short the CTS pin to GND.  This will force the microcontroller into ISP
+mode every time it resets while the programmer is connected.  In order to
+perform a normal reset to run the newly loaded code, you will have to first
+disconnect the programmer.</p>
+
+<h4>method two: the better way</h4>
+
+<p>Connect the CTS pin to the RTS pin (pin 3) on the FT232RL using fine gauge
+wire such as wire wrap wire.  This is trickier to solder, but it has the
+advantage that the pin will be fully controlled by lpc21isp.  This means that
+you can leave the programmer connected to the Ubertooth board throughout
+multiple program/test cycles.</p>
+
+<h3>Using ISP</h3>
+
+<p>Connect your serial programmer to the Ubertooth board and type &quot;make
+program&quot; in the firmware source code directory.  If you have a precompiled
+binary in .hex format, you can invoke lpc21isp directly with &quot;lpc21isp
+-control firmware.hex /dev/ttyUSB0 230400 4000&quot; (replacing firmware.hex
+with the firmware filename and /dev/ttyUSB0 with the device file of your serial
+programmer.</p>
+
+<h2>JTAG</h2>
+
+<p>Connect your ARM Cortex-M3 JTAG debugger (such as one supported by <a
+href="http://openocd.berlios.de/web/">OpenOCD</a>) to the standard Cortex Debug
+Connector on the Ubertooth One or the non-standard JTAG connector on the
+Ubertooth Zero.  You know what to do.</p>
