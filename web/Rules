@@ -14,6 +14,10 @@ compile '/stylesheet/' do
   # don't filter or layout
 end
 
+compile '/images/*' do
+  # don't filter or layout
+end
+
 compile '*' do
   filter :erb
   layout 'default'
@@ -24,7 +28,12 @@ route '/stylesheet/' do
 end
 
 route '*' do
-  item.identifier + 'index.html'
+  case item[:extension]
+    when 'html', 'html'
+      item.identifier + 'index.html' # /foo/ -> /foo/index.html
+    else
+      item.identifier.chop + '.' + item[:extension] # /foo/ -> /foo.jpeg
+  end 
 end
 
 layout '*', :erb

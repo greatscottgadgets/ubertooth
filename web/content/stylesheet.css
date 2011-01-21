@@ -65,6 +65,10 @@ a:hover {
   line-height: 20px;
 }
 
+#main img {
+  margin: 20px 0;
+}
+
 #sidebar {
   position: absolute;
 
