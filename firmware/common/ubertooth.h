@@ -58,6 +58,8 @@
 #define PIN_GIO6   (1 << 2 ) /* P2.2  */
 #define PIN_BTGR   (1 << 10) /* P1.10 */
 #define PIN_SSEL1  (1 << 28) /* P4.28 */
+#define PIN_PAEN   (1 << 7 ) /* P2.7 */
+#define PIN_HGM    (1 << 8 ) /* P2.8 */
 #endif
 
 /* indicator LED control */
@@ -156,6 +158,16 @@
 #define DIO_SSP_DR    SSP1DR
 #define DIO_SSP_DMACR SSP1DMACR
 #define DIO_SSP_SRC   (1 << 3) /* for DMACCxConfig register */
+#endif
+
+/* CC2591 control */
+#ifdef UBERTOOTH_ONE
+#define PAEN     (FIO2PIN & PIN_PAEN)
+#define PAEN_SET (FIO2SET = PIN_PAEN)
+#define PAEN_CLR (FIO2CLR = PIN_PAEN)
+#define HGM      (FIO2PIN & PIN_HGM)
+#define HGM_SET  (FIO2SET = PIN_HGM)
+#define HGM_CLR  (FIO2CLR = PIN_HGM)
 #endif
 
 /*

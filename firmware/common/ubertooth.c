@@ -61,9 +61,12 @@ void gpio_init()
 	FIO0DIR = 0;
 	FIO1DIR = (PIN_USRLED | PIN_RXLED | PIN_TXLED | PIN_CC3V3 |
 			PIN_RX | PIN_CC1V8 | PIN_BTGR);
-	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI | PIN_PAEN | PIN_HGM);
 	FIO3DIR = 0;
 	FIO4DIR = (PIN_TX | PIN_SSEL1);
+
+	/* set P2.9 as USB_CONNECT */
+	PINSEL4 = (PINSEL4 & ~(3 << 18)) | (1 << 18);
 #endif
 
 	/* set all outputs low */
