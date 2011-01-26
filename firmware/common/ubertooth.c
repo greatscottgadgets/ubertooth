@@ -49,12 +49,22 @@ void gpio_init()
 	PINSEL10 = 0;
 
 	/* set certain pins as outputs, all others inputs */
+#ifdef UBERTOOTH_ZERO
 	FIO0DIR = PIN_USRLED;
 	FIO1DIR = (PIN_CC3V3 | PIN_RX | PIN_TX | PIN_CSN |
 			PIN_SCLK | PIN_MOSI | PIN_CC1V8 | PIN_BTGR);
 	FIO2DIR = PIN_SSEL0;
 	FIO3DIR = 0;
 	FIO4DIR = (PIN_RXLED | PIN_TXLED);
+#endif
+#ifdef UBERTOOTH_ONE
+	FIO0DIR = 0;
+	FIO1DIR = (PIN_USRLED | PIN_RXLED | PIN_TXLED | PIN_CC3V3 |
+			PIN_RX | PIN_CC1V8 | PIN_BTGR);
+	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO3DIR = 0;
+	FIO4DIR = (PIN_TX | PIN_SSEL1);
+#endif
 
 	/* set all outputs low */
 	FIO0PIN = 0;
@@ -75,9 +85,10 @@ void ubertooth_init()
 	clock_start();
 }
 
-/* configure SSP0 for CC2400's secondary serial data interface */
-void ssp0_init()
+/* configure SSP for CC2400's secondary serial data interface */
+void dio_ssp_init()
 {
+#ifdef UBERTOOTH_ZERO
 	/* set P0.15 as SCK0 */
 	PINSEL0 = (PINSEL0 & ~(3 << 30)) | (2 << 30);
 
@@ -89,18 +100,34 @@ void ssp0_init()
 
 	/* set P1.18 as MOSI0 */
 	PINSEL1 = (PINSEL1 & ~(3 << 4)) | (2 << 4);
+#endif
+#ifdef UBERTOOTH_ONE
+	/* set P0.7 as SCK1 */
+	PINSEL0 = (PINSEL0 & ~(3 << 14)) | (2 << 14);
+
+	/* set P0.6 as SSEL1 */
+	PINSEL0 = (PINSEL0 & ~(3 << 12)) | (2 << 12);
+
+	/* set P0.8 as MISO1 */
+	PINSEL0 = (PINSEL0 & ~(3 << 16)) | (2 << 16);
+
+	/* set P0.9 as MOSI1 */
+	PINSEL0 = (PINSEL0 & ~(3 << 18)) | (2 << 18);
+#endif
 
 	/*
-	 * P2.9 is a GPIO output connected directly to P1.16 (SSEL0).  Since the
-	 * CC2400 doesn't have a slave select output, we control it with this.
-	 * P2.9 should already be configured by gpio_init().  We set it high by
-	 * default because it is an active low signal.
+	 * DIO_SSEL is a GPIO output connected directly to the SSEL input on the
+	 * microcontroller for the CC2400's un-buffered (DIO/DCLK) serial
+	 * interface.  Since the CC2400 doesn't have a slave select output, we
+	 * control it with this.  DIO_SSEL should already be configured by
+	 * gpio_init().  We set it high by default because it is an active low
+	 * signal.
 	 */
-	SSEL0_SET;
+	DIO_SSEL_SET;
 
-	/* configure SSP0 */
-	SSP0CR0 = (0x7 /* 8 bit transfer */ | SSPCR0_CPOL | SSPCR0_CPHA);
-	SSP0CR1 = (SSPCR1_MS | SSPCR1_SOD);
+	/* configure DIO_SSP */
+	DIO_SSP_CR0 = (0x7 /* 8 bit transfer */ | SSPCR0_CPOL | SSPCR0_CPHA);
+	DIO_SSP_CR1 = (SSPCR1_MS | SSPCR1_SOD);
 }
 
 void atest_init()

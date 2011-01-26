@@ -22,14 +22,19 @@ platforms:</p>
 <p>Ubertooth One is intended to be the preferred platform in the near future
 but is still untested.</p>
 
-<p>Demonstration software is available that implements passive Bluetooth
-monitoring integrated into <a href="http://www.kismetwireless.net/">Kismet</a>.
-With additional software development, many other functions will become
-possible, including:</p>
+<p>Demonstration software is available that implements passive Basic Rate
+Bluetooth monitoring integrated into <a
+href="http://www.kismetwireless.net/">Kismet</a>.  With additional software
+development, many other functions will become possible, including:</p>
 
 <ul>
-	<li>Bluetooth injection</li>
+	<li>Bluetooth Basic Rate injection</li>
 	<li>Bluetooth Low Energy monitoring and injection</li>
 	<li>802.11 FHSS monitoring and injection</li>
 	<li>basic spectrum monitoring</li>
 </ul>
+
+<p>The Ubertooth hardware architecture is not compatible with Bluetooth
+Enhanced Data Rate (EDR) modulations.  However, EDR packets begin with a Basic
+Rate (1 Mbps GFSK) header, so Ubertooth could be used for identification and
+partial monitoring of EDR transmissions.</p>

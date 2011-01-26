@@ -480,7 +480,7 @@ static void dma_init()
 	DMACIntErrClr = 0xFF;
 
 	/* DMA linked lists */
-	rx_dma_lli1.src = (u32)&(SSP0DR);
+	rx_dma_lli1.src = (u32)&(DIO_SSP_DR);
 	rx_dma_lli1.dest = (u32)&rxbuf1[0];
 	rx_dma_lli1.next_lli = (u32)&rx_dma_lli2;
 	rx_dma_lli1.control = (DMA_SIZE) |
@@ -491,7 +491,7 @@ static void dma_init()
 			DMACCxControl_DI | /* destination increment */
 			DMACCxControl_I;   /* terminal count interrupt enable */
 
-	rx_dma_lli2.src = (u32)&(SSP0DR);
+	rx_dma_lli2.src = (u32)&(DIO_SSP_DR);
 	rx_dma_lli2.dest = (u32)&rxbuf2[0];
 	rx_dma_lli2.next_lli = (u32)&rx_dma_lli1;
 	rx_dma_lli2.control = (DMA_SIZE) |
@@ -515,7 +515,7 @@ static void dma_init()
 	DMACC0LLI = rx_dma_lli1.next_lli;
 	DMACC0Control = rx_dma_lli1.control;
 	DMACC0Config =
-			(1 << 1) |              /* SSP0 Rx source */
+			DIO_SSP_SRC |
 			(0x2 << 11) |           /* peripheral to memory */
 			DMACCxConfig_IE |       /* allow error interrupts */
 			DMACCxConfig_ITC;       /* allow terminal count interrupts */
@@ -540,21 +540,21 @@ void DMA_IRQHandler()
 	}
 }
 
-static void ssp0_start()
+static void dio_ssp_start()
 {
 	/* make sure the (active low) slave select signal is not active */
-	SSEL0_SET;
+	DIO_SSEL_SET;
 
-	/* enable rx DMA on SSP0 */
-	SSP0DMACR |= SSPDMACR_RXDMAE;
-	SSP0CR1 |= SSPCR1_SSE;
+	/* enable rx DMA on DIO_SSP */
+	DIO_SSP_DMACR |= SSPDMACR_RXDMAE;
+	DIO_SSP_CR1 |= SSPCR1_SSE;
 	
 	/* enable DMA */
 	DMACC0Config |= DMACCxConfig_E;
 	ISER0 |= ISER0_ISE_DMA;
 
 	/* activate slave select pin */
-	SSEL0_CLR;
+	DIO_SSEL_CLR;
 }
 
 /* start un-buffered bluetooth rx */
@@ -594,9 +594,9 @@ void bt_stream_rx()
 	RXLED_SET;
 
 	queue_init();
-	ssp0_init();
+	dio_ssp_init();
 	dma_init();
-	ssp0_start();
+	dio_ssp_start();
 	cc2400_rx();
 
 	while (rx_pkts) {
