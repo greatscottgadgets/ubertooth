@@ -43,7 +43,7 @@
 #----------------------------------------------------------------------------
 
 # set to UBERTOOTH_ZERO or UBERTOOTH_ONE
-BOARD  = UBERTOOTH_ONE
+BOARD  = UBERTOOTH_ZERO
 
 # CPU architecture
 CPU = cortex-m3
@@ -328,7 +328,7 @@ gccversion:
 	@$(CC) --version
 
 program: $(TARGET).hex
-	$(LPCISP) -control -controlswap $(TARGET).hex $(PROGDEV)  230400 4000
+	$(LPCISP) -control $(TARGET).hex $(PROGDEV)  230400 4000
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf
