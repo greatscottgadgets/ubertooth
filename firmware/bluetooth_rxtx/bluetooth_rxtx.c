@@ -598,7 +598,6 @@ void bt_stream_rx()
 	dma_init();
 	dio_ssp_start();
 	cc2400_rx();
-	TXLED_SET;
 
 	while (rx_pkts) {
 		/* wait for DMA transfer */

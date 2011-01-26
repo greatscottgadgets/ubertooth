@@ -92,8 +92,8 @@
 #define DIO_SSEL_CLR  (FIO2CLR = PIN_SSEL0)
 #endif
 #ifdef UBERTOOTH_ONE
-#define DIO_SSEL_SET  (FIO2SET = PIN_SSEL1)
-#define DIO_SSEL_CLR  (FIO2CLR = PIN_SSEL1)
+#define DIO_SSEL_SET  (FIO4SET = PIN_SSEL1)
+#define DIO_SSEL_CLR  (FIO4CLR = PIN_SSEL1)
 #endif
 
 /* 1V8 regulator control */
@@ -157,7 +157,7 @@
 #define DIO_SSP_CR1   SSP1CR1
 #define DIO_SSP_DR    SSP1DR
 #define DIO_SSP_DMACR SSP1DMACR
-#define DIO_SSP_SRC   (1 << 3) /* for DMACCxConfig register */
+#define DIO_SSP_SRC   (3 << 1) /* for DMACCxConfig register */
 #endif
 
 /* CC2591 control */
