@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Tue Jan 25 07:24:37 2011
+EESchema Schematic File Version 2  date Fri Jan 28 13:20:57 2011
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -38,7 +38,7 @@ Sheet 1 1
 Title "Ubertooth One"
 Date "25 jan 2011"
 Rev "$Rev$"
-Comp "Copyright 2010 Michael Ossmann"
+Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
 Comment2 ""
 Comment3 ""

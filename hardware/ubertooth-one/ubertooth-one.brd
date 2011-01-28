@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Fri Jan 21 15:25:41 2011
+PCBNEW-BOARD Version 1 date Fri Jan 28 13:20:52 2011
 
 # Created by Pcbnew(2010-12-28 BZR 2695)-testing
 
@@ -19,11 +19,11 @@ $EndGENERAL
 
 $SHEETDESCR
 Sheet User 6000 4000
-Title ""
-Date "21 jan 2011"
-Rev ""
-Comp ""
-Comment1 ""
+Title "Ubertooth One"
+Date "28 jan 2011"
+Rev "$Rev$"
+Comp "Copyright 2010, 2011 Michael Ossmann"
+Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
 Comment2 ""
 Comment3 ""
 Comment4 ""
@@ -7116,7 +7116,7 @@ ZLayer 2
 ZAux 8 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 F 80 160
+ZOptions 1 16 S 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
@@ -11132,7 +11132,7 @@ ZLayer 0
 ZAux 8 E
 ZClearance 120 T
 ZMinThickness 100
-ZOptions 1 16 F 80 160
+ZOptions 1 16 S 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
@@ -14839,7 +14839,7 @@ ZLayer 15
 ZAux 19 E
 ZClearance 100 T
 ZMinThickness 120
-ZOptions 1 16 F 80 160
+ZOptions 1 16 S 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
@@ -17815,7 +17815,7 @@ ZLayer 1
 ZAux 7 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 F 80 160
+ZOptions 1 16 S 80 160
 ZCorner 24550 20000 0
 ZCorner 25000 19550 0
 ZCorner 27540 19550 0
@@ -18441,7 +18441,7 @@ ZLayer 1
 ZAux 15 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 F 80 160
+ZOptions 1 16 S 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
