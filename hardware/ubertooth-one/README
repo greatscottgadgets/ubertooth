@@ -21,7 +21,3 @@ hardware notes:
 
 Ubertooth One schematic and layout files were designed in KiCad, an open source
 electronic design automation package.
-
-This directory contains an attempt at a two layer circuit board design.  The
-4layer branch is a four layer design that is likely to supersede this, but
-testing has not been completed.

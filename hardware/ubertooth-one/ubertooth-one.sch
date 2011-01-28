@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Tue Dec 28 15:21:00 2010
+EESchema Schematic File Version 2  date Tue Jan 25 07:24:37 2011
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -31,12 +31,12 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ubertooth-one-cache
-EELAYER 24  0
+EELAYER 25  0
 EELAYER END
 $Descr User 17000 11000
 Sheet 1 1
 Title "Ubertooth One"
-Date "28 dec 2010"
+Date "25 jan 2011"
 Rev "$Rev$"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -44,798 +44,1100 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-NoConn ~ 8950 9100
+$Comp
+L R R17
+U 1 1 4D348CC9
+P 3900 2500
+F 0 "R17" V 3980 2500 50  0000 C CNN
+F 1 "10k" V 3900 2500 50  0000 C CNN
+F 2 "0603" H 3900 2500 60  0001 C CNN
+F 4 "Bourns" H 3900 2500 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 3900 2500 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 3900 2500 60  0001 C CNN "Field3"
+	1    3900 2500
+	0    -1   -1   0   
+$EndComp
+Text Label 3450 2400 1    40   ~ 0
+HGM
+Text Label 3550 2400 1    40   ~ 0
+EN
+Text Label 7800 3750 0    40   ~ 0
+RX
+Text Label 7800 3650 0    40   ~ 0
+TX
+Text Label 7800 3350 0    40   ~ 0
+CSn
+Text Label 7800 3250 0    40   ~ 0
+SCLK
+Text Label 7800 3150 0    40   ~ 0
+SI
+Text Label 7800 3050 0    40   ~ 0
+SO
+Text Label 7800 3550 0    40   ~ 0
+DIO
+Text Label 7800 3450 0    40   ~ 0
+DCLK
+$Comp
+L CONN_1 P13
+U 1 1 4D1F669F
+P 1200 7550
+F 0 "P13" H 1280 7550 40  0000 L CNN
+F 1 "DIO" H 1200 7605 30  0001 C CNN
+	1    1200 7550
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1350 7550 1450 7550
+Text Label 1450 7550 0    40   ~ 0
+DIO
+Text Label 1450 7350 0    40   ~ 0
+DCLK
+Wire Wire Line
+	1350 7350 1450 7350
+$Comp
+L CONN_1 P12
+U 1 1 4D1F669C
+P 1200 7350
+F 0 "P12" H 1280 7350 40  0000 L CNN
+F 1 "DCLK" H 1200 7405 30  0001 C CNN
+	1    1200 7350
+	-1   0    0    1   
+$EndComp
+Text Label 7800 2950 0    40   ~ 0
+GIO6
+Text Label 1450 6750 0    40   ~ 0
+GIO6
+Wire Wire Line
+	1350 6750 1450 6750
+$Comp
+L CONN_1 P9
+U 1 1 4D1F527B
+P 1200 6750
+F 0 "P9" H 1280 6750 40  0000 L CNN
+F 1 "GIO6" H 1200 6805 30  0001 C CNN
+	1    1200 6750
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P11
+U 1 1 4D1F522D
+P 1200 7150
+F 0 "P11" H 1280 7150 40  0000 L CNN
+F 1 "ATEST2" H 1200 7205 30  0001 C CNN
+	1    1200 7150
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1350 7150 1450 7150
+Text Label 1450 7150 0    40   ~ 0
+ATEST2
+Text Label 1450 6950 0    40   ~ 0
+ATEST1
+Wire Wire Line
+	1350 6950 1450 6950
+$Comp
+L CONN_1 P10
+U 1 1 4D1F521F
+P 1200 6950
+F 0 "P10" H 1280 6950 40  0000 L CNN
+F 1 "ATEST1" H 1200 7005 30  0001 C CNN
+	1    1200 6950
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P8
+U 1 1 4D1F5211
+P 1200 6550
+F 0 "P8" H 1280 6550 40  0000 L CNN
+F 1 "GIO1" H 1200 6605 30  0001 C CNN
+	1    1200 6550
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1350 6550 1450 6550
+Text Label 1450 6550 0    40   ~ 0
+GIO1
+Text Label 1450 6350 0    40   ~ 0
+VBUS
+Wire Wire Line
+	1350 6350 1450 6350
+Wire Wire Line
+	1400 5950 1350 5950
+Wire Wire Line
+	6550 7350 6550 7450
+Wire Wire Line
+	7200 7400 7200 7300
+Wire Wire Line
+	7200 7300 6950 7300
+Wire Wire Line
+	4900 6850 4900 7250
+Connection ~ 4600 7150
+Wire Wire Line
+	4600 6850 4600 7250
+Wire Wire Line
+	4900 7650 4900 7750
+Wire Wire Line
+	4300 7650 4300 7750
+Wire Wire Line
+	4900 7250 5250 7250
+Wire Wire Line
+	6250 7850 6250 7750
+Wire Wire Line
+	6950 7300 6950 7200
+Wire Wire Line
+	6800 7250 6800 7900
+Wire Wire Line
+	6800 7250 6550 7250
+Wire Wire Line
+	3550 2500 3650 2500
+Wire Wire Line
+	4150 2600 4150 2500
+Connection ~ 4400 4150
+Wire Wire Line
+	4400 3650 4400 4250
+Wire Wire Line
+	3650 9900 3650 9800
+Wire Wire Line
+	11100 3450 11100 3350
+Wire Wire Line
+	11100 3350 10800 3350
+Wire Wire Line
+	10800 3350 10800 3050
+Wire Wire Line
+	10800 3050 7700 3050
+Wire Wire Line
+	7700 3250 10700 3250
+Wire Wire Line
+	10700 3250 10700 2500
+Wire Wire Line
+	11700 2400 10600 2400
+Connection ~ 12700 1950
+Wire Wire Line
+	12500 1950 12700 1950
+Wire Wire Line
+	12500 2750 12500 2950
+Wire Wire Line
+	12500 2950 12300 2950
+Wire Wire Line
+	12300 2950 12300 3450
+Connection ~ 15750 6600
+Wire Wire Line
+	15950 6600 15750 6600
+Wire Wire Line
+	7050 6950 7050 6100
+Wire Notes Line
+	2150 10300 3950 10300
+Connection ~ 3650 8550
+Wire Wire Line
+	3650 9100 3650 8350
+Connection ~ 2850 8550
+Wire Wire Line
+	2850 8350 2850 9100
+Wire Wire Line
+	2850 9800 2850 9900
+Connection ~ 3650 8850
+Connection ~ 3250 8850
+Connection ~ 2850 8850
+Connection ~ 2450 8850
+Connection ~ 15750 8550
+Wire Wire Line
+	15950 8550 12700 8550
+Wire Wire Line
+	15850 6100 15850 6300
+Wire Wire Line
+	15650 6100 15650 6200
+Connection ~ 15650 6700
+Wire Wire Line
+	15650 6700 15650 6300
+Wire Wire Line
+	15650 6300 15850 6300
+Connection ~ 600  4150
+Wire Wire Line
+	600  4400 600  3850
+Connection ~ 600  3950
+Wire Wire Line
+	3350 2600 3350 2500
+Wire Notes Line
+	4350 4050 4450 4050
+Wire Notes Line
+	4350 4050 4350 3750
+Wire Notes Line
+	4350 3750 4450 3750
+Wire Notes Line
+	4450 3750 4450 4050
+Wire Notes Line
+	2400 3400 2100 3400
+Wire Notes Line
+	2400 3400 2400 3500
+Wire Notes Line
+	2400 3500 2100 3500
+Connection ~ 1700 3450
+Connection ~ 2500 4500
+Wire Wire Line
+	2500 4600 2500 4450
+Wire Wire Line
+	1250 4400 1250 4300
+Wire Wire Line
+	1250 2950 1250 2850
+Wire Wire Line
+	1850 3650 1950 3650
+Connection ~ 2850 4500
+Wire Wire Line
+	2850 4600 2850 4500
+Wire Wire Line
+	2850 5100 2850 5000
+Connection ~ 2000 3450
+Wire Wire Line
+	2000 3350 2000 3450
+Wire Wire Line
+	1700 2850 1700 2950
+Wire Wire Line
+	3850 5100 3850 5000
+Wire Wire Line
+	3550 4500 3550 4400
+Wire Wire Line
+	3000 2600 3000 2500
+Wire Wire Line
+	3450 4400 3450 4500
+Wire Wire Line
+	4900 3650 5000 3650
+Wire Wire Line
+	7550 7100 7550 7000
+Wire Wire Line
+	15150 5500 15150 5450
+Wire Wire Line
+	9450 6300 8150 6300
+Wire Wire Line
+	8150 6300 8150 6500
+Wire Wire Line
+	7850 7100 7850 7000
+Wire Wire Line
+	8150 7600 8150 7500
+Wire Wire Line
+	8450 7000 8450 7100
+Wire Wire Line
+	8950 9200 9050 9200
+Wire Wire Line
+	8950 9000 9350 9000
+Wire Wire Line
+	9350 9000 9350 6900
+Connection ~ 11500 8800
+Wire Wire Line
+	8950 8800 12300 8800
+Wire Wire Line
+	9850 9150 9850 9200
+Wire Wire Line
+	9850 9200 9950 9200
+Connection ~ 9850 9400
+Wire Wire Line
+	9950 9400 9850 9400
+Wire Wire Line
+	11500 8800 11500 9600
+Wire Wire Line
+	11500 9600 10750 9600
+Wire Wire Line
+	11000 8450 11000 9400
+Wire Wire Line
+	11000 9400 10750 9400
+Wire Wire Line
+	11200 8450 11200 9200
+Wire Wire Line
+	11200 9200 10750 9200
+Connection ~ 12900 2850
+Wire Wire Line
+	13100 2850 12800 2850
+Wire Wire Line
+	6000 2050 6000 1500
+Wire Wire Line
+	14450 6500 15150 6500
+Wire Wire Line
+	12000 9900 12000 10000
+Wire Wire Line
+	12000 8900 12000 8450
+Connection ~ 12800 8800
+Wire Wire Line
+	13050 8800 12800 8800
+Wire Wire Line
+	11600 8450 11600 8700
+Wire Wire Line
+	11900 8450 11900 8700
+Wire Wire Line
+	11700 8450 11700 8700
+Wire Wire Line
+	12800 9300 12800 9400
+Wire Wire Line
+	12800 8450 12800 8900
+Wire Wire Line
+	12700 8550 12700 8450
+Wire Wire Line
+	12500 9450 12500 8450
+Wire Wire Line
+	14400 8300 14850 8300
+Wire Wire Line
+	14850 8300 14850 8200
+Connection ~ 15450 8300
+Wire Wire Line
+	15500 8300 15050 8300
+Connection ~ 15050 7600
+Wire Wire Line
+	15050 7700 15050 7600
+Wire Wire Line
+	15450 7300 15450 7400
+Wire Wire Line
+	15950 6700 15300 6700
+Wire Wire Line
+	14450 6700 14800 6700
+Wire Wire Line
+	14700 5800 14700 5700
+Wire Wire Line
+	14550 5300 14700 5300
+Wire Wire Line
+	14550 5300 14550 5600
+Wire Wire Line
+	14550 5600 14450 5600
+Wire Wire Line
+	6600 4750 6600 5150
+Connection ~ 14550 6900
+Wire Wire Line
+	14550 7000 14550 6900
+Wire Wire Line
+	14550 7500 14550 7400
+Connection ~ 12800 3150
+Wire Wire Line
+	13100 2850 13100 2500
+Wire Wire Line
+	12800 2850 12800 3450
+Connection ~ 13100 2550
+Wire Wire Line
+	9350 6900 9450 6900
+Wire Wire Line
+	8850 7100 8850 7000
+Connection ~ 8850 6600
+Wire Wire Line
+	8800 6600 9450 6600
+Wire Wire Line
+	13100 3350 12900 3350
+Wire Wire Line
+	11900 3450 11900 700 
+Wire Wire Line
+	11900 700  3550 700 
+Wire Wire Line
+	11700 2400 11700 3450
+Wire Wire Line
+	11000 2650 11000 3050
+Wire Wire Line
+	11000 3050 11300 3050
+Wire Wire Line
+	11300 3050 11300 3450
+Wire Wire Line
+	3450 2600 3450 600 
+Connection ~ 12700 2550
+Connection ~ 11400 2750
+Wire Wire Line
+	9350 5100 9350 3550
+Wire Wire Line
+	9350 5100 9450 5100
+Wire Wire Line
+	9450 5800 8500 5800
+Wire Wire Line
+	8800 5600 9450 5600
+Connection ~ 8850 5200
+Wire Wire Line
+	8750 5200 9150 5200
+Connection ~ 8850 5600
+Wire Wire Line
+	8500 5800 8500 3750
+Wire Wire Line
+	8500 3750 7700 3750
+Wire Wire Line
+	9450 5400 9350 5400
+Wire Wire Line
+	9350 5400 9350 5300
+Wire Wire Line
+	9350 5300 9450 5300
+Connection ~ 9350 5000
+Wire Wire Line
+	9450 5000 9350 5000
+Wire Wire Line
+	6100 4750 6100 4850
+Connection ~ 4650 3750
+Wire Wire Line
+	5000 3550 4800 3550
+Wire Wire Line
+	4800 3550 4800 3750
+Wire Wire Line
+	4800 3750 4500 3750
+Connection ~ 4650 3150
+Wire Wire Line
+	5000 3350 4800 3350
+Wire Wire Line
+	4800 3350 4800 3150
+Wire Wire Line
+	4800 3150 4500 3150
+Wire Wire Line
+	5600 1750 5600 1850
+Wire Wire Line
+	5600 1850 6100 1850
+Wire Wire Line
+	6100 1850 6100 2050
+Wire Wire Line
+	6050 950  6050 1050
+Connection ~ 6050 1550
+Wire Wire Line
+	6050 1450 6050 1750
+Wire Wire Line
+	6050 1750 6300 1750
+Wire Wire Line
+	6300 1750 6300 2050
+Connection ~ 6100 4850
+Connection ~ 4900 4850
+Wire Wire Line
+	4850 4850 6000 4850
+Connection ~ 4900 1950
+Wire Wire Line
+	4900 1900 4900 3150
+Wire Wire Line
+	8100 4450 8100 4350
+Connection ~ 7800 4850
+Wire Wire Line
+	7800 3850 7800 4850
+Wire Wire Line
+	4400 2350 4400 1950
+Wire Wire Line
+	4400 1950 4500 1950
+Connection ~ 7300 4950
+Wire Wire Line
+	7300 4750 7300 5050
+Connection ~ 6800 4950
+Wire Wire Line
+	6900 4950 6900 4750
+Wire Wire Line
+	6700 4750 6700 4950
+Wire Wire Line
+	6300 4750 6300 4950
+Connection ~ 6200 4850
+Wire Wire Line
+	6400 4750 6400 4850
+Connection ~ 5900 4850
+Wire Wire Line
+	5000 3750 4900 3750
+Connection ~ 6500 1950
+Connection ~ 5800 1950
+Wire Wire Line
+	6200 1950 6200 2050
+Connection ~ 4900 2850
+Wire Wire Line
+	4900 2850 5000 2850
+Connection ~ 4900 3050
+Wire Wire Line
+	5000 3050 4900 3050
+Wire Wire Line
+	4900 3150 5000 3150
+Connection ~ 4900 2250
+Wire Wire Line
+	4900 2950 5000 2950
+Connection ~ 4900 2950
+Wire Wire Line
+	5800 2050 5800 1950
+Connection ~ 6200 1950
+Wire Wire Line
+	6000 4850 6000 4750
+Wire Wire Line
+	5900 4750 5900 4850
+Wire Wire Line
+	4900 3750 4900 4850
+Wire Wire Line
+	6200 4850 6200 4750
+Wire Wire Line
+	7800 4850 6100 4850
+Connection ~ 6400 4850
+Wire Wire Line
+	6800 4950 6800 4750
+Connection ~ 6700 4950
+Wire Wire Line
+	6300 4950 7300 4950
+Connection ~ 6900 4950
+Wire Wire Line
+	4900 5350 4900 5250
+Wire Wire Line
+	4500 2250 4400 2250
+Connection ~ 4400 2250
+Wire Wire Line
+	7800 5350 7800 5250
+Wire Wire Line
+	7700 3850 7900 3850
+Connection ~ 7800 3850
+Wire Wire Line
+	6100 5350 6100 5250
+Wire Wire Line
+	7000 1450 7000 1550
+Wire Wire Line
+	5600 1150 5600 1250
+Wire Wire Line
+	6400 2050 6400 1750
+Wire Wire Line
+	6400 1750 6650 1750
+Wire Wire Line
+	6650 1750 6650 1450
+Connection ~ 6650 1550
+Wire Wire Line
+	6650 950  6650 1050
+Wire Wire Line
+	4400 3350 4500 3350
+Wire Wire Line
+	4500 3350 4500 3150
+Wire Wire Line
+	4400 3550 4500 3550
+Wire Wire Line
+	4500 3550 4500 3750
+Wire Wire Line
+	5000 3450 4400 3450
+Wire Wire Line
+	9350 3550 7700 3550
+Wire Wire Line
+	7700 3450 9250 3450
+Wire Wire Line
+	9250 3450 9250 5200
+Wire Wire Line
+	9250 5200 9450 5200
+Wire Wire Line
+	7700 3650 8600 3650
+Wire Wire Line
+	7700 3950 8400 3950
+Connection ~ 8100 3950
+Wire Wire Line
+	8600 3650 8600 5700
+Wire Wire Line
+	8400 3950 8400 5900
+Wire Wire Line
+	9450 5500 9150 5500
+Wire Wire Line
+	9150 5500 9150 5200
+Wire Wire Line
+	8600 5700 9450 5700
+Wire Wire Line
+	8400 5900 9450 5900
+Connection ~ 11000 2750
+Wire Wire Line
+	4900 1950 7000 1950
+Wire Wire Line
+	3550 700  3550 2600
+Wire Wire Line
+	11400 2700 11400 3450
+Wire Wire Line
+	11600 3450 11600 2500
+Wire Wire Line
+	11600 2500 10700 2500
+Wire Wire Line
+	12000 3450 12000 600 
+Wire Wire Line
+	12000 600  3450 600 
+Wire Wire Line
+	9450 6700 9150 6700
+Wire Wire Line
+	9150 6700 9150 7000
+Wire Wire Line
+	9150 7000 8850 7000
+Wire Wire Line
+	9450 6800 9250 6800
+Wire Wire Line
+	12200 3450 12200 1950
+Wire Wire Line
+	12200 1950 12300 1950
+Wire Wire Line
+	12400 3450 12400 2750
+Connection ~ 12700 3050
+Wire Wire Line
+	12700 1850 12700 3450
+Connection ~ 13100 2550
+Connection ~ 12700 2550
+Connection ~ 14550 7000
+Wire Wire Line
+	14600 6900 14450 6900
+Wire Wire Line
+	6500 4750 6500 6000
+Wire Wire Line
+	6500 6000 9450 6000
+Wire Wire Line
+	14450 6600 14550 6600
+Wire Wire Line
+	14700 5700 14450 5700
+Wire Wire Line
+	14700 5300 14700 5250
+Wire Wire Line
+	14450 6800 14800 6800
+Wire Wire Line
+	15950 6800 15300 6800
+Wire Wire Line
+	14850 7700 14850 7600
+Wire Wire Line
+	14850 7600 15150 7600
+Wire Wire Line
+	15450 7800 15450 8300
+Wire Wire Line
+	12100 2950 12100 3450
+Wire Wire Line
+	15050 8300 15050 8200
+Wire Wire Line
+	12300 9400 12500 9400
+Connection ~ 12500 9400
+Wire Wire Line
+	13450 8800 13550 8800
+Wire Wire Line
+	11800 8450 11800 8700
+Wire Wire Line
+	12100 8450 12100 8700
+Wire Wire Line
+	11500 8450 11500 8700
+Wire Wire Line
+	12000 9400 12000 9500
+Wire Wire Line
+	15150 6000 15150 5900
+Wire Wire Line
+	5900 2050 5900 1500
+Wire Wire Line
+	12900 3350 12900 3450
+Wire Wire Line
+	10750 9300 11400 9300
+Wire Wire Line
+	11400 9300 11400 8450
+Wire Wire Line
+	10750 9500 11100 9500
+Wire Wire Line
+	11100 9500 11100 8450
+Wire Wire Line
+	9950 9300 9850 9300
+Wire Wire Line
+	9850 9300 9850 9700
+Wire Wire Line
+	9950 9600 9850 9600
+Connection ~ 9850 9600
+Wire Wire Line
+	12300 8450 12300 8900
+Connection ~ 12300 8800
+Wire Wire Line
+	9250 6800 9250 8900
+Wire Wire Line
+	9250 8900 8950 8900
+Wire Wire Line
+	8450 7500 8450 7600
+Wire Wire Line
+	8450 6500 8450 6400
+Wire Wire Line
+	8450 6400 9450 6400
+Wire Wire Line
+	7850 7600 7850 7500
+Wire Wire Line
+	8150 7100 8150 7000
+Wire Wire Line
+	9450 6200 7850 6200
+Wire Wire Line
+	7850 6200 7850 6500
+Wire Wire Line
+	7550 7600 7550 7500
+Wire Wire Line
+	7550 6100 7550 6500
+Wire Wire Line
+	4900 3250 5000 3250
+Wire Wire Line
+	2600 3650 2500 3650
+Wire Wire Line
+	3550 5100 3550 5000
+Wire Wire Line
+	3650 4400 3650 4500
+Wire Wire Line
+	3650 4500 3850 4500
+Wire Wire Line
+	4400 4750 4400 4650
+Wire Wire Line
+	2000 2850 2000 2950
+Wire Wire Line
+	1700 3450 1700 3350
+Wire Wire Line
+	2500 5100 2500 5000
+Wire Wire Line
+	3350 4400 3350 4500
+Wire Wire Line
+	3350 4500 2500 4500
+Wire Wire Line
+	2600 3550 2350 3550
+Wire Wire Line
+	2350 3550 2350 3650
+Wire Wire Line
+	1950 3650 1950 3900
+Wire Wire Line
+	1250 3900 1250 3550
+Connection ~ 1250 3650
+Wire Wire Line
+	1950 4400 1950 4300
+Wire Wire Line
+	3850 4600 3850 4450
+Connection ~ 3850 4500
+Wire Wire Line
+	1200 3650 1250 3650
+Wire Notes Line
+	2100 3500 2100 3400
+Wire Wire Line
+	2600 3450 1550 3450
+Wire Notes Line
+	3250 4550 2950 4550
+Wire Notes Line
+	3250 4550 3250 4450
+Wire Notes Line
+	3250 4450 2950 4450
+Wire Notes Line
+	2950 4450 2950 4550
+Wire Wire Line
+	2600 3350 2500 3350
+Connection ~ 600  4050
+Wire Wire Line
+	15650 6200 15550 6200
+Wire Wire Line
+	15550 6200 15550 6800
+Connection ~ 15550 6800
+Wire Wire Line
+	15750 4900 15750 5000
+Connection ~ 7550 6100
+Wire Wire Line
+	2450 9850 2450 9800
+Wire Wire Line
+	3250 9800 3250 9850
+Wire Wire Line
+	2450 9100 2450 8350
+Connection ~ 2450 8550
+Wire Wire Line
+	3250 8350 3250 9100
+Connection ~ 3250 8550
+Wire Notes Line
+	2150 10300 2150 7900
+Wire Notes Line
+	2150 7900 3950 7900
+Wire Notes Line
+	3950 7900 3950 10300
+Wire Wire Line
+	7050 6950 6550 6950
+Wire Wire Line
+	15750 6100 15750 8550
+Wire Wire Line
+	15850 6900 15950 6900
+Wire Wire Line
+	6500 2050 6500 1950
+Connection ~ 15450 6800
+Wire Wire Line
+	12500 3450 12500 3100
+Wire Wire Line
+	12500 3100 12350 3100
+Wire Wire Line
+	12350 3100 12350 2850
+Wire Wire Line
+	12350 2850 12300 2850
+Wire Wire Line
+	12300 2850 12300 2750
+Wire Wire Line
+	7700 3350 10600 3350
+Wire Wire Line
+	10600 3350 10600 2400
+Wire Wire Line
+	7700 3150 10500 3150
+Wire Wire Line
+	10500 3150 10500 3450
+Wire Wire Line
+	10500 3450 11000 3450
+Wire Wire Line
+	7700 2950 10900 2950
+Wire Wire Line
+	10900 2950 10900 3250
+Wire Wire Line
+	10900 3250 11200 3250
+Wire Wire Line
+	11200 3250 11200 3450
+Wire Wire Line
+	12400 1950 12400 1850
+Wire Wire Line
+	12400 1850 12600 1850
+Wire Wire Line
+	12600 1850 12600 3450
+Wire Wire Line
+	4450 4150 4400 4150
+Connection ~ 3550 2500
+Wire Wire Line
+	3650 2500 3650 2600
+Wire Wire Line
+	6550 7150 6650 7150
+Wire Wire Line
+	6650 7150 6650 6700
+Wire Wire Line
+	6650 6700 5150 6700
+Wire Wire Line
+	5150 6700 5150 6950
+Wire Wire Line
+	6550 7950 6550 7850
+Wire Wire Line
+	6950 7800 6950 8000
+Connection ~ 6950 7900
+Wire Wire Line
+	6950 8600 6950 8500
+Wire Wire Line
+	5150 7450 5150 7350
+Wire Wire Line
+	5150 7350 5250 7350
+Wire Wire Line
+	5250 7150 4600 7150
+Wire Wire Line
+	4600 7650 4600 7750
+Connection ~ 5150 6950
+Wire Wire Line
+	4300 6950 4300 7250
+Connection ~ 4300 6950
+Wire Wire Line
+	5250 6950 4100 6950
+Wire Wire Line
+	7050 6100 9450 6100
+Wire Wire Line
+	7250 6800 7250 6700
+Wire Wire Line
+	7250 6100 7250 6200
+Connection ~ 7250 6100
+Wire Wire Line
+	6800 7900 7200 7900
+Wire Wire Line
+	7200 7900 7200 7800
 Wire Wire Line
 	8950 9300 9050 9300
 Wire Wire Line
 	9050 9300 9050 9400
 Wire Wire Line
-	12600 3450 12600 1850
-Wire Wire Line
-	12600 1850 12400 1850
-Wire Wire Line
-	12400 1850 12400 1950
-Wire Wire Line
-	3500 9800 3650 9800
-Wire Wire Line
-	3500 9800 3500 9100
-Wire Wire Line
-	3650 9100 3500 9100
-Wire Wire Line
-	2300 9800 2450 9800
-Wire Wire Line
-	2300 9800 2300 9100
-Wire Wire Line
-	2450 9100 2300 9100
-Wire Wire Line
-	15450 9450 15450 9350
-Wire Wire Line
-	11200 3450 11200 3250
-Wire Wire Line
-	11200 3250 10900 3250
-Wire Wire Line
-	10900 3250 10900 2950
-Wire Wire Line
-	10900 2950 7700 2950
-Wire Wire Line
-	11000 3450 10500 3450
-Wire Wire Line
-	10500 3450 10500 3150
-Wire Wire Line
-	10500 3150 7700 3150
-Wire Wire Line
-	10600 3350 10600 2400
-Wire Wire Line
-	10600 3350 7700 3350
-Wire Wire Line
-	12300 2750 12300 2850
-Wire Wire Line
-	12300 2850 12350 2850
-Wire Wire Line
-	12350 2850 12350 3100
-Wire Wire Line
-	12350 3100 12500 3100
-Wire Wire Line
-	12500 3100 12500 3450
-Connection ~ 15450 6800
-Wire Wire Line
-	6500 1950 6500 2050
-Wire Wire Line
-	15850 6900 15950 6900
-Connection ~ 14450 8850
-Wire Wire Line
-	14450 8800 14450 8850
-Wire Wire Line
-	14450 8850 14650 8850
-Wire Wire Line
-	14450 9350 14450 9250
-Connection ~ 15750 8850
-Wire Wire Line
-	15750 6100 15750 8950
-Wire Wire Line
-	6550 6800 6550 6950
-Wire Wire Line
-	6550 6950 7350 6950
-Wire Wire Line
-	6550 6600 6550 6700
-Wire Wire Line
-	7050 6700 7200 6700
-Wire Wire Line
-	5450 6700 5200 6700
-Wire Wire Line
-	5200 7200 5200 7100
-Wire Notes Line
-	3950 7900 3950 10300
-Wire Notes Line
-	3950 7900 2150 7900
-Wire Notes Line
-	2150 7900 2150 10300
-Connection ~ 3250 8550
-Wire Wire Line
-	3250 8350 3250 9100
-Connection ~ 2450 8550
-Wire Wire Line
-	2450 8350 2450 9100
-Wire Wire Line
-	3250 9850 3250 9800
-Wire Wire Line
-	2450 9800 2450 9850
-Wire Wire Line
-	7200 6700 7200 6800
-Wire Wire Line
-	7200 6100 7200 6200
-Connection ~ 7550 6100
-Wire Wire Line
-	9450 6100 7200 6100
-Wire Wire Line
-	15750 4900 15750 5000
-Connection ~ 15550 6800
-Wire Wire Line
-	15550 6200 15550 6800
-Wire Wire Line
-	15550 6200 15650 6200
-Connection ~ 600  4050
-Wire Wire Line
-	2600 3350 2500 3350
-Wire Notes Line
-	2950 4450 2950 4550
-Wire Notes Line
-	2950 4450 3250 4450
-Wire Notes Line
-	3250 4450 3250 4550
-Wire Notes Line
-	3250 4550 2950 4550
-Wire Wire Line
-	2600 3450 1550 3450
-Wire Notes Line
-	2100 3500 2100 3400
-Wire Wire Line
-	4400 4150 4400 3650
-Wire Wire Line
-	4600 4150 4250 4150
-Wire Wire Line
-	4250 4150 4250 4250
-Wire Wire Line
-	1200 3650 1250 3650
-Connection ~ 4550 4150
-Connection ~ 3850 4500
-Wire Wire Line
-	3850 4600 3850 4450
-Wire Wire Line
-	1950 4400 1950 4300
-Connection ~ 1250 3650
-Wire Wire Line
-	1250 3900 1250 3550
-Wire Wire Line
-	1950 3900 1950 3650
-Wire Wire Line
-	2350 3650 2350 3550
-Wire Wire Line
-	2350 3550 2600 3550
-Wire Wire Line
-	3350 4500 2500 4500
-Wire Wire Line
-	3350 4500 3350 4400
-Wire Wire Line
-	2500 5100 2500 5000
-Wire Wire Line
-	1700 3350 1700 3450
-Wire Wire Line
-	2000 2850 2000 2950
-Wire Wire Line
-	4550 4750 4550 4650
-Wire Wire Line
-	3850 4500 3650 4500
-Wire Wire Line
-	3650 4500 3650 4400
-Wire Wire Line
-	3550 5100 3550 5000
-Wire Wire Line
-	2600 3650 2500 3650
-Wire Wire Line
-	4900 3250 5000 3250
-Wire Wire Line
-	7550 6500 7550 6100
-Wire Wire Line
-	7550 7600 7550 7500
-Wire Wire Line
-	7850 6500 7850 6200
-Wire Wire Line
-	7850 6200 9450 6200
-Wire Wire Line
-	8150 7100 8150 7000
-Wire Wire Line
-	7850 7600 7850 7500
-Wire Wire Line
-	9450 6400 8450 6400
-Wire Wire Line
-	8450 6400 8450 6500
-Wire Wire Line
-	8450 7500 8450 7600
-Wire Wire Line
-	8950 8900 9250 8900
-Wire Wire Line
-	9250 8900 9250 6800
-Connection ~ 12300 8800
-Wire Wire Line
-	12300 8450 12300 8900
-Connection ~ 9850 9600
-Wire Wire Line
-	9950 9600 9850 9600
-Wire Wire Line
-	9850 9700 9850 9300
-Wire Wire Line
-	9850 9300 9950 9300
-Wire Wire Line
-	11100 8450 11100 9500
-Wire Wire Line
-	11100 9500 10750 9500
-Wire Wire Line
-	11400 8450 11400 9300
-Wire Wire Line
-	11400 9300 10750 9300
-Wire Wire Line
-	12900 3450 12900 3350
-Wire Wire Line
-	5900 2050 5900 1500
-Wire Wire Line
-	15150 6000 15150 5900
-Wire Wire Line
-	12000 9400 12000 9500
-Wire Wire Line
-	11500 8450 11500 8700
-Wire Wire Line
-	12100 8450 12100 8700
-Wire Wire Line
-	11800 8450 11800 8700
-Wire Wire Line
-	13450 8800 13550 8800
-Connection ~ 12500 9400
-Wire Wire Line
-	12300 9400 12500 9400
-Wire Wire Line
-	15050 8300 15050 8200
-Wire Wire Line
-	12100 2950 12100 3450
-Wire Wire Line
-	15450 7800 15450 8300
-Wire Wire Line
-	15150 7600 14850 7600
-Wire Wire Line
-	14850 7600 14850 7700
-Wire Wire Line
-	15950 6800 15300 6800
-Wire Wire Line
-	14450 6800 14800 6800
-Wire Wire Line
-	14700 5250 14700 5300
-Wire Wire Line
-	14450 5700 14700 5700
-Wire Wire Line
-	14450 6600 14550 6600
-Wire Wire Line
-	9450 6000 6500 6000
-Wire Wire Line
-	6500 6000 6500 4750
-Wire Wire Line
-	14600 6900 14450 6900
-Connection ~ 14550 7000
-Connection ~ 12700 2550
-Connection ~ 13100 2550
-Wire Wire Line
-	12700 1850 12700 3450
-Connection ~ 12700 3050
-Wire Wire Line
-	12400 3450 12400 2750
-Wire Wire Line
-	12300 1950 12200 1950
-Wire Wire Line
-	12200 1950 12200 3450
-Wire Wire Line
-	9250 6800 9450 6800
-Wire Wire Line
-	9150 7000 8850 7000
-Wire Wire Line
-	9150 7000 9150 6700
-Wire Wire Line
-	9150 6700 9450 6700
-Wire Wire Line
-	12000 600  3450 600 
-Wire Wire Line
-	12000 600  12000 3450
-Wire Wire Line
-	11800 800  3650 800 
-Wire Wire Line
-	11800 800  11800 3450
-Wire Wire Line
-	11600 2500 10700 2500
-Wire Wire Line
-	11600 2500 11600 3450
-Wire Wire Line
-	11400 2700 11400 3450
-Wire Wire Line
-	3550 2600 3550 700 
-Wire Wire Line
-	4900 1950 7000 1950
-Connection ~ 11000 2750
-Wire Wire Line
-	9450 5900 8400 5900
-Wire Wire Line
-	9450 5700 8600 5700
-Wire Wire Line
-	9150 5200 9150 5500
-Wire Wire Line
-	9150 5500 9450 5500
-Wire Wire Line
-	8400 3950 8400 5900
-Wire Wire Line
-	8600 5700 8600 3650
-Connection ~ 8100 3950
-Wire Wire Line
-	7700 3950 8400 3950
-Wire Wire Line
-	8600 3650 7700 3650
-Wire Wire Line
-	9450 5200 9250 5200
-Wire Wire Line
-	9250 5200 9250 3450
-Wire Wire Line
-	9250 3450 7700 3450
-Wire Wire Line
-	9350 3550 7700 3550
-Wire Wire Line
-	5000 3450 4400 3450
-Wire Wire Line
-	4500 3750 4500 3550
-Wire Wire Line
-	4500 3550 4400 3550
-Wire Wire Line
-	4500 3150 4500 3350
-Wire Wire Line
-	4500 3350 4400 3350
-Wire Wire Line
-	6650 950  6650 1050
-Connection ~ 6650 1550
-Wire Wire Line
-	6650 1450 6650 1750
-Wire Wire Line
-	6650 1750 6400 1750
-Wire Wire Line
-	6400 1750 6400 2050
-Wire Wire Line
-	5600 1150 5600 1250
-Wire Wire Line
-	7000 1450 7000 1550
-Wire Wire Line
-	6100 5350 6100 5250
-Connection ~ 7800 3850
-Wire Wire Line
-	7700 3850 7900 3850
-Wire Wire Line
-	7800 5350 7800 5250
-Connection ~ 4400 2250
-Wire Wire Line
-	4500 2250 4400 2250
-Wire Wire Line
-	4900 5350 4900 5250
-Connection ~ 6900 4950
-Wire Wire Line
-	6300 4950 7300 4950
-Connection ~ 6700 4950
-Wire Wire Line
-	6800 4950 6800 4750
-Connection ~ 6400 4850
-Wire Wire Line
-	7800 4850 6100 4850
-Wire Wire Line
-	6200 4750 6200 4850
-Wire Wire Line
-	4900 4850 4900 3750
-Wire Wire Line
-	5900 4750 5900 4850
-Wire Wire Line
-	6000 4850 6000 4750
-Connection ~ 6200 1950
-Wire Wire Line
-	5800 2050 5800 1950
-Connection ~ 4900 2950
-Wire Wire Line
-	4900 2950 5000 2950
-Connection ~ 4900 2250
-Wire Wire Line
-	4900 3150 5000 3150
-Wire Wire Line
-	5000 3050 4900 3050
-Connection ~ 4900 3050
-Wire Wire Line
-	4900 2850 5000 2850
-Connection ~ 4900 2850
-Wire Wire Line
-	6200 1950 6200 2050
-Connection ~ 5800 1950
-Connection ~ 6500 1950
-Wire Wire Line
-	4900 3750 5000 3750
-Connection ~ 5900 4850
-Wire Wire Line
-	6400 4850 6400 4750
-Connection ~ 6200 4850
-Wire Wire Line
-	6300 4950 6300 4750
-Wire Wire Line
-	6700 4750 6700 4950
-Wire Wire Line
-	6900 4950 6900 4750
-Connection ~ 6800 4950
-Wire Wire Line
-	7300 4750 7300 5050
-Connection ~ 7300 4950
-Wire Wire Line
-	4400 1950 4500 1950
-Wire Wire Line
-	4400 2350 4400 1950
-Wire Wire Line
-	7800 4850 7800 3850
-Connection ~ 7800 4850
-Wire Wire Line
-	8100 4450 8100 4350
-Wire Wire Line
-	4900 1900 4900 3150
-Connection ~ 4900 1950
-Wire Wire Line
-	4850 4850 6000 4850
-Connection ~ 4900 4850
-Connection ~ 6100 4850
-Wire Wire Line
-	6300 2050 6300 1750
-Wire Wire Line
-	6050 1750 6300 1750
-Wire Wire Line
-	6050 1450 6050 1750
-Connection ~ 6050 1550
-Wire Wire Line
-	6050 950  6050 1050
-Wire Wire Line
-	6100 2050 6100 1850
-Wire Wire Line
-	6100 1850 5600 1850
-Wire Wire Line
-	5600 1850 5600 1750
-Wire Wire Line
-	4500 3150 4800 3150
-Wire Wire Line
-	4800 3150 4800 3350
-Wire Wire Line
-	4800 3350 5000 3350
-Connection ~ 4650 3150
-Wire Wire Line
-	4500 3750 4800 3750
-Wire Wire Line
-	4800 3750 4800 3550
-Wire Wire Line
-	4800 3550 5000 3550
-Connection ~ 4650 3750
-Wire Wire Line
-	6100 4850 6100 4750
-Wire Wire Line
-	9450 5000 9350 5000
-Connection ~ 9350 5000
-Wire Wire Line
-	9450 5300 9350 5300
-Wire Wire Line
-	9350 5300 9350 5400
-Wire Wire Line
-	9350 5400 9450 5400
-Wire Wire Line
-	7700 3750 8500 3750
-Wire Wire Line
-	8500 3750 8500 5800
-Connection ~ 8850 5600
-Wire Wire Line
-	8750 5200 9150 5200
-Connection ~ 8850 5200
-Wire Wire Line
-	8800 5600 9450 5600
-Wire Wire Line
-	8500 5800 9450 5800
-Wire Wire Line
-	9350 5100 9450 5100
-Wire Wire Line
-	9350 3550 9350 5100
-Connection ~ 11400 2750
-Connection ~ 12700 2550
-Wire Wire Line
-	3650 800  3650 2600
-Wire Wire Line
-	3450 600  3450 2600
-Wire Wire Line
-	11300 3450 11300 3050
-Wire Wire Line
-	11000 3050 11300 3050
-Wire Wire Line
-	11000 2650 11000 3050
-Wire Wire Line
-	11700 3450 11700 2400
-Wire Wire Line
-	3550 700  11900 700 
-Wire Wire Line
-	11900 700  11900 3450
-Wire Wire Line
-	12900 3350 13100 3350
-Wire Wire Line
-	8800 6600 9450 6600
-Connection ~ 8850 6600
-Wire Wire Line
-	8850 7000 8850 7100
-Wire Wire Line
-	9450 6900 9350 6900
-Connection ~ 13100 2550
-Wire Wire Line
-	12800 2850 12800 3450
-Wire Wire Line
-	13100 2850 13100 2500
-Connection ~ 12800 3150
-Wire Wire Line
-	14550 7500 14550 7400
-Wire Wire Line
-	14550 7000 14550 6900
-Connection ~ 14550 6900
-Wire Wire Line
-	6600 4750 6600 5150
-Wire Wire Line
-	14450 5600 14550 5600
-Wire Wire Line
-	14550 5600 14550 5300
-Wire Wire Line
-	14550 5300 14700 5300
-Wire Wire Line
-	14700 5700 14700 5800
-Wire Wire Line
-	14450 6700 14800 6700
-Wire Wire Line
-	15950 6700 15300 6700
-Wire Wire Line
-	15450 7300 15450 7400
-Wire Wire Line
-	15050 7700 15050 7600
-Connection ~ 15050 7600
-Wire Wire Line
-	15500 8300 15050 8300
-Connection ~ 15450 8300
-Wire Wire Line
-	14850 8200 14850 8300
-Wire Wire Line
-	14850 8300 14400 8300
-Wire Wire Line
-	12500 9450 12500 8450
-Wire Wire Line
-	12700 8550 12700 8450
-Wire Wire Line
-	12800 8450 12800 8900
-Wire Wire Line
-	12800 9300 12800 9400
-Wire Wire Line
-	11700 8450 11700 8700
-Wire Wire Line
-	11900 8450 11900 8700
-Wire Wire Line
-	11600 8450 11600 8700
-Wire Wire Line
-	13050 8800 12800 8800
-Connection ~ 12800 8800
-Wire Wire Line
-	12000 8900 12000 8450
-Wire Wire Line
-	12000 9900 12000 10000
-Wire Wire Line
-	14450 6500 15150 6500
-Wire Wire Line
-	6000 2050 6000 1500
-Wire Wire Line
-	12800 2850 13100 2850
-Connection ~ 12900 2850
-Wire Wire Line
-	10750 9200 11200 9200
-Wire Wire Line
-	11200 9200 11200 8450
-Wire Wire Line
-	10750 9400 11000 9400
-Wire Wire Line
-	11000 9400 11000 8450
-Wire Wire Line
-	10750 9600 11500 9600
-Wire Wire Line
-	11500 9600 11500 8800
-Wire Wire Line
-	9950 9400 9850 9400
-Connection ~ 9850 9400
-Wire Wire Line
-	9950 9200 9850 9200
-Wire Wire Line
-	9850 9200 9850 9150
-Wire Wire Line
-	12300 8800 8950 8800
-Connection ~ 11500 8800
-Wire Wire Line
-	9350 6900 9350 9000
-Wire Wire Line
-	9350 9000 8950 9000
-Wire Wire Line
-	8950 9200 9050 9200
-Wire Wire Line
-	8450 7000 8450 7100
-Wire Wire Line
-	8150 7600 8150 7500
-Wire Wire Line
-	7850 7100 7850 7000
-Wire Wire Line
-	8150 6500 8150 6300
-Wire Wire Line
-	8150 6300 9450 6300
-Wire Wire Line
-	15150 5500 15150 5450
-Wire Wire Line
-	7550 7100 7550 7000
-Wire Wire Line
-	4900 3650 5000 3650
-Wire Wire Line
-	3450 4400 3450 4500
-Wire Wire Line
-	3000 2600 3000 2500
-Wire Wire Line
-	3550 4500 3550 4400
-Wire Wire Line
-	3850 5100 3850 5000
-Wire Wire Line
-	4550 4150 4550 4250
-Connection ~ 4400 4150
-Wire Wire Line
-	4250 4750 4250 4650
-Wire Wire Line
-	1700 2850 1700 2950
-Wire Wire Line
-	2000 3450 2000 3350
-Connection ~ 2000 3450
-Wire Wire Line
-	2850 5100 2850 5000
-Wire Wire Line
-	2850 4600 2850 4500
-Connection ~ 2850 4500
-Wire Wire Line
-	1950 3650 1850 3650
-Wire Wire Line
-	1250 2950 1250 2850
-Wire Wire Line
-	1250 4400 1250 4300
-Wire Wire Line
-	2500 4600 2500 4450
-Connection ~ 2500 4500
-Connection ~ 1700 3450
-Wire Notes Line
-	2100 3500 2400 3500
-Wire Notes Line
-	2400 3500 2400 3400
-Wire Notes Line
-	2400 3400 2100 3400
-Wire Notes Line
-	4450 3750 4450 4050
-Wire Notes Line
-	4450 3750 4350 3750
-Wire Notes Line
-	4350 3750 4350 4050
-Wire Notes Line
-	4350 4050 4450 4050
-Wire Wire Line
-	3350 2600 3350 2500
-Connection ~ 600  3950
-Wire Wire Line
-	600  4400 600  3850
-Connection ~ 600  4150
-Wire Wire Line
-	15650 6300 15850 6300
-Wire Wire Line
-	15650 6300 15650 6700
-Connection ~ 15650 6700
-Wire Wire Line
-	15650 6200 15650 6100
-Wire Wire Line
-	15850 6300 15850 6100
-Wire Wire Line
-	15950 8550 12700 8550
-Connection ~ 15750 8550
-Connection ~ 2450 8850
-Connection ~ 2850 8850
-Connection ~ 3250 8850
-Connection ~ 3650 8850
-Wire Wire Line
-	2850 9900 2850 9800
-Wire Wire Line
-	2850 8350 2850 9100
-Connection ~ 2850 8550
-Wire Wire Line
-	3650 8350 3650 9100
-Connection ~ 3650 8550
-Wire Notes Line
-	2150 10300 3950 10300
-Wire Wire Line
-	5450 6800 5450 7100
-Wire Wire Line
-	5200 6700 5200 6650
-Wire Wire Line
-	6550 6700 6650 6700
-Wire Wire Line
-	7350 6950 7350 6100
-Connection ~ 7350 6100
-Wire Wire Line
-	5450 7100 5200 7100
-Wire Wire Line
-	16000 8850 15750 8850
-Wire Wire Line
-	16000 9250 16000 9350
-Wire Wire Line
-	14650 8950 14650 9250
-Wire Wire Line
-	14650 9250 14450 9250
-Wire Wire Line
-	15750 6600 15950 6600
-Connection ~ 15750 6600
-Wire Wire Line
-	12300 3450 12300 2950
-Wire Wire Line
-	12300 2950 12500 2950
-Wire Wire Line
-	12500 2950 12500 2750
-Wire Wire Line
-	12500 1950 12700 1950
-Connection ~ 12700 1950
-Wire Wire Line
-	11700 2400 10600 2400
-Wire Wire Line
-	10700 2500 10700 3250
-Wire Wire Line
-	10700 3250 7700 3250
-Wire Wire Line
-	7700 3050 10800 3050
-Wire Wire Line
-	10800 3050 10800 3350
-Wire Wire Line
-	10800 3350 11100 3350
-Wire Wire Line
-	11100 3350 11100 3450
-Wire Wire Line
-	6250 7300 6250 7200
-Wire Wire Line
-	2850 9100 2700 9100
-Wire Wire Line
-	2700 9100 2700 9800
-Wire Wire Line
-	2700 9800 2850 9800
-Wire Wire Line
-	3250 9100 3100 9100
-Wire Wire Line
-	3100 9100 3100 9800
-Wire Wire Line
-	3100 9800 3250 9800
-Wire Wire Line
-	3650 9800 3650 9900
+	1400 6150 1350 6150
 $Comp
-L LPC175X U4
-U 1 1 4CD23A14
-P 11950 5950
-F 0 "U4" H 11950 6050 60  0000 C CNN
-F 1 "LPC175X" H 11950 5850 60  0000 C CNN
-F 2 "LQFP80" H 11950 5950 60  0001 C CNN
-F 4 "NXP" H 11950 5950 60  0001 C CNN "Field1"
-F 5 "LPC1758FBD80,551" H 11950 5950 60  0001 C CNN "Field2"
-F 6 "Microcontrollers (MCU) ARM Cortex M3 Micro Controller" H 11950 5950 60  0001 C CNN "Field3"
-	1    11950 5950
-	0    -1   -1   0   
+L 3V3 #PWR01
+U 1 1 4D1F4F31
+P 1400 6150
+F 0 "#PWR01" H 1400 6250 40  0001 C CNN
+F 1 "3V3" H 1400 6275 40  0000 C CNN
+	1    1400 6150
+	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR01
+L 1V8 #PWR02
+U 1 1 4D1F4F24
+P 1400 5950
+F 0 "#PWR02" H 1400 6090 20  0001 C CNN
+F 1 "1V8" H 1400 6060 30  0000 C CNN
+	1    1400 5950
+	0    1    1    0   
+$EndComp
+$Comp
+L CONN_1 P7
+U 1 1 4D1F4F1B
+P 1200 6350
+F 0 "P7" H 1280 6350 40  0000 L CNN
+F 1 "VBUS" H 1200 6405 30  0001 C CNN
+	1    1200 6350
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P6
+U 1 1 4D1F4F19
+P 1200 6150
+F 0 "P6" H 1280 6150 40  0000 L CNN
+F 1 "3V3" H 1200 6205 30  0001 C CNN
+	1    1200 6150
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P5
+U 1 1 4D1F4F0D
+P 1200 5950
+F 0 "P5" H 1280 5950 40  0000 L CNN
+F 1 "1V8" H 1200 6005 30  0001 C CNN
+	1    1200 5950
+	-1   0    0    1   
+$EndComp
+$Comp
+L IP4220CZ6 U6
+U 1 1 4D1A7557
+P 15750 5550
+F 0 "U6" H 15750 5800 60  0000 C CNN
+F 1 "IP4220CZ6" H 15750 5300 60  0000 C CNN
+F 2 "SOT457" H 15750 5550 60  0001 C CNN
+F 4 "NXP" H 15750 5550 60  0001 C CNN "Field1"
+F 5 "IP4220CZ6,125" H 15750 5550 60  0001 C CNN "Field2"
+F 6 "ESD Suppressors USB2.0 ESD PROTECT DUAL" H 15750 5550 60  0001 C CNN "Field3"
+	1    15750 5550
+	0    1    1    0   
+$EndComp
+$Comp
+L BC856 Q1
+U 1 1 4D1A6C3F
+P 15350 7600
+F 0 "Q1" H 15350 7450 60  0000 R CNN
+F 1 "BC856" H 15350 7750 60  0000 R CNN
+F 2 "SOT416" H 15350 7600 60  0001 C CNN
+F 4 "NXP" H 15350 7600 60  0001 C CNN "Field1"
+F 5 "BC856AT,115" H 15350 7600 60  0001 C CNN "Field2"
+F 6 "PNP general purpose transistor" H 15350 7600 60  0001 C CNN "Field3"
+	1    15350 7600
+	1    0    0    -1  
+$EndComp
+NoConn ~ 8950 9100
+$Comp
+L C C36
+U 1 1 4D13F702
+P 7200 7600
+F 0 "C36" H 7250 7700 50  0000 L CNN
+F 1 "15pF" H 7250 7500 50  0000 L CNN
+F 2 "0402" H 7200 7600 60  0001 C CNN
+F 4 "Murata" H 7200 7600 60  0001 C CNN "Field1"
+F 5 "GRM1535C1H150JDD5D" H 7200 7600 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 15pF 50 volts 5%" H 7200 7600 60  0001 C CNN "Field3"
+	1    7200 7600
+	1    0    0    -1  
+$EndComp
+Text Label 4100 6950 0    40   ~ 0
+VBUS
+$Comp
+L 3V3 #PWR03
+U 1 1 4D13F622
+P 4900 6850
+F 0 "#PWR03" H 4900 6950 40  0001 C CNN
+F 1 "3V3" H 4900 6975 40  0000 C CNN
+	1    4900 6850
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR04
+U 1 1 4D13F5FC
+P 4300 7750
+F 0 "#PWR04" H 4300 7750 30  0001 C CNN
+F 1 "GND" H 4300 7680 30  0001 C CNN
+	1    4300 7750
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR05
+U 1 1 4D13F5FA
+P 4900 7750
+F 0 "#PWR05" H 4900 7750 30  0001 C CNN
+F 1 "GND" H 4900 7680 30  0001 C CNN
+	1    4900 7750
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR06
+U 1 1 4D13F59C
+P 5150 7450
+F 0 "#PWR06" H 5150 7450 30  0001 C CNN
+F 1 "GND" H 5150 7380 30  0001 C CNN
+	1    5150 7450
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR07
+U 1 1 4D13F597
+P 6250 7850
+F 0 "#PWR07" H 6250 7850 30  0001 C CNN
+F 1 "GND" H 6250 7780 30  0001 C CNN
+	1    6250 7850
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR08
+U 1 1 4D13F585
+P 6950 8600
+F 0 "#PWR08" H 6950 8600 30  0001 C CNN
+F 1 "GND" H 6950 8530 30  0001 C CNN
+	1    6950 8600
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR09
+U 1 1 4D13F571
+P 6550 7950
+F 0 "#PWR09" H 6550 7950 30  0001 C CNN
+F 1 "GND" H 6550 7880 30  0001 C CNN
+	1    6550 7950
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C35
+U 1 1 4D13F558
+P 6550 7650
+F 0 "C35" H 6600 7750 50  0000 L CNN
+F 1 "10nF" H 6600 7550 50  0000 L CNN
+F 2 "0402" H 6550 7650 60  0001 C CNN
+F 4 "Murata" H 6550 7650 60  0001 C CNN "Field1"
+F 5 "GRM155R71E103KA01D" H 6550 7650 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.01uF 25volts X7R 10%" H 6550 7650 60  0001 C CNN "Field3"
+	1    6550 7650
+	1    0    0    -1  
+$EndComp
+$Comp
+L 3V3 #PWR010
+U 1 1 4D13F54B
+P 6950 7200
+F 0 "#PWR010" H 6950 7300 40  0001 C CNN
+F 1 "3V3" H 6950 7325 40  0000 C CNN
+	1    6950 7200
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R19
+U 1 1 4D13F53C
+P 6950 8250
+F 0 "R19" V 7030 8250 50  0000 C CNN
+F 1 "30.1k" V 6950 8250 50  0000 C CNN
+F 2 "0402" H 6950 8250 60  0001 C CNN
+F 4 "KOA Speer" H 6950 8250 60  0001 C CNN "Field1"
+F 5 "RK73H1ETTP3012F" H 6950 8250 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0402 1/16watts 30.1Kohms 1%" H 6950 8250 60  0001 C CNN "Field3"
+	1    6950 8250
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R18
+U 1 1 4D13F530
+P 6950 7550
+F 0 "R18" V 7030 7550 50  0000 C CNN
+F 1 "49.9k" V 6950 7550 50  0000 C CNN
+F 2 "0402" H 6950 7550 60  0001 C CNN
+F 4 "KOA Speer" H 6950 7550 60  0001 C CNN "Field1"
+F 5 "RK73H1ETTP4992F" H 6950 7550 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0402 1/16watts 49.9Kohms" H 6950 7550 60  0001 C CNN "Field3"
+	1    6950 7550
+	1    0    0    -1  
+$EndComp
+NoConn ~ 5250 7050
+NoConn ~ 6550 7050
+$Comp
+L TPS712XX U7
+U 1 1 4D13E6B5
+P 5900 7150
+F 0 "U7" H 5900 7500 60  0000 C CNN
+F 1 "TPS71219" H 5900 6800 60  0000 C CNN
+F 2 "S-PVSON-N10" H 5900 7150 60  0001 C CNN
+F 4 "Texas Instruments" H 5900 7150 60  0001 C CNN "Field1"
+F 5 "TPS71219DRCT" H 5900 7150 60  0001 C CNN "Field2"
+F 6 "Low Dropout (LDO) Regulators Dual 250 mA Output UltraLow Noise" H 5900 7150 60  0001 C CNN "Field3"
+	1    5900 7150
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR011
+U 1 1 4D13DEAA
+P 4150 2600
+F 0 "#PWR011" H 4150 2600 30  0001 C CNN
+F 1 "GND" H 4150 2530 30  0001 C CNN
+	1    4150 2600
+	1    0    0    -1  
+$EndComp
+NoConn ~ 11800 3450
+$Comp
+L GND #PWR012
 U 1 1 4CF5D22C
 P 3650 9900
-F 0 "#PWR01" H 3650 9900 30  0001 C CNN
+F 0 "#PWR012" H 3650 9900 30  0001 C CNN
 F 1 "GND" H 3650 9830 30  0001 C CNN
 	1    3650 9900
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR02
-U 1 1 4CE1A890
-P 15450 9450
-F 0 "#PWR02" H 15450 9450 30  0001 C CNN
-F 1 "GND" H 15450 9380 30  0001 C CNN
-	1    15450 9450
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR03
-U 1 1 4CE1A888
-P 6250 7300
-F 0 "#PWR03" H 6250 7300 30  0001 C CNN
-F 1 "GND" H 6250 7230 30  0001 C CNN
-	1    6250 7300
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -855,58 +1157,8 @@ Text Notes 12200 1700 0    60   ~ 0
 expansion\nconnector
 Text Notes 10000 9850 0    60   ~ 0
 JTAG connector
-Text Notes 8400 9550 0    60   ~ 0
+Text Notes 8350 9550 0    60   ~ 0
 programming\n connector
-$Comp
-L BUXXTA2 U2
-U 1 1 4CDBFC9C
-P 6000 6750
-F 0 "U2" H 6000 6950 60  0000 C CNN
-F 1 "BU18TA2" H 6000 6550 60  0000 C CNN
-F 2 "SSON004X1216" H 6000 6750 60  0001 C CNN
-F 4 "ROHM" H 6000 6750 60  0001 C CNN "Field1"
-F 5 "BU18TA2WNVX-TR" H 6000 6750 60  0001 C CNN "Field2"
-F 6 "Low Dropout (LDO) Regulators High-Speed Load CMOS 1.8V Out 200mA" H 6000 6750 60  0001 C CNN "Field3"
-	1    6000 6750
-	1    0    0    -1  
-$EndComp
-$Comp
-L BUXXTA2 U5
-U 1 1 4CDBFC09
-P 15200 8900
-F 0 "U5" H 15200 9100 60  0000 C CNN
-F 1 "BU33TA2" H 15200 8700 60  0000 C CNN
-F 2 "SSON004X1216" H 15200 8900 60  0001 C CNN
-F 4 "ROHM" H 15200 8900 60  0001 C CNN "Field1"
-F 5 "BU33TA2WNVX-TR" H 15200 8900 60  0001 C CNN "Field2"
-F 6 "Low Dropout (LDO) Regulators High-Speed Load CMOS 3.3V Out 200mA" H 15200 8900 60  0001 C CNN "Field3"
-	1    15200 8900
-	1    0    0    -1  
-$EndComp
-$Comp
-L IP4221CZ6 U6
-U 1 1 4CDB8BEE
-P 15750 5550
-F 0 "U6" H 15750 5800 60  0000 C CNN
-F 1 "IP4221CZ6" H 15750 5300 60  0000 C CNN
-F 2 "SOT886" H 15750 5550 60  0001 C CNN
-F 4 "NXP" H 15750 5550 60  0001 C CNN "Field1"
-F 5 "IP4221CZ6-XS,132" H 15750 5550 60  0001 C CNN "Field2"
-F 6 "ESD Suppressors Dual USB 2.0 Integra ESD Protection 6-Pin" H 15750 5550 60  0001 C CNN "Field3"
-	1    15750 5550
-	0    1    1    0   
-$EndComp
-Text Label 6550 6600 1    40   ~ 0
-VBUS
-$Comp
-L GND #PWR04
-U 1 1 4CDB6A84
-P 16000 9350
-F 0 "#PWR04" H 16000 9350 30  0001 C CNN
-F 1 "GND" H 16000 9280 30  0001 C CNN
-	1    16000 9350
-	1    0    0    -1  
-$EndComp
 Text Notes 2650 10200 0    40   ~ 0
 optional ADC section
 Text Label 3650 8350 1    40   ~ 0
@@ -918,28 +1170,28 @@ VSSA
 Text Label 2450 8350 1    40   ~ 0
 VDDA
 $Comp
-L 3V3 #PWR05
+L 3V3 #PWR013
 U 1 1 4CDB4F62
 P 2450 9850
-F 0 "#PWR05" H 2450 9950 40  0001 C CNN
+F 0 "#PWR013" H 2450 9950 40  0001 C CNN
 F 1 "3V3" H 2450 9975 40  0000 C CNN
 	1    2450 9850
 	-1   0    0    1   
 $EndComp
 $Comp
-L 3V3 #PWR06
+L 3V3 #PWR014
 U 1 1 4CDB4F5D
 P 3250 9850
-F 0 "#PWR06" H 3250 9950 40  0001 C CNN
+F 0 "#PWR014" H 3250 9950 40  0001 C CNN
 F 1 "3V3" H 3250 9975 40  0000 C CNN
 	1    3250 9850
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR07
+L GND #PWR015
 U 1 1 4CDB4F5A
 P 2850 9900
-F 0 "#PWR07" H 2850 9900 30  0001 C CNN
+F 0 "#PWR015" H 2850 9900 30  0001 C CNN
 F 1 "GND" H 2850 9830 30  0001 C CNN
 	1    2850 9900
 	1    0    0    -1  
@@ -950,7 +1202,7 @@ U 1 1 4CDB4F38
 P 3650 9450
 F 0 "FB4" H 3650 9600 60  0000 C CNN
 F 1 "FILTER" H 3650 9350 60  0000 C CNN
-F 2 "SM0603" H 3650 9450 60  0001 C CNN
+F 2 "0603bridged" H 3650 9450 60  0001 C CNN
 	1    3650 9450
 	0    1    1    0   
 $EndComp
@@ -960,7 +1212,7 @@ U 1 1 4CDB4F37
 P 3250 9450
 F 0 "FB3" H 3250 9600 60  0000 C CNN
 F 1 "FILTER" H 3250 9350 60  0000 C CNN
-F 2 "SM0603" H 3250 9450 60  0001 C CNN
+F 2 "0603bridged" H 3250 9450 60  0001 C CNN
 	1    3250 9450
 	0    1    1    0   
 $EndComp
@@ -970,7 +1222,7 @@ U 1 1 4CDB4F34
 P 2850 9450
 F 0 "FB2" H 2850 9600 60  0000 C CNN
 F 1 "FILTER" H 2850 9350 60  0000 C CNN
-F 2 "SM0603" H 2850 9450 60  0001 C CNN
+F 2 "0603bridged" H 2850 9450 60  0001 C CNN
 	1    2850 9450
 	0    1    1    0   
 $EndComp
@@ -980,7 +1232,7 @@ U 1 1 4CDB4F2B
 P 2450 9450
 F 0 "FB1" H 2450 9600 60  0000 C CNN
 F 1 "FILTER" H 2450 9350 60  0000 C CNN
-F 2 "SM0603" H 2450 9450 60  0001 C CNN
+F 2 "0603bridged" H 2450 9450 60  0001 C CNN
 	1    2450 9450
 	0    1    1    0   
 $EndComp
@@ -990,7 +1242,7 @@ U 1 1 4CDB4F24
 P 3450 8550
 F 0 "C10" H 3500 8650 50  0000 L CNN
 F 1 "10nF" H 3500 8450 50  0000 L CNN
-F 2 "SM0402" H 3450 8550 60  0001 C CNN
+F 2 "0603" H 3450 8550 60  0001 C CNN
 	1    3450 8550
 	0    1    1    0   
 $EndComp
@@ -1000,7 +1252,7 @@ U 1 1 4CDB4F05
 P 2650 8550
 F 0 "C7" H 2700 8650 50  0000 L CNN
 F 1 "10nF" H 2700 8450 50  0000 L CNN
-F 2 "SM0402" H 2650 8550 60  0001 C CNN
+F 2 "0603" H 2650 8550 60  0001 C CNN
 	1    2650 8550
 	0    1    1    0   
 $EndComp
@@ -1010,7 +1262,7 @@ U 1 1 4CDB4EC4
 P 2650 8850
 F 0 "C8" H 2700 8950 50  0000 L CNN
 F 1 "1µF" H 2700 8750 50  0000 L CNN
-F 2 "SM0402" H 2650 8850 60  0001 C CNN
+F 2 "0603" H 2650 8850 60  0001 C CNN
 	1    2650 8850
 	0    1    1    0   
 $EndComp
@@ -1020,7 +1272,7 @@ U 1 1 4CDB4E9D
 P 3450 8850
 F 0 "C11" H 3500 8950 50  0000 L CNN
 F 1 "1µF" H 3500 8750 50  0000 L CNN
-F 2 "SM0402" H 3450 8850 60  0001 C CNN
+F 2 "0603" H 3450 8850 60  0001 C CNN
 	1    3450 8850
 	0    1    1    0   
 $EndComp
@@ -1029,129 +1281,98 @@ VBUS
 $Comp
 L R R3
 U 1 1 4CDB4CA2
-P 7200 6450
-F 0 "R3" V 7280 6450 50  0000 C CNN
-F 1 "10k" V 7200 6450 50  0000 C CNN
-F 2 "SM0402" H 7200 6450 60  0001 C CNN
-F 4 "Vishay/Dale" H 7200 6450 60  0001 C CNN "Field1"
-F 5 "CRCW040210K0JNED" H 7200 6450 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 10Kohms 5%" H 7200 6450 60  0001 C CNN "Field3"
-	1    7200 6450
+P 7250 6450
+F 0 "R3" V 7330 6450 50  0000 C CNN
+F 1 "10k" V 7250 6450 50  0000 C CNN
+F 2 "0603" H 7250 6450 60  0001 C CNN
+F 4 "Bourns" H 7250 6450 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 7250 6450 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 7250 6450 60  0001 C CNN "Field3"
+	1    7250 6450
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR08
+L GND #PWR016
 U 1 1 4CDB4C7D
-P 5200 7200
-F 0 "#PWR08" H 5200 7200 30  0001 C CNN
-F 1 "GND" H 5200 7130 30  0001 C CNN
-	1    5200 7200
+P 4600 7750
+F 0 "#PWR016" H 4600 7750 30  0001 C CNN
+F 1 "GND" H 4600 7680 30  0001 C CNN
+	1    4600 7750
 	1    0    0    -1  
 $EndComp
 $Comp
 L C C18
 U 1 1 4CDB4C69
-P 5200 6900
-F 0 "C18" H 5250 7000 50  0000 L CNN
-F 1 "1µF" H 5250 6800 50  0000 L CNN
-F 2 "SM0402" H 5200 6900 60  0001 C CNN
-F 4 "TDK" H 5200 6900 60  0001 C CNN "Field1"
-F 5 "C1005X5R1C105K" H 5200 6900 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1.0uF 16V X5R 10%" H 5200 6900 60  0001 C CNN "Field3"
-	1    5200 6900
+P 4600 7450
+F 0 "C18" H 4650 7550 50  0000 L CNN
+F 1 "2.2µF" H 4650 7350 50  0000 L CNN
+F 2 "0603" H 4600 7450 60  0001 C CNN
+F 4 "TDK" H 4600 7450 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C225K" H 4600 7450 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 16volts 2.2uF X5R 10%" H 4600 7450 60  0001 C CNN "Field3"
+	1    4600 7450
 	1    0    0    -1  
 $EndComp
 $Comp
 L C C22
 U 1 1 4CDB4C61
-P 6850 6700
-F 0 "C22" H 6900 6800 50  0000 L CNN
-F 1 "1µF" H 6900 6600 50  0000 L CNN
-F 2 "SM0402" H 6850 6700 60  0001 C CNN
-F 4 "TDK" H 6850 6700 60  0001 C CNN "Field1"
-F 5 "C1005X5R1C105K" H 6850 6700 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1.0uF 16V X5R 10%" H 6850 6700 60  0001 C CNN "Field3"
-	1    6850 6700
-	0    1    1    0   
+P 4300 7450
+F 0 "C22" H 4350 7550 50  0000 L CNN
+F 1 "1µF" H 4350 7350 50  0000 L CNN
+F 2 "0603" H 4300 7450 60  0001 C CNN
+F 4 "TDK" H 4300 7450 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C105K" H 4300 7450 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 1uF 16volts X5R 10%" H 4300 7450 60  0001 C CNN "Field3"
+	1    4300 7450
+	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR09
+L GND #PWR017
 U 1 1 4CDB4C46
-P 7200 6800
-F 0 "#PWR09" H 7200 6800 30  0001 C CNN
-F 1 "GND" H 7200 6730 30  0001 C CNN
-	1    7200 6800
+P 7250 6800
+F 0 "#PWR017" H 7250 6800 30  0001 C CNN
+F 1 "GND" H 7250 6730 30  0001 C CNN
+	1    7250 6800
 	1    0    0    -1  
 $EndComp
 $Comp
-L 1V8 #PWR010
+L 1V8 #PWR018
 U 1 1 4CDB4C12
-P 5200 6650
-F 0 "#PWR010" H 5200 6790 20  0001 C CNN
-F 1 "1V8" H 5200 6760 30  0000 C CNN
-	1    5200 6650
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR011
-U 1 1 4CDB4A7C
-P 14450 9350
-F 0 "#PWR011" H 14450 9350 30  0001 C CNN
-F 1 "GND" H 14450 9280 30  0001 C CNN
-	1    14450 9350
+P 4600 6850
+F 0 "#PWR018" H 4600 6990 20  0001 C CNN
+F 1 "1V8" H 4600 6960 30  0000 C CNN
+	1    4600 6850
 	1    0    0    -1  
 $EndComp
 $Comp
 L C C32
 U 1 1 4CDB4A37
-P 14450 9050
-F 0 "C32" H 14500 9150 50  0000 L CNN
-F 1 "1µF" H 14500 8950 50  0000 L CNN
-F 2 "SM0402" H 14450 9050 60  0001 C CNN
-F 4 "TDK" H 14450 9050 60  0001 C CNN "Field1"
-F 5 "C1005X5R1C105K" H 14450 9050 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1.0uF 16V X5R 10%" H 14450 9050 60  0001 C CNN "Field3"
-	1    14450 9050
-	-1   0    0    1   
-$EndComp
-$Comp
-L 3V3 #PWR012
-U 1 1 4CDB4A32
-P 14450 8800
-F 0 "#PWR012" H 14450 8900 40  0001 C CNN
-F 1 "3V3" H 14450 8925 40  0000 C CNN
-	1    14450 8800
+P 4900 7450
+F 0 "C32" H 4950 7550 50  0000 L CNN
+F 1 "2.2µF" H 4950 7350 50  0000 L CNN
+F 2 "0603" H 4900 7450 60  0001 C CNN
+F 4 "TDK" H 4900 7450 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C225K" H 4900 7450 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 16volts 2.2uF X5R 10%" H 4900 7450 60  0001 C CNN "Field3"
+	1    4900 7450
 	1    0    0    -1  
-$EndComp
-$Comp
-L C C35
-U 1 1 4CDB49B0
-P 16000 9050
-F 0 "C35" H 16050 9150 50  0000 L CNN
-F 1 "1µF" H 16050 8950 50  0000 L CNN
-F 2 "SM0402" H 16000 9050 60  0001 C CNN
-F 4 "TDK" H 16000 9050 60  0001 C CNN "Field1"
-F 5 "C1005X5R1C105K" H 16000 9050 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1.0uF 16V X5R 10%" H 16000 9050 60  0001 C CNN "Field3"
-	1    16000 9050
-	-1   0    0    1   
 $EndComp
 NoConn ~ 15650 5000
 NoConn ~ 15850 5000
 $Comp
-L GND #PWR013
+L GND #PWR019
 U 1 1 4CDB4782
 P 15750 4900
-F 0 "#PWR013" H 15750 4900 30  0001 C CNN
+F 0 "#PWR019" H 15750 4900 30  0001 C CNN
 F 1 "GND" H 15750 4830 30  0001 C CNN
 	1    15750 4900
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR014
+L GND #PWR020
 U 1 1 4CDB4456
 P 600 4400
-F 0 "#PWR014" H 600 4400 30  0001 C CNN
+F 0 "#PWR020" H 600 4400 30  0001 C CNN
 F 1 "GND" H 600 4330 30  0001 C CNN
 	1    600  4400
 	1    0    0    -1  
@@ -1182,68 +1403,71 @@ P 900 3650
 F 0 "P1" H 900 3800 60  0000 C CNN
 F 1 "SMA-CONN" H 900 3500 60  0000 C CNN
 F 2 "SMA-EDGE" H 900 3650 60  0001 C CNN
+F 4 "Connector City" H 900 3650 60  0001 C CNN "Field1"
+F 5 "CONREVSMA003.062" H 900 3650 60  0001 C CNN "Field2"
+F 6 "RF Connectors RP-SMA Fml Edge Mnt for 0.062 Thick Brd" H 900 3650 60  0001 C CNN "Field3"
 	1    900  3650
 	1    0    0    -1  
 $EndComp
 $Comp
-L 3V3 #PWR015
+L 3V3 #PWR021
 U 1 1 4CDB3AC5
 P 3850 4450
-F 0 "#PWR015" H 3850 4550 40  0001 C CNN
+F 0 "#PWR021" H 3850 4550 40  0001 C CNN
 F 1 "3V3" H 3850 4575 40  0000 C CNN
 	1    3850 4450
 	1    0    0    -1  
 $EndComp
 $Comp
-L 3V3 #PWR016
+L 3V3 #PWR022
 U 1 1 4CDB3ABC
-P 4600 4150
-F 0 "#PWR016" H 4600 4250 40  0001 C CNN
-F 1 "3V3" H 4600 4275 40  0000 C CNN
-	1    4600 4150
+P 4450 4150
+F 0 "#PWR022" H 4450 4250 40  0001 C CNN
+F 1 "3V3" H 4450 4275 40  0000 C CNN
+	1    4450 4150
 	0    1    1    0   
 $EndComp
 $Comp
-L 3V3 #PWR017
+L 3V3 #PWR023
 U 1 1 4CDB3AB7
 P 2500 4450
-F 0 "#PWR017" H 2500 4550 40  0001 C CNN
+F 0 "#PWR023" H 2500 4550 40  0001 C CNN
 F 1 "3V3" H 2500 4575 40  0000 C CNN
 	1    2500 4450
 	1    0    0    -1  
 $EndComp
 $Comp
-L 3V3 #PWR018
+L 3V3 #PWR024
 U 1 1 4CDB3AAF
 P 1550 3450
-F 0 "#PWR018" H 1550 3550 40  0001 C CNN
+F 0 "#PWR024" H 1550 3550 40  0001 C CNN
 F 1 "3V3" H 1550 3575 40  0000 C CNN
 	1    1550 3450
 	0    -1   -1   0   
 $EndComp
 $Comp
-L GND #PWR019
+L GND #PWR025
 U 1 1 4CDB3975
 P 1950 4400
-F 0 "#PWR019" H 1950 4400 30  0001 C CNN
+F 0 "#PWR025" H 1950 4400 30  0001 C CNN
 F 1 "GND" H 1950 4330 30  0001 C CNN
 	1    1950 4400
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR020
+L GND #PWR026
 U 1 1 4CDB3973
 P 1250 4400
-F 0 "#PWR020" H 1250 4400 30  0001 C CNN
+F 0 "#PWR026" H 1250 4400 30  0001 C CNN
 F 1 "GND" H 1250 4330 30  0001 C CNN
 	1    1250 4400
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR021
+L GND #PWR027
 U 1 1 4CDB396B
 P 1250 2850
-F 0 "#PWR021" H 1250 2850 30  0001 C CNN
+F 0 "#PWR027" H 1250 2850 30  0001 C CNN
 F 1 "GND" H 1250 2780 30  0001 C CNN
 	1    1250 2850
 	-1   0    0    1   
@@ -1254,7 +1478,7 @@ U 1 1 4CDB393F
 P 1250 3250
 F 0 "L1" V 1200 3250 40  0000 C CNN
 F 1 "3nH" V 1350 3250 40  0000 C CNN
-F 2 "SM0402" H 1250 3250 60  0001 C CNN
+F 2 "0402" H 1250 3250 60  0001 C CNN
 F 4 "Murata" H 1250 3250 60  0001 C CNN "Field1"
 F 5 "LQG15HN3N0S02D" H 1250 3250 60  0001 C CNN "Field2"
 F 6 "RF Inductor" H 1250 3250 60  0001 C CNN "Field3"
@@ -1267,7 +1491,7 @@ U 1 1 4CDB38FC
 P 1250 4100
 F 0 "C1" H 1300 4200 50  0000 L CNN
 F 1 "2p2" H 1300 4000 50  0000 L CNN
-F 2 "SM0402" H 1250 4100 60  0001 C CNN
+F 2 "0402" H 1250 4100 60  0001 C CNN
 F 4 "Murata" H 1250 4100 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H2R2BZ01D" H 1250 4100 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 2.2pF 50volts C0G +/-0.1pF" H 1250 4100 60  0001 C CNN "Field3"
@@ -1280,7 +1504,7 @@ U 1 1 4CDB38F5
 P 1950 4100
 F 0 "C3" H 2000 4200 50  0000 L CNN
 F 1 "1pF" H 2000 4000 50  0000 L CNN
-F 2 "SM0402" H 1950 4100 60  0001 C CNN
+F 2 "0402" H 1950 4100 60  0001 C CNN
 F 4 "Murata" H 1950 4100 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H1R0BZ01D" H 1950 4100 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1.0pF 50volts C0G +/-0.1pF" H 1950 4100 60  0001 C CNN "Field3"
@@ -1293,10 +1517,10 @@ U 1 1 4CDB38CC
 P 1550 3650
 F 0 "L2" V 1500 3650 40  0000 C CNN
 F 1 "2n2" V 1650 3650 40  0000 C CNN
-F 2 "SM0402" H 1550 3650 60  0001 C CNN
+F 2 "0402" H 1550 3650 60  0001 C CNN
 F 4 "Murata" H 1550 3650 60  0001 C CNN "Field1"
-F 5 "LQG15HS2N2S02D" H 1550 3650 60  0001 C CNN "Field2"
-F 6 "RF Inductor" H 1550 3650 60  0001 C CNN "Field3"
+F 5 "LQW15AN2N2C10D" H 1550 3650 60  0001 C CNN "Field2"
+F 6 "Power Inductors 2.2 NH +-.2NH" H 1550 3650 60  0001 C CNN "Field3"
 	1    1550 3650
 	0    -1   -1   0   
 $EndComp
@@ -1306,27 +1530,27 @@ U 1 1 4CDB3880
 P 2150 3650
 F 0 "C5" H 2200 3750 50  0000 L CNN
 F 1 "6p8" H 2200 3550 50  0000 L CNN
-F 2 "SM0402" H 2150 3650 60  0001 C CNN
+F 2 "0402" H 2150 3650 60  0001 C CNN
 F 4 "Murata" H 2150 3650 60  0001 C CNN "Field1"
-F 5 "GRM1555C1H6R8BZ01D" H 2150 3650 60  0001 C CNN "Field2"
+F 5 "GRM1555C1H6R8CZ01D" H 2150 3650 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 6.8pF 50volts 0.1pF" H 2150 3650 60  0001 C CNN "Field3"
 	1    2150 3650
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR022
+L GND #PWR028
 U 1 1 4CDB2D16
 P 2500 5100
-F 0 "#PWR022" H 2500 5100 30  0001 C CNN
+F 0 "#PWR028" H 2500 5100 30  0001 C CNN
 F 1 "GND" H 2500 5030 30  0001 C CNN
 	1    2500 5100
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR023
+L GND #PWR029
 U 1 1 4CDB2D14
 P 2850 5100
-F 0 "#PWR023" H 2850 5100 30  0001 C CNN
+F 0 "#PWR029" H 2850 5100 30  0001 C CNN
 F 1 "GND" H 2850 5030 30  0001 C CNN
 	1    2850 5100
 	1    0    0    -1  
@@ -1337,9 +1561,10 @@ U 1 1 4CDB2D0C
 P 2500 4800
 F 0 "C6" H 2550 4900 50  0000 L CNN
 F 1 "1nF" H 2550 4700 50  0000 L CNN
-F 2 "SM0402" H 2500 4800 60  0001 C CNN
+F 2 "0402" H 2500 4800 60  0001 C CNN
 F 4 "Murata" H 2500 4800 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H102JA01D" H 2500 4800 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1000pF 50volts C0G 5%" H 2500 4800 60  0001 C CNN "Field3"
 	1    2500 4800
 	1    0    0    -1  
 $EndComp
@@ -1349,7 +1574,7 @@ U 1 1 4CDB2CFF
 P 2850 4800
 F 0 "C9" H 2900 4900 50  0000 L CNN
 F 1 "10pF" H 2900 4700 50  0000 L CNN
-F 2 "SM0402" H 2850 4800 60  0001 C CNN
+F 2 "0402" H 2850 4800 60  0001 C CNN
 F 4 "Murata" H 2850 4800 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H100JZ01D" H 2850 4800 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 10pF 50volts C0G 5%" H 2850 4800 60  0001 C CNN "Field3"
@@ -1357,19 +1582,19 @@ F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 10pF 50volts C0G 5%" H 
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR024
+L GND #PWR030
 U 1 1 4CDB2CAF
 P 2000 2850
-F 0 "#PWR024" H 2000 2850 30  0001 C CNN
+F 0 "#PWR030" H 2000 2850 30  0001 C CNN
 F 1 "GND" H 2000 2780 30  0001 C CNN
 	1    2000 2850
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR025
+L GND #PWR031
 U 1 1 4CDB2CAD
 P 1700 2850
-F 0 "#PWR025" H 1700 2850 30  0001 C CNN
+F 0 "#PWR031" H 1700 2850 30  0001 C CNN
 F 1 "GND" H 1700 2780 30  0001 C CNN
 	1    1700 2850
 	-1   0    0    1   
@@ -1380,7 +1605,7 @@ U 1 1 4CDB2CA2
 P 1700 3150
 F 0 "C2" H 1750 3250 50  0000 L CNN
 F 1 "1nF" H 1750 3050 50  0000 L CNN
-F 2 "SM0402" H 1700 3150 60  0001 C CNN
+F 2 "0402" H 1700 3150 60  0001 C CNN
 F 4 "Murata" H 1700 3150 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H102JA01D" H 1700 3150 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1000pF 50volts C0G 5%" H 1700 3150 60  0001 C CNN "Field3"
@@ -1393,7 +1618,7 @@ U 1 1 4CDB2C94
 P 2000 3150
 F 0 "C4" H 2050 3250 50  0000 L CNN
 F 1 "18pF" H 2050 3050 50  0000 L CNN
-F 2 "SM0402" H 2000 3150 60  0001 C CNN
+F 2 "0402" H 2000 3150 60  0001 C CNN
 F 4 "Murata" H 2000 3150 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H180JZ01J" H 2000 3150 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 18pF 50volts C0G 5%" H 2000 3150 60  0001 C CNN "Field3"
@@ -1401,53 +1626,32 @@ F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 18pF 50volts C0G 5%" H 
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR026
+L GND #PWR032
 U 1 1 4CDB2C34
-P 4550 4750
-F 0 "#PWR026" H 4550 4750 30  0001 C CNN
-F 1 "GND" H 4550 4680 30  0001 C CNN
-	1    4550 4750
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR027
-U 1 1 4CDB2C30
-P 4250 4750
-F 0 "#PWR027" H 4250 4750 30  0001 C CNN
-F 1 "GND" H 4250 4680 30  0001 C CNN
-	1    4250 4750
+P 4400 4750
+F 0 "#PWR032" H 4400 4750 30  0001 C CNN
+F 1 "GND" H 4400 4680 30  0001 C CNN
+	1    4400 4750
 	1    0    0    -1  
 $EndComp
 $Comp
 L C C14
 U 1 1 4CDB2C22
-P 4550 4450
-F 0 "C14" H 4600 4550 50  0000 L CNN
-F 1 "1nF" H 4600 4350 50  0000 L CNN
-F 2 "SM0402" H 4550 4450 60  0001 C CNN
+P 4400 4450
+F 0 "C14" H 4450 4550 50  0000 L CNN
+F 1 "1nF" H 4450 4350 50  0000 L CNN
+F 2 "0402" H 4550 4450 60  0001 C CNN
 F 4 "Murata" H 4550 4450 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H102JA01D" H 4550 4450 60  0001 C CNN "Field2"
-	1    4550 4450
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1000pF 50volts C0G 5%" H 4400 4450 60  0001 C CNN "Field3"
+	1    4400 4450
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C13
-U 1 1 4CDB2C1C
-P 4250 4450
-F 0 "C13" H 4300 4550 50  0000 L CNN
-F 1 "10pF" H 4300 4350 50  0000 L CNN
-F 2 "SM0402" H 4250 4450 60  0001 C CNN
-F 4 "Murata" H 4250 4450 60  0001 C CNN "Field1"
-F 5 "GRM1555C1H100JZ01D" H 4250 4450 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 10pF 50volts C0G 5%" H 4250 4450 60  0001 C CNN "Field3"
-	1    4250 4450
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR028
+L GND #PWR033
 U 1 1 4CDB2BF0
 P 3850 5100
-F 0 "#PWR028" H 3850 5100 30  0001 C CNN
+F 0 "#PWR033" H 3850 5100 30  0001 C CNN
 F 1 "GND" H 3850 5030 30  0001 C CNN
 	1    3850 5100
 	1    0    0    -1  
@@ -1458,17 +1662,18 @@ U 1 1 4CDB2BDD
 P 3850 4800
 F 0 "C12" H 3900 4900 50  0000 L CNN
 F 1 "1nF" H 3900 4700 50  0000 L CNN
-F 2 "SM0402" H 3850 4800 60  0001 C CNN
+F 2 "0402" H 3850 4800 60  0001 C CNN
 F 4 "Murata" H 3850 4800 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H102JA01D" H 3850 4800 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1000pF 50volts C0G 5%" H 3850 4800 60  0001 C CNN "Field3"
 	1    3850 4800
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR029
+L GND #PWR034
 U 1 1 4CDB2ADD
 P 3550 5100
-F 0 "#PWR029" H 3550 5100 30  0001 C CNN
+F 0 "#PWR034" H 3550 5100 30  0001 C CNN
 F 1 "GND" H 3550 5030 30  0001 C CNN
 	1    3550 5100
 	1    0    0    -1  
@@ -1479,81 +1684,81 @@ U 1 1 4CDB2AD4
 P 3550 4750
 F 0 "R1" V 3630 4750 50  0000 C CNN
 F 1 "4k3" V 3550 4750 50  0000 C CNN
-F 2 "SM0402" H 3550 4750 60  0001 C CNN
+F 2 "0402" H 3550 4750 60  0001 C CNN
 F 4 "KOA Speer" H 3550 4750 60  0001 C CNN "Field1"
 F 5 "RK73H1ETTP4301F" H 3550 4750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 4.3Kohms 1%" H 3550 4750 60  0001 C CNN "Field3"
+F 6 "Thick Film Resistors - SMD 0402 1/16watt 4.3Kohms 1%" H 3550 4750 60  0001 C CNN "Field3"
 	1    3550 4750
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR030
+L GND #PWR035
 U 1 1 4CDB2AAD
 P 3450 4500
-F 0 "#PWR030" H 3450 4500 30  0001 C CNN
+F 0 "#PWR035" H 3450 4500 30  0001 C CNN
 F 1 "GND" H 3450 4430 30  0001 C CNN
 	1    3450 4500
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR031
+L GND #PWR036
 U 1 1 4CDB2AA7
 P 3350 2500
-F 0 "#PWR031" H 3350 2500 30  0001 C CNN
+F 0 "#PWR036" H 3350 2500 30  0001 C CNN
 F 1 "GND" H 3350 2430 30  0001 C CNN
 	1    3350 2500
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR032
+L GND #PWR037
 U 1 1 4CDB2AA3
 P 3000 2500
-F 0 "#PWR032" H 3000 2500 30  0001 C CNN
+F 0 "#PWR037" H 3000 2500 30  0001 C CNN
 F 1 "GND" H 3000 2430 30  0001 C CNN
 	1    3000 2500
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR033
+L GND #PWR038
 U 1 1 4CDB2A9F
 P 2500 3350
-F 0 "#PWR033" H 2500 3350 30  0001 C CNN
+F 0 "#PWR038" H 2500 3350 30  0001 C CNN
 F 1 "GND" H 2500 3280 30  0001 C CNN
 	1    2500 3350
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR034
+L GND #PWR039
 U 1 1 4CDB2A9A
 P 2500 3650
-F 0 "#PWR034" H 2500 3650 30  0001 C CNN
+F 0 "#PWR039" H 2500 3650 30  0001 C CNN
 F 1 "GND" H 2500 3580 30  0001 C CNN
 	1    2500 3650
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR035
+L GND #PWR040
 U 1 1 4CDB292C
 P 4900 3650
-F 0 "#PWR035" H 4900 3650 30  0001 C CNN
+F 0 "#PWR040" H 4900 3650 30  0001 C CNN
 F 1 "GND" H 4900 3580 30  0001 C CNN
 	1    4900 3650
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR036
+L GND #PWR041
 U 1 1 4CDB2926
 P 4900 3250
-F 0 "#PWR036" H 4900 3250 30  0001 C CNN
+F 0 "#PWR041" H 4900 3250 30  0001 C CNN
 F 1 "GND" H 4900 3180 30  0001 C CNN
 	1    4900 3250
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR037
+L GND #PWR042
 U 1 1 4CDB28BB
 P 7550 7600
-F 0 "#PWR037" H 7550 7600 30  0001 C CNN
+F 0 "#PWR042" H 7550 7600 30  0001 C CNN
 F 1 "GND" H 7550 7530 30  0001 C CNN
 	1    7550 7600
 	1    0    0    -1  
@@ -1564,10 +1769,10 @@ U 1 1 4CDB28B9
 P 7550 6750
 F 0 "R4" V 7630 6750 50  0000 C CNN
 F 1 "330" V 7550 6750 50  0000 C CNN
-F 2 "SM0402" H 7550 6750 60  0001 C CNN
-F 4 "Vishay/Dale" H 7550 6750 60  0001 C CNN "Field1"
-F 5 "CRCW0402330RJNED" H 7550 6750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 330ohms 5%" H 7550 6750 60  0001 C CNN "Field3"
+F 2 "0603" H 7550 6750 60  0001 C CNN
+F 4 "Bourns" H 7550 6750 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 7550 6750 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 7550 6750 60  0001 C CNN "Field3"
 	1    7550 6750
 	-1   0    0    1   
 $EndComp
@@ -1577,7 +1782,7 @@ U 1 1 4CDB28B7
 P 7550 7300
 F 0 "D1" H 7550 7400 50  0000 C CNN
 F 1 "1V8LED" H 7550 7200 50  0000 C CNN
-F 2 "LED-0603" H 7550 7300 60  0001 C CNN
+F 2 "0603D" H 7550 7300 60  0001 C CNN
 F 4 "Kingbright" H 7550 7300 60  0001 C CNN "Field1"
 F 5 "APT1608SGC" H 7550 7300 60  0001 C CNN "Field2"
 F 6 "Standard LED - SMD GREEN WATER CLEAR" H 7550 7300 60  0001 C CNN "Field3"
@@ -1585,10 +1790,10 @@ F 6 "Standard LED - SMD GREEN WATER CLEAR" H 7550 7300 60  0001 C CNN "Field3"
 	0    1    1    0   
 $EndComp
 $Comp
-L 3V3 #PWR038
+L 3V3 #PWR043
 U 1 1 4CDB27BE
 P 15150 5450
-F 0 "#PWR038" H 15150 5550 40  0001 C CNN
+F 0 "#PWR043" H 15150 5550 40  0001 C CNN
 F 1 "3V3" H 15150 5575 40  0000 C CNN
 	1    15150 5450
 	1    0    0    -1  
@@ -1599,18 +1804,18 @@ U 1 1 4CDB26E3
 P 7850 6750
 F 0 "R5" V 7930 6750 50  0000 C CNN
 F 1 "330" V 7850 6750 50  0000 C CNN
-F 2 "SM0402" H 7850 6750 60  0001 C CNN
-F 4 "Vishay/Dale" H 7850 6750 60  0001 C CNN "Field1"
-F 5 "CRCW0402330RJNED" H 7850 6750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 330ohms 5%" H 7850 6750 60  0001 C CNN "Field3"
+F 2 "0603" H 7850 6750 60  0001 C CNN
+F 4 "Bourns" H 7850 6750 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 7850 6750 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 7850 6750 60  0001 C CNN "Field3"
 	1    7850 6750
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR039
+L GND #PWR044
 U 1 1 4CDB26E0
 P 7850 7600
-F 0 "#PWR039" H 7850 7600 30  0001 C CNN
+F 0 "#PWR044" H 7850 7600 30  0001 C CNN
 F 1 "GND" H 7850 7530 30  0001 C CNN
 	1    7850 7600
 	1    0    0    -1  
@@ -1621,7 +1826,7 @@ U 1 1 4CDB26DE
 P 7850 7300
 F 0 "D2" H 7850 7400 50  0000 C CNN
 F 1 "TXLED" H 7850 7200 50  0000 C CNN
-F 2 "LED-0603" H 7850 7300 60  0001 C CNN
+F 2 "0603D" H 7850 7300 60  0001 C CNN
 F 4 "OSRAM" H 7850 7300 60  0001 C CNN "Field1"
 F 5 "LY L29K-H1K2-26-Z" H 7850 7300 60  0001 C CNN "Field2"
 F 6 "Standard LED - SMD Yellow, 587nm 28mcd, 2mA" H 7850 7300 60  0001 C CNN "Field3"
@@ -1629,10 +1834,10 @@ F 6 "Standard LED - SMD Yellow, 587nm 28mcd, 2mA" H 7850 7300 60  0001 C CNN "Fi
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR040
+L GND #PWR045
 U 1 1 4CDB26DC
 P 8150 7600
-F 0 "#PWR040" H 8150 7600 30  0001 C CNN
+F 0 "#PWR045" H 8150 7600 30  0001 C CNN
 F 1 "GND" H 8150 7530 30  0001 C CNN
 	1    8150 7600
 	1    0    0    -1  
@@ -1643,10 +1848,10 @@ U 1 1 4CDB26D9
 P 8150 6750
 F 0 "R6" V 8230 6750 50  0000 C CNN
 F 1 "330" V 8150 6750 50  0000 C CNN
-F 2 "SM0402" H 8150 6750 60  0001 C CNN
-F 4 "Vishay/Dale" H 8150 6750 60  0001 C CNN "Field1"
-F 5 "CRCW0402330RJNED" H 8150 6750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 330ohms 5%" H 8150 6750 60  0001 C CNN "Field3"
+F 2 "0603" H 8150 6750 60  0001 C CNN
+F 4 "Bourns" H 8150 6750 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 8150 6750 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 8150 6750 60  0001 C CNN "Field3"
 	1    8150 6750
 	-1   0    0    1   
 $EndComp
@@ -1656,7 +1861,7 @@ U 1 1 4CDB26D0
 P 8150 7300
 F 0 "D3" H 8150 7400 50  0000 C CNN
 F 1 "RXLED" H 8150 7200 50  0000 C CNN
-F 2 "LED-0603" H 8150 7300 60  0001 C CNN
+F 2 "0603D" H 8150 7300 60  0001 C CNN
 F 4 "OSRAM" H 8150 7300 60  0001 C CNN "Field1"
 F 5 "LO L29K-J2L1-24-Z" H 8150 7300 60  0001 C CNN "Field2"
 F 6 "Standard LED - SMD Orange, 606nm 14mcd, 2mA" H 8150 7300 60  0001 C CNN "Field3"
@@ -1664,10 +1869,10 @@ F 6 "Standard LED - SMD Orange, 606nm 14mcd, 2mA" H 8150 7300 60  0001 C CNN "Fi
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR041
+L GND #PWR046
 U 1 1 4CDB26B3
 P 8450 7600
-F 0 "#PWR041" H 8450 7600 30  0001 C CNN
+F 0 "#PWR046" H 8450 7600 30  0001 C CNN
 F 1 "GND" H 8450 7530 30  0001 C CNN
 	1    8450 7600
 	1    0    0    -1  
@@ -1678,7 +1883,7 @@ U 1 1 4CDB26AB
 P 8450 7300
 F 0 "D4" H 8450 7400 50  0000 C CNN
 F 1 "USRLED" H 8450 7200 50  0000 C CNN
-F 2 "LED-0603" H 8450 7300 60  0001 C CNN
+F 2 "0603D" H 8450 7300 60  0001 C CNN
 F 4 "Kingbright" H 8450 7300 60  0001 C CNN "Field1"
 F 5 "APT1608EC" H 8450 7300 60  0001 C CNN "Field2"
 F 6 "Standard LED - SMD HI EFF RED WTR CLR" H 8450 7300 60  0001 C CNN "Field3"
@@ -1691,10 +1896,10 @@ U 1 1 4CDB2694
 P 8450 6750
 F 0 "R7" V 8530 6750 50  0000 C CNN
 F 1 "330" V 8450 6750 50  0000 C CNN
-F 2 "SM0402" H 8450 6750 60  0001 C CNN
-F 4 "Vishay/Dale" H 8450 6750 60  0001 C CNN "Field1"
-F 5 "CRCW0402330RJNED" H 8450 6750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 330ohms 5%" H 8450 6750 60  0001 C CNN "Field3"
+F 2 "0603" H 8450 6750 60  0001 C CNN
+F 4 "Bourns" H 8450 6750 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 8450 6750 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 8450 6750 60  0001 C CNN "Field3"
 	1    8450 6750
 	-1   0    0    1   
 $EndComp
@@ -1703,10 +1908,10 @@ NoConn ~ 11300 8450
 Text Label 9050 9200 0    40   ~ 0
 ISP
 $Comp
-L GND #PWR042
+L GND #PWR047
 U 1 1 4CDB22DD
 P 9050 9400
-F 0 "#PWR042" H 9050 9400 30  0001 C CNN
+F 0 "#PWR047" H 9050 9400 30  0001 C CNN
 F 1 "GND" H 9050 9330 30  0001 C CNN
 	1    9050 9400
 	1    0    0    -1  
@@ -1722,19 +1927,19 @@ F 2 "100MIL-HEADER-1X6-EDGE" H 8600 9050 60  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L 3V3 #PWR043
+L 3V3 #PWR048
 U 1 1 4CDB21D7
 P 9850 9150
-F 0 "#PWR043" H 9850 9250 40  0001 C CNN
+F 0 "#PWR048" H 9850 9250 40  0001 C CNN
 F 1 "3V3" H 9850 9275 40  0000 C CNN
 	1    9850 9150
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR044
+L GND #PWR049
 U 1 1 4CDB21C8
 P 9850 9700
-F 0 "#PWR044" H 9850 9700 30  0001 C CNN
+F 0 "#PWR049" H 9850 9700 30  0001 C CNN
 F 1 "GND" H 9850 9630 30  0001 C CNN
 	1    9850 9700
 	1    0    0    -1  
@@ -1773,7 +1978,7 @@ U 1 1 4CDB17F8
 P 15150 5700
 F 0 "D6" H 15150 5800 50  0000 C CNN
 F 1 "USBLED" H 15150 5600 50  0000 C CNN
-F 2 "LED-0603" H 15150 5700 60  0001 C CNN
+F 2 "0603D" H 15150 5700 60  0001 C CNN
 F 4 "Kingbright" H 15150 5700 60  0001 C CNN "Field1"
 F 5 "APT1608EC" H 15150 5700 60  0001 C CNN "Field2"
 F 6 "Standard LED - SMD HI EFF RED WTR CLR" H 15150 5700 60  0001 C CNN "Field3"
@@ -1786,10 +1991,10 @@ U 1 1 4CDB17E7
 P 15150 6250
 F 0 "R15" V 15230 6250 50  0000 C CNN
 F 1 "330" V 15150 6250 50  0000 C CNN
-F 2 "SM0402" H 15150 6250 60  0001 C CNN
-F 4 "Vishay/Dale" H 15150 6250 60  0001 C CNN "Field1"
-F 5 "CRCW0402330RJNED" H 15150 6250 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 330ohms 5%" H 15150 6250 60  0001 C CNN "Field3"
+F 2 "0603" H 15150 6250 60  0001 C CNN
+F 4 "Bourns" H 15150 6250 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 15150 6250 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 15150 6250 60  0001 C CNN "Field3"
 	1    15150 6250
 	1    0    0    -1  
 $EndComp
@@ -1799,7 +2004,7 @@ U 1 1 4CDB1751
 P 12000 9700
 F 0 "D5" H 12000 9800 50  0000 C CNN
 F 1 "RSTLED" H 12000 9600 50  0000 C CNN
-F 2 "LED-0603" H 12000 9700 60  0001 C CNN
+F 2 "0603D" H 12000 9700 60  0001 C CNN
 F 4 "Kingbright" H 12000 9700 60  0001 C CNN "Field1"
 F 5 "APT1608SGC" H 12000 9700 60  0001 C CNN "Field2"
 F 6 "Standard LED - SMD GREEN WATER CLEAR" H 12000 9700 60  0001 C CNN "Field3"
@@ -1807,10 +2012,10 @@ F 6 "Standard LED - SMD GREEN WATER CLEAR" H 12000 9700 60  0001 C CNN "Field3"
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR045
+L GND #PWR050
 U 1 1 4CDB1729
 P 12000 10000
-F 0 "#PWR045" H 12000 10000 30  0001 C CNN
+F 0 "#PWR050" H 12000 10000 30  0001 C CNN
 F 1 "GND" H 12000 9930 30  0001 C CNN
 	1    12000 10000
 	1    0    0    -1  
@@ -1821,10 +2026,10 @@ U 1 1 4CDB170B
 P 12000 9150
 F 0 "R8" V 12080 9150 50  0000 C CNN
 F 1 "330" V 12000 9150 50  0000 C CNN
-F 2 "SM0402" H 12000 9150 60  0001 C CNN
-F 4 "Vishay/Dale" H 12000 9150 60  0001 C CNN "Field1"
-F 5 "CRCW0402330RJNED" H 12000 9150 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 330ohms 5%" H 12000 9150 60  0001 C CNN "Field3"
+F 2 "0603" H 12000 9150 60  0001 C CNN
+F 4 "Bourns" H 12000 9150 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 12000 9150 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 12000 9150 60  0001 C CNN "Field3"
 	1    12000 9150
 	-1   0    0    1   
 $EndComp
@@ -1834,10 +2039,10 @@ U 1 1 4CDB154F
 P 12800 9100
 F 0 "C29" H 12850 9200 50  0000 L CNN
 F 1 "220pF" H 12850 9000 50  0000 L CNN
-F 2 "SM0402" H 12800 9100 60  0001 C CNN
-F 4 "Murata" H 12800 9100 60  0001 C CNN "Field1"
-F 5 "GRM1555C1E221JA01D" H 12800 9100 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 220pF 25volts C0G 5%" H 12800 9100 60  0001 C CNN "Field3"
+F 2 "0603" H 12800 9100 60  0001 C CNN
+F 4 "TDK" H 12800 9100 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H221K" H 12800 9100 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 220pF 50volts X7R 10%" H 12800 9100 60  0001 C CNN "Field3"
 	1    12800 9100
 	1    0    0    -1  
 $EndComp
@@ -1858,10 +2063,10 @@ GIO1
 Text Label 13550 8800 0    40   ~ 0
 GIO1
 $Comp
-L GND #PWR046
+L GND #PWR051
 U 1 1 4CDB156E
 P 12800 9400
-F 0 "#PWR046" H 12800 9400 30  0001 C CNN
+F 0 "#PWR051" H 12800 9400 30  0001 C CNN
 F 1 "GND" H 12800 9330 30  0001 C CNN
 	1    12800 9400
 	1    0    0    -1  
@@ -1872,18 +2077,18 @@ U 1 1 4CDB155B
 P 13250 8800
 F 0 "C31" H 13300 8900 50  0000 L CNN
 F 1 "100pF" H 13300 8700 50  0000 L CNN
-F 2 "SM0402" H 13250 8800 60  0001 C CNN
-F 4 "Murata" H 13250 8800 60  0001 C CNN "Field1"
-F 5 "GRM1555C1H101JZ01D" H 13250 8800 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 100pF 50volts C0G 5%" H 13250 8800 60  0001 C CNN "Field3"
+F 2 "0603" H 13250 8800 60  0001 C CNN
+F 4 "TDK" H 13250 8800 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H101J" H 13250 8800 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 100pF 50volts C0G 5%" H 13250 8800 60  0001 C CNN "Field3"
 	1    13250 8800
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR047
+L GND #PWR052
 U 1 1 4CDB152E
 P 15850 6900
-F 0 "#PWR047" H 15850 6900 30  0001 C CNN
+F 0 "#PWR052" H 15850 6900 30  0001 C CNN
 F 1 "GND" H 15850 6830 30  0001 C CNN
 	1    15850 6900
 	0    1    1    0   
@@ -1895,18 +2100,18 @@ U 1 1 4CDB143F
 P 12300 9150
 F 0 "R9" V 12380 9150 50  0000 C CNN
 F 1 "10k" V 12300 9150 50  0000 C CNN
-F 2 "SM0402" H 12300 9150 60  0001 C CNN
-F 4 "Vishay/Dale" H 12300 9150 60  0001 C CNN "Field1"
-F 5 "CRCW040210K0JNED" H 12300 9150 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 10Kohms 5%" H 12300 9150 60  0001 C CNN "Field3"
+F 2 "0603" H 12300 9150 60  0001 C CNN
+F 4 "Bourns" H 12300 9150 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 12300 9150 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 12300 9150 60  0001 C CNN "Field3"
 	1    12300 9150
 	-1   0    0    1   
 $EndComp
 $Comp
-L 3V3 #PWR048
+L 3V3 #PWR053
 U 1 1 4CDB1423
 P 12500 9450
-F 0 "#PWR048" H 12500 9550 40  0001 C CNN
+F 0 "#PWR053" H 12500 9550 40  0001 C CNN
 F 1 "3V3" H 12500 9575 40  0000 C CNN
 	1    12500 9450
 	-1   0    0    1   
@@ -1916,10 +2121,10 @@ USB_CONNECT
 Text Label 12100 3400 1    40   ~ 0
 USB_CONNECT
 $Comp
-L 3V3 #PWR049
+L 3V3 #PWR054
 U 1 1 4CDB11CF
 P 15500 8300
-F 0 "#PWR049" H 15500 8400 40  0001 C CNN
+F 0 "#PWR054" H 15500 8400 40  0001 C CNN
 F 1 "3V3" H 15500 8425 40  0000 C CNN
 	1    15500 8300
 	0    1    1    0   
@@ -1930,10 +2135,10 @@ U 1 1 4CDB11B7
 P 14850 7950
 F 0 "R11" V 14930 7950 50  0000 C CNN
 F 1 "2k2" V 14850 7950 50  0000 C CNN
-F 2 "SM0402" H 14850 7950 60  0001 C CNN
-F 4 "Vishay/Dale" H 14850 7950 60  0001 C CNN "Field1"
-F 5 "CRCW04022K20JNED" H 14850 7950 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 2.2Kohms 5%" H 14850 7950 60  0001 C CNN "Field3"
+F 2 "0603" H 14850 7950 60  0001 C CNN
+F 4 "Bourns" H 14850 7950 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-222ELF" H 14850 7950 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 2.2KOHMS 5% 1/10WATT" H 14850 7950 60  0001 C CNN "Field3"
 	1    14850 7950
 	1    0    0    -1  
 $EndComp
@@ -1943,24 +2148,11 @@ U 1 1 4CDB11AC
 P 15050 7950
 F 0 "R14" V 15130 7950 50  0000 C CNN
 F 1 "10k" V 15050 7950 50  0000 C CNN
-F 2 "SM0402" H 15050 7950 60  0001 C CNN
-F 4 "Vishay/Dale" H 15050 7950 60  0001 C CNN "Field1"
-F 5 "CRCW040210K0JNED" H 15050 7950 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 10Kohms 5%" H 15050 7950 60  0001 C CNN "Field3"
+F 2 "0603" H 15050 7950 60  0001 C CNN
+F 4 "Bourns" H 15050 7950 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 15050 7950 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 15050 7950 60  0001 C CNN "Field3"
 	1    15050 7950
-	1    0    0    -1  
-$EndComp
-$Comp
-L PNP Q1
-U 1 1 4CDB1154
-P 15350 7600
-F 0 "Q1" H 15350 7450 60  0000 R CNN
-F 1 "PMBT3906" H 15350 7750 60  0000 R CNN
-F 2 "SOT883" H 15350 7600 60  0001 C CNN
-F 4 "NXP" H 15350 7600 60  0001 C CNN "Field1"
-F 5 "PMBT3906M,315" H 15350 7600 60  0001 C CNN "Field2"
-F 6 "Bipolar Small Signal GENERAL PURPOSE TRANSISTOR" H 15350 7600 60  0001 C CNN "Field3"
-	1    15350 7600
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1969,10 +2161,10 @@ U 1 1 4CDB1118
 P 15450 7050
 F 0 "R16" V 15530 7050 50  0000 C CNN
 F 1 "1k5" V 15450 7050 50  0000 C CNN
-F 2 "SM0402" H 15450 7050 60  0001 C CNN
-F 4 "Vishay/Dale" H 15450 7050 60  0001 C CNN "Field1"
-F 5 "CRCW04021K50JNED" H 15450 7050 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 1.5Kohms 5%" H 15450 7050 60  0001 C CNN "Field3"
+F 2 "0603" H 15450 7050 60  0001 C CNN
+F 4 "Bourns" H 15450 7050 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-152ELF" H 15450 7050 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 1.5KOHMS 5% 1/10WATT" H 15450 7050 60  0001 C CNN "Field3"
 	1    15450 7050
 	-1   0    0    1   
 $EndComp
@@ -1982,10 +2174,10 @@ U 1 1 4CDB10C2
 P 15050 6700
 F 0 "R12" V 14950 6700 50  0000 C CNN
 F 1 "33" V 15050 6700 50  0000 C CNN
-F 2 "SM0402" H 15050 6700 60  0001 C CNN
+F 2 "0603" H 15050 6700 60  0001 C CNN
 F 4 "Vishay/Dale" H 15050 6700 60  0001 C CNN "Field1"
-F 5 "CRCW040233R0FKED" H 15050 6700 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 33ohms 1% 100ppm" H 15050 6700 60  0001 C CNN "Field3"
+F 5 "CRCW060333R0FKEA" H 15050 6700 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 1/16watt 33ohms 1% 100ppm" H 15050 6700 60  0001 C CNN "Field3"
 	1    15050 6700
 	0    1    1    0   
 $EndComp
@@ -1995,27 +2187,27 @@ U 1 1 4CDB10B7
 P 15050 6800
 F 0 "R13" V 15130 6800 50  0000 C CNN
 F 1 "33" V 15050 6800 50  0000 C CNN
-F 2 "SM0402" H 15050 6800 60  0001 C CNN
+F 2 "0603" H 15050 6800 60  0001 C CNN
 F 4 "Vishay/Dale" H 15050 6800 60  0001 C CNN "Field1"
-F 5 "CRCW040233R0FKED" H 15050 6800 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 33ohms 1% 100ppm" H 15050 6800 60  0001 C CNN "Field3"
+F 5 "CRCW060333R0FKEA" H 15050 6800 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 1/16watt 33ohms 1% 100ppm" H 15050 6800 60  0001 C CNN "Field3"
 	1    15050 6800
 	0    1    1    0   
 $EndComp
 $Comp
-L 3V3 #PWR050
+L 3V3 #PWR055
 U 1 1 4CDB0FCC
 P 14700 5250
-F 0 "#PWR050" H 14700 5350 40  0001 C CNN
+F 0 "#PWR055" H 14700 5350 40  0001 C CNN
 F 1 "3V3" H 14700 5375 40  0000 C CNN
 	1    14700 5250
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR051
+L GND #PWR056
 U 1 1 4CDB0FC5
 P 14700 5800
-F 0 "#PWR051" H 14700 5800 30  0001 C CNN
+F 0 "#PWR056" H 14700 5800 30  0001 C CNN
 F 1 "GND" H 14700 5730 30  0001 C CNN
 	1    14700 5800
 	1    0    0    -1  
@@ -2026,18 +2218,18 @@ U 1 1 4CDB0FAF
 P 14700 5500
 F 0 "C34" H 14750 5600 50  0000 L CNN
 F 1 "100nF" H 14750 5400 50  0000 L CNN
-F 2 "SM0402" H 14700 5500 60  0001 C CNN
-F 4 "Murata" H 14700 5500 60  0001 C CNN "Field1"
-F 5 "GRM155R71C104KA88D" H 14700 5500 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 14700 5500 60  0001 C CNN "Field3"
+F 2 "0603" H 14700 5500 60  0001 C CNN
+F 4 "TDK" H 14700 5500 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 14700 5500 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 14700 5500 60  0001 C CNN "Field3"
 	1    14700 5500
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR052
+L GND #PWR057
 U 1 1 4CDB0F9B
 P 14550 6600
-F 0 "#PWR052" H 14550 6600 30  0001 C CNN
+F 0 "#PWR057" H 14550 6600 30  0001 C CNN
 F 1 "GND" H 14550 6530 30  0001 C CNN
 	1    14550 6600
 	0    -1   -1   0   
@@ -2051,45 +2243,45 @@ U 1 1 4CDB0E51
 P 14550 7200
 F 0 "C33" H 14600 7300 50  0000 L CNN
 F 1 "100nF" H 14600 7100 50  0000 L CNN
-F 2 "SM0402" H 14550 7200 60  0001 C CNN
-F 4 "Murata" H 14550 7200 60  0001 C CNN "Field1"
-F 5 "GRM155R71C104KA88D" H 14550 7200 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 14550 7200 60  0001 C CNN "Field3"
+F 2 "0603" H 14550 7200 60  0001 C CNN
+F 4 "TDK" H 14550 7200 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 14550 7200 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 14550 7200 60  0001 C CNN "Field3"
 	1    14550 7200
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR053
+L GND #PWR058
 U 1 1 4CDB0E78
 P 14550 7500
-F 0 "#PWR053" H 14550 7500 30  0001 C CNN
+F 0 "#PWR058" H 14550 7500 30  0001 C CNN
 F 1 "GND" H 14550 7430 30  0001 C CNN
 	1    14550 7500
 	1    0    0    -1  
 $EndComp
 $Comp
-L 3V3 #PWR054
+L 3V3 #PWR059
 U 1 1 4CDB0E65
 P 14600 6900
-F 0 "#PWR054" H 14600 7000 40  0001 C CNN
+F 0 "#PWR059" H 14600 7000 40  0001 C CNN
 F 1 "3V3" H 14600 7025 40  0000 C CNN
 	1    14600 6900
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR055
+L GND #PWR060
 U 1 1 4CDB0B1A
 P 8850 7100
-F 0 "#PWR055" H 8850 7100 30  0001 C CNN
+F 0 "#PWR060" H 8850 7100 30  0001 C CNN
 F 1 "GND" H 8850 7030 30  0001 C CNN
 	1    8850 7100
 	1    0    0    -1  
 $EndComp
 $Comp
-L 3V3 #PWR056
+L 3V3 #PWR061
 U 1 1 4CDB0B15
 P 8800 6600
-F 0 "#PWR056" H 8800 6700 40  0001 C CNN
+F 0 "#PWR061" H 8800 6700 40  0001 C CNN
 F 1 "3V3" H 8800 6725 40  0000 C CNN
 	1    8800 6600
 	0    -1   -1   0   
@@ -2100,10 +2292,10 @@ U 1 1 4CDB0AFB
 P 8850 6800
 F 0 "C27" H 8900 6900 50  0000 L CNN
 F 1 "100nF" H 8900 6700 50  0000 L CNN
-F 2 "SM0402" H 8850 6800 60  0001 C CNN
-F 4 "Murata" H 8850 6800 60  0001 C CNN "Field1"
-F 5 "GRM155R71C104KA88D" H 8850 6800 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 8850 6800 60  0001 C CNN "Field3"
+F 2 "0603" H 8850 6800 60  0001 C CNN
+F 4 "TDK" H 8850 6800 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 8850 6800 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 8850 6800 60  0001 C CNN "Field3"
 	1    8850 6800
 	1    0    0    -1  
 $EndComp
@@ -2116,27 +2308,27 @@ U 1 1 4CDAF3FC
 P 12900 3100
 F 0 "R10" V 12800 3100 50  0000 C CNN
 F 1 "10k" V 12900 3100 50  0000 C CNN
-F 2 "SM0402" H 12900 3100 60  0001 C CNN
-F 4 "Vishay/Dale" H 12900 3100 60  0001 C CNN "Field1"
-F 5 "CRCW040210K0JNED" H 12900 3100 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watt 10Kohms 5%" H 12900 3100 60  0001 C CNN "Field3"
+F 2 "0603" H 12900 3100 60  0001 C CNN
+F 4 "Bourns" H 12900 3100 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 12900 3100 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 12900 3100 60  0001 C CNN "Field3"
 	1    12900 3100
 	-1   0    0    1   
 $EndComp
 $Comp
-L 3V3 #PWR057
+L 3V3 #PWR062
 U 1 1 4CDAF388
 P 13100 2500
-F 0 "#PWR057" H 13100 2600 40  0001 C CNN
+F 0 "#PWR062" H 13100 2600 40  0001 C CNN
 F 1 "3V3" H 13100 2625 40  0000 C CNN
 	1    13100 2500
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR058
+L GND #PWR063
 U 1 1 4CDAF373
 P 12700 1850
-F 0 "#PWR058" H 12700 1850 30  0001 C CNN
+F 0 "#PWR063" H 12700 1850 30  0001 C CNN
 F 1 "GND" H 12700 1780 30  0001 C CNN
 	1    12700 1850
 	-1   0    0    1   
@@ -2147,10 +2339,10 @@ U 1 1 4CDAF340
 P 12900 2550
 F 0 "C30" H 12700 2650 50  0000 L CNN
 F 1 "100nF" H 12650 2450 50  0000 L CNN
-F 2 "SM0402" H 12900 2550 60  0001 C CNN
-F 4 "Murata" H 12900 2550 60  0001 C CNN "Field1"
-F 5 "GRM155R71C104KA88D" H 12900 2550 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 12900 2550 60  0001 C CNN "Field3"
+F 2 "0603" H 12900 2550 60  0001 C CNN
+F 4 "TDK" H 12900 2550 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 12900 2550 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 12900 2550 60  0001 C CNN "Field3"
 	1    12900 2550
 	0    -1   -1   0   
 $EndComp
@@ -2165,19 +2357,19 @@ F 2 "PIN_ARRAY_3X2" H 12350 2350 60  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR059
+L GND #PWR064
 U 1 1 4CDAE97D
 P 11000 2650
-F 0 "#PWR059" H 11000 2650 30  0001 C CNN
+F 0 "#PWR064" H 11000 2650 30  0001 C CNN
 F 1 "GND" H 11000 2580 30  0001 C CNN
 	1    11000 2650
 	-1   0    0    1   
 $EndComp
 $Comp
-L 3V3 #PWR060
+L 3V3 #PWR065
 U 1 1 4CDAE970
 P 11400 2700
-F 0 "#PWR060" H 11400 2800 40  0001 C CNN
+F 0 "#PWR065" H 11400 2800 40  0001 C CNN
 F 1 "3V3" H 11400 2825 40  0000 C CNN
 	1    11400 2700
 	1    0    0    -1  
@@ -2188,54 +2380,67 @@ U 1 1 4CDAE93A
 P 11200 2750
 F 0 "C28" H 11250 2850 50  0000 L CNN
 F 1 "100nF" H 11250 2650 50  0000 L CNN
-F 2 "SM0402" H 11200 2750 60  0001 C CNN
-F 4 "Murata" H 11200 2750 60  0001 C CNN "Field1"
-F 5 "GRM155R71C104KA88D" H 11200 2750 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 11200 2750 60  0001 C CNN "Field3"
+F 2 "0603" H 11200 2750 60  0001 C CNN
+F 4 "TDK" H 11200 2750 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 11200 2750 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 11200 2750 60  0001 C CNN "Field3"
 	1    11200 2750
 	0    1    1    0   
 $EndComp
 $Comp
-L 1V8 #PWR061
+L LPC175X U4
+U 1 1 4CD23A14
+P 11950 5950
+F 0 "U4" H 11950 6050 60  0000 C CNN
+F 1 "LPC175X" H 11950 5850 60  0000 C CNN
+F 2 "LQFP80" H 11950 5950 60  0001 C CNN
+F 4 "NXP" H 11950 5950 60  0001 C CNN "Field1"
+F 5 "LPC1754FBD80,551" H 11950 5950 60  0001 C CNN "Field2"
+F 6 "Microcontrollers (MCU) ARM Cortex M3 Micro Controller" H 11950 5950 60  0001 C CNN "Field3"
+	1    11950 5950
+	0    -1   -1   0   
+$EndComp
+$Comp
+L 1V8 #PWR066
 U 1 1 4CDAE73E
 P 7900 3850
-F 0 "#PWR061" H 7900 3990 20  0001 C CNN
+F 0 "#PWR066" H 7900 3990 20  0001 C CNN
 F 1 "1V8" H 7900 3960 30  0000 C CNN
 	1    7900 3850
 	0    1    1    0   
 $EndComp
 $Comp
-L 1V8 #PWR062
+L 1V8 #PWR067
 U 1 1 4CDAE735
 P 4850 4850
-F 0 "#PWR062" H 4850 4990 20  0001 C CNN
+F 0 "#PWR067" H 4850 4990 20  0001 C CNN
 F 1 "1V8" H 4850 4960 30  0000 C CNN
 	1    4850 4850
 	0    -1   -1   0   
 $EndComp
 $Comp
-L 1V8 #PWR063
+L 1V8 #PWR068
 U 1 1 4CDAE710
 P 4900 1900
-F 0 "#PWR063" H 4900 2040 20  0001 C CNN
+F 0 "#PWR068" H 4900 2040 20  0001 C CNN
 F 1 "1V8" H 4900 2010 30  0000 C CNN
 	1    4900 1900
 	1    0    0    -1  
 $EndComp
 $Comp
-L 3V3 #PWR064
+L 3V3 #PWR069
 U 1 1 4CDAE6EF
 P 8800 5600
-F 0 "#PWR064" H 8800 5700 40  0001 C CNN
+F 0 "#PWR069" H 8800 5700 40  0001 C CNN
 F 1 "3V3" H 8800 5725 40  0000 C CNN
 	1    8800 5600
 	0    -1   -1   0   
 $EndComp
 $Comp
-L GND #PWR065
+L GND #PWR070
 U 1 1 4CDAE58F
 P 8750 5200
-F 0 "#PWR065" H 8750 5200 30  0001 C CNN
+F 0 "#PWR070" H 8750 5200 30  0001 C CNN
 F 1 "GND" H 8750 5130 30  0001 C CNN
 	1    8750 5200
 	0    1    1    0   
@@ -2246,10 +2451,10 @@ U 1 1 4CDAE56D
 P 8850 5400
 F 0 "C26" H 8900 5500 50  0000 L CNN
 F 1 "100nF" H 8900 5300 50  0000 L CNN
-F 2 "SM0402" H 8850 5400 60  0001 C CNN
-F 4 "Murata" H 8850 5400 60  0001 C CNN "Field1"
-F 5 "GRM155R71C104KA88D" H 8850 5400 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 8850 5400 60  0001 C CNN "Field3"
+F 2 "0603" H 8850 5400 60  0001 C CNN
+F 4 "TDK" H 8850 5400 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 8850 5400 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 8850 5400 60  0001 C CNN "Field3"
 	1    8850 5400
 	1    0    0    -1  
 $EndComp
@@ -2259,24 +2464,24 @@ U 1 1 4CDAE2A9
 P 4650 3450
 F 0 "L3" V 4600 3450 40  0000 C CNN
 F 1 "DNP" V 4750 3450 40  0000 C CNN
-F 2 "SM0402" H 4650 3450 60  0001 C CNN
+F 2 "0402gap" H 4650 3450 60  0001 C CNN
 	1    4650 3450
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR066
+L GND #PWR071
 U 1 1 4CDAE1DE
 P 6050 950
-F 0 "#PWR066" H 6050 950 30  0001 C CNN
+F 0 "#PWR071" H 6050 950 30  0001 C CNN
 F 1 "GND" H 6050 880 30  0001 C CNN
 	1    6050 950 
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR067
+L GND #PWR072
 U 1 1 4CDAE1DB
 P 6650 950
-F 0 "#PWR067" H 6650 950 30  0001 C CNN
+F 0 "#PWR072" H 6650 950 30  0001 C CNN
 F 1 "GND" H 6650 880 30  0001 C CNN
 	1    6650 950 
 	-1   0    0    1   
@@ -2287,10 +2492,10 @@ U 1 1 4CDAE1CE
 P 6050 1250
 F 0 "C19" H 6100 1350 50  0000 L CNN
 F 1 "27pF" H 6100 1150 50  0000 L CNN
-F 2 "SM0402" H 6050 1250 60  0001 C CNN
-F 4 "Murata" H 6050 1250 60  0001 C CNN "Field1"
-F 5 "GRM1555C1H270JZ01J" H 6050 1250 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 27pF 50 volts 5%" H 6050 1250 60  0001 C CNN "Field3"
+F 2 "0402" H 6050 1250 60  0001 C CNN
+F 4 "TDK" H 6050 1250 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H270J" H 6050 1250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%" H 6050 1250 60  0001 C CNN "Field3"
 	1    6050 1250
 	-1   0    0    1   
 $EndComp
@@ -2300,10 +2505,10 @@ U 1 1 4CDAE1AC
 P 6650 1250
 F 0 "C21" H 6400 1350 50  0000 L CNN
 F 1 "27pF" H 6400 1150 50  0000 L CNN
-F 2 "SM0402" H 6650 1250 60  0001 C CNN
-F 4 "Murata" H 6650 1250 60  0001 C CNN "Field1"
-F 5 "GRM1555C1H270JZ01J" H 6650 1250 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 27pF 50 volts 5%" H 6650 1250 60  0001 C CNN "Field3"
+F 2 "0402" H 6650 1250 60  0001 C CNN
+F 4 "TDK" H 6650 1250 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H270J" H 6650 1250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%" H 6650 1250 60  0001 C CNN "Field3"
 	1    6650 1250
 	-1   0    0    1   
 $EndComp
@@ -2321,10 +2526,10 @@ F 6 "Crystals +/-20PPM 16MHz" H 6350 1550 60  0001 C CNN "Field3"
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR068
+L GND #PWR073
 U 1 1 4CDAE071
 P 5600 1150
-F 0 "#PWR068" H 5600 1150 30  0001 C CNN
+F 0 "#PWR073" H 5600 1150 30  0001 C CNN
 F 1 "GND" H 5600 1080 30  0001 C CNN
 	1    5600 1150
 	-1   0    0    1   
@@ -2335,27 +2540,27 @@ U 1 1 4CDAE066
 P 5600 1500
 F 0 "R2" V 5680 1500 50  0000 C CNN
 F 1 "43k" V 5600 1500 50  0000 C CNN
-F 2 "SM0402" H 5600 1500 60  0001 C CNN
+F 2 "0402" H 5600 1500 60  0001 C CNN
 F 4 "KOA Speer" H 5600 1500 60  0001 C CNN "Field1"
 F 5 "RK73H1ETTP4302F" H 5600 1500 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 1/16watts 43Kohms 1%" H 5600 1500 60  0001 C CNN "Field3"
+F 6 "Thick Film Resistors - SMD 0402 1/16watts 43Kohms 1%" H 5600 1500 60  0001 C CNN "Field3"
 	1    5600 1500
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR069
+L GND #PWR074
 U 1 1 4CDAE011
 P 7000 1450
-F 0 "#PWR069" H 7000 1450 30  0001 C CNN
+F 0 "#PWR074" H 7000 1450 30  0001 C CNN
 F 1 "GND" H 7000 1380 30  0001 C CNN
 	1    7000 1450
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR070
+L GND #PWR075
 U 1 1 4CDADFF5
 P 6100 5350
-F 0 "#PWR070" H 6100 5350 30  0001 C CNN
+F 0 "#PWR075" H 6100 5350 30  0001 C CNN
 F 1 "GND" H 6100 5280 30  0001 C CNN
 	1    6100 5350
 	1    0    0    -1  
@@ -2366,18 +2571,18 @@ U 1 1 4CDADFEB
 P 6100 5050
 F 0 "C20" H 6150 5150 50  0000 L CNN
 F 1 "68pF" H 6150 4950 50  0000 L CNN
-F 2 "SM0402" H 6100 5050 60  0001 C CNN
+F 2 "0402" H 6100 5050 60  0001 C CNN
 F 4 "Murata" H 6100 5050 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H680JZ01D" H 6100 5050 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 68PF 50V 5%" H 6100 5050 60  0001 C CNN "Field3"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 68PF 50V 5%" H 6100 5050 60  0001 C CNN "Field3"
 	1    6100 5050
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR071
+L GND #PWR076
 U 1 1 4CDADF33
 P 8100 4450
-F 0 "#PWR071" H 8100 4450 30  0001 C CNN
+F 0 "#PWR076" H 8100 4450 30  0001 C CNN
 F 1 "GND" H 8100 4380 30  0001 C CNN
 	1    8100 4450
 	1    0    0    -1  
@@ -2388,7 +2593,7 @@ U 1 1 4CDADF2A
 P 8100 4150
 F 0 "C25" H 8150 4250 50  0000 L CNN
 F 1 "100nF" H 8150 4050 50  0000 L CNN
-F 2 "SM0402" H 8100 4150 60  0001 C CNN
+F 2 "0402" H 8100 4150 60  0001 C CNN
 F 4 "Murata" H 8100 4150 60  0001 C CNN "Field1"
 F 5 "GRM155R71C104KA88D" H 8100 4150 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 8100 4150 60  0001 C CNN "Field3"
@@ -2396,10 +2601,10 @@ F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" 
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR072
+L GND #PWR077
 U 1 1 4CDADF1C
 P 7800 5350
-F 0 "#PWR072" H 7800 5350 30  0001 C CNN
+F 0 "#PWR077" H 7800 5350 30  0001 C CNN
 F 1 "GND" H 7800 5280 30  0001 C CNN
 	1    7800 5350
 	1    0    0    -1  
@@ -2410,7 +2615,7 @@ U 1 1 4CDADF05
 P 7800 5050
 F 0 "C24" H 7850 5150 50  0000 L CNN
 F 1 "100nF" H 7850 4950 50  0000 L CNN
-F 2 "SM0402" H 7800 5050 60  0001 C CNN
+F 2 "0402" H 7800 5050 60  0001 C CNN
 F 4 "Murata" H 7800 5050 60  0001 C CNN "Field1"
 F 5 "GRM155R71C104KA88D" H 7800 5050 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 7800 5050 60  0001 C CNN "Field3"
@@ -2418,28 +2623,28 @@ F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" 
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR073
+L GND #PWR078
 U 1 1 4CDADED9
 P 4400 2350
-F 0 "#PWR073" H 4400 2350 30  0001 C CNN
+F 0 "#PWR078" H 4400 2350 30  0001 C CNN
 F 1 "GND" H 4400 2280 30  0001 C CNN
 	1    4400 2350
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR074
+L GND #PWR079
 U 1 1 4CDADE85
 P 4900 5350
-F 0 "#PWR074" H 4900 5350 30  0001 C CNN
+F 0 "#PWR079" H 4900 5350 30  0001 C CNN
 F 1 "GND" H 4900 5280 30  0001 C CNN
 	1    4900 5350
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR075
+L GND #PWR080
 U 1 1 4CDADE2B
 P 7300 5050
-F 0 "#PWR075" H 7300 5050 30  0001 C CNN
+F 0 "#PWR080" H 7300 5050 30  0001 C CNN
 F 1 "GND" H 7300 4980 30  0001 C CNN
 	1    7300 5050
 	1    0    0    -1  
@@ -2450,10 +2655,10 @@ U 1 1 4CDADD3E
 P 7000 1750
 F 0 "C23" H 6850 1850 50  0000 L CNN
 F 1 "68pF" H 6750 1650 50  0000 L CNN
-F 2 "SM0402" H 7000 1750 60  0001 C CNN
+F 2 "0402" H 7000 1750 60  0001 C CNN
 F 4 "Murata" H 7000 1750 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H680JZ01D" H 7000 1750 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 68PF 50V 5%" H 7000 1750 60  0001 C CNN "Field3"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 68PF 50V 5%" H 7000 1750 60  0001 C CNN "Field3"
 	1    7000 1750
 	-1   0    0    1   
 $EndComp
@@ -2463,7 +2668,7 @@ U 1 1 4CDADC3A
 P 4900 5050
 F 0 "C17" H 4950 5150 50  0000 L CNN
 F 1 "10nF" H 4950 4950 50  0000 L CNN
-F 2 "SM0402" H 4900 5050 60  0001 C CNN
+F 2 "0402" H 4900 5050 60  0001 C CNN
 F 4 "Murata" H 4900 5050 60  0001 C CNN "Field1"
 F 5 "GRM155R71E103KA01D" H 4900 5050 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.01uF 25volts X7R 10%" H 4900 5050 60  0001 C CNN "Field3"
@@ -2476,7 +2681,7 @@ U 1 1 4CDADBBE
 P 4700 2250
 F 0 "C16" H 4750 2350 50  0000 L CNN
 F 1 "100nF" H 4750 2150 50  0000 L CNN
-F 2 "SM0402" H 4700 2250 60  0001 C CNN
+F 2 "0402" H 4700 2250 60  0001 C CNN
 F 4 "Murata" H 4700 2250 60  0001 C CNN "Field1"
 F 5 "GRM155R71C104KA88D" H 4700 2250 60  0001 C CNN "Field2"
 F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 4700 2250 60  0001 C CNN "Field3"
@@ -2489,10 +2694,10 @@ U 1 1 4CDADBB0
 P 4700 1950
 F 0 "C15" H 4750 2050 50  0000 L CNN
 F 1 "68pF" H 4750 1850 50  0000 L CNN
-F 2 "SM0402" H 4700 1950 60  0001 C CNN
+F 2 "0402" H 4700 1950 60  0001 C CNN
 F 4 "Murata" H 4700 1950 60  0001 C CNN "Field1"
 F 5 "GRM1555C1H680JZ01D" H 4700 1950 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 68PF 50V 5%" H 4700 1950 60  0001 C CNN "Field3"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 68PF 50V 5%" H 4700 1950 60  0001 C CNN "Field3"
 	1    4700 1950
 	0    1    1    0   
 $EndComp
