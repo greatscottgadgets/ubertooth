@@ -53,7 +53,16 @@ enum ubertooth_usb_commands {
     UBERTOOTH_SET_CHANNEL = 12,
     UBERTOOTH_RESET       = 13,
 	UBERTOOTH_GET_SERIAL  = 14,
-	UBERTOOTH_GET_PARTNUM = 15
+	UBERTOOTH_GET_PARTNUM = 15,
+	UBERTOOTH_GET_PAEN    = 16,
+	UBERTOOTH_SET_PAEN    = 17,
+	UBERTOOTH_GET_HGM     = 18,
+	UBERTOOTH_SET_HGM     = 19,
+	UBERTOOTH_TX_TEST     = 20,
+	UBERTOOTH_STOP        = 21,
+	UBERTOOTH_GET_MOD     = 22,
+	UBERTOOTH_SET_MOD     = 23,
+	UBERTOOTH_SET_ISP     = 24
 };
 
 /*
@@ -78,5 +87,6 @@ int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
 int cmd_get_usrled(struct libusb_device_handle* devh);
 int cmd_get_partnum(struct libusb_device_handle* devh);
 int cmd_get_serial(struct libusb_device_handle* devh);
+int cmd_set_isp(struct libusb_device_handle* devh);
 
 #endif

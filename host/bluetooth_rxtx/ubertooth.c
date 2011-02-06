@@ -221,3 +221,17 @@ int cmd_get_serial(struct libusb_device_handle* devh)
 	printf("%08x\n", result[13] | (result[14] << 8) | (result[15] << 16) | (result[16] << 24));
 	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
 }
+
+int cmd_set_isp(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_ISP, 0, 0,
+			NULL, 0, 1000);
+	/* -7 is the error we expect to get */
+	if (r != -7) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}

@@ -110,7 +110,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_TX_TEST     = 20,
 	UBERTOOTH_STOP        = 21,
 	UBERTOOTH_GET_MOD     = 22,
-	UBERTOOTH_SET_MOD     = 23
+	UBERTOOTH_SET_MOD     = 23,
+	UBERTOOTH_SET_ISP     = 24
 };
 
 enum operating_modes {
@@ -463,6 +464,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 	case UBERTOOTH_SET_MOD:
 		modulation = pSetup->wValue;
+		break;
+
+	case UBERTOOTH_SET_ISP:
+		command[0] = 57; /* read part number */
+		iap_entry(command, result);
+		*piLen = 0; /* should never return */
 		break;
 
 	default:
