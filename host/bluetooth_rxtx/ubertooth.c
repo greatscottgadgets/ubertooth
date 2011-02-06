@@ -250,3 +250,17 @@ int cmd_set_isp(struct libusb_device_handle* devh)
 	}
 	return 0;
 }
+
+int cmd_reset(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RESET, 0, 0,
+			NULL, 0, 1000);
+	/* -9 is the error we expect to get */
+	if (r != -9) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
