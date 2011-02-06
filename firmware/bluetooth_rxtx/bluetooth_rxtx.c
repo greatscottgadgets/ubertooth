@@ -100,7 +100,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_1V8     = 10,
 	UBERTOOTH_GET_CHANNEL = 11, /* not implemented */
 	UBERTOOTH_SET_CHANNEL = 12, /* not implemented */
-	UBERTOOTH_RESET       = 13, /* not implemented */
+	UBERTOOTH_RESET       = 13,
 	UBERTOOTH_GET_SERIAL  = 14,
 	UBERTOOTH_GET_PARTNUM = 15,
 	UBERTOOTH_GET_PAEN    = 16,
@@ -111,7 +111,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_STOP        = 21,
 	UBERTOOTH_GET_MOD     = 22,
 	UBERTOOTH_SET_MOD     = 23,
-	UBERTOOTH_SET_ISP     = 24
+	UBERTOOTH_SET_ISP     = 24,
+	UBERTOOTH_FLASH       = 25
 };
 
 enum operating_modes {
@@ -400,6 +401,10 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		*piLen = 5;
 		break;
 
+	case UBERTOOTH_RESET:
+		reset();
+		break;
+
 	case UBERTOOTH_GET_SERIAL:
 		command[0] = 58; /* read device serial number */
 		iap_entry(command, result);
@@ -467,6 +472,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_ISP:
+		command[0] = 57; /* read part number */
+		iap_entry(command, result);
+		*piLen = 0; /* should never return */
+		break;
+
+	case UBERTOOTH_FLASH:
 		command[0] = 57; /* read part number */
 		iap_entry(command, result);
 		*piLen = 0; /* should never return */

@@ -334,5 +334,19 @@ void clock_start()
 	while (!(PLL1STAT & PLL1STAT_PLLC1_STAT));
 }
 
+
+/* reset the LPC17xx, the cc2400 will be handled by the boot code */
+void reset()
+{
+	/* Enable the watchdog with reset enabled */
+	USRLED_CLR;
+	WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;
+	
+	/* Set watchdog timeout to 256us (minimum) */
+	
+	/* sleep for 1s (minimum) */
+	wait(1);
+}
+
 //FIXME ssp
 //FIXME tx/rx

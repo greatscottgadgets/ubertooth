@@ -199,5 +199,6 @@ u8 cc2400_status();
 u8 cc2400_strobe(u8 reg);
 void cc2400_reset();
 void clock_start();
+void reset();
 
 #endif /* __UBERTOOTH_H */
