@@ -102,8 +102,33 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_CHANNEL = 12, /* not implemented */
 	UBERTOOTH_RESET       = 13, /* not implemented */
 	UBERTOOTH_GET_SERIAL  = 14,
-	UBERTOOTH_GET_PARTNUM = 15
+	UBERTOOTH_GET_PARTNUM = 15,
+	UBERTOOTH_GET_PAEN    = 16,
+	UBERTOOTH_SET_PAEN    = 17,
+	UBERTOOTH_GET_HGM     = 18,
+	UBERTOOTH_SET_HGM     = 19,
+	UBERTOOTH_TX_TEST     = 20,
+	UBERTOOTH_STOP        = 21,
+	UBERTOOTH_GET_MOD     = 22,
+	UBERTOOTH_SET_MOD     = 23
 };
+
+enum operating_modes {
+	MODE_IDLE       = 0,
+	MODE_RX_SYMBOLS = 1,
+	MODE_TX_SYMBOLS = 2,
+	MODE_TX_TEST    = 3
+};
+
+enum modulations {
+	MOD_BT_BASIC_RATE = 0,
+	MOD_BT_LOW_ENERGY = 1,
+	MOD_80211_FHSS    = 2
+};
+
+volatile u32 mode = MODE_IDLE;
+volatile u32 requested_mode = MODE_IDLE;
+volatile u32 modulation = MOD_BT_BASIC_RATE;
 
 /* DMA linked list items */
 typedef struct {
@@ -397,6 +422,49 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		*piLen = 17;
 		break;
 
+#ifdef UBERTOOTH_ONE
+	case UBERTOOTH_GET_PAEN:
+		pbData[0] = (PAEN) ? 1 : 0;
+		*piLen = 1;
+		break;
+
+	case UBERTOOTH_SET_PAEN:
+		if (pSetup->wValue)
+			PAEN_SET;
+		else
+			PAEN_CLR;
+		break;
+
+	case UBERTOOTH_GET_HGM:
+		pbData[0] = (HGM) ? 1 : 0;
+		*piLen = 1;
+		break;
+
+	case UBERTOOTH_SET_HGM:
+		if (pSetup->wValue)
+			HGM_SET;
+		else
+			HGM_CLR;
+		break;
+#endif
+
+	case UBERTOOTH_TX_TEST:
+		requested_mode = MODE_TX_TEST;
+		break;
+
+	case UBERTOOTH_STOP:
+		requested_mode = MODE_IDLE;
+		break;
+
+	case UBERTOOTH_GET_MOD:
+		pbData[0] = modulation;
+		*piLen = 1;
+		break;
+
+	case UBERTOOTH_SET_MOD:
+		modulation = pSetup->wValue;
+		break;
+
 	default:
 		return FALSE;
 	}
@@ -557,32 +625,61 @@ static void dio_ssp_start()
 	DIO_SSEL_CLR;
 }
 
-/* start un-buffered bluetooth rx */
+/* start un-buffered rx */
 void cc2400_rx()
 {
-	cc2400_set(MANAND,  0x7fff);
-	cc2400_set(LMTST,   0x2b22);
-	cc2400_set(MDMTST0, 0x134b); // without PRNG
-	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
-	cc2400_set(FSDIV,   0x0988); // 2440 MHz + 1 MHz IF = 2441 MHz
-	cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+	if (modulation == MOD_BT_BASIC_RATE) {
+		cc2400_set(MANAND,  0x7fff);
+		cc2400_set(LMTST,   0x2b22);
+		cc2400_set(MDMTST0, 0x134b); // without PRNG
+		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+		cc2400_set(FSDIV,   0x0988); // 2440 MHz + 1 MHz IF = 2441 MHz
+		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+	} else if (modulation == MOD_BT_LOW_ENERGY) {
+		cc2400_set(MANAND,  0x7fff);
+		cc2400_set(LMTST,   0x2b22);
+		cc2400_set(MDMTST0, 0x134b); // without PRNG
+		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+		cc2400_set(FSDIV,   0x0979); // 2425 MHz + 1 MHz IF = 2426 MHz (advertising channel)
+		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+	} else {
+		/* oops */
+		return;
+	}
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
 	cc2400_strobe(SRX);
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	HGM_SET;
+#endif
 }
 
 void cc2400_txtest()
 {
-	cc2400_set(MANAND,  0x7fff);
-	cc2400_set(LMTST,   0x2b22);
-	cc2400_set(MDMTST0, 0x334b); // with PRNG
-	cc2400_set(FSDIV,   0x0989); // 2441 MHz
-	cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+	if (modulation == MOD_BT_BASIC_RATE) {
+		cc2400_set(MANAND,  0x7fff);
+		cc2400_set(LMTST,   0x2b22);
+		cc2400_set(MDMTST0, 0x334b); // with PRNG
+		cc2400_set(FSDIV,   0x0989); // 2441 MHz
+		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+	} else if (modulation == MOD_BT_LOW_ENERGY) {
+		cc2400_set(MANAND,  0x7fff);
+		cc2400_set(LMTST,   0x2b22);
+		cc2400_set(MDMTST0, 0x334b); // with PRNG
+		cc2400_set(FSDIV,   0x0989); // 2441 MHz
+		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+	} else {
+		/* oops */
+		return;
+	}
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
+	TXLED_SET;
 	cc2400_strobe(STX);
+	mode = MODE_TX_TEST;
 }
 
 void bt_stream_rx()
@@ -644,5 +741,8 @@ int main()
 		USBHwISR();
 		if (rx_pkts)
 			bt_stream_rx();
+		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
+			cc2400_txtest();
+		//FIXME do other modes like this
 	}
 }
