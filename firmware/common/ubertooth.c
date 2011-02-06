@@ -341,6 +341,7 @@ void reset()
 	/* Enable the watchdog with reset enabled */
 	USRLED_CLR;
 	WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;
+	WDFEED_SEQUENCE;
 	
 	/* Set watchdog timeout to 256us (minimum) */
 	

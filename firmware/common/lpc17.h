@@ -149,7 +149,7 @@
 #define PLL1STAT_PLOCK1     (0x1 << 10)
 
 /* PLL1 Feed register (PLL1FEED - 0x400F C0AC) */
-#define PLL1FEED_SEQUENCE PLL1FEED = 0xAA; PLL1FEED = 0x55;
+#define PLL1FEED_SEQUENCE PLL1FEED = 0xAA; PLL1FEED = 0x55
 
 /* CPU Clock Configuration register (CCLKCFG - 0x400F C104) */
 #define CCLKCFG_CCLKSEL (0xFF << 0)
@@ -3473,9 +3473,11 @@
  * skipped:
  *
  * Watchdog Timer Constant register (WDTC - 0x4000 0004)
- * Watchdog Feed register (WDFEED - 0x4000 0008)
  * Watchdog Timer Value register (WDTV - 0x4000 000C)
  */
+
+/* Watchdog Feed register (WDFEED - 0x4000 0008) */
+#define WDFEED_SEQUENCE WDFEED = 0xAA; WDFEED = 0x55
 
 /* Watchdog Timer Clock Source Selection register (WDCLKSEL - 0x4000 0010) */
 #define WDCLKSEL_WDSEL  (0x3 << 0)
