@@ -243,8 +243,8 @@ int cmd_set_isp(struct libusb_device_handle* devh)
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_ISP, 0, 0,
 			NULL, 0, 1000);
-	/* -7 is the error we expect to get */
-	if (r != -7) {
+	/* LIBUSB_ERROR_TIMEOUT is the error we expect to get */
+	if (r != LIBUSB_ERROR_TIMEOUT) {
 		fprintf(stderr, "command error %d\n", r);
 		return r;
 	}
@@ -257,8 +257,53 @@ int cmd_reset(struct libusb_device_handle* devh)
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RESET, 0, 0,
 			NULL, 0, 1000);
-	/* -9 is the error we expect to get */
-	if (r != -9) {
+	/* LIBUSB_ERROR_PIPE is the error we expect to get */
+	if (r != LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_set_paen(struct libusb_device_handle* devh, u16 state)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_PAEN, state, 0,
+			NULL, 0, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+	} else if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_set_hgm(struct libusb_device_handle* devh, u16 state)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_HGM, state, 0,
+			NULL, 0, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+	} else if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_tx_test(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_TX_TEST, 0, 0,
+			NULL, 0, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+	} else if (r < 0) {
 		fprintf(stderr, "command error %d\n", r);
 		return r;
 	}
