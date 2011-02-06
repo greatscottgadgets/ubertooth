@@ -222,6 +222,21 @@ int cmd_get_serial(struct libusb_device_handle* devh)
 	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
 }
 
+int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_MOD, mod, 0,
+			NULL, 0, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+	} else if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
 int cmd_set_isp(struct libusb_device_handle* devh)
 {
 	int r;

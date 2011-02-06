@@ -65,6 +65,12 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_ISP     = 24
 };
 
+enum modulations {
+	MOD_BT_BASIC_RATE = 0,
+	MOD_BT_LOW_ENERGY = 1,
+	MOD_80211_FHSS    = 2
+};
+
 /*
  * USB packet for Bluetooth RX (64 total bytes)
  */
@@ -87,6 +93,7 @@ int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
 int cmd_get_usrled(struct libusb_device_handle* devh);
 int cmd_get_partnum(struct libusb_device_handle* devh);
 int cmd_get_serial(struct libusb_device_handle* devh);
+int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod);
 int cmd_set_isp(struct libusb_device_handle* devh);
 
 #endif

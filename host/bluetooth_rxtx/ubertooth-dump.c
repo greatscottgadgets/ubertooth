@@ -28,6 +28,8 @@ int main()
 	if (devh == NULL)
 		return 1;
 
+	//FIXME cli mod options
+	cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 	while (1)
 		stream_rx(devh, 512, 0xFFFF);
 
