@@ -53,7 +53,7 @@ CPU_FLAGS = -mapcs-frame
 CPU_FLAGS_ASM = -mthumb-interwork
 
 # set to UBERTOOTH_ZERO or UBERTOOTH_ONE
-BOARD  = UBERTOOTH_ONE
+BOARD ?= UBERTOOTH_ONE
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -215,8 +215,8 @@ LDFLAGS += -lgcc -lm
 LDFLAGS += -Wl,--end-group 
 
 #---------------- Programming Options ----------------
-LPCISP = ~/src/lpc21isp/lpc21isp
-PROGDEV = /dev/ttyUSB0
+LPCISP ?= ~/src/lpc21isp/lpc21isp
+PROGDEV ?= /dev/ttyUSB0
 
 #============================================================================
 

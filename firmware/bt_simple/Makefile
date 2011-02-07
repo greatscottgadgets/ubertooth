@@ -43,7 +43,7 @@
 #----------------------------------------------------------------------------
 
 # set to UBERTOOTH_ZERO or UBERTOOTH_ONE
-BOARD  = UBERTOOTH_ONE
+BOARD ?= UBERTOOTH_ONE
 
 # CPU architecture
 CPU = cortex-m3
@@ -228,8 +228,8 @@ LDFLAGS += -lgcc -lm
 LDFLAGS += -Wl,--end-group 
 
 #---------------- Programming Options ----------------
-LPCISP = ~/src/lpc21isp/lpc21isp
-PROGDEV = /dev/ttyUSB0
+LPCISP ?= ~/src/lpc21isp/lpc21isp
+PROGDEV ?= /dev/ttyUSB0
 
 #============================================================================
 
