@@ -32,8 +32,11 @@ ubertooth-lap:
 ubertooth-reflash:
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-reflash.c ubertooth.c -o ubertooth-reflash
 
+ubertooth-util:
+	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-util.c ubertooth.c -o ubertooth-util
+
 test:
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) test.c ubertooth.c -o test
 
 clean:
-	rm -f ubertooth-dump ubertooth-lap ubertooth-reflash test
+	rm -f ubertooth-dump ubertooth-lap ubertooth-reflash ubertooth-util test
