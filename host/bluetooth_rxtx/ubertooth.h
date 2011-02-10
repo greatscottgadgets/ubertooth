@@ -62,7 +62,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_STOP        = 21,
 	UBERTOOTH_GET_MOD     = 22,
 	UBERTOOTH_SET_MOD     = 23,
-	UBERTOOTH_SET_ISP     = 24
+	UBERTOOTH_SET_ISP     = 24,
+	UBERTOOTH_FLASH       = 25
 };
 
 enum modulations {

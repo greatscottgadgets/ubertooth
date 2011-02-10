@@ -1,0 +1,3 @@
+bootloader.c is designed to be the first level firmware on the Ubertooth, with this installed you can update the main application over USB (at least that's the plan).
+
+There is no host code to go with this yet.

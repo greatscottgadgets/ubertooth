@@ -309,3 +309,17 @@ int cmd_tx_test(struct libusb_device_handle* devh)
 	}
 	return 0;
 }
+
+int cmd_flash(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_FLASH, 0, 0,
+			NULL, 0, 1000);
+	/* LIBUSB_ERROR_PIPE is the error we expect to get */
+	if (r != LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}

@@ -56,7 +56,7 @@
 #define RSID_POR  (0x1 << 0)
 #define RSID_EXTR (0x1 << 1)
 #define RSID_WDTR (0x1 << 2)
-#define RSID_BODR (0x1 << 2)
+#define RSID_BODR (0x1 << 3)
 
 /* External Interrupt flag register (EXTINT - 0x400F C140) */
 #define EXTINT_EINT0 (0x1 << 0)

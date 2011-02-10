@@ -112,7 +112,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_GET_MOD     = 22,
 	UBERTOOTH_SET_MOD     = 23,
 	UBERTOOTH_SET_ISP     = 24,
-	UBERTOOTH_FLASH       = 25
+	UBERTOOTH_FLASH       = 25,
+	BOOTLOADER_FLASH      = 26 /* do not implement */
 };
 
 enum operating_modes {
