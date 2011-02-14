@@ -54,9 +54,6 @@
 typedef void (*IAP)(u32[], u32[]);
 IAP iap_entry = (IAP)IAP_LOCATION;
 
-#define BULK_IN_EP		0x82
-#define BULK_OUT_EP		0x05
-
 #define MAX_PACKET_SIZE	64
 
 #define LE_WORD(x)		((x)&0xFF),((x)>>8)
@@ -80,14 +77,14 @@ IAP iap_entry = (IAP)IAP_LOCATION;
 #define ENTRY_SET PINSEL1_P0_22
 #endif
 
-#define DMA_OVERFLOW  0x01
-#define DMA_ERROR     0x02
-#define FIFO_OVERFLOW 0x04
-
-enum ubertooth_usb_commands {
-	UBERTOOTH_SET_ISP     = 24,
-	UBERTOOTH_FLASH       = 25,
-	BOOTLOADER_FLASH      = 26
+enum dfu_usb_commands {
+	DFU_DETACH     = 0,
+	DFU_DNLOAD     = 1,
+	DFU_UPLOAD     = 2,
+	DFU_GETSTATUS  = 3,
+	DFU_CLRSTATUS  = 4,
+	DFU_GETSTATE   = 5,
+	DFU_ABORT      = 6
 };
 
 static const u8 abDescriptors[] = {
@@ -96,7 +93,7 @@ static const u8 abDescriptors[] = {
 	0x12,              		
 	DESC_DEVICE,       		
 	LE_WORD(0x0200),		// bcdUSB	
-	0xFF,              		// bDeviceClass
+	0x00,              		// bDeviceClass
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
 	MAX_PACKET_SIZE0,  		// bMaxPacketSize
@@ -123,27 +120,11 @@ static const u8 abDescriptors[] = {
 	DESC_INTERFACE, 
 	0x00,  		 			// bInterfaceNumber
 	0x00,   				// bAlternateSetting
-	0x02,   				// bNumEndPoints
-	0xFF,   				// bInterfaceClass
-	0x00,   				// bInterfaceSubClass
-	0x00,   				// bInterfaceProtocol
+	0x00,   				// bNumEndPoints
+	0xFE,   				// bInterfaceClass
+	0x01,   				// bInterfaceSubClass
+	0x02,   				// bInterfaceProtocol
 	0x00,   				// iInterface
-
-// bulk in
-	0x07,   		
-	DESC_ENDPOINT,   		
-	BULK_IN_EP,				// bEndpointAddress
-	0x02,   				// bmAttributes = BULK
-	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval   		
-
-// bulk out
-	0x07,   		
-	DESC_ENDPOINT,   		
-	BULK_OUT_EP,			// bEndpointAddress
-	0x02,   				// bmAttributes = BULK
-	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval   		
 
 // string descriptors
 	0x04,
@@ -182,10 +163,6 @@ static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
 		;
 }
 
-static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
-{
-}
-
 static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
 {
 	u8 *pbData = *ppbData;
@@ -194,19 +171,26 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 	switch (pSetup->bRequest) {
 
-	case BOOTLOADER_FLASH:
-		/* Rewrite own code (dangerous) */
+
+	case DFU_DETACH:
 		break;
 
-	case UBERTOOTH_FLASH:
-		/* Rewrite ubertooth code */
-		blink();
+	case DFU_DNLOAD:
 		break;
 
-	case UBERTOOTH_SET_ISP:
-		command[0] = 57; /* read part number */
-		iap_entry(command, result);
-		*piLen = 0; /* should never return */
+	case DFU_UPLOAD:
+		break;
+
+	case DFU_GETSTATUS:
+		break;
+
+	case DFU_CLRSTATUS:
+		break;
+
+	case DFU_GETSTATE:
+		break;
+
+	case DFU_ABORT:
 		break;
 
 	default:
@@ -226,10 +210,6 @@ int bootloader_usb_init()
 	// override standard request handler
 	USBRegisterRequestHandler(REQTYPE_TYPE_VENDOR, usb_vendor_request_handler, abVendorReqData);
 
-	// register endpoints
-	//USBHwRegisterEPIntHandler(BULK_IN_EP, usb_bulk_in_handler);
-	//USBHwRegisterEPIntHandler(BULK_OUT_EP, usb_bulk_out_handler);
-
 	// enable USB interrupts
 	//ISER0 |= ISER0_ISE_USB;
 	
@@ -239,6 +219,7 @@ int bootloader_usb_init()
 	return 0;
 }
 
+// For testing
 void blink()
 {
 	USRLED_SET;
@@ -263,9 +244,11 @@ static void run_bootloader()
 
 void main(void)
 {
-	ENTRY_PIN = ENTRY_SET;
+	ENTRY_PIN |= ENTRY_SET;
 	
-	if (ENTRY_PIN & ENTRY_SET) {
+	if (ENTRY_PIN & ENTRY_SET)
+		;
+	else
 		run_bootloader();
-	}
+
 }
