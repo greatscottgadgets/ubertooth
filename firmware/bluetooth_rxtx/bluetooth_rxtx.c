@@ -250,7 +250,7 @@ static const u8 abDescriptors[] = {
 	0x09,
 	DESC_CONFIGURATION,
 	LE_WORD(0x20),  		// wTotalLength
-	0x01,  					// bNumInterfaces
+	0x02,  					// bNumInterfaces
 	0x01,  					// bConfigurationValue
 	0x00,  					// iConfiguration
 	0x80,  					// bmAttributes
@@ -281,7 +281,27 @@ static const u8 abDescriptors[] = {
 	BULK_OUT_EP,			// bEndpointAddress
 	0x02,   				// bmAttributes = BULK
 	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval   		
+	0,						// bInterval 
+
+// interface
+	0x09,   				
+	DESC_INTERFACE, 
+	0x01,  		 			// bInterfaceNumber
+	0x00,   				// bAlternateSetting
+	0x00,   				// bNumEndPoints
+	0xFE,   				// bInterfaceClass
+	0x01,   				// bInterfaceSubClass
+	0x01,   				// bInterfaceProtocol
+	0x00,   				// iInterface
+
+// DFU Functional Descriptor
+	0x09,
+	DESC_DFU_FUNCTIONAL,
+	DFU_CAN_DNLOAD,			// bmAttributes 
+	LE_WORD(0xFFFF),		// wDetachTimeOut 
+	LE_WORD(0x0400),		// wTransferSize 
+	LE_WORD(0x0101),		// bcdDFUVersion 
+
 
 // string descriptors
 	0x04,

@@ -87,6 +87,8 @@ enum dfu_usb_commands {
 	DFU_ABORT      = 6
 };
 
+int status;
+
 static const u8 abDescriptors[] = {
 
 /* Device descriptor */
@@ -125,6 +127,14 @@ static const u8 abDescriptors[] = {
 	0x01,   				// bInterfaceSubClass
 	0x02,   				// bInterfaceProtocol
 	0x00,   				// iInterface
+
+// DFU Functional Descriptor
+	0x09,
+	DESC_DFU_FUNCTIONAL,
+	DFU_CAN_DNLOAD,			// bmAttributes 
+	LE_WORD(0xFFFF),		// wDetachTimeOut 
+	LE_WORD(0x0400),		// wTransferSize 
+	LE_WORD(0x0101),		// bcdDFUVersion
 
 // string descriptors
 	0x04,
@@ -182,6 +192,8 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case DFU_GETSTATUS:
+		pbData[0] = status;
+		*piLen = 1;
 		break;
 
 	case DFU_CLRSTATUS:
@@ -235,6 +247,8 @@ void blink()
 static void run_bootloader()
 {
 	bootloader_usb_init();
+
+	status = ;
 
 	while (1) {
 		USBHwISR();

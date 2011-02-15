@@ -90,6 +90,12 @@ typedef struct {
 #define FEA_REMOTE_WAKEUP		0x01
 #define FEA_TEST_MODE			0x02
 
+/* DFU Attributes */
+#define DFU_WILL_DETACH            (0x1 << 3)
+#define DFU_MANIFESTATION_TOLERANT (0x1 << 2)
+#define DFU_CAN_UPLOAD             (0x1 << 1)
+#define DFU_CAN_DNLOAD             (0x1 << 0)
+
 /*
 	USB descriptors
 */
@@ -109,12 +115,44 @@ typedef struct {
 #define DESC_OTHER_SPEED		7
 #define DESC_INTERFACE_POWER	8
 
+#define DESC_DFU_FUNCTIONAL		0x21
+
 #define DESC_HID_HID			0x21
 #define DESC_HID_REPORT			0x22
 #define DESC_HID_PHYSICAL		0x23
 
 #define GET_DESC_TYPE(x)		(((x)>>8)&0xFF)
 #define GET_DESC_INDEX(x)		((x)&0xFF)
+
+#define DFU_STATUS_OK				0x00
+#define DFU_STATUS_ERRTARGET		0x01
+#define DFU_STATUS_ERRFILE			0x02
+#define DFU_STATUS_ERRWRITE			0x03
+#define DFU_STATUS_ERRERASE			0x04
+#define DFU_STATUS_ERRCHECK_ERASED	0x05
+#define DFU_STATUS_ERRPROG			0x06
+#define DFU_STATUS_ERRVERIFY		0x07
+#define DFU_STATUS_ERRADDRESS		0x08
+#define DFU_STATUS_ERRNOTDONE		0x09
+#define DFU_STATUS_ERRFIRMWARE		0x0A
+#define DFU_STATUS_ERRVENDOR		0x0B
+#define DFU_STATUS_ERRUSBR			0x0C
+#define DFU_STATUS_ERRPOR			0x0D
+#define DFU_STATUS_ERRUNKNOWN		0x0E
+#define DFU_STATUS_ERRSTALLEDPKT	0x0F
+
+
+#define DFU_STATE_appIDLE					0x00
+#define DFU_STATE_appDETACH					0x01
+#define DFU_STATE_dfuIDLE					0x02
+#define DFU_STATE_dfuDNLOAD-SYNC			0x03
+#define DFU_STATE_dfuDNBUSY					0x04
+#define DFU_STATE_dfuDNLOAD-IDLE			0x05
+#define DFU_STATE_dfuMANIFEST-SYNC			0x06
+#define DFU_STATE_dfuMANIFEST				0x07
+#define DFU_STATE_dfuMANIFEST-WAIT-RESET	0x08
+#define DFU_STATE_dfuUPLOAD-IDLE			0x09
+#define DFU_STATE_dfuERROR					0x0A
 
 #endif /* _USBSTRUCT_H_ */
 
