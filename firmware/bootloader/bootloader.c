@@ -77,17 +77,8 @@ IAP iap_entry = (IAP)IAP_LOCATION;
 #define ENTRY_SET PINSEL1_P0_22
 #endif
 
-enum dfu_usb_commands {
-	DFU_DETACH     = 0,
-	DFU_DNLOAD     = 1,
-	DFU_UPLOAD     = 2,
-	DFU_GETSTATUS  = 3,
-	DFU_CLRSTATUS  = 4,
-	DFU_GETSTATE   = 5,
-	DFU_ABORT      = 6
-};
-
 int status;
+int state;
 
 static const u8 abDescriptors[] = {
 
@@ -130,8 +121,8 @@ static const u8 abDescriptors[] = {
 
 // DFU Functional Descriptor
 	0x09,
-	DESC_DFU_FUNCTIONAL,
-	DFU_CAN_DNLOAD,			// bmAttributes 
+	DESC_FUNCTIONAL,
+	CAN_DNLOAD,				// bmAttributes 
 	LE_WORD(0xFFFF),		// wDetachTimeOut 
 	LE_WORD(0x0400),		// wTransferSize 
 	LE_WORD(0x0101),		// bcdDFUVersion
@@ -182,27 +173,41 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	switch (pSetup->bRequest) {
 
 
-	case DFU_DETACH:
+	case DETACH:
 		break;
 
-	case DFU_DNLOAD:
+	case DNLOAD:
 		break;
 
-	case DFU_UPLOAD:
+	case UPLOAD:
+		state = STATE_DFUUPLOAD_IDLE;
 		break;
 
-	case DFU_GETSTATUS:
+	case GETSTATUS:
 		pbData[0] = status;
 		*piLen = 1;
 		break;
 
-	case DFU_CLRSTATUS:
+	case CLRSTATUS:
+		if (state == STATE_DFUERROR) {
+			state  = STATE_DFUIDLE;
+			status = STATUS_OK;
+		} else {
+			state  = STATE_DFUERROR;
+			status = STATUS_ERRUNKNOWN;
+		}
 		break;
 
-	case DFU_GETSTATE:
+	case GETSTATE:
+		pbData[0] = state;
+		*piLen = 1;
 		break;
 
-	case DFU_ABORT:
+	case ABORT:
+		if (state != STATE_DFUERROR) {
+			state  = STATE_DFUIDLE;
+			status = STATUS_OK;
+		}
 		break;
 
 	default:
@@ -248,7 +253,8 @@ static void run_bootloader()
 {
 	bootloader_usb_init();
 
-	status = ;
+	status = STATUS_OK;
+	state  = STATE_DFUIDLE;
 
 	while (1) {
 		USBHwISR();
