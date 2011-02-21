@@ -1,4 +1,4 @@
-update=Fri Jan 28 13:28:58 2011
+update=Fri Jan 28 15:17:12 2011
 version=1
 last_client=pcbnew
 [cvpcb]
@@ -43,11 +43,7 @@ offY_E=0
 RptD_X=0
 RptD_Y=100
 RptLab=1
-SimCmd=
-UseNetN=0
 LabSize=60
-PrintMonochrome=1
-ShowSheetReferenceAndTitleBlock=1
 [eeschema/libraries]
 LibName1=ubertooth-symbols
 LibName2=power
