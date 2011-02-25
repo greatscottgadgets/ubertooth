@@ -63,7 +63,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_GET_MOD     = 22,
 	UBERTOOTH_SET_MOD     = 23,
 	UBERTOOTH_SET_ISP     = 24,
-	UBERTOOTH_FLASH       = 25
+	UBERTOOTH_FLASH       = 25,
+	BOOTLOADER_FLASH      = 26,
+	UBERTOOTH_SPECAN      = 27
 };
 
 enum modulations {
@@ -88,8 +90,11 @@ typedef struct {
 struct libusb_device_handle* ubertooth_start();
 void ubertooth_stop(struct libusb_device_handle *devh);
 int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks);
+int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
+		u16 low_freq, u16 high_freq);
 int cmd_ping(struct libusb_device_handle* devh);
 int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
+int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
 int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
 int cmd_get_usrled(struct libusb_device_handle* devh);
 int cmd_get_partnum(struct libusb_device_handle* devh);

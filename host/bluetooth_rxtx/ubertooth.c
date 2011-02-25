@@ -93,6 +93,62 @@ int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 	}
 }
 
+int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
+		u16 low_freq, u16 high_freq)
+{
+	u8 buffer[BUFFER_SIZE];
+	int r;
+	int i, j, k;
+	int xfer_blocks;
+	int num_xfers;
+	int transferred;
+	int frequency;
+	u32 time; /* in 100 nanosecond units */
+
+	if (xfer_size > BUFFER_SIZE)
+		xfer_size = BUFFER_SIZE;
+	xfer_blocks = xfer_size / 64;
+	xfer_size = xfer_blocks * 64;
+	num_xfers = num_blocks / xfer_blocks;
+	num_blocks = num_xfers * xfer_blocks;
+
+	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
+			num_blocks, xfer_size);
+
+	cmd_specan(devh, low_freq, high_freq);
+
+	while (num_xfers--) {
+		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
+				&transferred, TIMEOUT);
+		if (r < 0) {
+			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
+			return -1;
+		}
+		if (transferred != xfer_size) {
+			fprintf(stderr, "bad data read size (%d)\n", transferred);
+			return -1;
+		}
+		fprintf(stderr, "transferred %d bytes\n", transferred);
+
+		/* process each received block */
+		for (i = 0; i < xfer_blocks; i++) {
+			time = buffer[4 + 64 * i]
+					| (buffer[5 + 64 * i] << 8)
+					| (buffer[6 + 64 * i] << 16)
+					| (buffer[7 + 64 * i] << 24);
+			fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+			for (j = 64 * i + 14; j < 64 * i + 62; j += 3) {
+				frequency = (buffer[j] << 8) | buffer[j + 1];
+				if (buffer[j + 2] > 150) //FIXME 
+					printf("%f, %d, %d\n", ((double)time)/10000000, frequency, buffer[j + 2]);
+				if (frequency == high_freq)
+					printf("\n");
+			}
+		}
+		fflush(stderr);
+	}
+}
+
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
 	if (devh != NULL)
@@ -148,6 +204,19 @@ int cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, num, 0,
 			NULL, 0, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SPECAN,
+			low_freq, high_freq, NULL, 0, 1000);
 	if (r < 0) {
 		fprintf(stderr, "command error %d\n", r);
 		return r;

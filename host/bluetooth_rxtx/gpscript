@@ -1,0 +1,11 @@
+# example gnuplot script for ubertooth-specan output
+set border 4095 front linetype -1 linewidth 1.000
+set view 111, 80, 1, 1
+set cbrange [210:230]
+unset surface
+set pm3d implicit at s
+set pm3d scansbackward
+set title "Ubertooth One spectrum analyzer"
+set xlabel 'time in seconds'
+set ylabel 'frequency in MHz'
+splot 'spec-test'

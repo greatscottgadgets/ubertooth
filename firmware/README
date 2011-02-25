@@ -10,4 +10,4 @@ The preferred firmware for Bluetooth functions is bluetooth_rxtx.  The
 bt_simple firmware is deprecated.
 
 The default hardware target is Ubertooth One.  If you are compiling for
-Ubertooth Zero, you must set BOARD = UBERTOOTH_ZERO in the Makefile.
+Ubertooth Zero, you must set the environment variable BOARD=UBERTOOTH_ZERO.

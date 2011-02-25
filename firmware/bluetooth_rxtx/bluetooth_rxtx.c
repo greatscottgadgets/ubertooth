@@ -113,14 +113,16 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_MOD     = 23,
 	UBERTOOTH_SET_ISP     = 24,
 	UBERTOOTH_FLASH       = 25,
-	BOOTLOADER_FLASH      = 26 /* do not implement */
+	BOOTLOADER_FLASH      = 26, /* do not implement */
+	UBERTOOTH_SPECAN      = 27
 };
 
 enum operating_modes {
 	MODE_IDLE       = 0,
 	MODE_RX_SYMBOLS = 1,
 	MODE_TX_SYMBOLS = 2,
-	MODE_TX_TEST    = 3
+	MODE_TX_TEST    = 3,
+	MODE_SPECAN     = 4
 };
 
 enum modulations {
@@ -132,6 +134,8 @@ enum modulations {
 volatile u32 mode = MODE_IDLE;
 volatile u32 requested_mode = MODE_IDLE;
 volatile u32 modulation = MOD_BT_BASIC_RATE;
+volatile u16 low_freq = 2400;
+volatile u16 high_freq = 2483;
 
 /* DMA linked list items */
 typedef struct {
@@ -283,6 +287,7 @@ static const u8 abDescriptors[] = {
 	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
 	0,						// bInterval 
 
+/* commented due to compile fail
 // interface
 	0x09,   				
 	DESC_INTERFACE, 
@@ -297,11 +302,11 @@ static const u8 abDescriptors[] = {
 // DFU Functional Descriptor
 	0x09,
 	DESC_DFU_FUNCTIONAL,
-	DFU_CAN_DNLOAD,			// bmAttributes 
+	DFU_CAN_DNLOAD,				// bmAttributes 
 	LE_WORD(0xFFFF),		// wDetachTimeOut 
 	LE_WORD(0x0400),		// wTransferSize 
 	LE_WORD(0x0101),		// bcdDFUVersion 
-
+*/
 
 // string descriptors
 	0x04,
@@ -502,6 +507,17 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		command[0] = 57; /* read part number */
 		iap_entry(command, result);
 		*piLen = 0; /* should never return */
+		break;
+
+	case UBERTOOTH_SPECAN:
+		if (pSetup->wValue < 2049 || pSetup->wValue > 3072 || 
+				pSetup->wIndex < 2049 || pSetup->wIndex > 3072 ||
+				pSetup->wIndex < pSetup->wValue)
+			return FALSE;
+		low_freq = pSetup->wValue;
+		high_freq = pSetup->wIndex;
+		requested_mode = MODE_SPECAN;
+		*piLen = 0;
 		break;
 
 	default:
@@ -770,6 +786,64 @@ void bt_stream_rx()
 	RXLED_CLR;
 }
 
+/* spectrum analysis */
+void specan()
+{
+	u8 epstat;
+	u16 f;
+	u8 i = 0;
+	u8 buf[DMA_SIZE];
+
+	RXLED_SET;
+
+	queue_init();
+
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	//HGM_SET;
+#endif
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x134b); // without PRNG
+	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+	cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+	//FIXME maybe set RSSI.RSSI_FILT
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	while ((cc2400_status() & FS_LOCK));
+
+	while (requested_mode == MODE_SPECAN) {
+		for (f = low_freq; f < high_freq + 1; f++) {
+			cc2400_set(FSDIV, f - 1);
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+			cc2400_strobe(SRX);
+
+			//u32 j = 100; while (--j); //FIXME crude delay
+			buf[3 * i] = (f >> 8) & 0xFF;
+			buf[(3 * i) + 1] = f  & 0xFF;
+			buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
+			i++;
+			if (i == 16) {
+				//FIXME ought to use different packet type
+				enqueue(buf);
+				i = 0;
+				/* send via USB */
+				epstat = USBHwEPGetStatus(BULK_IN_EP);
+				if (!(epstat & EPSTAT_B1FULL))
+					dequeue();
+				if (!(epstat & EPSTAT_B2FULL))
+					dequeue();
+				USBHwISR();
+			}
+
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK));
+		}
+	}
+	mode = MODE_IDLE;
+	RXLED_CLR;
+}
+
 int main()
 {
 	ubertooth_init();
@@ -782,6 +856,8 @@ int main()
 			bt_stream_rx();
 		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
 			cc2400_txtest();
+		else if (requested_mode == MODE_SPECAN && mode != MODE_SPECAN)
+			specan();
 		//FIXME do other modes like this
 	}
 }
