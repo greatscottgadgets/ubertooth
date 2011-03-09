@@ -21,7 +21,7 @@ CC = gcc
 LIBUSB = usb-1.0
 LIBBTBB = btbb
 
-all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util test
+all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap
 
 ubertooth-dump: ubertooth-dump.c ubertooth.c ubertooth.h
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-dump.c ubertooth.c -o ubertooth-dump
@@ -35,8 +35,8 @@ ubertooth-specan: ubertooth-specan.c ubertooth.c ubertooth.h
 ubertooth-util: ubertooth-util.c ubertooth.c ubertooth.h
 	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-util.c ubertooth.c -o ubertooth-util
 
-test: test.c ubertooth.c ubertooth.h
-	$(CC) -l $(LIBUSB) -l $(LIBBTBB) test.c ubertooth.c -o test
+ubertooth-uap: ubertooth-uap.c ubertooth.c ubertooth.h
+	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-uap.c ubertooth.c -o ubertooth-uap
 
 clean:
-	rm -f ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util test
+	rm -f ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap
