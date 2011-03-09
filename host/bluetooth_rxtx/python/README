@@ -1,0 +1,38 @@
+Ubertooth Python Bindings
+=========================
+
+Contributed by Kane Mather
+
+
+Installing
+----------
+
+    python setup.py build
+
+This will create the build/lib directory. Within it you will see 
+ubertooth.so
+
+Usage
+-----
+
+The following code must be run as root
+
+    import ubertooth
+    
+    for i in ubertoot.lap_sniffer():
+        print "%06x" % i
+
+The Code
+--------
+
+It sucks. This is the first time I've done anything in C. Don't hate.
+
+...you'll notice this when you see I've resorted to using goto 
+statements
+
+TODO
+----
+
+* There's very little error checking. This needs fixing
+* The C code probably sucks. Needs peer review :)
+* I'm too tired to find more problems. I'll think of more tomorrow
