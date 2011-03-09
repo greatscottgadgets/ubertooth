@@ -22,6 +22,7 @@
 #include "ubertooth.h"
 #include <bluetooth_packet.h>
 #include <bluetooth_piconet.h>
+#include <getopt.h>
 
 #define NUM_BANKS 10
 #define BANK_LEN 400
@@ -69,7 +70,7 @@ static void cb_xfer(struct libusb_transfer *xfer)
 }
 
 /* this should probably be moved to ubertooth.c and perhaps combined with stream_rx() */
-int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
+int rx_uap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 {
 	int r;
 	int i, j, k, m;
@@ -177,17 +178,44 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 	}
 }
 
-int main()
+static void usage()
 {
+	printf("ubertooth-uap - passive UAP discovery for a particular LAP\n");
+	printf("Usage:\n");
+	printf("\t-l LAP (in hexadecimal)\n");
+}
+
+int main(int argc, char *argv[])
+{
+	int opt;
+	int argcount = 0;
+	char *end;
+	int r = 0;
 	struct libusb_device_handle *devh = ubertooth_start();
 
 	if (devh == NULL)
 		return 1;
 
 	init_piconet(&pn);
-	pn.LAP = 0x4831dd;
 
-	rx_lap(devh, 512, 0);
+	while ((opt=getopt(argc,argv,"l:")) != EOF) {
+		switch(opt) {
+		case 'l':
+			pn.LAP = strtol(optarg, &end, 16);
+			if (end != optarg)
+				++argcount;
+			break;
+		default:
+			usage();
+			return 1;
+		}
+	}
+	if (argcount != 1) {
+		usage();
+		return 1;
+	}
+
+	rx_uap(devh, 512, 0);
 
 	//FIXME make sure xfers are not active
 	libusb_free_transfer(rx_xfer);
