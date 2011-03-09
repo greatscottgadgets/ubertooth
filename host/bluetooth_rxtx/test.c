@@ -146,13 +146,16 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 
 			/* awfully repetitious */
 			m = 0;
-			for (j = 0; j < NUM_BANKS; j++)
+			for (j = 0; j < 2; j++)
 				for (k = 0; k < BANK_LEN; k++)
 					syms[m++] = symbols[(j + 1 + bank) % NUM_BANKS][k];
-			bank = (bank + 1) % NUM_BANKS;
 
 			r = sniff_ac(syms, BANK_LEN);
 			if  (r > -1) {
+
+				for (j = 2; j < NUM_BANKS; j++)
+					for (k = 0; k < BANK_LEN; k++)
+						syms[m++] = symbols[(j + 1 + bank) % NUM_BANKS][k];
 
 				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
 
@@ -167,6 +170,7 @@ int rx_lap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 						exit(0);
 				}
 			}
+			bank = (bank + 1) % NUM_BANKS;
 		}
 		really_full = 0;
 		fflush(stderr);
