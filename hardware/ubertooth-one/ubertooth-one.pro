@@ -1,7 +1,12 @@
-update=Mon Feb 21 10:55:02 2011
+update=Fri Mar 18 22:56:23 2011
 last_client=pcbnew
 [general]
 version=1
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [eeschema]
 version=1
 LibDir=../kicad
@@ -32,11 +37,7 @@ offY_E=0
 RptD_X=0
 RptD_Y=100
 RptLab=1
-SimCmd=
-UseNetN=0
 LabSize=60
-PrintMonochrome=1
-ShowSheetReferenceAndTitleBlock=1
 [eeschema/libraries]
 LibName1=ubertooth-symbols
 LibName2=power
@@ -69,16 +70,11 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
 [pcbnew]
 version=1
 PadDrlX=0
-PadDimH=472
-PadDimV=787
+PadDimH=1575
+PadDimV=689
 BoardThickness=630
 SgPcb45=1
 TxtPcbV=394

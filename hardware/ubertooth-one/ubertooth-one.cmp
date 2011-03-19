@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-12-28 BZR 2695)-testing date = Sat Jan  1 10:41:08 2011
+Cmp-Mod V01 Genere par PcbNew le Fri Mar 18 14:50:25 2011
 
 BeginCmp
 TimeStamp = /4CDB38FC;
@@ -319,7 +319,7 @@ BeginCmp
 TimeStamp = /4CDC097F;
 Reference = J1;
 ValeurCmp = USB-DEVICE;
-IdModule  = USB-A-MOLEX-480371000;
+IdModule  = USB-A-USAM-04;
 EndCmp
 
 BeginCmp
@@ -423,14 +423,14 @@ EndCmp
 BeginCmp
 TimeStamp = /4D1F669C;
 Reference = P12;
-ValeurCmp = ATEST2;
+ValeurCmp = DCLK;
 IdModule  = testpad-30mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F669F;
 Reference = P13;
-ValeurCmp = ATEST2;
+ValeurCmp = DIO;
 IdModule  = testpad-30mil;
 EndCmp
 
