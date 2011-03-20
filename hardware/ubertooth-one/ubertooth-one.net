@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Fri Mar 18 14:22:54 2011
+# EESchema Netlist Version 1.1 created  Sun Mar 20 08:29:13 2011
 (
  ( /4CDB38FC 0402 C1 2p2
   ( 1 GND )
@@ -132,11 +132,11 @@
   ( 1 3V3 )
   ( 2 GND )
  )
- ( /4D13F558 0402 C35 10nF
+ ( /4D13F558 0603 C35 10nF
   ( 1 N-000088 )
   ( 2 GND )
  )
- ( /4D13F702 0402 C36 15pF
+ ( /4D13F702 0603 C36 15pF
   ( 1 3V3 )
   ( 2 N-000102 )
  )
@@ -333,11 +333,11 @@
   ( 1 GND )
   ( 2 /EN )
  )
- ( /4D13F530 0402 R18 49.9k
+ ( /4D13F530 0603 R18 49.9k
   ( 1 3V3 )
   ( 2 N-000102 )
  )
- ( /4D13F53C 0402 R19 30.1k
+ ( /4D13F53C 0603 R19 30.1k
   ( 1 N-000102 )
   ( 2 GND )
  )
