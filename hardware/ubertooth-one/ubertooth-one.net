@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Sun Mar 20 08:29:13 2011
+# EESchema Netlist Version 1.1 created  Sun Mar 20 21:38:12 2011
 (
  ( /4CDB38FC 0402 C1 2p2
   ( 1 GND )
@@ -233,31 +233,31 @@
   ( 5 N-000078 )
   ( 6 N-000074 )
  )
- ( /4D1F4F0D testpad-30mil P5 1V8
+ ( /4D1F4F0D testpad-50mil P5 1V8
   ( 1 +1.8V )
  )
- ( /4D1F4F19 testpad-30mil P6 3V3
+ ( /4D1F4F19 testpad-50mil P6 3V3
   ( 1 3V3 )
  )
- ( /4D1F4F1B testpad-30mil P7 VBUS
+ ( /4D1F4F1B testpad-50mil P7 VBUS
   ( 1 /VBUS )
  )
- ( /4D1F5211 testpad-30mil P8 GIO1
+ ( /4D1F5211 testpad-50mil P8 GIO1
   ( 1 /GIO1 )
  )
- ( /4D1F527B testpad-30mil P9 GIO6
+ ( /4D1F527B testpad-50mil P9 GIO6
   ( 1 /GIO6 )
  )
- ( /4D1F521F testpad-30mil P10 ATEST1
+ ( /4D1F521F testpad-50mil P10 ATEST1
   ( 1 /ATEST1 )
  )
- ( /4D1F522D testpad-30mil P11 ATEST2
+ ( /4D1F522D testpad-50mil P11 ATEST2
   ( 1 /ATEST2 )
  )
- ( /4D1F669C testpad-30mil P12 DCLK
+ ( /4D1F669C testpad-50mil P12 DCLK
   ( 1 /DCLK )
  )
- ( /4D1F669F testpad-30mil P13 DIO
+ ( /4D1F669F testpad-50mil P13 DIO
   ( 1 /DIO )
  )
  ( /4D1A6C3F SOT416 Q1 BC856

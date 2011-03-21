@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-12-28 BZR 2695)-testing date = Sun Mar 20 08:29:13 2011
+Cmp-Mod V01 Created by CvPCB (2010-12-28 BZR 2695)-testing date = Sun Mar 20 21:38:12 2011
 
 BeginCmp
 TimeStamp = /4CDB38FC;
@@ -375,63 +375,63 @@ BeginCmp
 TimeStamp = /4D1F4F0D;
 Reference = P5;
 ValeurCmp = 1V8;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F4F19;
 Reference = P6;
 ValeurCmp = 3V3;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F4F1B;
 Reference = P7;
 ValeurCmp = VBUS;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F5211;
 Reference = P8;
 ValeurCmp = GIO1;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F527B;
 Reference = P9;
 ValeurCmp = GIO6;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F521F;
 Reference = P10;
 ValeurCmp = ATEST1;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F522D;
 Reference = P11;
 ValeurCmp = ATEST2;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F669C;
 Reference = P12;
 ValeurCmp = DCLK;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F669F;
 Reference = P13;
 ValeurCmp = DIO;
-IdModule  = testpad-30mil;
+IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
