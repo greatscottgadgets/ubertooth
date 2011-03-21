@@ -1,4 +1,4 @@
-update=Sun Mar 20 22:42:45 2011
+update=Sun Mar 20 23:32:20 2011
 last_client=pcbnew
 [general]
 version=1
@@ -72,9 +72,9 @@ LibName30=contrib
 LibName31=valves
 [pcbnew]
 version=1
-PadDrlX=0
-PadDimH=500
-PadDimV=500
+PadDrlX=866
+PadDimH=1260
+PadDimV=1260
 BoardThickness=630
 SgPcb45=1
 TxtPcbV=394
