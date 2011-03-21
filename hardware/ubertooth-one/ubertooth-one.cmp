@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-12-28 BZR 2695)-testing date = Sun Mar 20 21:38:12 2011
+Cmp-Mod V01 Created by CvPCB (2010-12-28 BZR 2695)-testing date = Sun Mar 20 22:11:24 2011
 
 BeginCmp
 TimeStamp = /4CDB38FC;
@@ -316,6 +316,13 @@ IdModule  = 0603bridged;
 EndCmp
 
 BeginCmp
+TimeStamp = /4D86CE24;
+Reference = FB5;
+ValeurCmp = FILTER;
+IdModule  = 0603;
+EndCmp
+
+BeginCmp
 TimeStamp = /4CDC097F;
 Reference = J1;
 ValeurCmp = USB-DEVICE;
@@ -554,9 +561,9 @@ IdModule  = 0603;
 EndCmp
 
 BeginCmp
-TimeStamp = /4D13DE3C;
+TimeStamp = /4D348CC9;
 Reference = R17;
-ValeurCmp = R;
+ValeurCmp = 10k;
 IdModule  = 0603;
 EndCmp
 
