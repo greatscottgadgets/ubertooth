@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun Mar 20 22:13:36 2011
+EESchema Schematic File Version 2  date Fri Apr  1 21:17:36 2011
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -36,7 +36,7 @@ EELAYER END
 $Descr User 17000 11000
 Sheet 1 1
 Title "Ubertooth One"
-Date "21 mar 2011"
+Date "2 apr 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -944,6 +944,9 @@ P 5300 6400
 F 0 "FB5" H 5300 6550 60  0000 C CNN
 F 1 "FILTER" H 5300 6300 60  0000 C CNN
 F 2 "0603" H 5300 6400 60  0001 C CNN
+F 4 "Murata" H 5300 6400 60  0001 C CNN "Field1"
+F 5 "BLM18TG601TN1D" H 5300 6400 60  0001 C CNN "Field2"
+F 6 "EMI/RFI Suppressors & Ferrites 600 Ohm 25%" H 5300 6400 60  0001 C CNN "Field3"
 	1    5300 6400
 	-1   0    0    1   
 $EndComp
@@ -1150,8 +1153,8 @@ F 0 "C36" H 7250 7700 50  0000 L CNN
 F 1 "15pF" H 7250 7500 50  0000 L CNN
 F 2 "0603" H 7200 7600 60  0001 C CNN
 F 4 "Murata" H 7200 7600 60  0001 C CNN "Field1"
-F 5 "GRM1535C1H150JDD5D" H 7200 7600 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 15pF 50 volts 5%" H 7200 7600 60  0001 C CNN "Field3"
+F 5 "GRM1885C1H150JA01D" H 7200 7600 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 15pF 50volts C0G 5%" H 7200 7600 60  0001 C CNN "Field3"
 	1    7200 7600
 	1    0    0    -1  
 $EndComp
@@ -1228,8 +1231,8 @@ F 0 "C35" H 6600 7750 50  0000 L CNN
 F 1 "10nF" H 6600 7550 50  0000 L CNN
 F 2 "0603" H 6550 7650 60  0001 C CNN
 F 4 "Murata" H 6550 7650 60  0001 C CNN "Field1"
-F 5 "GRM155R71E103KA01D" H 6550 7650 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.01uF 25volts X7R 10%" H 6550 7650 60  0001 C CNN "Field3"
+F 5 "GRM188R71H103KA01D" H 6550 7650 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.01uF 50volts X7R 10%" H 6550 7650 60  0001 C CNN "Field3"
 	1    6550 7650
 	1    0    0    -1  
 $EndComp
@@ -1249,9 +1252,9 @@ P 6950 8250
 F 0 "R19" V 7030 8250 50  0000 C CNN
 F 1 "30.1k" V 6950 8250 50  0000 C CNN
 F 2 "0603" H 6950 8250 60  0001 C CNN
-F 4 "KOA Speer" H 6950 8250 60  0001 C CNN "Field1"
-F 5 "RK73H1ETTP3012F" H 6950 8250 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 0402 1/16watts 30.1Kohms 1%" H 6950 8250 60  0001 C CNN "Field3"
+F 4 "Panasonic" H 6950 8250 60  0001 C CNN "Field1"
+F 5 "ERJ-3EKF3012V" H 6950 8250 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD Thick Film Chip Res 0603 1% Precision" H 6950 8250 60  0001 C CNN "Field3"
 	1    6950 8250
 	1    0    0    -1  
 $EndComp
@@ -1262,9 +1265,9 @@ P 6950 7550
 F 0 "R18" V 7030 7550 50  0000 C CNN
 F 1 "49.9k" V 6950 7550 50  0000 C CNN
 F 2 "0603" H 6950 7550 60  0001 C CNN
-F 4 "KOA Speer" H 6950 7550 60  0001 C CNN "Field1"
-F 5 "RK73H1ETTP4992F" H 6950 7550 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 0402 1/16watts 49.9Kohms" H 6950 7550 60  0001 C CNN "Field3"
+F 4 "Panasonic" H 6950 7550 60  0001 C CNN "Field1"
+F 5 "ERJ-3EKF4992V" H 6950 7550 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD Thick Film Chip Res 0603 1% Precision" H 6950 7550 60  0001 C CNN "Field3"
 	1    6950 7550
 	1    0    0    -1  
 $EndComp
@@ -1403,7 +1406,6 @@ F 0 "C7" H 2700 8650 50  0000 L CNN
 F 1 "10nF" H 2700 8450 50  0000 L CNN
 F 2 "0603" H 2650 8550 60  0001 C CNN
 F 4 "DNP" H 2650 8550 60  0001 C CNN "Field3"
-F 5 "foo" H 2650 8550 60  0001 C CNN "Field1"
 	1    2650 8550
 	0    1    1    0   
 $EndComp
