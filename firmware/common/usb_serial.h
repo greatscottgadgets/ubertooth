@@ -79,5 +79,5 @@ static void USBDevIntHandler(U8 bDevStatus);
 void VCOM_init(void);
 int VCOM_putchar(int c);
 int VCOM_getchar(void);
-void USB_IRQHandler();
-void usb_serial_init();
+void USB_IRQHandler(void);
+void usb_serial_init(void);
