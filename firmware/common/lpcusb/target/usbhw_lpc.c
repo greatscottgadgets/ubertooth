@@ -442,7 +442,7 @@ int USBHwEPRead(U8 bEP, U8 *pbBuf, int iMaxLen)
 
 int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const int iMaxLen)
 {
-    int i, idx,q;
+    int i, idx;
     U32 dwData, dwLen;
 
     idx = EP2IDX(bEP);
