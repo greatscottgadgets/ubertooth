@@ -8,25 +8,21 @@ public:
     bool write(const uint32_t flash_address, uint32_t source_address, uint32_t length) {
         IAP::ReturnCode result = IAP::CMD_SUCCESS;
         
-        if( write_permitted(flash_address) ) {
-            const uint32_t sector = sector_number(flash_address);
-            if( at_sector_boundary(flash_address) ) {
-                if( result == IAP::CMD_SUCCESS) {
-                    result = iap.prepare_sectors_for_write_operation(sector, sector);
-                }
-                if( result == IAP::CMD_SUCCESS) {
-                    result = iap.erase_sectors(sector, sector, cclk_khz);
-                }
-            }
-            
+        const uint32_t sector = sector_number(flash_address);
+        if( at_sector_boundary(flash_address) ) {
             if( result == IAP::CMD_SUCCESS) {
                 result = iap.prepare_sectors_for_write_operation(sector, sector);
             }
-            if( result == IAP::CMD_SUCCESS ) {
-                iap.copy_ram_to_flash(flash_address, source_address, length, cclk_khz);
+            if( result == IAP::CMD_SUCCESS) {
+                result = iap.erase_sectors(sector, sector, cclk_khz);
             }
-        } else {
-            result = IAP::DST_ADDR_ERROR;
+        }
+        
+        if( result == IAP::CMD_SUCCESS) {
+            result = iap.prepare_sectors_for_write_operation(sector, sector);
+        }
+        if( result == IAP::CMD_SUCCESS ) {
+            iap.copy_ram_to_flash(flash_address, source_address, length, cclk_khz);
         }
         
         return (result == IAP::CMD_SUCCESS);
@@ -40,10 +36,6 @@ private:
     IAP iap;
     
     static const uint32_t cclk_khz = 100000;
-    
-    bool write_permitted(const uint32_t address) const {
-        return true;
-    }
     
     bool at_sector_boundary(const uint32_t address) const {
         return (address & (sector_size(address) - 1)) == 0;
