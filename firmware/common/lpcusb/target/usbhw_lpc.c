@@ -437,7 +437,16 @@ int USBHwEPRead(U8 bEP, U8 *pbBuf, int iMaxLen)
     return dwLen;
 }
 
+static void fast_wait() {
+#ifdef __GNUC__
+    asm volatile("nop\n"); 
+#endif
 
+#ifdef __arm__
+    volatile uint32_t fast_wait = 1;
+    while(--fast_wait);
+#endif
+}
 
 
 int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const int iMaxLen)
@@ -453,8 +462,7 @@ int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const int iMaxLen)
     //Note: for some reason the USB perepherial needs a cycle to set bits in USBRxPLen before 
     //reading, if you remove this ISOC wont work. This may be a but in the chip, or due to 
     //a mis-understanding of how the perepherial is supposed to work.    
-    asm volatile("nop\n"); 
-
+    fast_wait();
     
     dwLen = USBRxPLen;
     if( (dwLen & PKT_RDY) == 0 ) {
