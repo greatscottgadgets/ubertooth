@@ -34,8 +34,49 @@ SECTIONS
 	.text :
 	{
 		KEEP(*(.irq_handler_table))
-		*(.text*)
-		*(.rodata*)
+
+        *(.text .text.* .gnu.linkonce.t.*)
+        *(.rodata .rodata.* .gnu.linkonce.r.*)
+
+        *(.eh_frame_hdr)
+        *(.eh_frame)
+
+        . = ALIGN(4);
+        KEEP(*(.init))
+
+        . = ALIGN(4);
+        __preinit_array_start = .;
+        KEEP (*(.preinit_array))
+        __preinit_array_end = .;
+
+        . = ALIGN(4);
+        __init_array_start = .;
+        KEEP (*(SORT(.init_array.*)))
+        KEEP (*(.init_array))
+        __init_array_end = .;
+
+        . = ALIGN(0x4);
+        KEEP (*crtbegin.o(.ctors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
+        KEEP (*(SORT(.ctors.*)))
+        KEEP (*crtend.o(.ctors))
+
+        . = ALIGN(4);
+        KEEP(*(.fini))
+
+        . = ALIGN(4);
+        __fini_array_start = .;
+        KEEP (*(.fini_array))
+        KEEP (*(SORT(.fini_array.*)))
+        __fini_array_end = .;
+
+        KEEP (*crtbegin.o(.dtors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
+        KEEP (*(SORT(.dtors.*)))
+        KEEP (*crtend.o(.dtors))
+
+        . = ALIGN(8);
+        _etext = .;
 
 	} > rom
 
