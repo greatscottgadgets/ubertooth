@@ -97,7 +97,7 @@ static const u8 dfu_descriptors[] = {
 	LE_WORD(0x0100),		// bcdDevice
 	0x01,              		// iManufacturer
 	0x02,              		// iProduct
-	0x03,              		// iSerialNumber
+	0x00,              		// iSerialNumber
 	0x01,              		// bNumConfigurations
 
 // configuration
@@ -148,11 +148,6 @@ static const u8 dfu_descriptors[] = {
 	DESC_STRING,
 	'u', 0, 's', 0, 'b', 0, '_', 0, 'b', 0, 'o', 0, 'o', 0, 't', 0, 'l', 0, 'o', 0,
 	'a', 0, 'd', 0, 'e', 0, 'r', 0,
-
-	// serial number string
-	0x12,
-	DESC_STRING,
-	'0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '1', 0,
 
 	// terminator
 	0
