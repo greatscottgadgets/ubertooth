@@ -34,6 +34,8 @@ extern unsigned long _etext;
 extern unsigned long _bss;
 extern unsigned long _ebss;
 
+extern void __libc_init_array(void);
+extern int main(void);
 
 /* Reset Handler */
 void Reset_Handler(void)
