@@ -27,7 +27,7 @@
 
 
 /* Reset_Handler variables defined in linker script */
-extern void _StackTop;
+extern unsigned long _StackTop;
 extern unsigned long _data;
 extern unsigned long _edata;
 extern unsigned long _etext;
