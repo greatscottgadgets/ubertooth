@@ -73,7 +73,8 @@ LIBS_PATH = ../common
 LPCUSB_PATH = $(LIBS_PATH)/lpcusb/target
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(LIBS_PATH)/LPC17xx_Interrupts.c \
+SRC = $(LIBS_PATH)/LPC17xx_Startup.c \
+      $(LIBS_PATH)/LPC17xx_Interrupts.c \
       $(LIBS_PATH)/ubertooth.c \
       $(LPCUSB_PATH)/usbcontrol.c \
       $(LPCUSB_PATH)/usbinit.c \

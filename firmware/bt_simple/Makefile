@@ -75,6 +75,7 @@ LPCUSB_PATH = $(LIBS_PATH)/lpcusb/target
 SRC = $(TARGET).c \
 	$(LIBS_PATH)/usb_serial.c \
 	$(LIBS_PATH)/serial_fifo.c \
+	$(LIBS_PATH)/LPC17xx_Startup.c \
 	$(LIBS_PATH)/LPC17xx_Interrupts.c \
 	$(LIBS_PATH)/ubertooth.c \
 	$(LPCUSB_PATH)/usbcontrol.c \
