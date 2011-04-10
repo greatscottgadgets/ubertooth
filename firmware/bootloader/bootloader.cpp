@@ -124,7 +124,7 @@ static const u8 dfu_descriptors[] = {
 // DFU Functional Descriptor
 	0x09,
 	DESC_DFU_FUNCTIONAL,
-	DFU::CAN_DNLOAD,		// bmAttributes 
+	DFU::WILL_DETACH | DFU::MANIFESTATION_TOLERANT | DFU::CAN_UPLOAD | DFU::CAN_DNLOAD,		// bmAttributes 
 	LE_WORD(DFU::detach_timeout_ms),// wDetachTimeOut 
 	LE_WORD(DFU::transfer_size),	// wTransferSize 
 	LE_WORD(0x0101),		// bcdDFUVersion
