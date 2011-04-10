@@ -36,7 +36,7 @@
 
 class DFU {
 public:
-    static const uint32_t detach_timeout_ms = 0xFFFF;
+    static const uint32_t detach_timeout_ms = 15000;
     static const uint32_t transfer_size = 0x100;
     
     enum Attribute {
