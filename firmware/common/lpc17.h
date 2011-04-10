@@ -227,7 +227,7 @@
 #define PCONP_PCI2S   (0x1 << 27)
 #define PCONP_PCGPDMA (0x1 << 29)
 #define PCONP_PCENET  (0x1 << 30)
-#define PCONP_PCUSB   (0x1 << 31)
+#define PCONP_PCUSB   (1U << 31)
 
 /* Clock Output Configuration register (CLKOUTCFG - 0x400F C1C8) */
 #define CLKOUTCFG_CLKOUTSEL  (0xF << 0)
