@@ -46,13 +46,15 @@
 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "ubertooth.h"
+#include <stdint.h>
+
+extern "C" {
+#include <ubertooth.h>
 #include "usbapi.h"
 #include "usbhw_lpc.h"
+}
 
-#define IAP_LOCATION 0x1FFF1FF1
-typedef void (*IAP)(u32[], u32[]);
-IAP iap_entry = (IAP)IAP_LOCATION;
+#include "dfu.h"
 
 #define MAX_PACKET_SIZE	64
 
@@ -77,10 +79,10 @@ IAP iap_entry = (IAP)IAP_LOCATION;
 #define ENTRY_SET PINSEL1_P0_22
 #endif
 
-int status;
-int state;
+static const uint16_t usb_vendor_id = 0xFFFF;
+static const uint16_t usb_product_id = 0x0004;
 
-static const u8 abDescriptors[] = {
+static const u8 dfu_descriptors[] = {
 
 /* Device descriptor */
 	0x12,              		
@@ -90,8 +92,8 @@ static const u8 abDescriptors[] = {
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
 	MAX_PACKET_SIZE0,  		// bMaxPacketSize
-	LE_WORD(0xFFFF),		// idVendor
-	LE_WORD(0x0004),		// idProduct
+	LE_WORD(usb_vendor_id),		// idVendor
+	LE_WORD(usb_product_id),	// idProduct
 	LE_WORD(0x0100),		// bcdDevice
 	0x01,              		// iManufacturer
 	0x02,              		// iProduct
@@ -102,29 +104,29 @@ static const u8 abDescriptors[] = {
 	0x09,
 	DESC_CONFIGURATION,
 	LE_WORD(0x20),  		// wTotalLength
-	0x01,  					// bNumInterfaces
-	0x01,  					// bConfigurationValue
-	0x00,  					// iConfiguration
-	0x80,  					// bmAttributes
-	0x32,  					// bMaxPower
+	0x01,  				// bNumInterfaces
+	0x01,  				// bConfigurationValue
+	0x00,  				// iConfiguration
+	0x80,  				// bmAttributes
+	0x32,  				// bMaxPower
 
 // interface
 	0x09,   				
 	DESC_INTERFACE, 
-	0x00,  		 			// bInterfaceNumber
-	0x00,   				// bAlternateSetting
-	0x00,   				// bNumEndPoints
-	0xFE,   				// bInterfaceClass
-	0x01,   				// bInterfaceSubClass
-	0x02,   				// bInterfaceProtocol
-	0x00,   				// iInterface
+	0x00,  		 		// bInterfaceNumber
+	0x00,   			// bAlternateSetting
+	0x00,   			// bNumEndPoints
+	0xFE,   			// bInterfaceClass
+	0x01,   			// bInterfaceSubClass
+	0x02,   			// bInterfaceProtocol
+	0x00,   			// iInterface
 
 // DFU Functional Descriptor
 	0x09,
-	DESC_FUNCTIONAL,
-	CAN_DNLOAD,				// bmAttributes 
-	LE_WORD(0xFFFF),		// wDetachTimeOut 
-	LE_WORD(0x0400),		// wTransferSize 
+	DESC_DFU_FUNCTIONAL,
+	DFU::CAN_DNLOAD,		// bmAttributes 
+	LE_WORD(DFU::detach_timeout_ms),// wDetachTimeOut 
+	LE_WORD(DFU::transfer_size),	// wTransferSize 
 	LE_WORD(0x0101),		// bcdDFUVersion
 
 // string descriptors
@@ -156,64 +158,12 @@ static const u8 abDescriptors[] = {
 	0
 };
 
-static u8 abVendorReqData[17];
+static Flash flash;
+static DFU dfu(flash);
+static uint8_t dfu_buffer[DFU::transfer_size];
 
-static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
-{
-	if (!(bEPStatus & EP_STATUS_DATA))
-		;
-}
-
-static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
-{
-	u8 *pbData = *ppbData;
-	u32 command[5];
-	u32 result[5];
-
-	switch (pSetup->bRequest) {
-
-
-	case DETACH:
-		break;
-
-	case DNLOAD:
-		break;
-
-	case UPLOAD:
-		state = STATE_DFUUPLOAD_IDLE;
-		break;
-
-	case GETSTATUS:
-		pbData[0] = status;
-		*piLen = 1;
-		break;
-
-	case CLRSTATUS:
-		if (state == STATE_DFUERROR) {
-			state  = STATE_DFUIDLE;
-			status = STATUS_OK;
-		} else {
-			state  = STATE_DFUERROR;
-			status = STATUS_ERRUNKNOWN;
-		}
-		break;
-
-	case GETSTATE:
-		pbData[0] = state;
-		*piLen = 1;
-		break;
-
-	case ABORT:
-		if (state != STATE_DFUERROR) {
-			state  = STATE_DFUIDLE;
-			status = STATUS_OK;
-		}
-		break;
-
-	default:
-		return FALSE;
-	}
-	return TRUE;
+BOOL dfu_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData) {
+    return dfu.request_handler(pSetup, reinterpret_cast<uint32_t*>(piLen), ppbData) ? TRUE : FALSE;
 }
 
 int bootloader_usb_init()
@@ -222,10 +172,10 @@ int bootloader_usb_init()
 	USBInit();
 	
 	// register device descriptors
-	USBRegisterDescriptors(abDescriptors);
+	USBRegisterDescriptors(dfu_descriptors);
 
 	// override standard request handler
-	USBRegisterRequestHandler(REQTYPE_TYPE_VENDOR, usb_vendor_request_handler, abVendorReqData);
+	USBRegisterRequestHandler(REQTYPE_TYPE_CLASS, dfu_request_handler, dfu_buffer);
 
 	// enable USB interrupts
 	//ISER0 |= ISER0_ISE_USB;
@@ -236,39 +186,43 @@ int bootloader_usb_init()
 	return 0;
 }
 
-// For testing
-void blink()
-{
-	USRLED_SET;
-	TXLED_SET;
-	RXLED_SET;
-	wait(1);
-	USRLED_CLR;
-	TXLED_CLR;
-	RXLED_CLR;
-	wait(1);
+void bootloader_usb_close() {
+    USBHwConnect(FALSE);
 }
 
 static void run_bootloader()
 {
 	bootloader_usb_init();
 
-	status = STATUS_OK;
-	state  = STATE_DFUIDLE;
-
-	while (1) {
+	while( dfu.in_dfu_mode() ) {
 		USBHwISR();
 	}
-	
+    
+    bootloader_usb_close();
 }
 
-void main(void)
+static void run_application() {
+
+// disable interrupts, or perhaps do it on entry to the bootloader, since we're not using interrupts?
+    
+    typedef void (*ApplicationEntry)();
+    ApplicationEntry application_entry = reinterpret_cast<ApplicationEntry>(0x4000);
+    application_entry();
+}
+
+int main(void)
 {
+    ubertooth_init();
+    
 	ENTRY_PIN |= ENTRY_SET;
 	
-	if (ENTRY_PIN & ENTRY_SET)
+	/*if (ENTRY_PIN & ENTRY_SET)
 		;
-	else
+	else*/
 		run_bootloader();
 
+    run_application();
+    
+    return 0;
 }
+
