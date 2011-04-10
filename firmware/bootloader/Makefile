@@ -73,18 +73,17 @@ LIBS_PATH = ../common
 LPCUSB_PATH = $(LIBS_PATH)/lpcusb/target
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c \
-	$(LIBS_PATH)/usb_serial.c \
-	$(LIBS_PATH)/serial_fifo.c \
-	$(LIBS_PATH)/LPC17xx_Interrupts.c \
-	$(LIBS_PATH)/ubertooth.c \
-	$(LPCUSB_PATH)/usbcontrol.c \
-	$(LPCUSB_PATH)/usbinit.c \
-	$(LPCUSB_PATH)/usbhw_lpc.c \
-	$(LPCUSB_PATH)/usbstdreq.c
+SRC = $(LIBS_PATH)/LPC17xx_Interrupts.c \
+      $(LIBS_PATH)/ubertooth.c \
+      $(LPCUSB_PATH)/usbcontrol.c \
+      $(LPCUSB_PATH)/usbinit.c \
+      $(LPCUSB_PATH)/usbhw_lpc.c \
+      $(LPCUSB_PATH)/usbstdreq.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
-CPPSRC = 
+CPPSRC = $(TARGET).cpp \
+         dfu.cpp \
+         iap.cpp
 
 # List Assembler source files here.
 #     Make them always end in a capital .S.  Files ending in a lowercase .s
