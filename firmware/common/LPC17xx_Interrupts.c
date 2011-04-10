@@ -54,6 +54,8 @@ void Reset_Handler(void)
 		*src++ = 0;
 	}
 
+    __libc_init_array();
+
 	main();
 
 	// In case main() fails, have something to breakpoint
