@@ -3352,74 +3352,74 @@
 /* real-time clock (RTC) registers */
 
 /* Miscellaneous registers */
-#define ILR         LPC17_REG(0x40024000) /* Interrupt Location Register */
-#define CCR         LPC17_REG(0x40024008) /* Clock Control Register */
-#define CIIR        LPC17_REG(0x4002400C) /* Counter Increment Interrupt Register */
-#define AMR         LPC17_REG(0x40024010) /* Alarm Mask Register */
+#define RTC_ILR         LPC17_REG(0x40024000) /* Interrupt Location Register */
+#define RTC_CCR         LPC17_REG(0x40024008) /* Clock Control Register */
+#define RTC_CIIR        LPC17_REG(0x4002400C) /* Counter Increment Interrupt Register */
+#define RTC_AMR         LPC17_REG(0x40024010) /* Alarm Mask Register */
 #define RTC_AUX     LPC17_REG(0x4002405C) /* RTC Auxiliary control register */
 #define RTC_AUXEN   LPC17_REG(0x40024058) /* RTC Auxiliary Enable register */
 
 /* Consolidated time registers */
-#define CTIME0      LPC17_REG(0x40024014) /* Consolidated Time Register 0 */
-#define CTIME1      LPC17_REG(0x40024018) /* Consolidated Time Register 1 */
-#define CTIME2      LPC17_REG(0x4002401C) /* Consolidated Time Register 2 */
+#define RTC_CTIME0      LPC17_REG(0x40024014) /* Consolidated Time Register 0 */
+#define RTC_CTIME1      LPC17_REG(0x40024018) /* Consolidated Time Register 1 */
+#define RTC_CTIME2      LPC17_REG(0x4002401C) /* Consolidated Time Register 2 */
 
 /* Time counter registers */
-#define SEC         LPC17_REG(0x40024020) /* Seconds Counter */
-#define MIN         LPC17_REG(0x40024024) /* Minutes Register */
-#define HOUR        LPC17_REG(0x40024028) /* Hours Register */
-#define DOM         LPC17_REG(0x4002402C) /* Day of Month Register */
-#define DOW         LPC17_REG(0x40024030) /* Day of Week Register */
-#define DOY         LPC17_REG(0x40024034) /* Day of Year Register */
-#define MONTH       LPC17_REG(0x40024038) /* Months Register */
-#define YEAR        LPC17_REG(0x4002403C) /* Years Register */
-#define CALIBRATION LPC17_REG(0x40024040) /* Calibration Value Register */
+#define RTC_SEC         LPC17_REG(0x40024020) /* Seconds Counter */
+#define RTC_MIN         LPC17_REG(0x40024024) /* Minutes Register */
+#define RTC_HOUR        LPC17_REG(0x40024028) /* Hours Register */
+#define RTC_DOM         LPC17_REG(0x4002402C) /* Day of Month Register */
+#define RTC_DOW         LPC17_REG(0x40024030) /* Day of Week Register */
+#define RTC_DOY         LPC17_REG(0x40024034) /* Day of Year Register */
+#define RTC_MONTH       LPC17_REG(0x40024038) /* Months Register */
+#define RTC_YEAR        LPC17_REG(0x4002403C) /* Years Register */
+#define RTC_CALIBRATION LPC17_REG(0x40024040) /* Calibration Value Register */
 
 /* General purpose registers */
-#define GPREG0      LPC17_REG(0x40024044) /* General Purpose Register 0 */
-#define GPREG1      LPC17_REG(0x40024048) /* General Purpose Register 1 */
-#define GPREG2      LPC17_REG(0x4002404C) /* General Purpose Register 2 */
-#define GPREG3      LPC17_REG(0x40024050) /* General Purpose Register 3 */
-#define GPREG4      LPC17_REG(0x40024054) /* General Purpose Register 4 */
+#define RTC_GPREG0      LPC17_REG(0x40024044) /* General Purpose Register 0 */
+#define RTC_GPREG1      LPC17_REG(0x40024048) /* General Purpose Register 1 */
+#define RTC_GPREG2      LPC17_REG(0x4002404C) /* General Purpose Register 2 */
+#define RTC_GPREG3      LPC17_REG(0x40024050) /* General Purpose Register 3 */
+#define RTC_GPREG4      LPC17_REG(0x40024054) /* General Purpose Register 4 */
 
 /* Alarm register group */
-#define ALSEC       LPC17_REG(0x40024060) /* Alarm value for Seconds */
-#define ALMIN       LPC17_REG(0x40024064) /* Alarm value for Minutes */
-#define ALHOUR      LPC17_REG(0x40024068) /* Alarm value for Hours */
-#define ALDOM       LPC17_REG(0x4002406C) /* Alarm value for Day of Month */
-#define ALDOW       LPC17_REG(0x40024070) /* Alarm value for Day of Week */
-#define ALDOY       LPC17_REG(0x40024074) /* Alarm value for Day of Year */
-#define ALMON       LPC17_REG(0x40024078) /* Alarm value for Months */
-#define ALYEAR      LPC17_REG(0x4002407C) /* Alarm value for Year */
+#define RTC_ALSEC       LPC17_REG(0x40024060) /* Alarm value for Seconds */
+#define RTC_ALMIN       LPC17_REG(0x40024064) /* Alarm value for Minutes */
+#define RTC_ALHOUR      LPC17_REG(0x40024068) /* Alarm value for Hours */
+#define RTC_ALDOM       LPC17_REG(0x4002406C) /* Alarm value for Day of Month */
+#define RTC_ALDOW       LPC17_REG(0x40024070) /* Alarm value for Day of Week */
+#define RTC_ALDOY       LPC17_REG(0x40024074) /* Alarm value for Day of Year */
+#define RTC_ALMON       LPC17_REG(0x40024078) /* Alarm value for Months */
+#define RTC_ALYEAR      LPC17_REG(0x4002407C) /* Alarm value for Year */
 
 /* Interrupt Location Register (ILR - 0x4002 4000) */
-#define ILR_RTCCIF (0x1 << 0)
-#define ILR_RTCALF (0x1 << 1)
+#define RTC_ILR_RTCCIF (0x1 << 0)
+#define RTC_ILR_RTCALF (0x1 << 1)
 
 /* Clock Control Register (CCR - 0x4002 4008) */
-#define CCR_CLKEN  (0x1 << 0)
-#define CCR_CTCRST (0x1 << 1)
-#define CCR_CCALEN (0x1 << 4)
+#define RTC_CCR_CLKEN  (0x1 << 0)
+#define RTC_CCR_CTCRST (0x1 << 1)
+#define RTC_CCR_CCALEN (0x1 << 4)
 
 /* Counter Increment Interrupt Register (CIIR - 0x4002 400C) */
-#define CIIR_IMSEC  (0x1 << 0)
-#define CIIR_IMMIN  (0x1 << 1)
-#define CIIR_IMHOUR (0x1 << 2)
-#define CIIR_IMDOM  (0x1 << 3)
-#define CIIR_IMDOW  (0x1 << 4)
-#define CIIR_IMDOY  (0x1 << 5)
-#define CIIR_IMMON  (0x1 << 6)
-#define CIIR_IMYEAR (0x1 << 7)
+#define RTC_CIIR_IMSEC  (0x1 << 0)
+#define RTC_CIIR_IMMIN  (0x1 << 1)
+#define RTC_CIIR_IMHOUR (0x1 << 2)
+#define RTC_CIIR_IMDOM  (0x1 << 3)
+#define RTC_CIIR_IMDOW  (0x1 << 4)
+#define RTC_CIIR_IMDOY  (0x1 << 5)
+#define RTC_CIIR_IMMON  (0x1 << 6)
+#define RTC_CIIR_IMYEAR (0x1 << 7)
 
 /* Alarm Mask Register (AMR - 0x4002 4010) */
-#define AMR_AMRSEC  (0x1 << 0)
-#define AMR_AMRMIN  (0x1 << 1)
-#define AMR_AMRHOUR (0x1 << 2)
-#define AMR_AMRDOM  (0x1 << 3)
-#define AMR_AMRDOW  (0x1 << 4)
-#define AMR_AMRDOY  (0x1 << 5)
-#define AMR_AMRMON  (0x1 << 6)
-#define AMR_AMRYEAR (0x1 << 7)
+#define RTC_AMR_AMRSEC  (0x1 << 0)
+#define RTC_AMR_AMRMIN  (0x1 << 1)
+#define RTC_AMR_AMRHOUR (0x1 << 2)
+#define RTC_AMR_AMRDOM  (0x1 << 3)
+#define RTC_AMR_AMRDOW  (0x1 << 4)
+#define RTC_AMR_AMRDOY  (0x1 << 5)
+#define RTC_AMR_AMRMON  (0x1 << 6)
+#define RTC_AMR_AMRYEAR (0x1 << 7)
 
 /* RTC Auxiliary control register (RTC_AUX - 0x4002 405C) */
 #define RTC_AUX_RTC_OSCF (0x1 << 4)
@@ -3428,24 +3428,24 @@
 #define RTC_AUXEN_RTC_OSCFEN (0x1 << 4)
 
 /* Consolidated Time Register 0 (CTIME0 - 0x4002 4014) */
-#define CTIME0_Seconds     (0x3F << 0)
-#define CTIME0_Minutes     (0x3F << 8)
-#define CTIME0_Hours       (0x1F << 16)
-#define CTIME0_Day_Of_Week (0x7 << 24)
+#define RTC_CTIME0_Seconds     (0x3F << 0)
+#define RTC_CTIME0_Minutes     (0x3F << 8)
+#define RTC_CTIME0_Hours       (0x1F << 16)
+#define RTC_CTIME0_Day_Of_Week (0x7 << 24)
 
 /* Consolidated Time Register 1 (CTIME1 - 0x4002 4018) */
-#define CTIME1_Day_of_Month (0x1F << 0)
-#define CTIME1_Month        (0xF << 8)
-#define CTIME1_Year         (0xFFF << 0)
+#define RTC_CTIME1_Day_of_Month (0x1F << 0)
+#define RTC_CTIME1_Month        (0xF << 8)
+#define RTC_CTIME1_Year         (0xFFF << 0)
 
 /* Consolidated Time Register 2 (CTIME2 - 0x4002 401C) */
-#define CTIME2_Day_of_Year (0xFFF << 0)
+#define RTC_CTIME2_Day_of_Year (0xFFF << 0)
 
 /* skipped Time Counter registers (SEC, MIN, etc.) */
 
 /* Calibration register (CALIBRATION - address 0x4002 4040) */
-#define CALIBRATION_CALVAL (0x1FFFF << 0)
-#define CALIBRATION_CALDIR (0x1 << 17)
+#define RTC_CALIBRATION_CALVAL (0x1FFFF << 0)
+#define RTC_CALIBRATION_CALDIR (0x1 << 17)
 
 /*
  * skipped:
