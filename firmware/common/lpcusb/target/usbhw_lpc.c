@@ -354,9 +354,9 @@ void USBHwEPStall(U8 bEP, BOOL fStall)
             
     @return number of bytes written into the endpoint buffer
 */
-int USBHwEPWrite(U8 bEP, U8 *pbBuf, int iLen)
+int USBHwEPWrite(U8 bEP, U8 *pbBuf, U32 iLen)
 {
-    int idx;
+    U32 idx;
     
     idx = EP2IDX(bEP);
     
@@ -392,9 +392,9 @@ int USBHwEPWrite(U8 bEP, U8 *pbBuf, int iLen)
     @return the number of bytes available in the EP (possibly more than iMaxLen),
     or <0 in case of error.
  */
-int USBHwEPRead(U8 bEP, U8 *pbBuf, int iMaxLen)
+int USBHwEPRead(U8 bEP, U8 *pbBuf, U32 iMaxLen)
 {
-    int i, idx;
+    U32 i, idx;
     U32 dwData, dwLen;
     
     idx = EP2IDX(bEP);
@@ -449,9 +449,9 @@ static void fast_wait() {
 }
 
 
-int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const int iMaxLen)
+int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const U32 iMaxLen)
 {
-    int i, idx;
+    U32 i, idx;
     U32 dwData, dwLen;
 
     idx = EP2IDX(bEP);
