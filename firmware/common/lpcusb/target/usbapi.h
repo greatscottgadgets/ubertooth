@@ -127,7 +127,7 @@ void USBSetupDMADescriptor(
 
 void USBInitializeISOCFrameArray(U32 isocFrameArr[], const U32 numElements, const U16 startFrameNumber, const U16 defaultFrameLength);
 void USBInitializeUSBDMA(volatile U32* udcaHeadArray[32]);
-void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile const U32 *dmaDescriptorPtr);
+void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile U32 *dmaDescriptorPtr);
 
 void USBEnableDMAForEndpoint(const U8 bEndpointNumber) ;
 void USBDisableDMAForEndpoint(const U8 bEndpointNumber);

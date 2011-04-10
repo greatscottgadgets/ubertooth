@@ -832,8 +832,8 @@ void USBInitializeISOCFrameArray(U32 isocFrameArr[], const U32 numElements, cons
 
     @return 
  */
-void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile const U32 *dmaDescriptorPtr) {
-	udcaHeadArray[EP2IDX(bEp)] = (U32) dmaDescriptorPtr;
+void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile U32 *dmaDescriptorPtr) {
+	udcaHeadArray[EP2IDX(bEp)] = dmaDescriptorPtr;
 }
 
 /**
