@@ -162,7 +162,7 @@ void cc2400_init()
 	CC3V3_SET;
 }
 
-inline static void spi_delay()
+static void spi_delay()
 {
 	u32 i = 10;
 	while (--i);
