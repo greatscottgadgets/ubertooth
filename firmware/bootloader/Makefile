@@ -1,6 +1,6 @@
 # Hey Emacs, this is a -*- makefile -*-
 #----------------------------------------------------------------------------
-# WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
+# WinAVR Makefile Template written by Eric B. Weddington, JÃ¶rg Wunsch, et al.
 #  >> Modified for use with the LUFA project. <<
 #
 # Released to the Public Domain
@@ -21,6 +21,7 @@
 # Denver Gingerich
 # Opendous Inc.
 # Michael Ossmann
+# Jared Boone
 #
 #----------------------------------------------------------------------------
 # On command line:
@@ -130,7 +131,7 @@ CDEFS  = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
 ADEFS = 
 
 # Place -D or -U options here for C++ sources
-CPPDEFS =
+CPPDEFS = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
 
 #---------------- Compiler Options C ----------------
 #  -g*:          generate debugging information
@@ -184,8 +185,12 @@ CPPFLAGS += -O$(OPT)
 #CPPFLAGS += -funsigned-bitfields
 #CPPFLAGS += -fpack-struct
 #CPPFLAGS += -fshort-enums
-#CPPFLAGS += -fno-exceptions
+CPPFLAGS += -fno-exceptions
+CPPFLAGS += -fno-rtti
+CPPFLAGS += -fno-threadsafe-statics
 CPPFLAGS += -Wall
+CPPFLAGS += -Wextra
+CPPFLAGS += -Weffc++
 #CFLAGS += -Wundef
 #CPPFLAGS += -mshort-calls
 #CPPFLAGS += -fno-unit-at-a-time
@@ -426,13 +431,16 @@ clean_list:
 	$(REMOVE) $(TARGET).sym
 	$(REMOVE) $(TARGET).lss
 	$(REMOVE) $(SRC:%.c=$(OBJDIR)/%.o)
+	$(REMOVE) $(CPPSRC:%.cpp=$(OBJDIR)/%.o)
 	$(REMOVE) $(SRC:%.c=$(OBJDIR)/%.lst)
+	$(REMOVE) $(CPPSRC:%.cpp=$(OBJDIR)/%.lst)
 	$(REMOVE) $(ASRC:%.S=$(OBJDIR)/%.lst)
 	$(REMOVE) $(ASRC:%.S=$(OBJDIR)/%.o)
 	$(REMOVE) $(ASRC:%.S=$(OBJDIR)/%.o.d)
 	$(REMOVE) *.o.d
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
+	$(REMOVE) $(CPPSRC:.cpp=.d)
 	$(REMOVE) $(SRC:.c=.i)
 	$(REMOVE) InvalidEvents.tmp
 	$(REMOVE) $(TARGET).bin
