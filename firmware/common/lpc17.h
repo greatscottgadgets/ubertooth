@@ -564,6 +564,26 @@
 #define IRQ_USBACT   (33)
 #define IRQ_CANACT   (34)
 
+/* System Control Block (SCB) egisters (UM10360 table 654) */
+#define SCB_ACTLR   LPC17_REG(0xE000E008) /* Auxiliary Control Register */
+#define SCB_CPUID   LPC17_REG(0xE000ED00) /* CPUID Base Register */
+#define SCB_ICSR    LPC17_REG(0xE000ED04) /* Interrupt Control and State Register */
+#define SCB_VTOR    LPC17_REG(0xE000ED08) /* Vector Table Offset Register */
+#define SCB_AIRCR   LPC17_REG(0xE000ED0C) /* Application Interrupt and Reset Control Register */
+#define SCB_SCR     LPC17_REG(0xE000ED10) /* System Control Register */
+#define SCB_CCR     LPC17_REG(0xE000ED14) /* Configuration and Control Register */
+#define SCB_SHPR1   LPC17_REG(0xE000ED18) /* System Handler Priority - register 1 */
+#define SCB_SHPR2   LPC17_REG(0xE000ED1C) /* System Handler Priority - register 2 */
+#define SCB_SHPR3   LPC17_REG(0xE000ED20) /* System Handler Priority - register 3 */
+#define SCB_SHCRS   LPC17_REG(0xE000ED24) /* System Handler Control and State Register */
+#define SCB_CFSR    LPC17_REG(0xE000ED28) /* Configurable Fault Status Register */
+//#define SCB_MMSR    LPC17_REG(0xE000ED28) /* Memory Management Fault Status Register (CFSR sub-register) */
+//#define SCB_BFSR    LPC17_REG(0xE000ED29) /* Bus Fault Status Register (CFSR sub-register) */
+//#define SCB_UFSR    LPC17_REG(0xE000ED2A) /* Usage Fault Status Register (CFSR sub-register) */
+#define SCB_HFSR    LPC17_REG(0xE000ED2C) /* Hard Fault Status Register */
+#define SCB_MMFAR   LPC17_REG(0xE000ED34) /* Memory Management Fault Address Register */
+#define SCB_BFAR    LPC17_REG(0xE000ED38) /* Bus Fault Address Register */
+
 /* pin connect block registers */
 #define PINSEL0     LPC17_REG(0x4002C000) /* Pin function select register 0 */
 #define PINSEL1     LPC17_REG(0x4002C004) /* Pin function select register 1 */
