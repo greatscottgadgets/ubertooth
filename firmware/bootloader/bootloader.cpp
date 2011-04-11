@@ -199,10 +199,12 @@ static void run_bootloader()
 static void run_application() {
 
 // disable interrupts, or perhaps do it on entry to the bootloader, since we're not using interrupts?
-    
-    typedef void (*ApplicationEntry)();
-    ApplicationEntry application_entry = reinterpret_cast<ApplicationEntry>(0x4000);
-    application_entry();
+    asm(
+        "movw    r3, #16384\n\t"
+        "movt    r3, #0\n\t"
+        "ldr     sp, [r3, #0]\n\t"  // initial stack pointer
+        "ldr     pc, [r3, #4]\n\t"  // initial program counter
+    );
 }
 
 int main(void)
