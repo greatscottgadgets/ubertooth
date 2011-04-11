@@ -59,7 +59,7 @@ void Reset_Handler(void)
     __libc_init_array();
     
     // Set the vector table location.
-    SCB_VTOR = _interrupt_vector_table;
+    SCB_VTOR = &_interrupt_vector_table;
     
 	main();
 
