@@ -22,7 +22,7 @@ GROUP(-lgcc -lc -lcs3 -lcs3unhosted -lcs3micro)
 
 MEMORY
 {
-  rom (rx)  : ORIGIN = 0x00004000, LENGTH = (512K - 16384)
+  rom (rx)  : ORIGIN = 0x00000000, LENGTH =  16K
   ram (rwx) : ORIGIN = 0x10000000, LENGTH =  32K
 }
 

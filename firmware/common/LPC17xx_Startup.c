@@ -24,8 +24,10 @@
   this software.
 */
 
+#include <lpc17.h>
 
 /* Reset_Handler variables defined in linker script */
+extern unsigned long _interrupt_vector_table;
 extern unsigned long _data;
 extern unsigned long _edata;
 extern unsigned long _etext;
@@ -55,7 +57,10 @@ void Reset_Handler(void)
 	}
 
     __libc_init_array();
-
+    
+    // Set the vector table location.
+    SCB_VTOR = _interrupt_vector_table;
+    
 	main();
 
 	// In case main() fails, have something to breakpoint
