@@ -187,6 +187,12 @@ def upload(dfu, flash_address, length, path):
 
     f.close()
 
+def detach(dfu):
+    if dfu.get_state() == State.dfuIDLE:
+        dfu.detach()
+    else:
+        print 'In unexpected state: %s' % dfu.get_state()
+    
 dev = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
 if dev is None:
     raise Exception('Device not found')
@@ -204,6 +210,8 @@ try:
         upload(dfu, application_offset, application_size, sys.argv[2])
     elif sys.argv[1] == 'write':
         download(dfu, sys.argv[2], application_offset)
+    elif sys.argv[1] == 'detach':
+        detach(dfu)
 except Exception, e:
     print e
     print dfu.get_status()
