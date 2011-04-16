@@ -12,7 +12,8 @@ struct memory_policy {
 DFU::DFU(Flash& flash) :
     flash(flash),
     status(OK),
-    state(DFUIDLE) {
+    state(DFUIDLE),
+    virginity(true) {
 }
 
 bool DFU::request_handler(TSetupPacket *pSetup, uint32_t *piLen, uint8_t **ppbData) {
@@ -49,8 +50,13 @@ bool DFU::in_dfu_mode() const {
     return (get_state() >= DFUIDLE);
 }
 
+bool DFU::dfu_virgin() const {
+    return virginity;
+}
+
 void DFU::set_state(const State new_state) {
     state = new_state;
+    virginity = false;
 }
 
 uint8_t DFU::get_state() const {

@@ -56,6 +56,8 @@ extern "C" {
 
 #include "dfu.h"
 
+#define TIMEOUT 1572864
+
 #define MAX_PACKET_SIZE	64
 
 #define LE_WORD(x)		((x)&0xFF),((x)>>8)
@@ -154,6 +156,8 @@ static const u8 dfu_descriptors[] = {
 static Flash flash;
 static DFU dfu(flash);
 static uint8_t dfu_buffer[DFU::transfer_size];
+static uint32_t count = 0;
+static bool use_timeout = false;
 
 BOOL dfu_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData) {
     return dfu.request_handler(pSetup, reinterpret_cast<uint32_t*>(piLen), ppbData) ? TRUE : FALSE;
@@ -197,7 +201,6 @@ void leds_off() {
 
 /* chasing pattern indicates bootloader activity */
 void update_leds() {
-	static uint32_t count = 0;
 	count += 1;
 	const uint32_t led_state = (count >> 16) % 6;
 	switch (led_state) {
@@ -242,9 +245,11 @@ static void run_bootloader()
 	while( dfu.in_dfu_mode() ) {
 		USBHwISR();
 		update_leds();
+		if (use_timeout && dfu.dfu_virgin() && (count > TIMEOUT))
+			break;
 	}
-    
-    bootloader_usb_close();
+
+	bootloader_usb_close();
 	leds_off();
 }
 
@@ -261,17 +266,18 @@ static void run_application() {
 
 int main(void)
 {
-    ubertooth_init();
-    
+	ubertooth_init();
+
 	if (bootloader_ctrl == DFU_MODE) {
 		run_bootloader();
 	} else if (ENTRY_PIN) {
+		use_timeout = true;
 		run_bootloader();
 	}
 
 	bootloader_ctrl = 0;
-    run_application();
-    
-    return 0;
+	run_application();
+
+	return 0;
 }
 

@@ -52,6 +52,8 @@ public:
     
     bool in_dfu_mode() const;
 
+    bool dfu_virgin() const;
+
 private:
     enum Status {
         OK              = 0x00,
@@ -99,6 +101,7 @@ private:
     Flash& flash;
     Status status;
     State state;
+    bool virginity;
     
     void set_state(const State new_state);
     uint8_t get_state() const;
