@@ -190,7 +190,7 @@
  * bootloader_ctrl is a fixed memory location used for passing
  * information from the application to the bootloader across a reset
  */
-uint32_t* bootloader_ctrl = (uint32_t *)0x10007ffc;
+extern uint32_t bootloader_ctrl;
 #define DFU_MODE 0x4305BB21
 
 void wait(u8 seconds);

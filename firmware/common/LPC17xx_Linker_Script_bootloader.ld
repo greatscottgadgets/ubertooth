@@ -121,6 +121,20 @@ SECTIONS
 		_pvHeapStart = .;
 	} > ram
 
-	_StackTop = (0x10000000 + 0x8000) - 16;
+	. = ORIGIN(ram) + LENGTH(ram) - 32;
+	_StackTop = .;
+
+	.persistent :
+	{
+		LONG(0);
+		LONG(0);
+		LONG(0);
+		LONG(0);
+		LONG(0);
+		LONG(0);
+		LONG(0);
+		bootloader_ctrl = .;
+		LONG(0);
+	} > ram
 
 }

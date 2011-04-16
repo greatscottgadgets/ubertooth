@@ -263,13 +263,13 @@ int main(void)
 {
     ubertooth_init();
     
-	if (*bootloader_ctrl == DFU_MODE) {
+	if (bootloader_ctrl == DFU_MODE) {
 		run_bootloader();
 	} else if (ENTRY_PIN) {
 		run_bootloader();
 	}
 
-	*bootloader_ctrl = 0;
+	bootloader_ctrl = 0;
     run_application();
     
     return 0;

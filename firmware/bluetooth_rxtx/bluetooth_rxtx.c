@@ -504,7 +504,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_FLASH:
-		*bootloader_ctrl = DFU_MODE;
+		bootloader_ctrl = DFU_MODE;
 		reset();
 		break;
 
