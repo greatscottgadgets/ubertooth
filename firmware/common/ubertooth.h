@@ -186,6 +186,13 @@
 /* flash accelerator configuration */
 #define FLASHTIM 0x4 /* up to 100 MHz CPU clock */
 
+/*
+ * bootloader_ctrl is a fixed memory location used for passing
+ * information from the application to the bootloader across a reset
+ */
+uint32_t* bootloader_ctrl = (uint32_t *)0x10007ffc;
+#define DFU_MODE 0x4305BB21
+
 void wait(u8 seconds);
 void gpio_init(void);
 void ubertooth_init(void);
