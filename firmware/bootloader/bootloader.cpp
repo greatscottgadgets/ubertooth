@@ -71,12 +71,10 @@ extern "C" {
 */
 
 #ifdef UBERTOOTH_ZERO
-#define ENTRY_PIN PINSEL4
-#define ENTRY_SET PINSEL4_P2_7
+#define ENTRY_PIN (!(FIO2PIN & (1 << 7)))
 #endif
 #ifdef UBERTOOTH_ONE
-#define ENTRY_PIN PINSEL1
-#define ENTRY_SET PINSEL1_P0_22
+#define ENTRY_PIN (!(FIO0PIN & (1 << 22)))
 #endif
 
 static const uint16_t usb_vendor_id = 0xFFFF;
@@ -265,11 +263,7 @@ int main(void)
 {
     ubertooth_init();
     
-	ENTRY_PIN |= ENTRY_SET;
-	
-	/*if (ENTRY_PIN & ENTRY_SET)
-		;
-	else*/
+	if (ENTRY_PIN)
 		run_bootloader();
 
     run_application();
