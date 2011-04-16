@@ -121,10 +121,9 @@ SECTIONS
 		_pvHeapStart = .;
 	} > ram
 
-	_StackTop = ORIGIN(ram) + LENGTH(ram) - 32;
-
 	.persistent ORIGIN(ram) + LENGTH(ram) - 32 :
 	{
+		_StackTop = .;
 		LONG(0);
 		LONG(0);
 		LONG(0);
