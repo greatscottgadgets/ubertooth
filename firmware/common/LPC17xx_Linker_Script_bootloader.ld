@@ -124,7 +124,7 @@ SECTIONS
 	. = ORIGIN(ram) + LENGTH(ram) - 32;
 	_StackTop = .;
 
-	.persistent :
+	.persistent . :
 	{
 		LONG(0);
 		LONG(0);
