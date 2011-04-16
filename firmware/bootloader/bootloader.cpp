@@ -185,15 +185,69 @@ void bootloader_usb_close() {
     USBHwConnect(FALSE);
 }
 
+void leds_on() {
+		TXLED_SET;
+		RXLED_SET;
+		USRLED_SET;
+}
+
+void leds_off() {
+		TXLED_CLR;
+		RXLED_CLR;
+		USRLED_CLR;
+}
+
+/* chasing pattern indicates bootloader activity */
+void update_leds() {
+	static uint32_t count = 0;
+	count += 1;
+	const uint32_t led_state = (count >> 16) % 6;
+	switch (led_state) {
+	case 0:
+		TXLED_SET;
+		RXLED_CLR;
+		USRLED_CLR;
+		break;
+	case 1:
+		TXLED_SET;
+		RXLED_SET;
+		USRLED_CLR;
+		break;
+	case 2:
+		TXLED_SET;
+		RXLED_SET;
+		USRLED_SET;
+		break;
+	case 3:
+		TXLED_SET;
+		RXLED_SET;
+		USRLED_CLR;
+		break;
+	case 4:
+		TXLED_SET;
+		RXLED_CLR;
+		USRLED_CLR;
+		break;
+	case 5:
+		TXLED_CLR;
+		RXLED_CLR;
+		USRLED_CLR;
+		break;
+	}
+}
+
 static void run_bootloader()
 {
+	leds_on();
 	bootloader_usb_init();
 
 	while( dfu.in_dfu_mode() ) {
 		USBHwISR();
+		update_leds();
 	}
     
     bootloader_usb_close();
+	leds_off();
 }
 
 static void run_application() {
