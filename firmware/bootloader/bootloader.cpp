@@ -266,12 +266,14 @@ static void run_application() {
 
 int main(void)
 {
-	ubertooth_init();
+	gpio_init();
 
 	if (bootloader_ctrl == DFU_MODE) {
+		ubertooth_init();
 		run_bootloader();
 	} else if (ENTRY_PIN) {
 		use_timeout = true;
+		ubertooth_init();
 		run_bootloader();
 	}
 
