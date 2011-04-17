@@ -97,6 +97,14 @@ SECTIONS
 
 	_etext = .;
 
+	.persistent ORIGIN(ram) (NOLOAD):
+	{
+		_persistent_start = .;
+		. += 32;
+		_persistent_end = .;
+	} > ram
+	bootloader_ctrl = _persistent_start + 0x1C;
+
 	.data :
 	{
 		_data = .;
@@ -120,19 +128,8 @@ SECTIONS
 		end = .;
 		_pvHeapStart = .;
 	} > ram
-
-	.persistent ORIGIN(ram) + LENGTH(ram) - 32 :
-	{
-		_StackTop = .;
-		LONG(0);
-		LONG(0);
-		LONG(0);
-		LONG(0);
-		LONG(0);
-		LONG(0);
-		LONG(0);
-		bootloader_ctrl = .;
-		LONG(0);
-	} > ram
+	
+	/* Leave room above stack for IAP to run */
+	_StackTop = ORIGIN(ram) + LENGTH(ram) - 32;
 
 }
