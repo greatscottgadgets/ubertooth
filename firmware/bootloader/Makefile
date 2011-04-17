@@ -1,6 +1,6 @@
 # Hey Emacs, this is a -*- makefile -*-
 #----------------------------------------------------------------------------
-# WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
+# WinAVR Makefile Template written by Eric B. Weddington, JÃ¶rg Wunsch, et al.
 #  >> Modified for use with the LUFA project. <<
 #
 # Released to the Public Domain
@@ -21,6 +21,7 @@
 # Denver Gingerich
 # Opendous Inc.
 # Michael Ossmann
+# Jared Boone
 #
 #----------------------------------------------------------------------------
 # On command line:
@@ -72,18 +73,18 @@ LIBS_PATH = ../common
 LPCUSB_PATH = $(LIBS_PATH)/lpcusb/target
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c \
-	$(LIBS_PATH)/usb_serial.c \
-	$(LIBS_PATH)/serial_fifo.c \
-	$(LIBS_PATH)/LPC17xx_Interrupts.c \
-	$(LIBS_PATH)/ubertooth.c \
-	$(LPCUSB_PATH)/usbcontrol.c \
-	$(LPCUSB_PATH)/usbinit.c \
-	$(LPCUSB_PATH)/usbhw_lpc.c \
-	$(LPCUSB_PATH)/usbstdreq.c
+SRC = $(LIBS_PATH)/LPC17xx_Startup.c \
+      $(LIBS_PATH)/LPC17xx_Interrupts.c \
+      $(LIBS_PATH)/ubertooth.c \
+      $(LPCUSB_PATH)/usbcontrol.c \
+      $(LPCUSB_PATH)/usbinit.c \
+      $(LPCUSB_PATH)/usbhw_lpc.c \
+      $(LPCUSB_PATH)/usbstdreq.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
-CPPSRC = 
+CPPSRC = $(TARGET).cpp \
+         dfu.cpp \
+         iap.cpp
 
 # List Assembler source files here.
 #     Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -108,7 +109,7 @@ OPT = 0
 DEBUG = dwarf-2 -g3
 
 # Linker Script for the current MCU
-LINKER_SCRIPT = $(LIBS_PATH)/LPC17xx_Linker_Script.ld
+LINKER_SCRIPT = $(LIBS_PATH)/LPC17xx_Linker_Script_bootloader.ld
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
@@ -130,7 +131,7 @@ CDEFS  = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
 ADEFS = 
 
 # Place -D or -U options here for C++ sources
-CPPDEFS =
+CPPDEFS = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
 
 #---------------- Compiler Options C ----------------
 #  -g*:          generate debugging information
@@ -184,8 +185,12 @@ CPPFLAGS += -O$(OPT)
 #CPPFLAGS += -funsigned-bitfields
 #CPPFLAGS += -fpack-struct
 #CPPFLAGS += -fshort-enums
-#CPPFLAGS += -fno-exceptions
+CPPFLAGS += -fno-exceptions
+CPPFLAGS += -fno-rtti
+CPPFLAGS += -fno-threadsafe-statics
 CPPFLAGS += -Wall
+CPPFLAGS += -Wextra
+CPPFLAGS += -Weffc++
 #CFLAGS += -Wundef
 #CPPFLAGS += -mshort-calls
 #CPPFLAGS += -fno-unit-at-a-time
@@ -426,13 +431,16 @@ clean_list:
 	$(REMOVE) $(TARGET).sym
 	$(REMOVE) $(TARGET).lss
 	$(REMOVE) $(SRC:%.c=$(OBJDIR)/%.o)
+	$(REMOVE) $(CPPSRC:%.cpp=$(OBJDIR)/%.o)
 	$(REMOVE) $(SRC:%.c=$(OBJDIR)/%.lst)
+	$(REMOVE) $(CPPSRC:%.cpp=$(OBJDIR)/%.lst)
 	$(REMOVE) $(ASRC:%.S=$(OBJDIR)/%.lst)
 	$(REMOVE) $(ASRC:%.S=$(OBJDIR)/%.o)
 	$(REMOVE) $(ASRC:%.S=$(OBJDIR)/%.o.d)
 	$(REMOVE) *.o.d
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
+	$(REMOVE) $(CPPSRC:.cpp=.d)
 	$(REMOVE) $(SRC:.c=.i)
 	$(REMOVE) InvalidEvents.tmp
 	$(REMOVE) $(TARGET).bin

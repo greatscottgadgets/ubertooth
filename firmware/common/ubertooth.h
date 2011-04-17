@@ -186,19 +186,26 @@
 /* flash accelerator configuration */
 #define FLASHTIM 0x4 /* up to 100 MHz CPU clock */
 
+/*
+ * bootloader_ctrl is a fixed memory location used for passing
+ * information from the application to the bootloader across a reset
+ */
+extern uint32_t bootloader_ctrl;
+#define DFU_MODE 0x4305BB21
+
 void wait(u8 seconds);
-void gpio_init();
-void ubertooth_init();
-void dio_ssp_init();
-void atest_init();
-void cc2400_init();
+void gpio_init(void);
+void ubertooth_init(void);
+void dio_ssp_init(void);
+void atest_init(void);
+void cc2400_init(void);
 u32 cc2400_spi(u8 len, u32 data);
 u16 cc2400_get(u8 reg);
 void cc2400_set(u8 reg, u32 val);
-u8 cc2400_status();
+u8 cc2400_status(void);
 u8 cc2400_strobe(u8 reg);
-void cc2400_reset();
-void clock_start();
-void reset();
+void cc2400_reset(void);
+void clock_start(void);
+void reset(void);
 
 #endif /* __UBERTOOTH_H */

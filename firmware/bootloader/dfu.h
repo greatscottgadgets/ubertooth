@@ -22,50 +22,106 @@
 #ifndef _DFU_H_
 #define _DFU_H_
 
-/* Status */
-#define STATUS_OK				0x00
-#define STATUS_ERRTARGET		0x01
-#define STATUS_ERRFILE			0x02
-#define STATUS_ERRWRITE			0x03
-#define STATUS_ERRERASE			0x04
-#define STATUS_ERRCHECK_ERASED	0x05
-#define STATUS_ERRPROG			0x06
-#define STATUS_ERRVERIFY		0x07
-#define STATUS_ERRADDRESS		0x08
-#define STATUS_ERRNOTDONE		0x09
-#define STATUS_ERRFIRMWARE		0x0A
-#define STATUS_ERRVENDOR		0x0B
-#define STATUS_ERRUSBR			0x0C
-#define STATUS_ERRPOR			0x0D
-#define STATUS_ERRUNKNOWN		0x0E
-#define STATUS_ERRSTALLEDPKT	0x0F
+#include <stdint.h>
 
-/* State */
-#define STATE_APPIDLE					0x00
-#define STATE_APPDETACH					0x01
-#define STATE_DFUIDLE					0x02
-#define STATE_DFUDNLOAD_SYNC			0x03
-#define STATE_DFUDNBUSY					0x04
-#define STATE_DFUDNLOAD_IDLE			0x05
-#define STATE_DFUMANIFEST_SYNC			0x06
-#define STATE_DFUMANIFEST				0x07
-#define STATE_DFUMANIFEST_WAIT_RESET	0x08
-#define STATE_DFUUPLOAD_IDLE			0x09
-#define STATE_DFUERROR					0x0A
+#include <usbstruct.h>
 
-/* bmAttributes */
-#define WILL_DETACH            (0x1 << 3)
-#define MANIFESTATION_TOLERANT (0x1 << 2)
-#define CAN_UPLOAD             (0x1 << 1)
-#define CAN_DNLOAD             (0x1 << 0)
+#include "flash.h"
 
-/* bmAttributes */
-#define DETACH     0
-#define DNLOAD     1
-#define UPLOAD     2
-#define GETSTATUS  3
-#define CLRSTATUS  4
-#define GETSTATE   5
-#define ABORT      6
+/* Descriptor Types */
+#define DESC_DFU_FUNCTIONAL         0x21
+
+/* Hack to clean up the namespace pollution from lpc17.h */
+#undef Status
+
+class DFU {
+public:
+    static const uint32_t detach_timeout_ms = 15000;
+    static const uint32_t transfer_size = 0x100;
+    
+    enum Attribute {
+        WILL_DETACH            = (1 << 3),
+        MANIFESTATION_TOLERANT = (1 << 2),
+        CAN_UPLOAD             = (1 << 1),
+        CAN_DNLOAD             = (1 << 0),
+    };
+    
+    DFU(Flash& flash);
+    
+    bool request_handler(TSetupPacket *pSetup, uint32_t *piLen, uint8_t **ppbData);
+    
+    bool in_dfu_mode() const;
+
+    bool dfu_virgin() const;
+
+private:
+    enum Status {
+        OK              = 0x00,
+        ERRTARGET       = 0x01,
+        ERRFILE         = 0x02,
+        ERRWRITE        = 0x03,
+        ERRERASE        = 0x04,
+        ERRCHECK_ERASED	= 0x05,
+        ERRPROG         = 0x06,
+        ERRVERIFY       = 0x07,
+        ERRADDRESS      = 0x08,
+        ERRNOTDONE      = 0x09,
+        ERRFIRMWARE     = 0x0A,
+        ERRVENDOR       = 0x0B,
+        ERRUSBR         = 0x0C,
+        ERRPOR          = 0x0D,
+        ERRUNKNOWN      = 0x0E,
+        ERRSTALLEDPKT   = 0x0F,
+    };
+    
+    enum State {
+        APPIDLE                 = 0x00,
+        APPDETACH               = 0x01,
+        DFUIDLE                 = 0x02,
+        DFUDNLOAD_SYNC          = 0x03,
+        DFUDNBUSY               = 0x04,
+        DFUDNLOAD_IDLE          = 0x05,
+        DFUMANIFEST_SYNC        = 0x06,
+        DFUMANIFEST             = 0x07,
+        DFUMANIFEST_WAIT_RESET  = 0x08,
+        DFUUPLOAD_IDLE          = 0x09,
+        DFUERROR                = 0x0A,
+    };
+    
+    enum Request {
+        DETACH     = 0,
+        DNLOAD     = 1,
+        UPLOAD     = 2,
+        GETSTATUS  = 3,
+        CLRSTATUS  = 4,
+        GETSTATE   = 5,
+        ABORT      = 6,
+    };
+    
+    Flash& flash;
+    Status status;
+    State state;
+    bool virginity;
+    
+    void set_state(const State new_state);
+    uint8_t get_state() const;
+    
+    void set_status(const Status new_status);
+    uint8_t get_status() const;
+    
+    bool error(const Status new_status);
+    
+    uint8_t get_status_string_id() const;
+    uint32_t get_poll_timeout() const;
+    
+    bool request_detach(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+    bool request_dnload(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+    bool request_upload(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+    bool request_getstatus(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+    bool request_clrstatus(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+    bool request_getstate(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+    bool request_abort(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* ppbData);
+};
 
 #endif /* _DFU_H_ */
+

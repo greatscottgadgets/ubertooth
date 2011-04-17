@@ -1,0 +1,39 @@
+USB DFU uploader/downloader
+
+Jared Boone, 2011/04/10
+
+This code is used to upload or download firmware and data into an
+embedded device supporting the USB DFU protocol.
+
+Specifications:
+
+* Universal Serial Bus Device Class Specification for Device
+  Firmware Upgrade, version 1.1:
+  http://www.usb.org/developers/devclass_docs/DFU_1.1.pdf
+
+Requirements:
+
+* Python 2.6 or newer:
+  http://www.python.org
+
+* PyUSB 1.0:
+  http://sourceforge.net/apps/mediawiki/pyusb/
+
+* libusb 1.0:
+  http://www.libusb.org/
+
+The openusb library is apparently also an option for use with PyUSB,
+but has not been tested by the author.
+
+This project should work across Linux, Mac OS, and Windows, but has
+not been tested on all platforms.
+
+Usage:
+
+To download code into a device, starting at flash address 0x4000:
+
+python usb_dfu.py write <filename>
+
+To upload code from a device, starting at flash address 0x4000:
+
+python usb_dfy.py read <filename>

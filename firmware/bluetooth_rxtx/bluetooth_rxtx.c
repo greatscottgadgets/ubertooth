@@ -498,15 +498,14 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_ISP:
-		command[0] = 57; /* read part number */
+		command[0] = 57;
 		iap_entry(command, result);
 		*piLen = 0; /* should never return */
 		break;
 
 	case UBERTOOTH_FLASH:
-		command[0] = 57; /* read part number */
-		iap_entry(command, result);
-		*piLen = 0; /* should never return */
+		bootloader_ctrl = DFU_MODE;
+		reset();
 		break;
 
 	case UBERTOOTH_SPECAN:

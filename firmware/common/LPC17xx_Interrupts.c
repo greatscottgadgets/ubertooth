@@ -27,43 +27,12 @@
 
 
 /* Reset_Handler variables defined in linker script */
-extern void _StackTop;
-extern unsigned long _data;
-extern unsigned long _edata;
-extern unsigned long _etext;
-extern unsigned long _bss;
-extern unsigned long _ebss;
+extern unsigned long _StackTop;
 
-
-/* Reset Handler */
-void Reset_Handler(void)
-{
-    unsigned long *src, *dest;
-
-	// Copy the data segment initializers from flash to SRAM
-	src = &_etext;
-	for(dest = &_data; dest < &_edata; )
-	{
-		*dest++ = *src++;
-	}
-
-	// Initialize the .bss segment of memory to zeros
-	src = &_bss;
-	while (src < &_ebss)
-	{
-		*src++ = 0;
-	}
-
-	main();
-
-	// In case main() fails, have something to breakpoint
-	while (1) {;}
-}
-
+extern void Reset_Handler(void);
 
 /* Default interrupt handler */
 static void Default_Handler(void) { while(1) {;} }
-
 
 /* Empty handlers aliased to the default handler */
 void NMI_Handler(void) __attribute__ ((weak, alias ("Default_Handler")));

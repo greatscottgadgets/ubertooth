@@ -162,7 +162,7 @@ void cc2400_init()
 	CC3V3_SET;
 }
 
-inline static void spi_delay()
+static void spi_delay()
 {
 	u32 i = 10;
 	while (--i);
@@ -217,7 +217,6 @@ u32 cc2400_spi(u8 len, u32 data)
 /* read the value from a register */
 u16 cc2400_get(u8 reg)
 {
-	int i;
 	u32 in;
 	u16 val;
 

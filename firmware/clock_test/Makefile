@@ -66,6 +66,7 @@ TARGET = clock_test
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c \
+	../common/LPC17xx_Startup.c \
 	../common/LPC17xx_Interrupts.c \
 	../common/ubertooth.c
 

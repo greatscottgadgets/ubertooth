@@ -69,10 +69,10 @@ void USBHwNakIntEnable	(U8 bIntBits);
 void USBHwConnect		(BOOL fConnect);
 
 // endpoint operations
-int  USBHwEPRead		(U8 bEP, U8 *pbBuf, int iMaxLen);
-int	 USBHwEPWrite		(U8 bEP, U8 *pbBuf, int iLen);
+int  USBHwEPRead		(U8 bEP, U8 *pbBuf, U32 iMaxLen);
+int	 USBHwEPWrite		(U8 bEP, U8 *pbBuf, U32 iLen);
 void USBHwEPStall		(U8 bEP, BOOL fStall);
-int  USBHwISOCEPRead    (const U8 bEP, U8 *pbBuf, const int iMaxLen);
+int  USBHwISOCEPRead    (const U8 bEP, U8 *pbBuf, const U32 iMaxLen);
 
 /** Endpoint interrupt handler callback */
 typedef void (TFnEPIntHandler)	(U8 bEP, U8 bEPStatus);
@@ -127,7 +127,7 @@ void USBSetupDMADescriptor(
 
 void USBInitializeISOCFrameArray(U32 isocFrameArr[], const U32 numElements, const U16 startFrameNumber, const U16 defaultFrameLength);
 void USBInitializeUSBDMA(volatile U32* udcaHeadArray[32]);
-void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile const U32 *dmaDescriptorPtr);
+void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile U32 *dmaDescriptorPtr);
 
 void USBEnableDMAForEndpoint(const U8 bEndpointNumber) ;
 void USBDisableDMAForEndpoint(const U8 bEndpointNumber);

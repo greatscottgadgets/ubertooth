@@ -27,6 +27,7 @@ static void usage()
 {
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
+	printf("\t-f activate flash programming (DFU) mode\n");
 	printf("\t-i activate In-System Programming (ISP) mode\n");
 	printf("\t-l get status of USR LED\n");
 	printf("\t-l0 turn off USR LED\n");
@@ -45,8 +46,11 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"iprstl::")) != EOF) {
+	while ((opt=getopt(argc,argv,"fiprstl::")) != EOF) {
 		switch(opt) {
+		case 'f':
+			r = cmd_flash(devh);
+			break;
 		case 'i':
 			r = cmd_set_isp(devh);
 			break;

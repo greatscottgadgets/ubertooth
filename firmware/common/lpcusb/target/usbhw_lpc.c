@@ -354,9 +354,9 @@ void USBHwEPStall(U8 bEP, BOOL fStall)
             
     @return number of bytes written into the endpoint buffer
 */
-int USBHwEPWrite(U8 bEP, U8 *pbBuf, int iLen)
+int USBHwEPWrite(U8 bEP, U8 *pbBuf, U32 iLen)
 {
-    int idx;
+    U32 idx;
     
     idx = EP2IDX(bEP);
     
@@ -392,9 +392,9 @@ int USBHwEPWrite(U8 bEP, U8 *pbBuf, int iLen)
     @return the number of bytes available in the EP (possibly more than iMaxLen),
     or <0 in case of error.
  */
-int USBHwEPRead(U8 bEP, U8 *pbBuf, int iMaxLen)
+int USBHwEPRead(U8 bEP, U8 *pbBuf, U32 iMaxLen)
 {
-    int i, idx;
+    U32 i, idx;
     U32 dwData, dwLen;
     
     idx = EP2IDX(bEP);
@@ -437,12 +437,21 @@ int USBHwEPRead(U8 bEP, U8 *pbBuf, int iMaxLen)
     return dwLen;
 }
 
+static void fast_wait() {
+#ifdef __GNUC__
+    asm volatile("nop\n"); 
+#endif
+
+#ifdef __arm__
+    volatile uint32_t fast_wait = 1;
+    while(--fast_wait);
+#endif
+}
 
 
-
-int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const int iMaxLen)
+int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const U32 iMaxLen)
 {
-    int i, idx,q;
+    U32 i, idx;
     U32 dwData, dwLen;
 
     idx = EP2IDX(bEP);
@@ -453,8 +462,7 @@ int USBHwISOCEPRead(const U8 bEP, U8 *pbBuf, const int iMaxLen)
     //Note: for some reason the USB perepherial needs a cycle to set bits in USBRxPLen before 
     //reading, if you remove this ISOC wont work. This may be a but in the chip, or due to 
     //a mis-understanding of how the perepherial is supposed to work.    
-    asm volatile("nop\n"); 
-
+    fast_wait();
     
     dwLen = USBRxPLen;
     if( (dwLen & PKT_RDY) == 0 ) {
@@ -824,8 +832,8 @@ void USBInitializeISOCFrameArray(U32 isocFrameArr[], const U32 numElements, cons
 
     @return 
  */
-void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile const U32 *dmaDescriptorPtr) {
-	udcaHeadArray[EP2IDX(bEp)] = (U32) dmaDescriptorPtr;
+void USBSetHeadDDForDMA(const U8 bEp, volatile U32* udcaHeadArray[32], volatile U32 *dmaDescriptorPtr) {
+	udcaHeadArray[EP2IDX(bEp)] = dmaDescriptorPtr;
 }
 
 /**
