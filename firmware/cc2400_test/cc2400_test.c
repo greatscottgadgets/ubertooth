@@ -29,6 +29,7 @@ int main()
 	cc2400_init();
 	RXLED_SET;
 
+	cc2400_reset();
 	while (cc2400_get(AGCCTRL) != 0xf700);
 	USRLED_SET;
 
