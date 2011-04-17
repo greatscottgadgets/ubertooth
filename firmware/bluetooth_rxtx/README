@@ -1,4 +1,4 @@
 bluetooth_rxtx.c performs Bluetooth functions controlled by a custom USB
 interface.
 
-You can use the bluetooth_rxtx/ubertooth-dump host code with this firmware.
+You can use the bluetooth_rxtx host code or Kismet plugin with this firmware.

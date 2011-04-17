@@ -9,6 +9,9 @@ $ cd gr-bluetooth/src/libbtbb/
 $ make
 $ sudo make install
 
+ubertooth-util: various utility functions including reboot into bootloader DFU
+mode.
+
 ubertooth-lap: sniffs a single Bluetooth channel and outputs LAPs of observed
 packets.
 

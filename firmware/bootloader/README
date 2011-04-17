@@ -1,3 +1,49 @@
-bootloader.c is designed to be the first level firmware on the Ubertooth, with this installed you can update the main application over USB (at least that's the plan).
+bootloader.c is the first level firmware on the Ubertooth.  With this installed
+you can update the main application over USB.
 
-There is no host code to go with this yet.
+The bootloader must be installed using a hardware programmer (serial or JTAG).
+For example, a Pogoprog (serial programmer) may be used with the In-System
+Programming (ISP) mode.  Once the bootloader is installed, application firmware
+may be loaded repeatedly over USB without requiring additional hardware.
+Commercially produced Ubertooth devices should have the bootloader installed at
+the factory.
+
+Operation:
+
+The bootloader executes every time the device starts up from reset or power
+cycle.  Normally it just gets out of the way and passes control to the
+application firmware very quickly.  Alternatively it can enter DFU mode which
+permits firmware upload and download over USB.  There are two ways to tell the
+bootloader that you want it to enter DFU mode:
+
+1. soft bootloader entry: By setting a flag in RAM, the application firmware
+can instruct the bootloader to enter DFU mode following a reset (without loss
+of power).  For example, with the bluetooth_rxtx firmware running you can
+trigger a reset into DFU mode using 'ubertooth-util -f' (located in
+host/bluetooth_rxtx/).
+
+2. hard bootloader entry (aka pin entry): By connecting two pins on the
+expansion header with a jumper during reset (either soft or hard boot), you can
+force the bootloader into DFU mode.  When using pin entry, the bootloader will
+enter DFU mode for only a few seconds and will then execute the application if
+no DFU activity has started during that period.  This allows developers to
+permanently or semi-permanently jumper the pins providing a DFU opportunity on
+every reset.
+
+The bootloader indicates DFU mode by flashing the LEDs in a distinctive
+pattern.  It also identifies itself as "usb_bootloader" on USB.
+
+During DFU mode, firmware may be uploaded or downloaded using usb_dfu.py.  See
+host/usb_dfu/README for usage instructions.
+
+It is possible that soft bootloader entry may be broken by installing a faulty
+application or an application that does not provide a method of triggering soft
+entry.  In this case, pin entry must be used (e.g. by holding a paper clip in
+the expansion header while plugging in the device) to "unbrick" the unit.
+
+For Ubertooth One, the pins to connect are pins 1 and 3 of the expansion header
+(P4).  For Ubertooth Zero, the pins to connect are pins 1 and 13 of the
+expansion header (J1).
+
+The bootloader is installed at 0x0000.  It installs application firmware at
+0x4000.

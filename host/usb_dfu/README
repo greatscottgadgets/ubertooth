@@ -32,8 +32,12 @@ Usage:
 
 To download code into a device, starting at flash address 0x4000:
 
-python usb_dfu.py write <filename>
+python usb_dfu.py write <filename.bin>
 
 To upload code from a device, starting at flash address 0x4000:
 
-python usb_dfy.py read <filename>
+python usb_dfy.py read <filename.bin>
+
+To execute the application at 0x4000:
+
+python usb_dfu.py detach
