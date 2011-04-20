@@ -45,6 +45,11 @@
 # set to UBERTOOTH_ZERO or UBERTOOTH_ONE
 BOARD  ?= UBERTOOTH_ONE
 
+UBERTOOTH_OPTS = -D$(BOARD)
+
+# comment to disable RF transmission
+UBERTOOTH_OPTS += -DTX_ENABLE
+
 # CPU architecture
 CPU = cortex-m3
 
@@ -125,7 +130,7 @@ EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH)
 CSTANDARD = -std=gnu99
 
 # Place -D or -U options here for C sources
-CDEFS  = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
+CDEFS  = -D$(LPCUSB_TARGET) $(UBERTOOTH_OPTS) $(COMPILE_OPTS)
 
 # Place -D or -U options here for ASM sources
 ADEFS = 

@@ -480,9 +480,11 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 #endif
 
+#ifdef TX_ENABLE
 	case UBERTOOTH_TX_TEST:
 		requested_mode = MODE_TX_TEST;
 		break;
+#endif
 
 	case UBERTOOTH_STOP:
 		requested_mode = MODE_IDLE;
@@ -712,6 +714,7 @@ void cc2400_rx()
 
 void cc2400_txtest()
 {
+#ifdef TX_ENABLE
 	if (modulation == MOD_BT_BASIC_RATE) {
 		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
@@ -734,6 +737,7 @@ void cc2400_txtest()
 	TXLED_SET;
 	cc2400_strobe(STX);
 	mode = MODE_TX_TEST;
+#endif
 }
 
 void bt_stream_rx()
