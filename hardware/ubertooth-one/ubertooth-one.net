@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Sun Mar 20 22:13:41 2011
+# EESchema Netlist Version 1.1 created  Thu Apr 21 20:46:28 2011
 (
  ( /4D86CE24 0603  FB5 FILTER {Lib=FILTER}
   (    1 3V3D )
@@ -213,7 +213,7 @@
   (    1 N-000001 )
   (    2 GND )
  )
- ( /4CDB26E3 0603  R5 330 {Lib=R}
+ ( /4CDB26E3 0603  R5 470 {Lib=R}
   (    1 N-000002 )
   (    2 N-000072 )
  )
@@ -221,7 +221,7 @@
   (    1 N-000002 )
   (    2 GND )
  )
- ( /4CDB26D9 0603  R6 330 {Lib=R}
+ ( /4CDB26D9 0603  R6 470 {Lib=R}
   (    1 N-000003 )
   (    2 N-000074 )
  )

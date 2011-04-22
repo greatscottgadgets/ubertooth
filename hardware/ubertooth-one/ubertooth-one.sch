@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri Apr  1 21:17:36 2011
+EESchema Schematic File Version 2  date Thu Apr 21 15:42:57 2011
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -36,7 +36,7 @@ EELAYER END
 $Descr User 17000 11000
 Sheet 1 1
 Title "Ubertooth One"
-Date "2 apr 2011"
+Date "21 apr 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -1949,11 +1949,11 @@ L R R5
 U 1 1 4CDB26E3
 P 7850 6750
 F 0 "R5" V 7930 6750 50  0000 C CNN
-F 1 "330" V 7850 6750 50  0000 C CNN
+F 1 "470" V 7850 6750 50  0000 C CNN
 F 2 "0603" H 7850 6750 60  0001 C CNN
 F 4 "Bourns" H 7850 6750 60  0001 C CNN "Field1"
-F 5 "CR0603-JW-331ELF" H 7850 6750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 7850 6750 60  0001 C CNN "Field3"
+F 5 "CR0603-JW-471ELF" H 7850 6750 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 470OHMS 5% 1/10WATT" H 7850 6750 60  0001 C CNN "Field3"
 	1    7850 6750
 	-1   0    0    1   
 $EndComp
@@ -1993,11 +1993,11 @@ L R R6
 U 1 1 4CDB26D9
 P 8150 6750
 F 0 "R6" V 8230 6750 50  0000 C CNN
-F 1 "330" V 8150 6750 50  0000 C CNN
+F 1 "470" V 8150 6750 50  0000 C CNN
 F 2 "0603" H 8150 6750 60  0001 C CNN
 F 4 "Bourns" H 8150 6750 60  0001 C CNN "Field1"
-F 5 "CR0603-JW-331ELF" H 8150 6750 60  0001 C CNN "Field2"
-F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 8150 6750 60  0001 C CNN "Field3"
+F 5 "CR0603-JW-471ELF" H 8150 6750 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 470OHMS 5% 1/10WATT" H 8150 6750 60  0001 C CNN "Field3"
 	1    8150 6750
 	-1   0    0    1   
 $EndComp

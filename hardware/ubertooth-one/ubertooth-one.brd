@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Sun Apr 10 09:16:23 2011
+PCBNEW-BOARD Version 1 date Thu Apr 21 20:48:09 2011
 
 # Created by Pcbnew(2010-12-28 BZR 2695)-testing
 
@@ -20,7 +20,7 @@ $EndGENERAL
 $SHEETDESCR
 Sheet User 6000 4000
 Title "Ubertooth One"
-Date "10 apr 2011"
+Date "22 apr 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -2020,7 +2020,7 @@ Op 0 0 0
 .SolderMask 40
 At SMD 
 T0 0 0 240 240 900 60 N V 21 N"R5"
-T1 0 0 240 240 900 60 N I 21 N"330"
+T1 0 0 240 240 900 60 N I 21 N"470"
 DS 540 -240 -540 -240 80 21
 DS -540 -240 -540 240 80 21
 DS -540 240 540 240 80 21
@@ -2053,7 +2053,7 @@ Op 0 0 0
 .SolderMask 40
 At SMD 
 T0 0 0 240 240 900 60 N V 21 N"R6"
-T1 0 0 240 240 900 60 N I 21 N"330"
+T1 0 0 240 240 900 60 N I 21 N"470"
 DS 540 -240 -540 -240 80 21
 DS -540 -240 -540 240 80 21
 DS -540 240 540 240 80 21
@@ -7244,7 +7244,7 @@ ZLayer 2
 ZAux 8 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 S 80 160
+ZOptions 1 16 F 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
@@ -11385,7 +11385,7 @@ ZLayer 0
 ZAux 12 E
 ZClearance 120 T
 ZMinThickness 100
-ZOptions 1 16 S 80 160
+ZOptions 1 16 F 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
@@ -15016,7 +15016,7 @@ ZLayer 15
 ZAux 19 E
 ZClearance 100 T
 ZMinThickness 120
-ZOptions 1 16 S 80 160
+ZOptions 1 16 F 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
@@ -18002,7 +18002,7 @@ ZLayer 1
 ZAux 6 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 S 80 160
+ZOptions 1 16 F 80 160
 ZCorner 27540 19550 0
 ZCorner 28140 18950 0
 ZCorner 28140 14470 0
@@ -18602,7 +18602,7 @@ ZLayer 1
 ZAux 9 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 S 80 160
+ZOptions 1 16 F 80 160
 ZCorner 26500 21530 0
 ZCorner 26500 19700 0
 ZCorner 24800 19700 0
@@ -20131,7 +20131,7 @@ ZLayer 1
 ZAux 9 E
 ZClearance 120 T
 ZMinThickness 120
-ZOptions 1 16 S 80 160
+ZOptions 1 16 F 80 160
 ZCorner 40730 21530 0
 ZCorner 41950 20310 0
 ZCorner 41950 15690 0
