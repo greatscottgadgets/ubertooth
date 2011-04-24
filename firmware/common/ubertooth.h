@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Michael Ossmann
+ * Copyright 2010, 2011 Michael Ossmann
  *
  * This file is part of Project Ubertooth.
  *

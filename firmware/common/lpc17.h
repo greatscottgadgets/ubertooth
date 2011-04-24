@@ -9,7 +9,7 @@
  * LPC17xx User manual
  * Rev. 2 -- 19 August 2010
  *
- * Copyright 2010 Michael Ossmann
+ * Copyright 2010, 2011 Michael Ossmann
  *
  * This file is part of Project Ubertooth.
  *
