@@ -180,7 +180,7 @@ typedef struct {
  * atomicity of the operations on head and tail.
  */
 
-usb_pkt_rx fifo[256];
+usb_pkt_rx fifo[128];
 
 volatile u32 head = 0;
 volatile u32 tail = 0;
@@ -194,9 +194,9 @@ void queue_init()
 int enqueue(u8 *buf)
 {
 	int i;
-	u8 h = head & 0xFF;
-	u8 t = tail & 0xFF;
-	u8 n = (t + 1) & 0xFF;
+	u8 h = head & 0x7F;
+	u8 t = tail & 0x7F;
+	u8 n = (t + 1) & 0x7F;
 
 	/* fail if queue is full */
 	if (h == n)
@@ -217,8 +217,8 @@ int enqueue(u8 *buf)
 
 int dequeue()
 {
-	u8 h = head & 0xFF;
-	u8 t = tail & 0xFF;
+	u8 h = head & 0x7F;
+	u8 t = tail & 0x7F;
 
 	/* fail if queue is empty */
 	if (h == t) {

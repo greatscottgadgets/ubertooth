@@ -45,7 +45,7 @@ GROUP(-lgcc -lc -lcs3 -lcs3unhosted -lcs3micro)
 MEMORY
 {
   rom (rx)  : ORIGIN = 0x00000000, LENGTH =  16K
-  ram (rwx) : ORIGIN = 0x10000000, LENGTH =  32K
+  ram (rwx) : ORIGIN = 0x10000000, LENGTH =  16K
 }
 
 EXTERN(Reset_Handler)
