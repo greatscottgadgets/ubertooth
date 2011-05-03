@@ -736,6 +736,10 @@ void cc2400_txtest()
 	while (!(cc2400_status() & FS_LOCK));
 	TXLED_SET;
 	cc2400_strobe(STX);
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	// HGM_SET;
+#endif
 	mode = MODE_TX_TEST;
 #endif
 }
