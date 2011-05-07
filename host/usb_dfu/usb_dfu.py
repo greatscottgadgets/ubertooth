@@ -151,7 +151,6 @@ class DFU(object):
         
         while True:
             state = dfu.get_state()
-            print state
             if state == State.dfuIDLE:
                 break
             action = action_map[state]
@@ -211,7 +210,21 @@ def detach(dfu):
         dfu.detach()
     else:
         print 'In unexpected state: %s' % dfu.get_state()
-    
+
+def usage():
+    print("""
+Usage: python usb_dfu.py <command> <arguments>
+
+Write a file to application flash region:
+    python usb_dfu.py write <applicaiton firmware filename>
+
+Read data from application flash region and write to a file:
+    python usb_dfu.py read <filename>
+
+Detach the bootloader and execute the application firmware:
+    python usb_dfu.py detach
+""")
+
 dev = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
 if dev is None:
     raise Exception('Device not found')
@@ -231,6 +244,8 @@ try:
         download(dfu, sys.argv[2], application_offset)
     elif sys.argv[1] == 'detach':
         detach(dfu)
+    else:
+        usage()
 except Exception, e:
     print e
     print dfu.get_status()
