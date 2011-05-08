@@ -191,9 +191,9 @@ bool DFU::request_getstatus(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* pbDa
         }
         
         pbData[0] = get_status();
-        pbData[1] = (get_poll_timeout() >> 16) & 0xFF;
+        pbData[1] = (get_poll_timeout() >>  0) & 0xFF;
         pbData[2] = (get_poll_timeout() >>  8) & 0xFF;
-        pbData[3] = (get_poll_timeout() >>  0) & 0xFF;
+        pbData[3] = (get_poll_timeout() >> 16) & 0xFF;
         pbData[4] = get_state();
         pbData[5] = get_status_string_id();
         *piLen = 6;
