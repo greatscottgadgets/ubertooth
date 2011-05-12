@@ -141,7 +141,7 @@ void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt, int channel)
 	pthread_mutex_lock(&(ubertooth->packet_lock));
 
 	if (ubertooth->packet_queue.size() > 20) {
-		// printf("debug - thread packet queue to big\n");
+		// printf("debug - thread packet queue too big\n");
 	} else {
 		struct PacketSource_Ubertooth::ubertooth_bt_pkt *rpkt =
 				new PacketSource_Ubertooth::ubertooth_bt_pkt;
@@ -231,25 +231,43 @@ void *ubertooth_cap_thread(void *arg)
 				}
 			}
 
-			/* awfully repetitious */
+			/*
+			 * Populate syms with enough symbols to run sniff_ac across one
+			 * bank (BANK_LEN + AC_LEN).
+			 */
 			m = 0;
-			for (j = 0; j < NUM_BANKS; j++)
-				for (k = 0; k < BANK_LEN; k++)
-					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-							% NUM_BANKS][k];
-			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
+			for (j = 0, k = 0; k < BANK_LEN; k++)
+				syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+						% NUM_BANKS][k];
+			for (j = 1, k = 0; k < AC_LEN; k++)
+				syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+						% NUM_BANKS][k];
 
 			r = sniff_ac(syms, BANK_LEN);
 			if  (r > -1) {
+				/*
+				 * Populate syms with the remaining banks.  We don't know how
+				 * long the packet is, so we assume the maximum length.
+				 */
+				for (j = 1, k = AC_LEN; k < BANK_LEN; k++)
+					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+							% NUM_BANKS][k];
+				for (j = 2; j < NUM_BANKS; j++)
+					for (k = 0; k < BANK_LEN; k++)
+						syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+								% NUM_BANKS][k];
 
 				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
 
 				init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+				pkt.clkn = clkn;
+				pkt.channel = ubertooth->channel; //FIXME enqueue arg redundant?
 
 				printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 							ubertooth->channel, pkt.LAP, time + r * 10, clkn);
 				enqueue(ubertooth, &pkt, ubertooth->channel);
 			}
+			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
 		ubertooth->really_full = 0;
 		fflush(stderr);

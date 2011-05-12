@@ -35,8 +35,10 @@ extern "C" {
 
 #define USE_PACKETSOURCE_UBERTOOTH
 
-#define NUM_BANKS 2
-#define BANK_LEN 400
+/* BANK_LEN must be >= AC_LEN */
+#define AC_LEN    72
+#define NUM_BANKS 10
+#define BANK_LEN  400
 
 class PacketSource_Ubertooth : public KisPacketSource {
 public:
