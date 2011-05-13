@@ -130,7 +130,7 @@ protected:
 
 	pthread_mutex_t packet_lock;
 
-	friend void enqueue(PacketSource_Ubertooth *, packet *, int);
+	friend void enqueue(PacketSource_Ubertooth *, packet *);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
 

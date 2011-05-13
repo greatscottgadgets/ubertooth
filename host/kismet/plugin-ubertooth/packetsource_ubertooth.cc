@@ -122,7 +122,7 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
-void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt, int channel)
+void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt)
 {
 	//FIXME should use tun_format() or similar
 	char *data = new char[14];
@@ -147,7 +147,7 @@ void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt, int channel)
 				new PacketSource_Ubertooth::ubertooth_bt_pkt;
 		rpkt->data = data;
 		rpkt->len = len;
-		rpkt->channel = channel;
+		rpkt->channel = pkt->channel;
 
 		ubertooth->packet_queue.push_back(rpkt);
 		if (ubertooth->pending_packet == 0) {
@@ -261,11 +261,11 @@ void *ubertooth_cap_thread(void *arg)
 
 				init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
 				pkt.clkn = clkn;
-				pkt.channel = ubertooth->channel; //FIXME enqueue arg redundant?
+				pkt.channel = ubertooth->channel;
 
 				printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 							ubertooth->channel, pkt.LAP, time + r * 10, clkn);
-				enqueue(ubertooth, &pkt, ubertooth->channel);
+				enqueue(ubertooth, &pkt);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
