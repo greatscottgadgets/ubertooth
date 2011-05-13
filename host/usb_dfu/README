@@ -41,3 +41,9 @@ python usb_dfy.py read <filename.bin>
 To execute the application at 0x4000:
 
 python usb_dfu.py detach
+
+Note for Ubertooth Zero:
+
+The detach command doesn't work properly because the Ubertooth Zero is not
+capable of re-enumerating to the USB host.  Instead of issuing the detach
+command, unplug the Ubertooth Zero from USB and plug it back in.
