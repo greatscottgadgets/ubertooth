@@ -124,18 +124,6 @@ void cb_xfer(struct libusb_transfer *xfer)
 
 void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt)
 {
-	//FIXME should use tun_format() or similar
-	char *data = new char[14];
-	int len = 14;
-	uint32_t lap = pkt->LAP;
-	data[0] = data[1] = data[2] = data[3] = data[4] = data[5] = 0x00;
-	data[6] = data[7] = data[8] = 0x00;
-	data[9] = (lap >> 16) & 0xff;
-	data[10] = (lap >> 8) & 0xff;
-	data[11] = lap & 0xff;
-	data[12] = 0xff;
-	data[13] = 0xf0;
-
 	// Lock the packet queue, throw away when there are more than 20 in the queue
 	// that haven't been handled, raise the file descriptor hot if we need to
 	pthread_mutex_lock(&(ubertooth->packet_lock));
@@ -143,22 +131,14 @@ void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt)
 	if (ubertooth->packet_queue.size() > 20) {
 		// printf("debug - thread packet queue too big\n");
 	} else {
-		struct PacketSource_Ubertooth::ubertooth_bt_pkt *rpkt =
-				new PacketSource_Ubertooth::ubertooth_bt_pkt;
-		rpkt->data = data;
-		rpkt->len = len;
-		rpkt->channel = pkt->channel;
-
-		ubertooth->packet_queue.push_back(rpkt);
+		ubertooth->packet_queue.push_back(pkt);
 		if (ubertooth->pending_packet == 0) {
 			// printf("debug - writing to fakefd\n");
 			ubertooth->pending_packet = 1;
-			write(ubertooth->fake_fd[1], data, 1);
+			write(ubertooth->fake_fd[1], "bogus", 1);
 		}
-
 	}
 	pthread_mutex_unlock(&(ubertooth->packet_lock));
-
 }
 
 // Capture thread to fake async io
@@ -173,7 +153,7 @@ void *ubertooth_cap_thread(void *arg)
 	uint32_t clkn; /* native (local) clock in 625 us */
 	uint8_t clkn_high;
 	char syms[BANK_LEN * NUM_BANKS];
-	packet pkt;
+	packet *pkt = new packet;
 
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
@@ -259,13 +239,13 @@ void *ubertooth_cap_thread(void *arg)
 
 				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
 
-				init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
-				pkt.clkn = clkn;
-				pkt.channel = ubertooth->channel;
+				init_packet(pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+				pkt->clkn = clkn;
+				pkt->channel = ubertooth->channel;
 
 				printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-							ubertooth->channel, pkt.LAP, time + r * 10, clkn);
-				enqueue(ubertooth, &pkt);
+							ubertooth->channel, pkt->LAP, time + r * 10, clkn);
+				enqueue(ubertooth, pkt);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
@@ -372,6 +352,47 @@ int PacketSource_Ubertooth::FetchDescriptor() {
 	return fake_fd[0];
 }
 
+void build_pcap_header(uint8_t* data, uint32_t lap) {
+	data[0] = data[1] = data[2] = data[3] = data[4] = data[5] = 0x00;
+	data[6] = data[7] = data[8] = 0x00;
+	data[9] = (lap >> 16) & 0xff;
+	data[10] = (lap >> 8) & 0xff;
+	data[11] = lap & 0xff;
+	data[12] = 0xff;
+	data[13] = 0xf0;
+}
+
+void build_pcap_payload(uint8_t* data, packet* pkt) {
+	int i;
+
+	if (pkt->have_NAP) {
+		data[6] = (pkt->NAP >> 8) & 0xff;
+		data[7] = pkt->NAP & 0xff;
+	}
+
+	if (pkt->have_UAP)
+		data[8] = pkt->UAP;
+
+	/* meta data */
+	data[14] = pkt->clock & 0xff;
+	data[15] = (pkt->clock >> 8) & 0xff;
+	data[16] = (pkt->clock >> 16) & 0xff;
+	data[17] = (pkt->clock >> 24) & 0xff;
+	data[18] = pkt->channel;
+	data[19] = pkt->have_clk27 | (pkt->have_NAP << 1);
+
+	/* packet header modified to fit byte boundaries */
+	/* lt_addr and type */
+	data[20] = (char) air_to_host8(&pkt->packet_header[0], 7);
+	/* flags */
+	data[21] = (char) air_to_host8(&pkt->packet_header[7], 3);
+	/* HEC */
+	data[22] = (char) air_to_host8(&pkt->packet_header[10], 8);
+
+	for(i=0;i<pkt->payload_length;i++)
+		data[i+23] = (char) air_to_host8(&pkt->payload[i*8], 8);
+}
+
 int PacketSource_Ubertooth::Poll() {
 	char rx;
 
@@ -384,22 +405,29 @@ int PacketSource_Ubertooth::Poll() {
 
 	for (unsigned int x = 0; x < packet_queue.size(); x++) {
 		kis_packet *newpack = globalreg->packetchain->GeneratePacket();
+		packet *pkt = packet_queue[x];
 
 		newpack->ts.tv_sec = globalreg->timestamp.tv_sec;
 		newpack->ts.tv_usec = globalreg->timestamp.tv_usec;
 
 		kis_datachunk *rawchunk = new kis_datachunk;
 
-		rawchunk->length = packet_queue[x]->len;
+//FIXME determine UAP, payload, etc. if possible here
+		rawchunk->length = 14;
+		if (pkt->have_payload)
+			rawchunk->length += 9 + pkt->payload_length;
 		rawchunk->data = new uint8_t[rawchunk->length];
-		memcpy(rawchunk->data, packet_queue[x]->data, rawchunk->length);
+		build_pcap_header(rawchunk->data, pkt->LAP);
+		if (pkt->have_payload)
+			build_pcap_payload(rawchunk->data, pkt);
+
 		rawchunk->source_id = source_id;
 
 		rawchunk->dlt = KDLT_BTBB;
 
 		newpack->insert(_PCM(PACK_COMP_LINKFRAME), rawchunk);
 
-		printf("debug - Got packet chan %d len=%d\n", packet_queue[x]->channel, packet_queue[x]->len);
+		//printf("debug - Got packet lap %06x chan %d len=%d\n", pkt->LAP, pkt->channel, pkt->length);
 
 		num_packets++;
 
@@ -409,9 +437,9 @@ int PacketSource_Ubertooth::Poll() {
 
 		globalreg->packetchain->ProcessPacket(newpack);
 
-		// Delete the temp struct and data
-		delete packet_queue[x]->data;
-		delete packet_queue[x];
+		// Delete the temp struct
+		//FIXME yikes! This should work but doesn't:
+		//delete pkt;
 	}
 
 	// Flush the queue

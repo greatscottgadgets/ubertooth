@@ -84,12 +84,6 @@ public:
 	virtual int FetchDescriptor();
 	virtual int Poll();
 
-	struct ubertooth_bt_pkt {
-		char *data;
-		int len;
-		int channel;
-	};
-
 protected:
 	virtual void FetchRadioData(kis_packet *in_packet) { };
 
@@ -108,7 +102,7 @@ protected:
 	int fake_fd[2];
 
 	// Packet storage, locked with packet_lock
-	vector<struct ubertooth_bt_pkt *> packet_queue;
+	vector<packet *> packet_queue;
     
 	// Pending packet, locked with packet_lock
 	int pending_packet;
@@ -133,7 +127,8 @@ protected:
 	friend void enqueue(PacketSource_Ubertooth *, packet *);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
-
+	friend void build_pcap_header(uint8_t*, uint32_t);
+	friend void build_pcap_payload(uint8_t*, packet*);
 };
 
 #endif
