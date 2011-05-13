@@ -124,7 +124,7 @@ protected:
 
 	pthread_mutex_t packet_lock;
 
-	friend void enqueue(PacketSource_Ubertooth *, packet *);
+	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
 	friend void build_pcap_header(uint8_t*, uint32_t);

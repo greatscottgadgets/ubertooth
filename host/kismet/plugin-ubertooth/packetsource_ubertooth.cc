@@ -122,8 +122,15 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
-void enqueue(PacketSource_Ubertooth *ubertooth, packet *pkt)
+void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t clkn)
 {
+	packet *pkt = new packet;
+	init_packet(pkt, syms, MAX_SYMBOLS);
+	pkt->clkn = clkn;
+	pkt->channel = ubertooth->channel;
+
+	printf("GOT PACKET on channel %d, LAP = %06x at clkn = %u\n",
+			ubertooth->channel, pkt->LAP, clkn);
 	// Lock the packet queue, throw away when there are more than 20 in the queue
 	// that haven't been handled, raise the file descriptor hot if we need to
 	pthread_mutex_lock(&(ubertooth->packet_lock));
@@ -153,7 +160,6 @@ void *ubertooth_cap_thread(void *arg)
 	uint32_t clkn; /* native (local) clock in 625 us */
 	uint8_t clkn_high;
 	char syms[BANK_LEN * NUM_BANKS];
-	packet *pkt = new packet;
 
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
@@ -238,14 +244,7 @@ void *ubertooth_cap_thread(void *arg)
 								% NUM_BANKS][k];
 
 				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
-
-				init_packet(pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
-				pkt->clkn = clkn;
-				pkt->channel = ubertooth->channel;
-
-				printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-							ubertooth->channel, pkt->LAP, time + r * 10, clkn);
-				enqueue(ubertooth, pkt);
+				enqueue(ubertooth, &syms[r], clkn);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
@@ -438,8 +437,7 @@ int PacketSource_Ubertooth::Poll() {
 		globalreg->packetchain->ProcessPacket(newpack);
 
 		// Delete the temp struct
-		//FIXME yikes! This should work but doesn't:
-		//delete pkt;
+		delete pkt;
 	}
 
 	// Flush the queue
