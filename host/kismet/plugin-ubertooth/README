@@ -31,10 +31,9 @@ What it should be able to do in the future:
 1.  What is Kismet-Ubertooth
 
 	Kismet-Ubertooth is a Kismet plugin which provides Bluetooth support in
-	Kismet.  It relies on libbtbb (Bluetooth baseband) which currently resides
-	in the gr-bluetooth repository (http://gr-bluetooth.sourceforge.net/) but
-	does not require GNU Radio.  Kismet-Ubertooth performs passive monitoring
-	of Bluetooth networks using the Ubertooth platform
+	Kismet.  It relies on the Bluetooth baseband library, libbtbb 
+	(http://libbtbb.sourceforge.net/). Kismet-Ubertooth performs passive 
+	monitoring of Bluetooth networks using the Ubertooth platform
 	(http://ubertooth.sourceforge.net/).
 
 	It CAN NOT BE USED with 802.11 wi-fi cards, it is a completely different

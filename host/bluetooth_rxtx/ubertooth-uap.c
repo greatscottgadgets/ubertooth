@@ -151,7 +151,7 @@ int rx_uap(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 				for (k = 0; k < BANK_LEN; k++)
 					syms[m++] = symbols[(j + 1 + bank) % NUM_BANKS][k];
 
-			r = sniff_ac(syms, BANK_LEN);
+			r = find_ac(syms, BANK_LEN, pn.LAP);
 			if  (r > -1) {
 
 				for (j = 2; j < NUM_BANKS; j++)

@@ -1,11 +1,11 @@
 This is host code for use with bluetooth_rxtx firmware.
 
-These tools link to libbtbb from the gr-bluetooth git repository.  Note that
-libbtbb can be compiled and installed separately from the rest of gr-bluetooth
-and does not require GNU Radio to be installed.  Example:
+These tools link to libbtbb (http://libbtbb.sourceforge.net/).  Svn trunk
+should always work the latest git verions of libbtbb.  Libbtbb can be built as
+follows:
 
-$ git clone git://gr-bluetooth.git.sourceforge.net/gitroot/gr-bluetooth/gr-bluetooth
-$ cd gr-bluetooth/src/libbtbb/
+$ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
+$ cd libbtbb/
 $ make
 $ sudo make install
 
