@@ -27,9 +27,11 @@
 #include "config.h"
 
 #include <packetsource.h>
+#include <map>
 
 extern "C" {
 	#include <bluetooth_packet.h>
+	#include <bluetooth_piconet.h>
 	#include "ubertooth.h"
 }
 
@@ -124,11 +126,20 @@ protected:
 
 	pthread_mutex_t packet_lock;
 
+	map<int, piconet> piconets;
+
+	static const uint32_t GIAC = 0x9E8B33;
+	static const uint32_t LIAC = 0x9E8B00;
+
+	void build_pcap_header(uint8_t*, uint32_t);
+	void build_pcap_payload(uint8_t*, packet*);
+	void handle_header(packet*);
+	void decode_pkt(packet*, piconet*);
+
+
 	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
-	friend void build_pcap_header(uint8_t*, uint32_t);
-	friend void build_pcap_payload(uint8_t*, packet*);
 };
 
 #endif

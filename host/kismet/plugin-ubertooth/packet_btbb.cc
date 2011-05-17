@@ -62,10 +62,12 @@ int kis_btbb_dissector(CHAINCALL_PARMS) {
 	pi = new btbb_packinfo();
 
 	pi->type = btbb_type_id;
-	// this is so not the right way to do this
-	pi->lap = chunk->data[9] << 16;
-	pi->lap |= chunk->data[10] << 8;
-	pi->lap |= chunk->data[11];
+	pi->nap = (chunk->data[6] << 8)
+			| chunk->data[7];
+	pi->uap = chunk->data[8];
+	pi->lap = (chunk->data[9] << 16)
+			| (chunk->data[10] << 8)
+			| chunk->data[11];
 
 	//printf("Bluetooth Baseband Packet %d\n", debugno);
 

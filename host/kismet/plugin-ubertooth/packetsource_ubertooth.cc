@@ -351,7 +351,7 @@ int PacketSource_Ubertooth::FetchDescriptor() {
 	return fake_fd[0];
 }
 
-void build_pcap_header(uint8_t* data, uint32_t lap) {
+void PacketSource_Ubertooth::build_pcap_header(uint8_t* data, uint32_t lap) {
 	data[0] = data[1] = data[2] = data[3] = data[4] = data[5] = 0x00;
 	data[6] = data[7] = data[8] = 0x00;
 	data[9] = (lap >> 16) & 0xff;
@@ -361,7 +361,7 @@ void build_pcap_header(uint8_t* data, uint32_t lap) {
 	data[13] = 0xf0;
 }
 
-void build_pcap_payload(uint8_t* data, packet* pkt) {
+void PacketSource_Ubertooth::build_pcap_payload(uint8_t* data, packet* pkt) {
 	int i;
 
 	if (pkt->have_NAP) {
@@ -392,6 +392,58 @@ void build_pcap_payload(uint8_t* data, packet* pkt) {
 		data[i+23] = (char) air_to_host8(&pkt->payload[i*8], 8);
 }
 
+void PacketSource_Ubertooth::handle_header(packet* pkt) {
+	if (piconets.find(pkt->LAP) == piconets.end()) {
+		init_piconet(&piconets[pkt->LAP]);
+		piconets[pkt->LAP].LAP = pkt->LAP;
+	}
+	if (piconets[pkt->LAP].have_clk6 && piconets[pkt->LAP].have_UAP)
+		decode_pkt(pkt, &piconets[pkt->LAP]);
+	else
+		if (UAP_from_header(pkt, &piconets[pkt->LAP]))
+			decode_pkt(pkt, &piconets[pkt->LAP]);
+	/*
+	 * If this is an inquiry response, saving the piconet state will only
+	 * cause problems later.
+	 */
+	if (pkt->LAP == GIAC || pkt->LAP == LIAC)
+		piconets.erase(pkt->LAP);
+}
+
+/* decode packet with header */
+void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
+	pkt->clock = pkt->clkn + pn->clk_offset;
+	if (pn->have_clk27) {
+		pkt->have_clk27 = 1;
+		pkt->clock &= 0x7ffffff;
+	} else {
+		pkt->clock &= 0x3f;
+	}
+	pkt->have_clk6 = 1;
+	pkt->UAP = pn->UAP;
+	pkt->have_UAP = 1;
+
+	decode(pkt);
+
+	if (pkt->have_payload) {
+		print(pkt);
+		if (pn->have_NAP) {
+			pkt->NAP = pn->NAP;
+			pkt->have_NAP = 1;
+		}
+		//FIXME should do something special with FHS packets
+		//if (pkt->packet_type == 2)
+			//fhs(pkt);
+	} else {
+		printf("lost clock!\n");
+		reset(pn);
+
+		/* start rediscovery with this packet */
+		if (UAP_from_header(pkt, pn))
+			decode_pkt(pkt, pn);
+	}
+}
+
 int PacketSource_Ubertooth::Poll() {
 	char rx;
 
@@ -411,7 +463,9 @@ int PacketSource_Ubertooth::Poll() {
 
 		kis_datachunk *rawchunk = new kis_datachunk;
 
-//FIXME determine UAP, payload, etc. if possible here
+		if (header_present(pkt))
+			handle_header(pkt);
+
 		rawchunk->length = 14;
 		if (pkt->have_payload)
 			rawchunk->length += 9 + pkt->payload_length;

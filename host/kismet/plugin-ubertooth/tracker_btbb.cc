@@ -177,8 +177,6 @@ int Tracker_BTBB::chain_handler(kis_packet *in_pack) {
 		net = new btbb_network();
 		net->first_time = globalreg->timestamp.tv_sec;
 		net->lap = lap;
-		/* for now we only ever populate the low 24 bits of BD_ADDR */
-		net->bd_addr.longmac = lap;
 		first_nets[lap] = net;
 
 	} else if (!tracked_nets[lap]) {
@@ -189,6 +187,10 @@ int Tracker_BTBB::chain_handler(kis_packet *in_pack) {
 	} else {
 		net = tracked_nets[lap];
 	}
+	net->bd_addr.longmac =
+			((uint64_t)pi->nap << 32) |
+			((uint32_t)pi->uap << 24) |
+			lap;
 
 	kis_gps_packinfo *gpsinfo = (kis_gps_packinfo *)
 			in_pack->fetch(_PCM(PACK_COMP_GPS));
