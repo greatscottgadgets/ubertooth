@@ -32,6 +32,7 @@
 extern int pack_comp_btbb;
 
 enum BTBBDEV_fields {
+	BTBBDEV_lap,
 	BTBBDEV_bdaddr, BTBBDEV_firsttime,
 	BTBBDEV_lasttime, BTBBDEV_packets,
 	GPS_COMMON_FIELDS(BTBBDEV),
@@ -39,7 +40,7 @@ enum BTBBDEV_fields {
 };
 
 const char *BTBBDEV_fields_text[] = {
-	"bdaddr", "firsttime",
+	"lap", "bdaddr", "firsttime",
 	"lasttime", "packets",
 	GPS_COMMON_FIELDS_TEXT,
 	NULL
@@ -67,6 +68,9 @@ int Protocol_BTBBDEV(PROTO_PARMS) {
 		}
 
 		switch (fnum) {
+			case BTBBDEV_lap:
+				osstr << net->lap;
+				break;
 			case BTBBDEV_bdaddr:
 				// TODO - fix these for endian swaps, output as bytes in a fixed order ?
 				osstr << net->bd_addr.Mac2String();

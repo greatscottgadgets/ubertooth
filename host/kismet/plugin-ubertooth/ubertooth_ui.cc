@@ -40,7 +40,7 @@
 #include "tracker_btbb.h"
 
 const char *btbbdev_fields[] = {
-	"bdaddr", "firsttime",
+	"lap", "bdaddr", "firsttime",
 	"lasttime", "packets",
 	GPS_COMMON_FIELDS_TEXT,
 	NULL
@@ -59,7 +59,7 @@ struct ubertooth_data {
 	int mn_sub_sort, mi_sort_bdaddr, mi_sort_firsttime,
 			mi_sort_lasttime, mi_sort_packets;
 
-	map<mac_addr, btbb_network *> btdev_map;
+	map<uint32_t, btbb_network *> btdev_map;
 	vector<btbb_network *> btdev_vec;
 
 	Kis_Scrollable_Table *btdevlist;
@@ -378,30 +378,34 @@ void UbertoothProtoBTBBDEV(CLIPROTO_CB_PARMS) {
 
 	btbb_network *btn = NULL;
 
+	unsigned int tuint;
+	uint32_t lap;
 	mac_addr ma;
 
-	ma = mac_addr((*proto_parsed)[fnum++].word);
-
-	if (ma.error) {
+	if (sscanf((*proto_parsed)[fnum++].word.c_str(), "%u", &tuint) != 1)
 		return;
-	}
+	lap = tuint;
 
-	map<mac_addr, btbb_network *>::iterator bti;
+	map<uint32_t, btbb_network *>::iterator bti;
 	string tstr;
-	unsigned int tuint;
 	float tfloat;
 	unsigned long tulong;
 
-	if ((bti = ubertooth->btdev_map.find(ma)) == ubertooth->btdev_map.end()) {
+	if ((bti = ubertooth->btdev_map.find(lap)) == ubertooth->btdev_map.end()) {
 		btn = new btbb_network;
-		btn->bd_addr = ma;
+		btn->lap = lap;
 
-		ubertooth->btdev_map[ma] = btn;
+		ubertooth->btdev_map[lap] = btn;
 
 		ubertooth->btdev_vec.push_back(btn);
 	} else {
 		btn = bti->second;
 	}
+
+	ma = mac_addr((*proto_parsed)[fnum++].word);
+	if (ma.error)
+		return;
+	btn->bd_addr = ma;
 
 	if (sscanf((*proto_parsed)[fnum++].word.c_str(), "%u", &tuint) != 1) {
 		return;
