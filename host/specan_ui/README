@@ -1,0 +1,17 @@
+specan_ui.py is a basic spectrum analysis tool for the Ubertooth.
+
+Requirements (or "what I developed with"):
+
+  * libusb 1.0.8
+  * PyUSB 1.0.0-a1
+  * Qt 4.7.3
+  * PySide 1.0.2
+  * Python 2.6.6
+
+It's only been tested on Mac OS X 10.6.7, so far, but *should* execute nicely on other platforms.
+
+Execute with:
+
+$ python specan_ui.py
+
+...and enjoy the show.
