@@ -29,7 +29,7 @@ force the bootloader into DFU mode.  When using pin entry, the bootloader will
 enter DFU mode for only a few seconds and will then execute the application if
 no DFU activity has started during that period.  This allows developers to
 permanently or semi-permanently jumper the pins providing a DFU opportunity on
-every reset.
+every reset.  This method works on Ubertooth One but not Ubertooth Zero.
 
 The bootloader indicates DFU mode by flashing the LEDs in a distinctive
 pattern.  It also identifies itself as "usb_bootloader" on USB.
