@@ -21,3 +21,23 @@ hardware notes:
 
 Ubertooth One schematic and layout files were designed in KiCad, an open source
 electronic design automation package.
+
+order of copper layers:
+	Front
+	Inner3
+	Inner2
+	Back
+
+PCB description: 4 layer PCB 1.6 mm
+	Copper        1   35 um
+	Dielectric  1-2   0.35 mm
+	Copper        2   18 um
+	Dielectric  2-3   0.76 mm
+	Copper        3   18 um
+	Dielectric  3-4   0.35 mm
+	Copper        4   35 um
+DE104iML or equivalent substrate (Er=4.42@2.4GHz TanD=0.016)
+double side solder mask black
+double side silkscreen white
+6 mil min trace width and
+6 mil min isolation
