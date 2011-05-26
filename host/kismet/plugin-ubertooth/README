@@ -17,16 +17,16 @@ What it does:
 * Control one (and only one) Ubertooth Zero or Ubertooth One
 * Monitor one Bluetooth channel
 * Display the LAP of Bluetooth packets
+* Determine and display the UAP of Bluetooth packets
+* Log to pcap file
 
 What it should be able to do in the future:
 
-* Determine and display the UAP of Bluetooth packets
 * Determine the clock of a target piconets
 * Hop along with a target piconet through all channels
 * Control more than one Ubertooth Zero or Ubertooth One
 * Read pcap files
 * Print debug info about packets
-* Log to pcap file
 
 1.  What is Kismet-Ubertooth
 
@@ -63,7 +63,8 @@ What it should be able to do in the future:
 3.  Compiling
 
 	Compiling the Kismet-Ubertooth plugin requires the Kismet source be
-	installed and configured.  The libbtbb library must also be installed.
+	installed and configured.  The libbtbb library (0.5 or higher) and libusb
+	(1.0 or higher) must also be installed.
 
 	By default, Kismet-Ubertooth expects the Kismet source to be in
 	/usr/src/kismet; this can be overridden by setting the KIS_SRC_DIR

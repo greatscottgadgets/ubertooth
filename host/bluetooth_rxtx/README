@@ -1,5 +1,8 @@
 This is host code for use with bluetooth_rxtx firmware.
 
+
+REQUIRED SOFTWARE
+
 These tools link to libbtbb (http://libbtbb.sourceforge.net/).  Svn trunk
 should always work the latest git verions of libbtbb.  Libbtbb can be built as
 follows:
@@ -8,6 +11,13 @@ $ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
 $ cd libbtbb/
 $ make
 $ sudo make install
+
+This software also requires libusb 1.0 or higher:
+
+http://www.libusb.org/
+
+
+THE TOOLS
 
 ubertooth-util: various utility functions including reboot into bootloader DFU
 mode.
