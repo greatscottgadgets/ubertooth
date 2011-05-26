@@ -15,6 +15,9 @@ mode.
 ubertooth-lap: sniffs a single Bluetooth channel and outputs LAPs of observed
 packets.
 
+ubertooth-uap: sniffs a single Bluetooth channel and determines the UAP of the
+device withe the LAP specified on the command line.
+
 ubertooth-dump: dumps a raw Bluetooth symbol stream from an Ubertooth board.
 If you pipe it into xxd, you should see various ones and zeros.  If you pipe it
 into dd, you can find out the transfer rate (should be 1 MB/s).  Timestamps are
