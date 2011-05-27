@@ -66,7 +66,7 @@ if __name__ == '__main__':
         raise Exception('Device not found')
 
     ubertooth = Ubertooth(device)
-    frame_source = ubertooth.specan(2402, 2480)
+    frame_source = ubertooth.specan(2.402e9, 2.480e9)
 
     for frame in frame_source:
         print(frame)
