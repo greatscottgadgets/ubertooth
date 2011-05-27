@@ -5,13 +5,31 @@ Requirements (or "what I developed with"):
   * libusb 1.0.8
   * PyUSB 1.0.0-a1
   * Qt 4.7.3
-  * PySide 1.0.2
+  * PySide 1.0.2 (0.4 will work, but will not be supported for
+    long due to API changes)
   * Python 2.6.6
+  * Numpy 1.3
 
-It's only been tested on Mac OS X 10.6.7, so far, but *should* execute nicely on other platforms.
+Debian/Ubuntu distributions may also require:
+
+  * libusb-dev ("libusb-*-dev" matching your libusb package)
+
+It's only been tested on:
+
+  * Mac OS X 10.6.7
+  * Ubuntu 10.10
+
+...but *should* execute nicely on other platforms.
 
 Execute with:
 
-$ python specan_ui.py
+  $ python specan_ui.py
 
-...and enjoy the show.
+...and enjoy the show. On Linux, you may need to do this instead:
+
+  $ sudo python specan_ui.py
+
+...or you can set up udev to allow access to the Ubertooth for non-administrative users. See the "Getting Started" section of the
+Ubertooth project Web page for more details:
+
+  http://ubertooth.sourceforget.net/

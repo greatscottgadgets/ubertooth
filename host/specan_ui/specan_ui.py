@@ -21,8 +21,13 @@
 
 import sys
 import threading
+
+import numpy
+
 import usb.core
+
 from PySide import QtCore, QtGui
+from PySide.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 
@@ -53,7 +58,9 @@ class SpecanThread(threading.Thread):
 class RenderArea(QtGui.QWidget):
     def __init__(self, device, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        
         self._graph = None
+        self._reticle = None
         
         self._device = device
         self._frame = None
@@ -63,6 +70,7 @@ class RenderArea(QtGui.QWidget):
         
         self._low_frequency = 2.400e9
         self._high_frequency = 2.483e9
+        self._frequency_step = 1e6
         self._high_dbm = 0.0
         self._low_dbm = -100.0
         
@@ -77,13 +85,16 @@ class RenderArea(QtGui.QWidget):
     
     def _new_graph(self):
         self._graph = QtGui.QPixmap(self.width(), self.height())
-        self._graph.fill(QtGui.QColor(0, 0, 0))
+        self._graph.fill(Qt.black)
+    
+    def _new_reticle(self):
+        self._reticle = QtGui.QPixmap(self.width(), self.height())
+        self._reticle.fill(Qt.transparent)
     
     def minimumSizeHint(self):
-        return QtCore.QSize(400, 200)
-    
-    def sizeHint(self):
-        return QtCore.QSize(800, 200)
+        x_points = round((self._high_frequency - self._low_frequency) / self._frequency_step)
+        y_points = round(self._high_dbm - self._low_dbm)
+        return QtCore.QSize(x_points * 4, y_points * 1)
     
     def _new_frame(self, frame):
         self._frame = frame
@@ -97,8 +108,7 @@ class RenderArea(QtGui.QWidget):
         elif self._graph.size() != self.size():
             self._new_graph()
         
-        painter = QtGui.QPainter()
-        painter.begin(self._graph)
+        painter = QtGui.QPainter(self._graph)
         try:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             painter.fillRect(0, 0, self._graph.width(), self._graph.height(), QtGui.QColor(0, 0, 0, 10))
@@ -125,17 +135,55 @@ class RenderArea(QtGui.QWidget):
                         path_now.lineTo(x, y_now)
                         path_max.lineTo(x, y_max)
                 
-                painter.setPen(QtGui.QColor(255, 255, 255))
+                painter.setPen(Qt.white)
                 painter.drawPath(path_now)
                 self._path_max = path_max
         finally:
             painter.end()
+            
+    def _draw_reticle(self):
+        if self._reticle is None or (self._reticle.size() != self.size()):
+            self._new_reticle()
+            
+            dbm_lines = [QLineF(self._hz_to_x(self._low_frequency), self._dbm_to_y(dbm),
+                                self._hz_to_x(self._high_frequency), self._dbm_to_y(dbm))
+                         for dbm in numpy.arange(self._low_dbm, self._high_dbm, 20.0)]
+            dbm_labels = [(dbm, QPointF(self._hz_to_x(self._low_frequency) + 2, self._dbm_to_y(dbm) - 2))
+                          for dbm in numpy.arange(self._low_dbm, self._high_dbm, 20.0)]
+            
+            frequency_lines = [QLineF(self._hz_to_x(frequency), self._dbm_to_y(self._high_dbm),
+                                      self._hz_to_x(frequency), self._dbm_to_y(self._low_dbm))
+                               for frequency in numpy.arange(self._low_frequency, self._high_frequency, self._frequency_step * 10.0)]
+            frequency_labels = [(frequency, QPointF(self._hz_to_x(frequency) + 2, self._dbm_to_y(self._high_dbm) + 10))
+                                for frequency in numpy.arange(self._low_frequency, self._high_frequency, self._frequency_step * 10.0)]
+            
+            painter = QtGui.QPainter(self._reticle)
+            try:
+                painter.setRenderHint(QtGui.QPainter.Antialiasing)
+                
+                painter.setPen(Qt.blue)
+                
+                # TODO: Removed to support old (<1.0) PySide API in Ubuntu 10.10
+                #painter.drawLines(dbm_lines)
+                for dbm_line in dbm_lines: painter.drawLine(dbm_line)
+                # TODO: Removed to support old (<1.0) PySide API in Ubuntu 10.10
+                #painter.drawLines(frequency_lines)
+                for frequency_line in frequency_lines: painter.drawLine(frequency_line)
+                
+                painter.setPen(Qt.white)
+                for dbm, point in dbm_labels:
+                    painter.drawText(point, '%+.0f' % dbm)
+                for frequency, point in frequency_labels:
+                    painter.drawText(point, '%.0f' % (frequency / 1e6))
+                    
+            finally:
+                painter.end()
     
     def paintEvent(self, event):
         self._draw_graph()
+        self._draw_reticle()
         
-        painter = QtGui.QPainter()
-        painter.begin(self)
+        painter = QtGui.QPainter(self)
         try:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             painter.setPen(QtGui.QPen())
@@ -145,13 +193,12 @@ class RenderArea(QtGui.QWidget):
                 painter.drawPixmap(0, 0, self._graph)
             
             if self._path_max:
-                painter.setPen(QtGui.QColor(000, 255, 000))
+                painter.setPen(Qt.green)
                 painter.drawPath(self._path_max)
-            
-            painter.setPen(QtGui.QColor(255, 0, 0))
-            for dbm in range(int(self._low_dbm), int(self._high_dbm), 20):
-                painter.drawLine(self._hz_to_x(self._low_frequency), self._dbm_to_y(dbm),
-                                 self._hz_to_x(self._high_frequency), self._dbm_to_y(dbm))
+
+            painter.setOpacity(0.5)
+            if self._reticle:
+                painter.drawPixmap(0, 0, self._reticle)
         finally:
             painter.end()
 
@@ -176,11 +223,15 @@ class Window(QtGui.QWidget):
         self.render_area = RenderArea(self._device)
 
         main_layout = QtGui.QGridLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.render_area, 0, 0)
         self.setLayout(main_layout)
         
-        self.setWindowTitle("Ubertooth One Spectrum Analyzer")
+        self.setWindowTitle("Ubertooth Spectrum Analyzer")
 
+    def sizeHint(self):
+        return QtCore.QSize(480, 160)
+    
     def _open_device(self):
         device = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
         if device is None:
