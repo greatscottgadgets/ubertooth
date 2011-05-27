@@ -60,7 +60,7 @@ either adding your user account to the &quot;usb&quot; group or by creating a ne
 rule:</p>
 
 <code>$ echo 'ACTION==&quot;add&quot; BUS==&quot;usb&quot; SYSFS{idVendor}==&quot;ffff&quot;
-SYSFS{idProduct}==&quot;0004&quot; GROUP:=&quot;ubertooth&quot; MODE:=&quot;0660&quot; &gt;
+SYSFS{idProduct}==&quot;0004&quot; GROUP:=&quot;ubertooth&quot; MODE:=&quot;0660&quot;' &gt;
 /etc/udev/rules.d/40-ubertooth.rules</code>
 
 <p>You can either create an &quot;ubertooth&quot; group to match this rule or change the
