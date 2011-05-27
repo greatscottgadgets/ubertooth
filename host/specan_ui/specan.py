@@ -30,6 +30,7 @@ from array import array
 class Ubertooth(object):
     def __init__(self, device):
         self._device = device
+        self._device.default_timeout = 3000
         self._device.set_configuration()
 
     def _cmd_specan(self, low_frequency, high_frequency):
