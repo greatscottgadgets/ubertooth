@@ -254,7 +254,7 @@ static const u8 abDescriptors[] = {
 	0x09,
 	DESC_CONFIGURATION,
 	LE_WORD(0x20),  		// wTotalLength
-	0x02,  					// bNumInterfaces
+	0x01,  					// bNumInterfaces
 	0x01,  					// bConfigurationValue
 	0x00,  					// iConfiguration
 	0x80,  					// bmAttributes
