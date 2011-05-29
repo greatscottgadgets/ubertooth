@@ -228,6 +228,7 @@ Detach the bootloader and execute the application firmware:
 dev = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
 if dev is None:
     raise Exception('Device not found')
+dev.default_timeout = 3000
 dfu = DFU(dev)
 
 dfu.enter_dfu_mode()
