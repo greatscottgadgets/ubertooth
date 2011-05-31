@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"fiprstla::")) != EOF) {
+	while ((opt=getopt(argc,argv,"fiprstl::a::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
