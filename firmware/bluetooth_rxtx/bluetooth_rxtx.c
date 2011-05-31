@@ -114,7 +114,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_ISP     = 24,
 	UBERTOOTH_FLASH       = 25,
 	BOOTLOADER_FLASH      = 26, /* do not implement */
-	UBERTOOTH_SPECAN      = 27
+	UBERTOOTH_SPECAN      = 27,
+	UBERTOOTH_GET_PALEVEL = 28,
+	UBERTOOTH_SET_PALEVEL = 29,
 };
 
 enum operating_modes {
@@ -483,6 +485,19 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 #ifdef TX_ENABLE
 	case UBERTOOTH_TX_TEST:
 		requested_mode = MODE_TX_TEST;
+		break;
+
+	case UBERTOOTH_GET_PALEVEL:
+		pbData[0] = cc2400_get(FREND) & 0x7;
+		*piLen = 1;
+		break;
+
+	case UBERTOOTH_SET_PALEVEL:
+		if( pSetup->wValue < 8 ) {
+			cc2400_set(FREND, 8 | pSetup->wValue);
+		} else {
+			return FALSE;
+		}
 		break;
 #endif
 

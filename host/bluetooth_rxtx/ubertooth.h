@@ -65,7 +65,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_ISP     = 24,
 	UBERTOOTH_FLASH       = 25,
 	BOOTLOADER_FLASH      = 26,
-	UBERTOOTH_SPECAN      = 27
+	UBERTOOTH_SPECAN      = 27,
+	UBERTOOTH_GET_PALEVEL = 28,
+	UBERTOOTH_SET_PALEVEL = 29,
 };
 
 enum modulations {
@@ -105,5 +107,7 @@ int cmd_reset(struct libusb_device_handle* devh);
 int cmd_set_paen(struct libusb_device_handle* devh, u16 state);
 int cmd_set_hgm(struct libusb_device_handle* devh, u16 state);
 int cmd_tx_test(struct libusb_device_handle* devh);
+int cmd_get_palevel(struct libusb_device_handle* devh);
+int cmd_set_palevel(struct libusb_device_handle* devh, u16 level);
 
 #endif

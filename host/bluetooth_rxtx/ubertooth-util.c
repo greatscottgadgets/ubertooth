@@ -35,6 +35,8 @@ static void usage()
 	printf("\t-p get microcontroller Part ID\n");
 	printf("\t-s get microcontroller serial number\n");
 	printf("\t-t intitiate continuous transmit test\n");
+	printf("\t-a get power amplifier level\n");
+	printf("\t-a[0-7] set power amplifier level\n");
 }
 
 int main(int argc, char *argv[])
@@ -46,7 +48,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"fiprstl::")) != EOF) {
+	while ((opt=getopt(argc,argv,"fiprstla::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -71,6 +73,16 @@ int main(int argc, char *argv[])
 			break;
 		case 't':
 			r = cmd_tx_test(devh);
+			break;
+		case 'a':
+			if (optarg) {
+				r = cmd_set_palevel(devh, atoi(optarg));
+			} else {
+				r = cmd_get_palevel(devh);
+				if (r >= 0) {
+					printf("PA level: %d\n", r);
+				}
+			}
 			break;
 		default:
 			usage();

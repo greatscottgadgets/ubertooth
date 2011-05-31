@@ -392,3 +392,36 @@ int cmd_flash(struct libusb_device_handle* devh)
 	}
 	return 0;
 }
+
+int cmd_get_palevel(struct libusb_device_handle* devh) {
+	u8 level;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_PALEVEL, 0, 0,
+			&level, sizeof(level), 3000);
+	if (r != LIBUSB_SUCCESS) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			fprintf(stderr, "command error %d\n", r);
+		}
+		return r;
+	}
+	return level;
+}
+
+int cmd_set_palevel(struct libusb_device_handle* devh, u16 level) {
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_PALEVEL, level, 0,
+			NULL, 0, 3000);
+	if (r != LIBUSB_SUCCESS) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			fprintf(stderr, "command error %d\n", r);
+		}
+		return r;
+	}
+	return 0;
+}
