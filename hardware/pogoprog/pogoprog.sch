@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Mon Dec 27 10:34:05 2010
+EESchema Schematic File Version 2  date Wed Jun  1 22:59:22 2011
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -31,12 +31,12 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:pogoprog-cache
-EELAYER 24  0
+EELAYER 25  0
 EELAYER END
 $Descr A4 11700 8267
 Sheet 1 1
 Title "Ubertooth Pogoprog"
-Date "27 dec 2010"
+Date "2 jun 2011"
 Rev "$Rev$"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -158,6 +158,9 @@ U 1 1 4CDDCB6A
 P 6500 5400
 F 0 "J1" H 6500 5700 60  0000 C CNN
 F 1 "USB-MINI-B" H 6500 5050 60  0000 C CNN
+F 4 "Kobiconn" H 6500 5400 60  0001 C CNN "Field1"
+F 5 "154-15320-E" H 6500 5400 60  0001 C CNN "Field2"
+F 6 "USB & Firewire Connectors 5 PIN B TYPE CON RT ANGLE SMT" H 6500 5400 60  0001 C CNN "Field6"
 	1    6500 5400
 	0    1    1    0   
 $EndComp
@@ -167,6 +170,9 @@ U 1 1 4CDDB3EB
 P 7250 4300
 F 0 "C2" H 7300 4400 50  0000 L CNN
 F 1 "10μF" H 7300 4200 50  0000 L CNN
+F 4 "Kemet" H 7250 4300 60  0001 C CNN "Field1"
+F 5 "B45196H2106K109" H 7250 4300 60  0001 C CNN "Field2"
+F 6 "Tantalum Capacitors - Solid SMD 10volts 10uF 10%" H 7250 4300 60  0001 C CNN "Field3"
 	1    7250 4300
 	1    0    0    -1  
 $EndComp
@@ -194,6 +200,9 @@ U 1 1 4CDDB263
 P 7550 4300
 F 0 "C3" H 7600 4400 50  0000 L CNN
 F 1 "100nF" H 7600 4200 50  0000 L CNN
+F 4 "TDK" H 7550 4300 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 7550 4300 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 7550 4300 60  0001 C CNN "Field3"
 	1    7550 4300
 	1    0    0    -1  
 $EndComp
@@ -212,6 +221,9 @@ U 1 1 4CDDA7E7
 P 6800 4600
 F 0 "C1" H 6850 4700 50  0000 L CNN
 F 1 "100nF" H 6850 4500 50  0000 L CNN
+F 4 "TDK" H 6800 4600 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 6800 4600 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 6800 4600 60  0001 C CNN "Field3"
 	1    6800 4600
 	1    0    0    -1  
 $EndComp
@@ -372,6 +384,9 @@ U 1 1 4CDDA631
 P 7100 2950
 F 0 "R4" V 7180 2950 50  0000 C CNN
 F 1 "330" V 7100 2950 50  0000 C CNN
+F 4 "Bourns" V 7100 2950 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" V 7100 2950 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" V 7100 2950 60  0001 C CNN "Field3"
 	1    7100 2950
 	1    0    0    -1  
 $EndComp
@@ -381,6 +396,9 @@ U 1 1 4CDDA629
 P 6800 2950
 F 0 "R3" V 6880 2950 50  0000 C CNN
 F 1 "330" V 6800 2950 50  0000 C CNN
+F 4 "Bourns" V 6800 2950 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" V 6800 2950 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" V 6800 2950 60  0001 C CNN "Field3"
 	1    6800 2950
 	1    0    0    -1  
 $EndComp
@@ -390,6 +408,9 @@ U 1 1 4CDDA621
 P 7100 3500
 F 0 "D2" H 7100 3600 50  0000 C CNN
 F 1 "RXLED" H 7100 3400 50  0000 C CNN
+F 4 "Kingbright" H 7100 3500 60  0001 C CNN "Field1"
+F 5 "APT1608EC" H 7100 3500 60  0001 C CNN "Field2"
+F 6 "Standard LED - SMD HI EFF RED WTR CLR" H 7100 3500 60  0001 C CNN "Field3"
 	1    7100 3500
 	0    1    1    0   
 $EndComp
@@ -399,6 +420,9 @@ U 1 1 4CDDA608
 P 6800 3500
 F 0 "D1" H 6800 3600 50  0000 C CNN
 F 1 "TXLED" H 6800 3400 50  0000 C CNN
+F 4 "Kingbright" H 6800 3500 60  0001 C CNN "Field1"
+F 5 "APT1608SGC" H 6800 3500 60  0001 C CNN "Field2"
+F 6 "Standard LED - SMD GREEN WATER CLEAR" H 6800 3500 60  0001 C CNN "Field3"
 	1    6800 3500
 	0    1    1    0   
 $EndComp
@@ -408,6 +432,9 @@ U 1 1 4CDDA5D6
 P 5750 3850
 F 0 "U1" H 5750 4600 60  0000 C CNN
 F 1 "FT232RL" H 5750 3100 60  0000 C CNN
+F 4 "FTDI" H 5750 3850 60  0001 C CNN "Field1"
+F 5 "FT232RL" H 5750 3850 60  0001 C CNN "Field2"
+F 6 "USB Interface IC USB to Serial UART Enhanced IC SSOP-28" H 5750 3850 60  0001 C CNN "Field3"
 	1    5750 3850
 	1    0    0    -1  
 $EndComp
