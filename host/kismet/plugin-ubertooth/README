@@ -77,14 +77,12 @@ What it should be able to do in the future:
 
 	Kismet plugins may be installed system-wide in the plugins directory (by
 	default, /usr/local/lib/kismet/) or in the users home directory
-	(~/.kismet/plugins)
+	(~/.kismet/plugins).
 
-	The default installation path can be overridden with the KIS_DEST_DIR
-	variable if you have not installed Kismet in the default location and
-	wish to install the plugin in the system-wide plugins directory:
+	To install in the system-wide directory:
 
         cd plugin-ubertooth
-        KIS_DEST_DIR=/usr KIS_SRC_DIR=/home/foo/src/kismet make install
+        KIS_SRC_DIR=/home/foo/src/kismet make install
 
     Plugins can be installed in the current users home directory with:
 
