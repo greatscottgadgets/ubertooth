@@ -26,6 +26,7 @@ import struct
 import sys
 import time
 from array import array
+import numpy
 
 class Ubertooth(object):
     def __init__(self, device):
@@ -34,15 +35,25 @@ class Ubertooth(object):
         self._device.set_configuration()
 
     def _cmd_specan(self, low_frequency, high_frequency):
+        low_frequency = int(round(low_frequency / 1e6))
+        high_frequency = int(round(high_frequency / 1e6))
         self._device.ctrl_transfer(0x40, 27, low_frequency, high_frequency)
 
     def specan(self, low_frequency, high_frequency):
-        low_frequency = int(round(low_frequency / 1e6))
-        high_frequency = int(round(high_frequency / 1e6))
+        spacing_hz = 1e6
+        bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
+        frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
+        frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(len(frequency_axis))))
+        
         self._cmd_specan(low_frequency, high_frequency)
-
-        frame = {}
+        
+        default_raw_rssi = -128
+        rssi_offset = -54
+        rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
+        rssi_values.fill(default_raw_rssi + rssi_offset)
+        
         data = array('B')
+        last_index = None
         while True:
             buffer = self._device.read(0x82, 64)
             data += buffer
@@ -53,12 +64,13 @@ class Ubertooth(object):
                 clk_seconds = float(clk) * 100e-9
                 while len(block) >= 3:
                     item, block = block[:3], block[3:]
-                    frequency, rssi = struct.unpack('>Hb', item)
-                    if frequency in frame:
-                        frame_units = dict(((frequency * 1e6, rssi - 54) for frequency, rssi in frame.items()))
-                        yield frame_units
-                        frame = {}
-                    frame[frequency] = rssi
+                    frequency, raw_rssi_value = struct.unpack('>Hb', item)
+                    index = frequency_index_map[frequency]
+                    if index == 0:
+                        # We started a new frame, send the existing frame
+                        yield (frequency_axis, rssi_values)
+                        rssi_values.fill(default_raw_rssi + rssi_offset)
+                    rssi_values[index] = raw_rssi_value + rssi_offset
 
 if __name__ == '__main__':
     device = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)

@@ -45,8 +45,8 @@ class SpecanThread(threading.Thread):
 
     def run(self):
         frame_source = self._device.specan(self._low_frequency, self._high_frequency)
-        for frame in frame_source:
-            self._new_frame_callback(frame)
+        for frequency_axis, rssi_values in frame_source:
+            self._new_frame_callback(numpy.copy(frequency_axis), numpy.copy(rssi_values))
             if self._stop:
                 break
             
@@ -64,7 +64,7 @@ class RenderArea(QtGui.QWidget):
         
         self._device = device
         self._frame = None
-        self._persisted_frames = []
+        self._persisted_frames = None
         self._persisted_frames_depth = 350
         self._path_max = None
         
@@ -90,16 +90,23 @@ class RenderArea(QtGui.QWidget):
     def _new_reticle(self):
         self._reticle = QtGui.QPixmap(self.width(), self.height())
         self._reticle.fill(Qt.transparent)
+        
+    def _new_persisted_frames(self, frequency_bins):
+        self._persisted_frames = numpy.empty((self._persisted_frames_depth, frequency_bins))
+        self._persisted_frames.fill(-128 + -54)
+        self._persisted_frames_next_index = 0
     
     def minimumSizeHint(self):
         x_points = round((self._high_frequency - self._low_frequency) / self._frequency_step)
         y_points = round(self._high_dbm - self._low_dbm)
         return QtCore.QSize(x_points * 4, y_points * 1)
     
-    def _new_frame(self, frame):
-        self._frame = frame
-        self._persisted_frames.append(self._frame)
-        self._persisted_frames = self._persisted_frames[-self._persisted_frames_depth:]
+    def _new_frame(self, frequency_axis, rssi_values):
+        self._frame = (frequency_axis, rssi_values)
+        if self._persisted_frames is None:
+            self._new_persisted_frames(len(frequency_axis))
+        self._persisted_frames[self._persisted_frames_next_index] = rssi_values
+        self._persisted_frames_next_index = (self._persisted_frames_next_index + 1) % self._persisted_frames.shape[0]
         self.update()
     
     def _draw_graph(self):
@@ -112,19 +119,22 @@ class RenderArea(QtGui.QWidget):
         try:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             painter.fillRect(0, 0, self._graph.width(), self._graph.height(), QtGui.QColor(0, 0, 0, 10))
-                
+            
             if self._frame:
+                frequency_axis, rssi_values = self._frame
+                
                 path_now = QtGui.QPainterPath()
                 path_max = QtGui.QPainterPath()
                 
                 first_point = True
-                for frequency_hz in sorted(self._frame):
+                for bin in range(len(frequency_axis)):
+                    frequency_hz = frequency_axis[bin]
                     x = self._hz_to_x(frequency_hz)
 
-                    rssi_dbm_now = self._frame[frequency_hz]
+                    rssi_dbm_now = rssi_values[bin]
                     y_now = self._dbm_to_y(rssi_dbm_now)
                     
-                    rssi_dbm_max = max([frame[frequency_hz] for frame in self._persisted_frames if frequency_hz in frame])
+                    rssi_dbm_max = max(self._persisted_frames[...,bin])
                     y_max = self._dbm_to_y(rssi_dbm_max)
                     
                     if first_point:
