@@ -126,24 +126,20 @@ class RenderArea(QtGui.QWidget):
                 path_now = QtGui.QPainterPath()
                 path_max = QtGui.QPainterPath()
                 
-                first_point = True
-                for bin in range(len(frequency_axis)):
-                    frequency_hz = frequency_axis[bin]
-                    x = self._hz_to_x(frequency_hz)
-
-                    rssi_dbm_now = rssi_values[bin]
-                    y_now = self._dbm_to_y(rssi_dbm_now)
-                    
-                    rssi_dbm_max = max(self._persisted_frames[...,bin])
-                    y_max = self._dbm_to_y(rssi_dbm_max)
-                    
-                    if first_point:
-                        path_now.moveTo(x, y_now)
-                        path_max.moveTo(x, y_max)
-                        first_point = False
-                    else:
-                        path_now.lineTo(x, y_now)
-                        path_max.lineTo(x, y_max)
+                bins = range(len(frequency_axis))
+                x_axis = self._hz_to_x(frequency_axis)
+                y_now = self._dbm_to_y(rssi_values)
+                y_max = self._dbm_to_y(numpy.amax(self._persisted_frames, axis=0))
+                
+                # TODO: Wrapped Numpy types with float() to support old (<1.0) PySide API in Ubuntu 10.10
+                path_now.moveTo(float(x_axis[0]), float(y_now[0]))
+                for i in bins:
+                    path_now.lineTo(float(x_axis[i]), float(y_now[i]))
+                
+                # TODO: Wrapped Numpy types with float() to support old (<1.0) PySide API in Ubuntu 10.10
+                path_max.moveTo(float(x_axis[0]), float(y_max[0]))
+                for i in bins:
+                    path_max.lineTo(float(x_axis[i]), float(y_max[i]))
                 
                 painter.setPen(Qt.white)
                 painter.drawPath(path_now)
