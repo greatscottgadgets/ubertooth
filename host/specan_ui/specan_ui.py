@@ -246,6 +246,7 @@ class Window(QtGui.QWidget):
     
     def closeEvent(self, event):
         self.render_area.stop_thread()
+        self._device.close()
         event.accept()
 
 if __name__ == '__main__':

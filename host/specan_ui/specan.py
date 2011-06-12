@@ -29,15 +29,20 @@ from array import array
 import numpy
 
 class Ubertooth(object):
+    STATE_IDLE   = 0
+    STATE_ACTIVE = 1
+    
     def __init__(self, device):
         self._device = device
         self._device.default_timeout = 3000
         self._device.set_configuration()
+        self._state = self.STATE_IDLE
 
     def _cmd_specan(self, low_frequency, high_frequency):
         low_frequency = int(round(low_frequency / 1e6))
         high_frequency = int(round(high_frequency / 1e6))
         self._device.ctrl_transfer(0x40, 27, low_frequency, high_frequency)
+        self._state = self.STATE_ACTIVE
 
     def specan(self, low_frequency, high_frequency):
         spacing_hz = 1e6
@@ -71,7 +76,12 @@ class Ubertooth(object):
                         yield (frequency_axis, rssi_values)
                         rssi_values.fill(default_raw_rssi + rssi_offset)
                     rssi_values[index] = raw_rssi_value + rssi_offset
-
+                    
+    def close(self):
+        if self._state != self.STATE_IDLE:
+            self._device.ctrl_transfer(0x40, 21)
+            self._state = self.STATE_IDLE
+    
 if __name__ == '__main__':
     device = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
     if device is None:
@@ -80,5 +90,10 @@ if __name__ == '__main__':
     ubertooth = Ubertooth(device)
     frame_source = ubertooth.specan(2.402e9, 2.480e9)
 
-    for frame in frame_source:
-        print(frame)
+    try:
+        for frame in frame_source:
+            print(frame)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ubertooth.close()
