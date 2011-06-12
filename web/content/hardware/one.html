@@ -49,11 +49,32 @@ source electronic design automation software package, with surface mount
 components suitable for <a
 href="http://www.sparkfun.com/tutorials/59">reflow</a>.
 
-<h2>diagram</h2>
+<h2>pins and LEDs</h2>
 
 <img src="../../images/u1_roadmap.png" alt="Ubertooth One diagram" />
 
-<p>This diagram shows the location of LEDs and the pins of the expansion connector.</p>
+<p>This diagram shows the location of LEDs and the pins of the expansion
+connector.</p>
+
+<p>LED guide:</p>
+
+<ul>
+	<li>RST: indicates that the LPC175x is powered on. This should always be on
+	during operation except during a full reset of the LPC175x (e.g., while
+	entering ISP mode).</li>
+	<li>1V8: indicates that the CC2400 is being supplied with 1.8 V. Control of
+	this supply depends on firmware. 1V8 power is required to activate the
+	crystal oscillator which is required to activate USB.</li>
+	<li>USB: indicates that USB has passed enumeration and configuration.</li>
+	<li>TX: Control of this LED depends on firmware. It typically indicates
+	radio transmission.</li>
+	<li>RX: Control of this LED depends on firmware. It typically indicates
+	radio reception.</li>
+	<li>USR: Control of this LED depends on firmware.</li>
+</ul>
+
+<p>The TX, RX, and USR LEDs blink in a distinctive chasing pattern when the
+bootloader is ready to accept USB DFU commands.</p>
 
 <h2>demonstration</h2>
 
