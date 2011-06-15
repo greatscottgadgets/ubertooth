@@ -1,4 +1,4 @@
-USB DFU uploader/downloader
+Ubertooth USB DFU uploader/downloader
 
 Jared Boone, 2011/04/10
 
@@ -32,15 +32,15 @@ Usage:
 
 To download code into a device, starting at flash address 0x4000:
 
-python usb_dfu.py write <filename.bin>
+    ubertooth-dfu write <filename.bin>
 
 To upload code from a device, starting at flash address 0x4000:
 
-python usb_dfy.py read <filename.bin>
+    ubertooth-dfu read <filename.bin>
 
 To execute the application at 0x4000:
 
-python usb_dfu.py detach
+    ubertooth-dfu detach
 
 Note for Ubertooth Zero:
 
