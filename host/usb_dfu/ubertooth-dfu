@@ -169,18 +169,22 @@ def download(dfu, path, flash_address):
     assert block_number * block_size == flash_address
 
     f = open(path, 'rb')
-    data = f.read()
 
-    while len(data) > 0:
-        packet, data = data[:block_size], data[block_size:]
-        if len(packet) < block_size:
-            packet += '\xFF' * (block_size - len(packet))
-        dfu.download(block_number, packet)
-        status, timeout, state, discarded = dfu.get_status()
-        #print '%08x' % (block_number * block_size), status, state
-        block_number += 1
+    try:
+        data = f.read()
 
-    f.close()
+        while len(data) > 0:
+            packet, data = data[:block_size], data[block_size:]
+            if len(packet) < block_size:
+                packet += '\xFF' * (block_size - len(packet))
+            dfu.download(block_number, packet)
+            status, timeout, state, discarded = dfu.get_status()
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            block_number += 1
+    finally:
+        f.close()
+        print
 
 def upload(dfu, flash_address, length, path):
     block_size = 1 << 8
@@ -191,63 +195,85 @@ def upload(dfu, flash_address, length, path):
     assert block_number * block_size == flash_address
 
     f = open(path, 'wb')
-    
-    while length > 0:
-        data = dfu.upload(block_number, block_size)
-        status, timeout, state, discarded = dfu.get_status()
-        print '%08x' % (block_number * block_size), status, state
-        if len(data) == block_size:
-            f.write(data)
-        else:
-            raise Exception('Upload failed to read full block')
-        block_number += 1
-        length -= len(data)
-
-    f.close()
+   
+    try:
+        while length > 0:
+            data = dfu.upload(block_number, block_size)
+            status, timeout, state, discarded = dfu.get_status()
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            if len(data) == block_size:
+                f.write(data)
+            else:
+                raise Exception('Upload failed to read full block')
+            block_number += 1
+            length -= len(data)
+    finally:
+        f.close()
+        print
 
 def detach(dfu):
     if dfu.get_state() == State.dfuIDLE:
         dfu.detach()
+        print('Detached')
     else:
         print 'In unexpected state: %s' % dfu.get_state()
 
 def usage():
     print("""
-Usage: python usb_dfu.py <command> <arguments>
+Usage: ubertooth-dfu <command> <arguments>
 
 Write a file to application flash region:
-    python usb_dfu.py write <applicaiton firmware filename>
+    ubertooth-dfu write <application firmware filename>
 
 Read data from application flash region and write to a file:
-    python usb_dfu.py read <filename>
+    ubertooth-dfu read <filename>
 
 Detach the bootloader and execute the application firmware:
-    python usb_dfu.py detach
+    ubertooth-dfu detach
 """)
 
-dev = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
-if dev is None:
-    raise Exception('Device not found')
-dev.default_timeout = 3000
-dfu = DFU(dev)
-
-dfu.enter_dfu_mode()
-
-bootloader_offset = 0x0
-bootloader_size = 0x4000
-application_offset = bootloader_offset + bootloader_size
-application_size = (512 * 1024) - application_offset
-
 try:
-    if sys.argv[1] == 'read':
-        upload(dfu, application_offset, application_size, sys.argv[2])
-    elif sys.argv[1] == 'write':
-        download(dfu, sys.argv[2], application_offset)
-    elif sys.argv[1] == 'detach':
-        detach(dfu)
+    dev = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
+    if dev is None:
+        raise RuntimeError('Device not found')
+    dev.default_timeout = 3000
+    dfu = DFU(dev)
+
+    try:
+        dfu.enter_dfu_mode()
+    except usb.core.USBError, e:
+        if len(e.args) > 0:
+            if e.args[0] == 'Pipe error':
+                raise RuntimeError('Failed to enter DFU mode. Is bootloader running?')
+            else:
+                raise e
+        else:
+            raise e
+
+    bootloader_offset = 0x0
+    bootloader_size = 0x4000
+    application_offset = bootloader_offset + bootloader_size
+    application_size = (256 * 1024) - application_offset
+
+    if len(sys.argv) == 3:
+        if sys.argv[1] == 'read':
+            upload(dfu, application_offset, application_size, sys.argv[2])
+            print('Read complete')
+        elif sys.argv[1] == 'write':
+            download(dfu, sys.argv[2], application_offset)
+            print('Write complete')
+        else:
+            usage()
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == 'detach':
+            detach(dfu)
+        else:
+            usage()
     else:
         usage()
+except RuntimeError, e:
+    print(e.args[0])
 except Exception, e:
     print e
     print dfu.get_status()
-
