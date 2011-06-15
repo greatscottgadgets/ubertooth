@@ -23,11 +23,11 @@ It's only been tested on:
 
 Execute with:
 
-  $ python specan_ui.py
+  $ ubertooth-specan-ui
 
 ...and enjoy the show. On Linux, you may need to do this instead:
 
-  $ sudo python specan_ui.py
+  $ sudo ubertooth-specan-ui
 
 ...or you can set up udev to allow access to the Ubertooth for non-administrative users. See the "Getting Started" section of the
 Ubertooth project Web page for more details:
