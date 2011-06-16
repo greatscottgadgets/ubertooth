@@ -24,19 +24,19 @@ LIBBTBB = btbb
 all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap
 
 ubertooth-dump: ubertooth-dump.c ubertooth.c ubertooth.h
-	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-dump.c ubertooth.c -o ubertooth-dump
+	$(CC) $(LDFLAGS) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-dump.c ubertooth.c -o ubertooth-dump
 
 ubertooth-lap: ubertooth-lap.c ubertooth.c ubertooth.h
-	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-lap.c ubertooth.c -o ubertooth-lap
+	$(CC) $(LDFLAGS) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-lap.c ubertooth.c -o ubertooth-lap
 
 ubertooth-specan: ubertooth-specan.c ubertooth.c ubertooth.h
-	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-specan.c ubertooth.c -o ubertooth-specan
+	$(CC) $(LDFLAGS) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-specan.c ubertooth.c -o ubertooth-specan
 
 ubertooth-util: ubertooth-util.c ubertooth.c ubertooth.h
-	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-util.c ubertooth.c -o ubertooth-util
+	$(CC) $(LDFLAGS) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-util.c ubertooth.c -o ubertooth-util
 
 ubertooth-uap: ubertooth-uap.c ubertooth.c ubertooth.h
-	$(CC) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-uap.c ubertooth.c -o ubertooth-uap
+	$(CC) $(LDFLAGS) -l $(LIBUSB) -l $(LIBBTBB) ubertooth-uap.c ubertooth.c -o ubertooth-uap
 
 clean:
 	rm -f ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap *.o
