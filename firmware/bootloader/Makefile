@@ -109,7 +109,7 @@ OPT = 0
 DEBUG = dwarf-2 -g3
 
 # Linker Script for the current MCU
-LINKER_SCRIPT = $(LIBS_PATH)/LPC17xx_Linker_Script_bootloader.ld
+LINKER_SCRIPT = LPC17xx_Linker_Script_bootloader.ld
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.

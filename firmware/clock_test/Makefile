@@ -64,11 +64,14 @@ OUTDIR = .
 # Target file name (without extension).
 TARGET = clock_test
 
+# Library paths
+LIBS_PATH = ../common
+
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c \
-	../common/LPC17xx_Startup.c \
-	../common/LPC17xx_Interrupts.c \
-	../common/ubertooth.c
+	$(LIBS_PATH)/LPC17xx_Startup.c \
+	$(LIBS_PATH)/LPC17xx_Interrupts.c \
+	$(LIBS_PATH)/ubertooth.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 
@@ -96,13 +99,13 @@ OPT = 0
 DEBUG = dwarf-2 -g3
 
 # Linker Script for the current MCU
-LINKER_SCRIPT = ../common/LPC17xx_Linker_Script_with_bootloader.ld
+LINKER_SCRIPT = /LPC17xx_Linker_Script_with_bootloader.ld
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = ../common
+EXTRAINCDIRS = $(LIBS_PATH)
 
 # Compiler flag to set the C Standard level.
 #     c89   = "ANSI" C
