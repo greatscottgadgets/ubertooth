@@ -215,7 +215,7 @@ ASFLAGS = -g$(DEBUG) $(ADEFS) -I.  -alhms=$(<:%.S=$(OBJDIR)/%.lst)
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRALIBDIRS = 
+EXTRALIBDIRS = $(LIBS_PATH)
 
 #---------------- Linker Options ----------------
 #  -Wl,...:     tell GCC to pass this to linker.
