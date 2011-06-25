@@ -37,6 +37,8 @@ static void usage()
 	printf("\t-t intitiate continuous transmit test\n");
 	printf("\t-a get power amplifier level\n");
 	printf("\t-a[0-7] set power amplifier level\n");
+	printf("\t-c get channel in MHz\n");
+	printf("\t-c[0-78] set channel in MHz\n");
 }
 
 int main(int argc, char *argv[])
@@ -48,7 +50,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"fiprstl::a::")) != EOF) {
+	while ((opt=getopt(argc,argv,"fiprstl::a::c::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -81,6 +83,16 @@ int main(int argc, char *argv[])
 				r = cmd_get_palevel(devh);
 				if (r >= 0) {
 					printf("PA level: %d\n", r);
+				}
+			}
+			break;
+		case 'c':
+			if (optarg) {
+				r = cmd_set_channel(devh, atoi(optarg));
+			} else {
+				r = cmd_get_channel(devh);
+				if (r >= 0) {
+					printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 				}
 			}
 			break;

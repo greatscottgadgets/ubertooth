@@ -98,8 +98,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_TXLED   = 8,
 	UBERTOOTH_GET_1V8     = 9,
 	UBERTOOTH_SET_1V8     = 10,
-	UBERTOOTH_GET_CHANNEL = 11, /* not implemented */
-	UBERTOOTH_SET_CHANNEL = 12, /* not implemented */
+	UBERTOOTH_GET_CHANNEL = 11, 
+	UBERTOOTH_SET_CHANNEL = 12, 
 	UBERTOOTH_RESET       = 13,
 	UBERTOOTH_GET_SERIAL  = 14,
 	UBERTOOTH_GET_PARTNUM = 15,
@@ -136,6 +136,7 @@ enum modulations {
 volatile u32 mode = MODE_IDLE;
 volatile u32 requested_mode = MODE_IDLE;
 volatile u32 modulation = MOD_BT_BASIC_RATE;
+volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 
@@ -514,6 +515,18 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		modulation = pSetup->wValue;
 		break;
 
+	case UBERTOOTH_GET_CHANNEL:
+		pbData[0] = channel & 0xFF;
+		pbData[1] = (channel >> 8) & 0xFF;
+		*piLen = 2;
+		break;
+
+    case UBERTOOTH_SET_CHANNEL:
+		channel = pSetup->wValue;
+		channel = MAX(channel, MIN_FREQ);
+		channel = MIN(channel, MAX_FREQ);
+		break;
+
 	case UBERTOOTH_SET_ISP:
 		command[0] = 57;
 		iap_entry(command, result);
@@ -704,14 +717,14 @@ void cc2400_rx()
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b); // without PRNG
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
-		cc2400_set(FSDIV,   0x0988); // 2440 MHz + 1 MHz IF = 2441 MHz
+		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
 		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
 		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b); // without PRNG
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
-		cc2400_set(FSDIV,   0x0979); // 2425 MHz + 1 MHz IF = 2426 MHz (advertising channel)
+		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
 		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
 	} else {
 		/* oops */
@@ -734,7 +747,7 @@ void cc2400_txtest()
 		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x334b); // with PRNG
-		cc2400_set(FSDIV,   0x0989); // 2441 MHz
+		cc2400_set(FSDIV,   channel);
 		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
 		cc2400_set(MANAND,  0x7fff);

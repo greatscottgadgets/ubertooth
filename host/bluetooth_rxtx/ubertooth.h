@@ -102,6 +102,7 @@ int cmd_get_usrled(struct libusb_device_handle* devh);
 int cmd_get_partnum(struct libusb_device_handle* devh);
 int cmd_get_serial(struct libusb_device_handle* devh);
 int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod);
+int cmd_get_modulation(struct libusb_device_handle* devh);
 int cmd_set_isp(struct libusb_device_handle* devh);
 int cmd_reset(struct libusb_device_handle* devh);
 int cmd_set_paen(struct libusb_device_handle* devh, u16 state);
@@ -109,5 +110,7 @@ int cmd_set_hgm(struct libusb_device_handle* devh, u16 state);
 int cmd_tx_test(struct libusb_device_handle* devh);
 int cmd_get_palevel(struct libusb_device_handle* devh);
 int cmd_set_palevel(struct libusb_device_handle* devh, u16 level);
+int cmd_get_channel(struct libusb_device_handle* devh);
+int cmd_set_channel(struct libusb_device_handle* devh, u16 channel);
 
 #endif

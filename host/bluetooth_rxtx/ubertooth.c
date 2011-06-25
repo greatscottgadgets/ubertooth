@@ -251,6 +251,55 @@ int cmd_get_usrled(struct libusb_device_handle* devh)
 	return state;
 }
 
+int cmd_get_modulation(struct libusb_device_handle* devh)
+{
+	u8 modulation;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_MOD, 0, 0,
+			&modulation, 1, 1000);
+	if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+
+	return modulation;
+}
+
+int cmd_get_channel(struct libusb_device_handle* devh)
+{
+	u8 result[2];
+	int r;
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_CHANNEL, 0, 0,
+			result, 2, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+		return r;
+	} else if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+
+	return result[0] | (result[1] << 8);
+}
+
+
+int cmd_set_channel(struct libusb_device_handle* devh, u16 channel)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_CHANNEL, channel, 0,
+			NULL, 0, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+		return r;
+	} else if (r < 0) {
+		fprintf(stderr, "command error %d\n", r);
+		return r;
+	}
+	return 0;
+}
+
 int cmd_get_partnum(struct libusb_device_handle* devh)
 {
 	u8 result[5];

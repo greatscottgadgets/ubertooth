@@ -131,4 +131,8 @@
 #define GIO_ONE               62 /* Output logic one */
 #define GIO_HIGH_Z            63 /* Pin set as high-impedance output */
 
+/* tuning limits */
+#define MIN_FREQ 2268
+#define MAX_FREQ 2794
+
 #endif /* __CC2400_H */
