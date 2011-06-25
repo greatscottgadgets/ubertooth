@@ -353,9 +353,10 @@ int cmd_get_serial(struct libusb_device_handle* devh)
 		fprintf(stderr, "result not zero: %d\n", result[0]);
 		return 0;
 	}
-	printf("%08x\n", result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24));
-	printf("%08x\n", result[5] | (result[6] << 8) | (result[7] << 16) | (result[8] << 24));
-	printf("%08x\n", result[9] | (result[10] << 8) | (result[11] << 16) | (result[12] << 24));
+	//FIXME shouldn't print to stdout, should return complete serial number
+	printf("%08x", result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24));
+	printf("%08x", result[5] | (result[6] << 8) | (result[7] << 16) | (result[8] << 24));
+	printf("%08x", result[9] | (result[10] << 8) | (result[11] << 16) | (result[12] << 24));
 	printf("%08x\n", result[13] | (result[14] << 8) | (result[15] << 16) | (result[16] << 24));
 	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
 }
