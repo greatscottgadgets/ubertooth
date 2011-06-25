@@ -55,9 +55,9 @@ detected by the Ubertooth One.</p>
 
 <p>One possible thing that could go wrong at this point is that your operating
 system does not grant you permission to communicate with the USB device.
-Depending on your distribution and preference, this can be fixed on Linux by
-either adding your user account to the &quot;usb&quot; group or by creating a new udev
-rule such as:</p>
+Depending on your distribution and preference, this can be fixed on Linux
+either by adding your user account to the &quot;usb&quot; group or by creating
+a new udev rule such as:</p>
 
 <code>$ echo 'ACTION==&quot;add&quot; BUS==&quot;usb&quot; SYSFS{idVendor}==&quot;ffff&quot;
 SYSFS{idProduct}==&quot;0004&quot; GROUP:=&quot;plugdev&quot; MODE:=&quot;0660&quot;' &gt;
