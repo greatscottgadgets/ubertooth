@@ -57,13 +57,13 @@ by the Ubertooth One.</p>
 system does not grant you permission to communicate with the USB device.
 Depending on your distribution and preference, this can be fixed on Linux by
 either adding your user account to the &quot;usb&quot; group or by creating a new udev
-rule:</p>
+rule such as:</p>
 
 <code>$ echo 'ACTION==&quot;add&quot; BUS==&quot;usb&quot; SYSFS{idVendor}==&quot;ffff&quot;
-SYSFS{idProduct}==&quot;0004&quot; GROUP:=&quot;ubertooth&quot; MODE:=&quot;0660&quot;' &gt;
-/etc/udev/rules.d/40-ubertooth.rules</code>
+SYSFS{idProduct}==&quot;0004&quot; GROUP:=&quot;plugdev&quot; MODE:=&quot;0660&quot;' &gt;
+/etc/udev/rules.d/99-ubertooth.rules</code>
 
-<p>You can either create an &quot;ubertooth&quot; group to match this rule or change the
+<p>Make sure you are a member of the &quot;ubertooth&quot; group or change the
 rule to refer to the group of your choice.</p>
 
 <p>During operation of specan_ui.py, the RX LED should illuminate, and the USR
