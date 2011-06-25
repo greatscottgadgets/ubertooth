@@ -35,8 +35,8 @@ Ubertooth Zero.
 The bootloader indicates DFU mode by flashing the LEDs in a distinctive
 pattern.  It also identifies itself as "usb_bootloader" on USB.
 
-During DFU mode, firmware may be uploaded or downloaded using usb_dfu.py.  See
-host/usb_dfu/README for usage instructions.
+During DFU mode, firmware may be uploaded or downloaded using ubertooth-dfu.
+See host/usb_dfu/README for usage instructions.
 
 It is possible that soft bootloader entry may be broken by installing a faulty
 application or an application that does not provide a method of triggering soft
