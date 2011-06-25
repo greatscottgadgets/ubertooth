@@ -24,6 +24,26 @@
 
 #include "ubertooth.h"
 
+void show_libusb_error(int error_code);
+
+void show_libusb_error(int error_code)
+{
+    switch (error_code) {
+	    case LIBUSB_ERROR_TIMEOUT:
+	        fprintf(stderr, "libUSB Error: Timeout (%d)\n", error_code);
+	        break;
+	    case LIBUSB_ERROR_NO_DEVICE:
+	        fprintf(stderr, "libUSB Error: No Device, did you disconnect the ubertooth? (%d)\n", error_code);
+	        break;
+	    case LIBUSB_ERROR_ACCESS:
+	        fprintf(stderr, "libUSB Error: Insufficient Permissions (%d)\n", error_code);
+	        break;
+	    default:
+	        fprintf(stderr, "command error %d\n", error_code);
+	        break;
+	}
+}
+
 static struct libusb_device_handle* find_ubertooth_device(void)
 {
 	struct libusb_device_handle *devh = NULL;
@@ -192,7 +212,7 @@ int cmd_ping(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_PING, 0, 0,
 			NULL, 0, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -205,7 +225,7 @@ int cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, num, 0,
 			NULL, 0, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -218,7 +238,7 @@ int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SPECAN,
 			low_freq, high_freq, NULL, 0, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -231,7 +251,7 @@ int cmd_set_usrled(struct libusb_device_handle* devh, u16 state)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_USRLED, state, 0,
 			NULL, 0, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -245,7 +265,7 @@ int cmd_get_usrled(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_USRLED, 0, 0,
 			&state, 1, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return state;
@@ -259,7 +279,7 @@ int cmd_get_modulation(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_MOD, 0, 0,
 			&modulation, 1, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 
@@ -276,7 +296,7 @@ int cmd_get_channel(struct libusb_device_handle* devh)
 		fprintf(stderr, "control message unsupported\n");
 		return r;
 	} else if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 
@@ -294,7 +314,7 @@ int cmd_set_channel(struct libusb_device_handle* devh, u16 channel)
 		fprintf(stderr, "control message unsupported\n");
 		return r;
 	} else if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -308,7 +328,7 @@ int cmd_get_partnum(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_PARTNUM, 0, 0,
 			result, 5, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	if (result[0] != 0) {
@@ -326,7 +346,7 @@ int cmd_get_serial(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_SERIAL, 0, 0,
 			result, 17, 1000);
 	if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	if (result[0] != 0) {
@@ -349,7 +369,7 @@ int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod)
 	if (r == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "control message unsupported\n");
 	} else if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -363,7 +383,7 @@ int cmd_set_isp(struct libusb_device_handle* devh)
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_TIMEOUT is the error we expect to get */
 	if (r != LIBUSB_ERROR_TIMEOUT) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -377,7 +397,7 @@ int cmd_reset(struct libusb_device_handle* devh)
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE is the error we expect to get */
 	if (r != LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -392,7 +412,7 @@ int cmd_set_paen(struct libusb_device_handle* devh, u16 state)
 	if (r == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "control message unsupported\n");
 	} else if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -407,7 +427,7 @@ int cmd_set_hgm(struct libusb_device_handle* devh, u16 state)
 	if (r == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "control message unsupported\n");
 	} else if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -422,7 +442,7 @@ int cmd_tx_test(struct libusb_device_handle* devh)
 	if (r == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "control message unsupported\n");
 	} else if (r < 0) {
-		fprintf(stderr, "command error %d\n", r);
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -436,7 +456,7 @@ int cmd_flash(struct libusb_device_handle* devh)
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE is the error we expect to get */
 	if (r != LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "command error %d\n", r);
+	    show_libusb_error(r);
 		return r;
 	}
 	return 0;
@@ -452,7 +472,7 @@ int cmd_get_palevel(struct libusb_device_handle* devh) {
 		if (r == LIBUSB_ERROR_PIPE) {
 			fprintf(stderr, "control message unsupported\n");
 		} else {
-			fprintf(stderr, "command error %d\n", r);
+			show_libusb_error(r);
 		}
 		return r;
 	}
@@ -468,7 +488,7 @@ int cmd_set_palevel(struct libusb_device_handle* devh, u16 level) {
 		if (r == LIBUSB_ERROR_PIPE) {
 			fprintf(stderr, "control message unsupported\n");
 		} else {
-			fprintf(stderr, "command error %d\n", r);
+			show_libusb_error(r);
 		}
 		return r;
 	}
