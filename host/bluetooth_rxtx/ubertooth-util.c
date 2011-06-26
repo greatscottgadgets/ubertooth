@@ -43,6 +43,9 @@ static void usage()
 	printf("\t-n initiate range test\n");
 	printf("\t-m display range test result\n");
 	printf("\t-e start repeater mode\n");
+	printf("\t-d get status of all LEDs\n");
+	printf("\t-d0 turn off all LED\n");
+	printf("\t-d1 turn on all LED\n");
 }
 
 int main(int argc, char *argv[])
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"nmefiprstl::a::c::")) != EOF) {
+	while ((opt=getopt(argc,argv,"nmefiprstl::a::c::d::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -68,6 +71,17 @@ int main(int argc, char *argv[])
 				r = cmd_set_usrled(devh, atoi(optarg));
 			else
 				printf("USR LED status: %d\n", cmd_get_usrled(devh));
+			break;
+		case 'd':
+			if (optarg) {
+				r = cmd_set_usrled(devh, atoi(optarg));
+				r = cmd_set_rxled(devh, atoi(optarg));
+				r = cmd_set_txled(devh, atoi(optarg));
+			} else {
+				printf("USR LED status: %d\n", cmd_get_usrled(devh));
+				printf("RX LED status : %d\n", cmd_get_rxled(devh));
+				printf("TX LED status : %d\n", cmd_get_txled(devh));
+			}
 			break;
 		case 'p':
 			printf("Part ID: %X\n", cmd_get_partnum(devh));

@@ -271,6 +271,60 @@ int cmd_get_usrled(struct libusb_device_handle* devh)
 	return state;
 }
 
+int cmd_set_rxled(struct libusb_device_handle* devh, u16 state)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_RXLED, state, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_get_rxled(struct libusb_device_handle* devh)
+{
+	u8 state;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_RXLED, 0, 0,
+			&state, 1, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return state;
+}
+
+int cmd_set_txled(struct libusb_device_handle* devh, u16 state)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_TXLED, state, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_get_txled(struct libusb_device_handle* devh)
+{
+	u8 state;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_TXLED, 0, 0,
+			&state, 1, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return state;
+}
+
 int cmd_get_modulation(struct libusb_device_handle* devh)
 {
 	u8 modulation;
