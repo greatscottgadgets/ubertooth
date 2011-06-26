@@ -131,6 +131,22 @@
 #define GIO_ONE               62 /* Output logic one */
 #define GIO_HIGH_Z            63 /* Pin set as high-impedance output */
 
+/* radio control states */
+#define STATE_OFF             0
+#define STATE_IDLE            1
+#define STATE_PIN_RXTX_CAL    8
+#define STATE_PIN_FS_ON       9
+#define STATE_PIN_RX          10
+#define STATE_PIN_RX_OFF      11
+#define STATE_PIN_TX          12
+#define STATE_PIN_TX_OFF      13
+#define STATE_STROBE_RXTX_CAL 14
+#define STATE_STROBE_FS_ON    15
+#define STATE_STROBE_RX       16
+#define STATE_STROBE_TX       17
+#define STATE_STROBE_TX_OFF   18
+#define STATE_BEFORE_IDLE     24
+
 /* tuning limits */
 #define MIN_FREQ 2268
 #define MAX_FREQ 2794

@@ -214,24 +214,38 @@ u32 cc2400_spi(u8 len, u32 data)
 	return data;
 }
 
-/* read the value from a register */
+/* read 16 bit value from a register */
 u16 cc2400_get(u8 reg)
 {
 	u32 in;
-	u16 val;
 
 	u32 out = (reg | 0x80) << 16;
 	in = cc2400_spi(24, out);
-	val = in & 0xFFFF;
-
-	return val;
+	return in & 0xFFFF;
 }
 
-/* write a value to a register */
-void cc2400_set(u8 reg, u32 val)
+/* write 16 bit value to a register */
+void cc2400_set(u8 reg, u16 val)
 {
 	u32 out = (reg << 16) | val;
 	cc2400_spi(24, out);
+}
+
+/* read 8 bit value from a register */
+u8 cc2400_get8(u8 reg)
+{
+	u16 in;
+
+	u16 out = (reg | 0x80) << 8;
+	in = cc2400_spi(16, out);
+	return in & 0xFF;
+}
+
+/* write 8 bit value to a register */
+void cc2400_set8(u8 reg, u8 val)
+{
+	u32 out = (reg << 8) | val;
+	cc2400_spi(16, out);
 }
 
 /* get the status */
