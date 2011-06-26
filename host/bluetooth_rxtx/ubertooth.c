@@ -467,7 +467,8 @@ int cmd_flash(struct libusb_device_handle* devh)
 	return 0;
 }
 
-int cmd_get_palevel(struct libusb_device_handle* devh) {
+int cmd_get_palevel(struct libusb_device_handle* devh)
+{
 	u8 level;
 	int r;
 
@@ -484,11 +485,72 @@ int cmd_get_palevel(struct libusb_device_handle* devh) {
 	return level;
 }
 
-int cmd_set_palevel(struct libusb_device_handle* devh, u16 level) {
+int cmd_set_palevel(struct libusb_device_handle* devh, u16 level)
+{
 	int r;
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_PALEVEL, level, 0,
 			NULL, 0, 3000);
+	if (r != LIBUSB_SUCCESS) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
+int cmd_get_rangeresult(struct libusb_device_handle* devh,
+		rangetest_result *rr)
+{
+	u8 result[5];
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_RANGE_CHECK, 0, 0,
+			result, sizeof(result), 3000);
+	if (r < LIBUSB_SUCCESS) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	rr->valid       = result[0];
+	rr->request_pa  = result[1];
+	rr->request_num = result[2];
+	rr->reply_pa    = result[3];
+	rr->reply_num   = result[4];
+
+	return 0;
+}
+
+int cmd_range_test(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RANGE_TEST, 0, 0,
+			NULL, 0, 1000);
+	if (r != LIBUSB_SUCCESS) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
+int cmd_repeater(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_REPEATER, 0, 0,
+			NULL, 0, 1000);
 	if (r != LIBUSB_SUCCESS) {
 		if (r == LIBUSB_ERROR_PIPE) {
 			fprintf(stderr, "control message unsupported\n");

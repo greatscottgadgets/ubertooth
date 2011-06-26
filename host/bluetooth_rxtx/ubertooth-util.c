@@ -39,6 +39,10 @@ static void usage()
 	printf("\t-a[0-7] set power amplifier level\n");
 	printf("\t-c get channel in MHz\n");
 	printf("\t-c[0-78] set channel in MHz\n");
+	printf("\t-r full reset\n");
+	printf("\t-n initiate range test\n");
+	printf("\t-m display range test result\n");
+	printf("\t-e start repeater mode\n");
 }
 
 int main(int argc, char *argv[])
@@ -46,11 +50,12 @@ int main(int argc, char *argv[])
 	int opt;
 	int r = 0;
 	struct libusb_device_handle *devh = ubertooth_start();
+	rangetest_result rr;
 
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"fiprstl::a::c::")) != EOF) {
+	while ((opt=getopt(argc,argv,"nmefiprstl::a::c::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -95,6 +100,25 @@ int main(int argc, char *argv[])
 					printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 				}
 			}
+			break;
+		case 'n':
+			r = cmd_range_test(devh);
+			break;
+		case 'm':
+			r = cmd_get_rangeresult(devh, &rr);
+			if (r == 0) {
+				if (rr.valid) {
+					printf("request PA level: %d\n", rr.request_pa);
+					printf("request number  : %d\n", rr.request_num);
+					printf("reply PA level  : %d\n", rr.reply_pa);
+					printf("reply number    : %d\n", rr.reply_num);
+				} else {
+					printf("invalid range test result\n");
+				}
+			}
+			break;
+		case 'e':
+			r = cmd_repeater(devh);
 			break;
 		default:
 			usage();
