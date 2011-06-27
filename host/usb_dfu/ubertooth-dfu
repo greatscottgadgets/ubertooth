@@ -274,6 +274,8 @@ try:
         usage()
 except RuntimeError, e:
     print(e.args[0])
+    exit(1)
 except Exception, e:
     print e
     print dfu.get_status()
+    exit(1)

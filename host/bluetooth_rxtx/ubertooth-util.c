@@ -82,15 +82,18 @@ int main(int argc, char *argv[])
 				printf("RX LED status : %d\n", r = cmd_get_rxled(devh));
 				printf("TX LED status : %d\n", r = cmd_get_txled(devh));
 			}
+			r = (r >= 0) ? 0 : r;
 			break;
 		case 'p':
 			printf("Part ID: %X\n", r = cmd_get_partnum(devh));
+			r = (r >= 0) ? 0 : r;
 			break;
 		case 'r':
 			r = cmd_reset(devh);
 			break;
 		case 's':
 			r = cmd_get_serial(devh);
+			r = (r >= 0) ? 0 : r;
 			break;
 		case 't':
 			r = cmd_tx_test(devh);
