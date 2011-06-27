@@ -30,8 +30,7 @@ int main()
 
 	//FIXME cli mod options
 	cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
-	while (1)
-		stream_rx(devh, 512, 0xFFFF);
+	while (stream_rx(devh, 512, 0xFFFF) == 0);
 
 	ubertooth_stop(devh);
 	return 0;
