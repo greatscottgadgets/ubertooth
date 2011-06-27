@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 			if (optarg)
 				r = cmd_set_usrled(devh, atoi(optarg));
 			else
-				printf("USR LED status: %d\n", cmd_get_usrled(devh));
+				printf("USR LED status: %d\n", r = cmd_get_usrled(devh));
 			break;
 		case 'd':
 			if (optarg) {
@@ -78,19 +78,19 @@ int main(int argc, char *argv[])
 				r = cmd_set_rxled(devh, atoi(optarg));
 				r = cmd_set_txled(devh, atoi(optarg));
 			} else {
-				printf("USR LED status: %d\n", cmd_get_usrled(devh));
-				printf("RX LED status : %d\n", cmd_get_rxled(devh));
-				printf("TX LED status : %d\n", cmd_get_txled(devh));
+				printf("USR LED status: %d\n", r = cmd_get_usrled(devh));
+				printf("RX LED status : %d\n", r = cmd_get_rxled(devh));
+				printf("TX LED status : %d\n", r = cmd_get_txled(devh));
 			}
 			break;
 		case 'p':
-			printf("Part ID: %X\n", cmd_get_partnum(devh));
+			printf("Part ID: %X\n", r = cmd_get_partnum(devh));
 			break;
 		case 'r':
 			r = cmd_reset(devh);
 			break;
 		case 's':
-			cmd_get_serial(devh);
+			r = cmd_get_serial(devh);
 			break;
 		case 't':
 			r = cmd_tx_test(devh);
