@@ -438,7 +438,7 @@ int cmd_set_isp(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_ISP, 0, 0,
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_TIMEOUT) && (r != LIBUSB_ERROR_OTHER)) {
+	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
 		show_libusb_error(r);
 		return r;
 	}
@@ -452,7 +452,7 @@ int cmd_reset(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RESET, 0, 0,
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_TIMEOUT) && (r != LIBUSB_ERROR_OTHER)) {
+	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
 		show_libusb_error(r);
 		return r;
 	}
@@ -514,7 +514,7 @@ int cmd_flash(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_FLASH, 0, 0,
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_TIMEOUT) && (r != LIBUSB_ERROR_OTHER)) {
+	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
 	    show_libusb_error(r);
 		return r;
 	}
