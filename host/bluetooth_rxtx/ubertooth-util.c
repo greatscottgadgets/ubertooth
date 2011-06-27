@@ -122,10 +122,10 @@ int main(int argc, char *argv[])
 			r = cmd_get_rangeresult(devh, &rr);
 			if (r == 0) {
 				if (rr.valid) {
-					printf("request PA level: %d\n", rr.request_pa);
-					printf("request number  : %d\n", rr.request_num);
-					printf("reply PA level  : %d\n", rr.reply_pa);
-					printf("reply number    : %d\n", rr.reply_num);
+					printf("request PA level : %d\n", rr.request_pa);
+					printf("request number   : %d\n", rr.request_num);
+					printf("reply PA level   : %d\n", rr.reply_pa);
+					printf("reply number     : %d\n", rr.reply_num);
 				} else {
 					printf("invalid range test result\n");
 				}
