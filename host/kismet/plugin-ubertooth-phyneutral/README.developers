@@ -1,0 +1,37 @@
+Kismet is currently (Spring/Summer 2011) undergoing a rewrite of the
+internal system for tracking networks to make Kismet truly phy-neutral,
+agnostic of the type of data being sniffed and type of devices being
+tracked.
+
+This branch of the Ubertooth Kismet plugin uses the phy-neutral
+extensions in Kismet.  It REQUIRES the LATEST svn of Kismet as
+phy-neutral is a rapidly moving target and is being co-developed with
+the Ubertooth plugin and the phy-neutral 802.11 components.  IT WILL NOT
+work with NON-BLEEDING-EDGE Kismet.  Every time you update the Ubertooth
+plugin code, update Kismet and recompile it at the same time!
+
+
+The phy-neutral system treats devices the same way Kismet has treated packets -
+modules register a device component, and this is tacked on to the standard 
+device.
+
+GPS, packet counts, time, signal, etc is all stored in the common packet
+component and does not need to be tracked by a phy-specific tracker.
+
+The map of tracked devices is maintained by the device tracker, and does
+not need to be tracked by the phy-specific tracker.
+
+The UI components are, as of yet, undone.  Ultimately the UI will display the
+common layers and UI plugins will display phy-specific details not otherwise
+available.
+
+The phy-classifiers are expected to take the phy-specific data and turn it into
+any component representations needed by the phy, and to fill out the common
+packet component with the unique device address, phy info, basic packet type,
+etc, for common tracking.
+
+The phy-neutral fork maintains the old btbb tracker and protocols for now, 
+so that it remains usable while under development, however since phy-neutral 
+is so bleeding edge, it shouldn't be pushed as the primary ubertooth plugin
+as no release of Kismet supports it
+
