@@ -21,7 +21,10 @@
 
 DIRS = blinky bluetooth_rxtx cc2400_test clock_test usb_test bootloader
 
+all:
+	-for d in $(DIRS); do (cd $$d; $(MAKE) all ); done
+
 clean:
 	-for d in $(DIRS); do (cd $$d; $(MAKE) clean ); done
 
-.PHONY : clean
+.PHONY : clean all
