@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 10 Jul 2011 05:03:17 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 10 Jul 2011 05:28:03 PM MDT
 
 BeginCmp
 TimeStamp = /4E001EE4;
@@ -466,7 +466,7 @@ BeginCmp
 TimeStamp = /4E1A1803;
 Reference = U2;
 ValeurCmp = ADF7242;
-IdModule  = QFN32;
+IdModule  = LFCSP32;
 EndCmp
 
 BeginCmp

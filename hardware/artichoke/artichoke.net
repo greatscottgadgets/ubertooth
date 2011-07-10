@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Sun 10 Jul 2011 05:03:17 PM MDT
+# EESchema Netlist Version 1.1 created  Sun 10 Jul 2011 05:28:03 PM MDT
 (
  ( /4E001EE4 0402 C1 100nF
   ( 1 GND )
@@ -288,7 +288,7 @@
   ( 4 N-000003 )
   ( 5 3V3D )
  )
- ( /4E1A1803 QFN32 U2 ADF7242
+ ( /4E1A1803 LFCSP32 U2 ADF7242
   ( 0 GND )
   ( 1 N-000097 )
   ( 2 N-000027 )
