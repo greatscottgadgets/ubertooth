@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun 10 Jul 2011 04:05:27 PM MDT
+EESchema Schematic File Version 2  date Sun 10 Jul 2011 06:01:01 PM MDT
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
