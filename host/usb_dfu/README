@@ -42,6 +42,9 @@ To execute the application at 0x4000:
 
     ubertooth-dfu detach
 
+To sign a binary firmware file:
+	ubertooth-dfu sign <filename.bin>
+
 Note for Ubertooth Zero:
 
 The detach command doesn't work properly because the Ubertooth Zero is not

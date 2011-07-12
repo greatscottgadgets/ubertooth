@@ -236,6 +236,8 @@ READELF  = arm-none-eabi-readelf
 SIZE = arm-none-eabi-size
 AR = arm-none-eabi-ar -r
 NM = arm-none-eabi-nm
+PYTHON = /usr/bin/env python
+DFU_TOOL = $(PYTHON) ../../host/usb_dfu/ubertooth-dfu
 REMOVE = rm -f
 
 # Define Messages
@@ -245,6 +247,7 @@ MSG_END = --------  end  --------
 MSG_SIZE_BEFORE = Size before: 
 MSG_SIZE_AFTER = Size after:
 MSG_FLASH = Creating load file for Flash:
+MSG_DFU = Creating DFU firmware file:
 MSG_EEPROM = Creating load file for EEPROM:
 MSG_EXTENDED_LISTING = Creating Extended Listing:
 MSG_SYMBOL_TABLE = Creating Symbol Table:
@@ -276,7 +279,7 @@ ALL_CFLAGS_LINKER = -mcpu=$(CPU) -$(CPU_MODE) $(CPU_FLAGS_ASM)
 all: begin gccversion sizebefore build showtarget sizeafter end
 
 # Change the build target to build a HEX file or a library.
-build: elf hex bin srec lss sym
+build: elf hex bin srec lss sym dfu
 #build: lib
 
 elf: $(TARGET).elf
@@ -286,6 +289,7 @@ srec: $(TARGET).srec
 eep: $(TARGET).eep
 lss: $(TARGET).lss
 sym: $(TARGET).sym
+dfu: $(TARGET).dfu
 LIBNAME=lib$(TARGET).a
 lib: $(LIBNAME)
 
@@ -356,6 +360,12 @@ program: $(TARGET).hex
 	@echo
 	@echo $(MSG_SYMBOL_TABLE) $@
 	$(NM) -n $< > $@
+
+# Create a DFU file with checksum and 16 byte suffix
+%.dfu: %.bin
+	@echo
+	@echo $(MSG_DFU) $@
+	$(DFU_TOOL) sign $(TARGET).bin
 
 # Create library from object files.
 .SECONDARY : $(TARGET).a
@@ -432,6 +442,7 @@ clean_list:
 	$(REMOVE) $(SRC:.c=.i)
 	$(REMOVE) InvalidEvents.tmp
 	$(REMOVE) $(TARGET).bin
+	$(REMOVE) $(TARGET).dfu
 	$(REMOVE) $(TARGET).srec
 
 doxygen:

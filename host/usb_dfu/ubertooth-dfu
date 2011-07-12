@@ -25,6 +25,15 @@ import usb.core
 import struct
 import sys
 import time
+from optparse import OptionParser
+import dfu_suffix
+
+ubertooth_vendor   = 0xFFFF
+ubertooth_product  = 0x0004
+bootloader_offset  = 0x0
+bootloader_size    = 0x4000
+application_offset = bootloader_offset + bootloader_size
+application_size   = (256 * 1024) - application_offset
 
 class Enumeration(object):
     def __init__(self, id, name):
@@ -105,8 +114,11 @@ class Status(Enumeration):
 Status.create_from_map()
 
 class DFU(object):
-    def __init__(self, device):
-        self._device = device
+    def __init__(self, idVendor, idProduct):
+        self._device = usb.core.find(idVendor=idVendor, idProduct=idProduct)
+        if self._device is None:
+            raise RuntimeError('Device not found')
+        self._device.default_timeout = 3000
 
     def detach(self):
         self._device.ctrl_transfer(0x21, Request.DETACH, 0, 0, None)
@@ -159,7 +171,7 @@ class DFU(object):
     def _wait(self):
         time.sleep(0.1)
 
-def download(dfu, path, flash_address):
+def download(dfu, data, flash_address):
     block_size = 1 << 8
     sector_size = 1 << 12
     if flash_address & (sector_size - 1) != 0:
@@ -168,11 +180,7 @@ def download(dfu, path, flash_address):
     block_number = flash_address / block_size
     assert block_number * block_size == flash_address
 
-    f = open(path, 'rb')
-
     try:
-        data = f.read()
-
         while len(data) > 0:
             packet, data = data[:block_size], data[block_size:]
             if len(packet) < block_size:
@@ -183,7 +191,6 @@ def download(dfu, path, flash_address):
             sys.stdout.flush()
             block_number += 1
     finally:
-        f.close()
         print
 
 def upload(dfu, flash_address, length, path):
@@ -229,53 +236,71 @@ Write a file to application flash region:
 Read data from application flash region and write to a file:
     ubertooth-dfu read <filename>
 
+Add DFU signature to firmware file:
+    ubertooth-dfu sign <binary firmware filename>
+
 Detach the bootloader and execute the application firmware:
     ubertooth-dfu detach
 """)
 
-try:
-    dev = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
-    if dev is None:
-        raise RuntimeError('Device not found')
-    dev.default_timeout = 3000
-    dfu = DFU(dev)
-
+if __name__ == '__main__':
     try:
-        dfu.enter_dfu_mode()
-    except usb.core.USBError, e:
-        if len(e.args) > 0:
-            if e.args[0] == 'Pipe error':
+        dfu = DFU(ubertooth_vendor, ubertooth_product)
+        try:
+            dfu.enter_dfu_mode()
+        except usb.core.USBError, e:
+            if len(e.args) > 0 and e.args[0] == 'Pipe error':
                 raise RuntimeError('Failed to enter DFU mode. Is bootloader running?')
             else:
                 raise e
-        else:
-            raise e
 
-    bootloader_offset = 0x0
-    bootloader_size = 0x4000
-    application_offset = bootloader_offset + bootloader_size
-    application_size = (256 * 1024) - application_offset
+        if len(sys.argv) == 3:
+            if sys.argv[1] == 'read':
+                upload(dfu, application_offset, application_size, sys.argv[2])
+                print('Read complete')
 
-    if len(sys.argv) == 3:
-        if sys.argv[1] == 'read':
-            upload(dfu, application_offset, application_size, sys.argv[2])
-            print('Read complete')
-        elif sys.argv[1] == 'write':
-            download(dfu, sys.argv[2], application_offset)
-            print('Write complete')
+            elif sys.argv[1] == 'write':
+                f = open(sys.argv[2], 'rb')
+                data = f.read()
+                f.close()
+
+                if sys.argv[2][-4:] == '.dfu':
+                    suf_len, vendor, product = dfu_suffix.check_suffix(data)
+                    firmware = data[:-suf_len]
+                else:
+                    firmware = data
+                download(dfu, firmware, application_offset)
+                print('Write complete')
+
+            elif sys.argv[1] == 'sign':
+                filename = sys.argv[2]
+
+                f = open(filename, 'rb')
+                firmware = f.read()
+                f.close()
+
+                data = dfu_suffix.add_suffix(firmware, ubertooth_vendor, ubertooth_product)
+
+                dfu_file = filename[:-4] + '.dfu'
+                f = open(dfu_file, 'wb')
+                f.write(data)
+                f.close()
+                print("Signed file written: %s" % dfu_file)
+
+            else:
+                usage()
+
+        elif len(sys.argv) == 2:
+            if sys.argv[1] == 'detach':
+                detach(dfu)
+            else:
+                usage()
         else:
             usage()
-    elif len(sys.argv) == 2:
-        if sys.argv[1] == 'detach':
-            detach(dfu)
-        else:
-            usage()
-    else:
-        usage()
-except RuntimeError, e:
-    print(e.args[0])
-    exit(1)
-except Exception, e:
-    print e
-    print dfu.get_status()
-    exit(1)
+    except RuntimeError, e:
+        print(e.args[0])
+        exit(1)
+    except Exception, e:
+        print e
+        print dfu.get_status()
+        exit(1)
