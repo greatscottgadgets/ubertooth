@@ -21,7 +21,6 @@
 
 # http://pyusb.sourceforge.net/docs/1.0/tutorial.html
 
-import usb.core
 import struct
 import sys
 import time
@@ -262,11 +261,13 @@ if __name__ == '__main__':
     try:
         if len(sys.argv) == 3:
             if sys.argv[1] == 'read':
+                import usb.core
                 dfu = init_dfu()
                 upload(dfu, application_offset, application_size, sys.argv[2])
                 print('Read complete')
 
             elif sys.argv[1] == 'write':
+                import usb.core
                 f = open(sys.argv[2], 'rb')
                 data = f.read()
                 f.close()
@@ -302,6 +303,7 @@ if __name__ == '__main__':
 
         elif len(sys.argv) == 2:
             if sys.argv[1] == 'detach':
+                import usb.core
                 dfu = init_dfu()
                 detach(dfu)
             else:
