@@ -77,7 +77,7 @@ public:
 	virtual int OpenSource();
 	virtual int CloseSource();
 
-	virtual int FetchChannelCapable() { return 1; }
+	virtual int FetchChannelCapable() { return 0; }
 	virtual int EnableMonitor() { return 1; }
 	virtual int DisableMonitor() { return 1; }
 

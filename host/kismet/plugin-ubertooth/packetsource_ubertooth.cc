@@ -53,7 +53,10 @@ PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, str
 
 	pending_packet = 0;
 
+	// Hardcode the channel for now
+	last_channel = 39;
 	channel = 39;
+
 	bank = 0;
 	empty_buf = NULL;
 	full_buf = NULL;
@@ -324,6 +327,9 @@ int PacketSource_Ubertooth::CloseSource() {
 	return 1;
 }
 
+// Currently never called because channel-capable returns 0; 
+// we want to update this at the same time we decide we need to
+// roam channels w/ ubertooth.    /dragorn
 int PacketSource_Ubertooth::SetChannel(unsigned int in_ch) {
 	if (in_ch < 0 || in_ch > 78)
 		return -1;
@@ -334,6 +340,7 @@ int PacketSource_Ubertooth::SetChannel(unsigned int in_ch) {
 
 	//FIXME actually set the channel
 
+	last_channel = in_ch;
 	channel = in_ch;
 
 	return 1;
