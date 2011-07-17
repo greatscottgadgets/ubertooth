@@ -237,8 +237,14 @@ SIZE = arm-none-eabi-size
 AR = arm-none-eabi-ar -r
 NM = arm-none-eabi-nm
 PYTHON = /usr/bin/env python
-DFU_TOOL = $(PYTHON) ../../host/usb_dfu/ubertooth-dfu
 REMOVE = rm -f
+
+# 
+ifeq ($(strip $(`which ubertooth-dfu`)),)
+  DFU_TOOL = $(PYTHON) ../../host/usb_dfu/ubertooth-dfu
+else
+  DFU_TOOL = $(PYTHON) `which ubertooth-dfu`
+endif
 
 # Define Messages
 # English
