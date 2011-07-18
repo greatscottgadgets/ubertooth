@@ -241,9 +241,9 @@ REMOVE = rm -f
 
 # 
 ifeq ($(strip $(`which ubertooth-dfu`)),)
-  DFU_TOOL = $(PYTHON) ../../host/usb_dfu/ubertooth-dfu
+  DFU_TOOL ?= $(PYTHON) ../../host/usb_dfu/ubertooth-dfu
 else
-  DFU_TOOL = $(PYTHON) `which ubertooth-dfu`
+  DFU_TOOL ?= $(PYTHON) `which ubertooth-dfu`
 endif
 
 # Define Messages
