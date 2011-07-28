@@ -30,6 +30,9 @@ not been tested on all platforms.
 
 Usage:
 
+The target hardware must be in DFU mode before executing any of the following
+commands.  See firmware/bootloader/README.
+
 To download code into a device, starting at flash address 0x4000:
 
     ubertooth-dfu write <filename.bin>
