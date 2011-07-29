@@ -48,11 +48,11 @@ def check_suffix(firmware):
     suffix = firmware[-length:]
 
     # Will always have these fields
-    dwCRC     = unpack('L', suffix[12:])[0]
-    bLength   = unpack('B', suffix[11])[0]
-    ucDfuSig  = unpack('3s', suffix[8:11])[0]
-    bcdDFU    = unpack('H', suffix[6:8])[0]
-    #bcdDFU, ucDfuSig, bLength, dwCRC = unpack('H3sBL', suffix[6:])
+    dwCRC     = unpack('<L', suffix[12:])[0]
+    bLength   = unpack('<B', suffix[11])[0]
+    ucDfuSig  = unpack('<3s', suffix[8:11])[0]
+    bcdDFU    = unpack('<H', suffix[6:8])[0]
+    #bcdDFU, ucDfuSig, bLength, dwCRC = unpack('<H3sBL', suffix[6:])
 
     if bLength != 16:
         raise Exception("Unknown DFU suffix length: %s" % type(bLength))
@@ -71,11 +71,11 @@ def check_suffix(firmware):
         raise Exception("CRC mismatch: calculated: 0x%x, found: 0x%x" % (crc, dwCRC))
 
     # Extract additional fields now that we know the suffix contains them
-    idVendor  = unpack('H', suffix[4:6])[0]
-    idProduct = unpack('H', suffix[2:4])[0]
+    idVendor  = unpack('<H', suffix[4:6])[0]
+    idProduct = unpack('<H', suffix[2:4])[0]
 
     # Version information that we can't verify
-    bcdDevice = unpack('H', suffix[0:2])[0]
+    bcdDevice = unpack('<H', suffix[0:2])[0]
 
     return length, idVendor, idProduct
 
@@ -87,10 +87,10 @@ def add_suffix(firmware, vendor, product):
     ucDfuSig  = 'UFD'
     bLength   = 16
 
-    suffix = pack('4H3sB', bcdDevice, idProduct, idVendor, bcdDFU, ucDfuSig, bLength)
+    suffix = pack('<4H3sB', bcdDevice, idProduct, idVendor, bcdDFU, ucDfuSig, bLength)
     firmware += suffix
 
     crc = crc32(firmware)
-    firmware += pack('L', crc)
+    firmware += pack('<I', crc)
 
     return firmware
