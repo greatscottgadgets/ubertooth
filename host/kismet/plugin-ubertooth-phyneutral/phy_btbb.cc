@@ -284,4 +284,10 @@ void Btbb_Phy::BlitDevices(int in_fd, vector<kis_tracked_device *> *devlist) {
 
 }
 
+void Btbb_Phy::ExportLogRecord(kis_tracked_device *in_device, string in_logtype, 
+							   FILE *in_logfile, int in_lineindent) {
+	// Nothing special to log yet
+	return;
+}
+
 
