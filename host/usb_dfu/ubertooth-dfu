@@ -227,7 +227,7 @@ def init_dfu(idVendor=ubertooth_vendor, idProduct=ubertooth_product):
     if dev is None:
         raise RuntimeError('Device not found')
 
-    dfu = DFU(ubertooth_vendor, ubertooth_product)
+    dfu = DFU(dev)
     dev.default_timeout = 3000
 
     try:
