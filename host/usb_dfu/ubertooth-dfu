@@ -158,7 +158,7 @@ class DFU(object):
         }
         
         while True:
-            state = dfu.get_state()
+            state = self.get_state()
             if state == State.dfuIDLE:
                 break
             action = action_map[state]
