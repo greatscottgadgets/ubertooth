@@ -50,6 +50,14 @@ UBERTOOTH_OPTS = -D$(BOARD)
 # comment to disable RF transmission
 UBERTOOTH_OPTS += -DTX_ENABLE
 
+# set these to hard code a revision number
+#SVN_REV = -D'SVN_REV="9999foo"'
+#SVN_REV_NUM = -D'SVN_REV_NUM=9999'
+
+# automatic revision number when working out of svn
+SVN_REV ?= -D'SVN_REV="$(shell svnversion -n .)"'
+SVN_REV_NUM ?= -D'SVN_REV_NUM=$(shell svnversion -n . | sed 's/[^0-9].*$$//')'
+
 # CPU architecture
 CPU = cortex-m3
 
@@ -157,6 +165,8 @@ CFLAGS += -mfix-cortex-m3-ldrd
 CFLAGS += -Wa,-alhms=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
+CFLAGS += $(SVN_REV)
+CFLAGS += $(SVN_REV_NUM)
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information

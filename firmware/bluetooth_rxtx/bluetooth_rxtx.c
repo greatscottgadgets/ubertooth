@@ -119,7 +119,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_PALEVEL = 29,
 	UBERTOOTH_REPEATER    = 30,
 	UBERTOOTH_RANGE_TEST  = 31,
-	UBERTOOTH_RANGE_CHECK = 32
+	UBERTOOTH_RANGE_CHECK = 32,
+	UBERTOOTH_GET_REV_NUM = 33
 };
 
 enum operating_modes {
@@ -579,6 +580,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		high_freq = pSetup->wIndex;
 		requested_mode = MODE_SPECAN;
 		*piLen = 0;
+		break;
+
+	case UBERTOOTH_GET_REV_NUM:
+		pbData[0] = SVN_REV_NUM & 0xFF;
+		pbData[1] = (SVN_REV_NUM >> 8) & 0xFF;
+		*piLen = 2;
 		break;
 
 	default:

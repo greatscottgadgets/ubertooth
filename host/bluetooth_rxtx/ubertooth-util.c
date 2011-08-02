@@ -46,6 +46,7 @@ static void usage()
 	printf("\t-d get status of all LEDs\n");
 	printf("\t-d0 turn off all LED\n");
 	printf("\t-d1 turn on all LED\n");
+	printf("\t-v get firmware revision number\n");
 }
 
 int main(int argc, char *argv[])
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"nmefiprstl::a::c::d::")) != EOF) {
+	while ((opt=getopt(argc,argv,"nmefiprstvl::a::c::d::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -136,6 +137,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'e':
 			r = cmd_repeater(devh);
+			break;
+		case 'v':
+			r = cmd_get_rev_num(devh);
+			if (r >= 0) {
+				printf("firmware revision number: %d\n", r);
+			}
 			break;
 		default:
 			usage();

@@ -615,3 +615,20 @@ int cmd_repeater(struct libusb_device_handle* devh)
 	}
 	return 0;
 }
+
+int cmd_get_rev_num(struct libusb_device_handle* devh)
+{
+	u8 result[2];
+	int r;
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_REV_NUM, 0, 0,
+			result, 2, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+		return r;
+	} else if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+
+	return result[0] | (result[1] << 8);
+}

@@ -70,7 +70,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_SET_PALEVEL = 29,
 	UBERTOOTH_REPEATER    = 30,
 	UBERTOOTH_RANGE_TEST  = 31,
-	UBERTOOTH_RANGE_CHECK = 32
+	UBERTOOTH_RANGE_CHECK = 32,
+	UBERTOOTH_GET_REV_NUM = 33
 };
 
 enum modulations {
@@ -130,5 +131,6 @@ int cmd_set_channel(struct libusb_device_handle* devh, u16 channel);
 int cmd_get_rangeresult(struct libusb_device_handle* devh, rangetest_result *rr);
 int cmd_range_test(struct libusb_device_handle* devh);
 int cmd_repeater(struct libusb_device_handle* devh);
+int cmd_get_rev_num(struct libusb_device_handle* devh);
 
 #endif
