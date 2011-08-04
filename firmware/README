@@ -1,17 +1,6 @@
-For testing a new board, the recommended sequence is:
+For testing a new board, see: assembly_test/README
 
-	1. install bootloader using ISP (e.g. Pogoprog) or JTAG
-
-	2. use bootloader to install and test the following applications in
-	sequence (see ../host/usb_dfu/README):
-
-		a. blinky
-		b. cc2400_test
-		c. clock_test
-		d. usb_test
-		e. bluetooth_rxtx
-
-The preferred firmware for Bluetooth functions is bluetooth_rxtx.
+The general purpose firmware including Bluetooth functions is bluetooth_rxtx.
 
 The default hardware target is Ubertooth One.  If you are compiling for
 Ubertooth Zero, you must set the environment variable BOARD=UBERTOOTH_ZERO.

@@ -1,0 +1,165 @@
+Follow this procedure to test, rework, and program a new Ubertooth One.  For
+reference, see ubertooth-one-hardware/ubertooth-one-assembly.pdf and
+ubertooth-one-hardware/ubertooth-one-schematic.pdf in the release package or
+use KiCad to view the design files located in hardware/ubertooth-one.
+
+
+Required Equipment
+
+  - Equipment Under Test (EUT): Ubertooth One with 2 dBi antenna
+
+  - Personal Computer (PC) with two open USB ports
+
+  - Pogoprog, a serial programmer for Ubertooth One
+
+  - USB Mini-B cable to connect Pogoprog to PC
+
+  - USB A extension cable or USB hub to allow access to underside of Ubertooth
+	One while it is plugged into the PC
+
+  - A Bluetooth device such as a mobile phone
+
+  - Multi-meter (voltmeter and continuity tester)
+
+
+Required Software
+
+  - lpc21isp
+
+
+Visual Inspection
+
+  1. Check EUT for missing components.
+
+  2. Check that components are installed with the correct orientation and
+  placement.
+
+  3. Check in particular that R1 and C12 are not soldered together (one side,
+  GND, may be together, but the side closest to U1 should not be).
+
+
+Electrical Inspection
+
+  1. Verify no conductivity across C18.
+
+  2. Verify no conductivity across C22.
+
+  3. Verify no conductivity across C32.
+ 
+  If shorts are detected, carefully inspect (in order) the three capacitors
+  listed above, the voltage regulator (U7), bypass capacitors, and all IC pins.
+
+
+Power On EUT
+
+  1. Connect to EUT the 2 dBi antenna.  Check that the antenna fully screws
+  onto the RP-SMA connector.
+
+  2. Plug EUT in to PC with USB A extension cable or USB hub.
+
+  3. The "RST" LED (D5) should be illuminated.  No other LED should be fully
+  illuminated, though they may be dimly lit.  D5 indicates that U4 has been
+  powered on and passed reset.  If D5 does not illuminate, check D5, R8, R9,
+  and pins 11 and 14 on U4.
+
+
+Program EUT with assembly_test Firmware
+
+  1. Ensure EUT is plugged into PC.
+
+  2. Plug Pogoprog into PC with USB Mini-B cable.
+
+  3. Hold Pogoprog against the "PROGRAM" pads on the underside of EUT as shown
+  in the photograph:
+
+    http://ubertooth.sourceforge.net/hardware/program/
+
+  4. on the PC, execute:
+
+    $ make program
+
+  If you have not yet compiled the assembly_test firmware, you will need to
+  have a gcc/arm environment set up.  See:
+
+    http://ubertooth.sourceforge.net/firmware/develop/
+
+  5. The 'make program' command will indicate "Download Finished . . . Now
+  launching the brand new code" if successful.  If it was not successful, check
+  the orientation and contact between the Pogoprog and sample Ubertooth One,
+  make sure both are plugged in, and try again.
+
+
+Automated Test
+
+  1. Unplug EUT from PC and plug back in.
+
+  2. "RST" LED (D5) should illuminate immediately and remain on throughout this
+  test.
+
+  3. "TX" LED (D2), "RX" LED (D3), and "USR" LED (D4) should flash twice
+  together.  Flashing indicates that the test program is executing on U4.  If
+  any of the three LEDs do not flash, check that LED, the adjacent resistor,
+  and pins 73, 74, and 75 of U4.
+
+  4. Next, "1V8" LED (D1) should illuminate and remain on.  This indicates that
+  U3 is powered on.  If D1 does not illuminate, check D1, R3, R4, U7, and pin
+  72 of U4.
+
+  5. Next, "TX" LED (D2) should flash twice and then illuminate and remain on.
+  This indicates that U4 is able to communicate with U3.  If D2 does not flash
+  and illuminate, check pins 25-35 on U3 and pins 53, 54, 58, 59, 60, and 70 on
+  U4.  Check that there is a 1.8 Volt potential across C18.  Check that there
+  is a 3.3 Volt potential across C25.
+
+  6. Next, "RX" LED (D3) should flash four times quickly and then illuminate
+  and remain on.  This indicates that the 16 MHz crystal oscillator is active
+  and supplying clock to both U3 and U4.  If D3 does not flash and illuminate,
+  check X1, C19, C21, C29, C31, pins 21, 42, and 43 on U3, and pins 19 and 20
+  on U4.
+
+  7. At this point, four LEDs (D1, D2, D3, and D5) should all be on.
+
+  8. Use a mobile phone or other Bluetooth device approximately 1 meter away
+  from EUT to initiate an inquiry.  This function is typically called “search
+  for new Bluetooth devices” or similar.
+
+  9. During the inquiry, "USR" LED (D4) may flash and should then illuminate
+  and remain on.  If D4 flashes but does not remain on after the inquiry, this
+  indicates that RF performance is poor.  If D4 does not flash at all, this
+  indicates a total RF failure.  Check that a 2 dBi antenna is securely
+  connected to P1.  Check L1, L2, C1, C3, and C5.  Check all pins on U1 and U3.
+  Check R1, R2, and R17.  Check all bypass capacitors around U1 and U3.  Check
+  pins 50, 51, 61, 62, 63, 64, 65, 68, and 69 on U4.
+
+  10. After D4 illuminates, the "USB" LED (D6) may flash and should then
+  illuminate and remain on.  This indicates that the PC has established USB
+  communication with EUT.  With some non-Linux operating systems, D6 may not
+  illuminate.  Depending on the OS running on the PC, you might see a "found
+  new hardware" or "install device driver software" dialog instead of
+  illumination of D6.  You should be able to use operating system logging or
+  reporting (e.g. dmesg on Linux) to see that a USB device with the product
+  name "ubertooth assembly_test" has been detected.  This indicates success.
+  Cancel any dialog and visually inspect D6 and R15.
+
+  11. If all six LEDs are on (with the possible exception of D6 as mentioned
+  above), the Automated Test is successful.  To repeat the Automated Test,
+  unplug EUT from PC and plug in again.
+
+
+Test Complete
+
+  If your Ubertooth One has passed the assembly test procedure, the recommended
+  next steps are:
+
+  1. Install the USB bootloader on your Ubertooth One.  See:
+
+	firmware/bootloader/README
+
+  2. Use the bootloader to install the bluetooth_rxtx application firmware.
+  See:
+
+    host/usb_dfu/README
+
+  3. Follow the Getting Started guide:
+
+    http://ubertooth.sourceforge.net/usage/start/

@@ -321,10 +321,11 @@ static const u8 abDescriptors[] = {
 	'/', 0,
 
 	// product string
-	0x1E,
+	0x30,
 	DESC_STRING,
-	'b', 0, 'l', 0, 'u', 0, 'e', 0, 't', 0, 'o', 0, 'o', 0, 't', 0, 'h', 0, '_', 0,
-	'r', 0, 'x', 0, 't', 0, 'x', 0,
+	'u', 0, 'b', 0, 'e', 0, 'r', 0, 't', 0, 'o', 0, 'o', 0, 't', 0,
+	'h', 0, ' ', 0, 'a', 0, 's', 0, 's', 0, 'e', 0, 'm', 0, 'b', 0,
+	'l', 0, 'y', 0, '_', 0, 't', 0, 'e', 0, 's', 0, 't', 0,
 
 	// serial number string
 	0x12,
@@ -1117,10 +1118,142 @@ void specan()
 	RXLED_CLR;
 }
 
+/* an ugly but effective way to identify a GIAC (inquiry packet) */
+int find_giac(u8 *buf)
+{
+	int i, j;
+	const uint8_t giac[8][7] = {
+			{0x47, 0x5c, 0x58, 0xcc, 0x73, 0x34, 0x5e},
+			{0x8e, 0xb8, 0xb1, 0x98, 0xe6, 0x68, 0xbc},
+			{0x11, 0xd7, 0x16, 0x33, 0x1c, 0xcd, 0x17},
+			{0x23, 0xae, 0x2c, 0x66, 0x39, 0x9a, 0x2f},
+			{0x75, 0xc5, 0x8c, 0xc7, 0x33, 0x45, 0xe7},
+			{0xeb, 0x8b, 0x19, 0x8e, 0x66, 0x8b, 0xce},
+			{0x1d, 0x71, 0x63, 0x31, 0xcc, 0xd1, 0x79},
+			{0x3a, 0xe2, 0xc6, 0x63, 0x99, 0xa2, 0xf3}};
+
+    for (i = 0; i < (DMA_SIZE - 6); i++)
+			for (j = 0; j < 8; j++)
+	        	if (buf[i] == giac[j][0]
+						&& buf[i + 1] == giac[j][1]
+						&& buf[i + 2] == giac[j][2]
+						&& buf[i + 3] == giac[j][3]
+						&& buf[i + 4] == giac[j][4]
+						&& buf[i + 5] == giac[j][5]
+						&& buf[i + 6] == giac[j][6])
+					return 1;
+
+	return 0;
+}
+
+void bt_test_rx()
+{
+	u8 *tmp = NULL;
+	int i;
+	int countdown = 0;
+	int num_giacs = 0;
+
+	dio_ssp_init();
+	dma_init();
+	dio_ssp_start();
+	cc2400_rx();
+
+	while (num_giacs < 20) {
+		/* wait for DMA transfer */
+		while ((rx_tc == 0) && (rx_err == 0));
+		if (rx_tc % 2) {
+			/* swap buffers */
+			tmp = active_rxbuf;
+			active_rxbuf = idle_rxbuf;
+			idle_rxbuf = tmp;
+		}
+		if (rx_err)
+			RXLED_CLR;
+		if (rx_tc) {
+			if (rx_tc > 1)
+				TXLED_CLR;
+			if (find_giac(idle_rxbuf)) {
+				USRLED_SET;
+				countdown = 100;
+				num_giacs++;
+			} else {
+				if (countdown == 0) {
+					/* win if more than 32 GIACs seen during this countdown */
+					//if (num_giacs > 32)
+						//break;
+					USRLED_CLR;
+					num_giacs = 0;
+				} else {
+					--countdown;
+				}
+			}
+		}
+
+		rx_tc = 0;
+		rx_err = 0;
+	}
+	//FIXME turn off rx
+}
+
+/* delay a number of milliseconds while on internal oscillator (4 MHz) */
+void waitms(u8 ms)
+{
+	u32 i = 400 * ms;
+	while (--i);
+}
+
 int main()
 {
-	ubertooth_init();
+	int i;
+
+	gpio_init();
+
+	/* blinky */
+	for (i = 0; i < 2; i++) {
+		TXLED_SET;
+		RXLED_SET;
+		USRLED_SET;
+		waitms(200);
+		TXLED_CLR;
+		RXLED_CLR;
+		USRLED_CLR;
+		waitms(200);
+	}
+
+	/* cc2400_test */
+	cc2400_init();
+	TXLED_SET;
+	waitms(200);
+	TXLED_CLR;
+	waitms(200);
+	cc2400_reset();
+	TXLED_SET;
+	waitms(200);
+	TXLED_CLR;
+	waitms(200);
+	if (cc2400_get(AGCCTRL) != 0xf700)
+		while(1);
+	TXLED_SET;
+	waitms(200);
+
+	/* clock_test */
+	clock_start();
+	for (i = 0; i < 4; i++) {
+		RXLED_SET;
+		wait(2);
+		RXLED_CLR;
+		wait(2);
+	}
+	RXLED_SET;
+
 	clkn_init();
+	bt_test_rx();
+	USRLED_SET;
+
+	/*
+	 * Now we function like bluetooth_rxtx so that the USB interface can be
+	 * tested.
+	 */
 	ubertooth_usb_init();
 
 	while (1) {
