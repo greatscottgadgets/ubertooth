@@ -10,7 +10,8 @@ body {
 }
 
 a {
-  text-decoration: none;
+  text-decoration: inherit;
+  font-family: inherit;
 }
 
 a:link,
