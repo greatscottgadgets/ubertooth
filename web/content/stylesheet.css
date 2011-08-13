@@ -22,6 +22,10 @@ a:hover {
   color: #39f;
 }
 
+a[name]:hover {
+  color: inherit;
+}
+
 #main {
   position: absolute;
 
