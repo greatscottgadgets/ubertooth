@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sat 13 Aug 2011 09:51:41 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 02:04:11 PM MDT
 
 BeginCmp
 TimeStamp = /4E4697D7;
@@ -179,91 +179,91 @@ BeginCmp
 TimeStamp = /4E460E8A;
 Reference = D1;
 ValeurCmp = LED1;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468758;
 Reference = D2;
 ValeurCmp = LED2;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468761;
 Reference = D3;
 ValeurCmp = LED3;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E46875E;
 Reference = D4;
 ValeurCmp = LED4;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468770;
 Reference = D5;
 ValeurCmp = LED5;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E46876D;
 Reference = D6;
 ValeurCmp = LED6;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468769;
 Reference = D7;
 ValeurCmp = LED7;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E46876C;
 Reference = D8;
 ValeurCmp = LED8;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E46877E;
 Reference = D9;
 ValeurCmp = LED9;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468775;
 Reference = D10;
 ValeurCmp = LED10;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468778;
 Reference = D11;
 ValeurCmp = LED11;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E46877C;
 Reference = D12;
 ValeurCmp = LED12;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E468779;
 Reference = D13;
 ValeurCmp = LED13;
-IdModule  = 1206;
+IdModule  = GSG-1206D;
 EndCmp
 
 BeginCmp
@@ -298,7 +298,7 @@ BeginCmp
 TimeStamp = /4E46E93E;
 Reference = J2;
 ValeurCmp = USB-MICRO-B;
-IdModule  = USB-KOBICONN-154-15320-E;
+IdModule  = GSG-USB-MICROB-FCI-10103594;
 EndCmp
 
 BeginCmp
@@ -353,7 +353,7 @@ EndCmp
 BeginCmp
 TimeStamp = /4D1F4F19;
 Reference = P6;
-ValeurCmp = 3V3D;
+ValeurCmp = VCC;
 IdModule  = testpad-50mil;
 EndCmp
 
@@ -367,14 +367,14 @@ EndCmp
 BeginCmp
 TimeStamp = /4E1A143A;
 Reference = P11;
-ValeurCmp = TRCLK;
+ValeurCmp = SCLK;
 IdModule  = testpad-50mil;
 EndCmp
 
 BeginCmp
 TimeStamp = /4D1F669C;
 Reference = P12;
-ValeurCmp = DT;
+ValeurCmp = SDAT;
 IdModule  = testpad-50mil;
 EndCmp
 
@@ -563,15 +563,15 @@ EndCmp
 BeginCmp
 TimeStamp = /4E456466;
 Reference = X1;
-ValeurCmp = CRYSTAL;
-IdModule  = HC-49V;
+ValeurCmp = XCVR_XTAL;
+IdModule  = GSG-HC-49S;
 EndCmp
 
 BeginCmp
 TimeStamp = /4E455E17;
 Reference = X2;
-ValeurCmp = CRYSTAL;
-IdModule  = HC-49V;
+ValeurCmp = MCU_XTAL;
+IdModule  = GSG-HC-49S;
 EndCmp
 
 EndListe
