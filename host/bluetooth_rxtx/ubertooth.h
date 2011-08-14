@@ -71,7 +71,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_REPEATER    = 30,
 	UBERTOOTH_RANGE_TEST  = 31,
 	UBERTOOTH_RANGE_CHECK = 32,
-	UBERTOOTH_GET_REV_NUM = 33
+	UBERTOOTH_GET_REV_NUM = 33,
+	UBERTOOTH_LED_SPECAN  = 34
 };
 
 enum modulations {
@@ -109,6 +110,7 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 int cmd_ping(struct libusb_device_handle* devh);
 int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
 int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
+int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold);
 int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
 int cmd_get_usrled(struct libusb_device_handle* devh);
 int cmd_set_rxled(struct libusb_device_handle* devh, u16 state);

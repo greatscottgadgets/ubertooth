@@ -120,7 +120,8 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_REPEATER    = 30,
 	UBERTOOTH_RANGE_TEST  = 31,
 	UBERTOOTH_RANGE_CHECK = 32,
-	UBERTOOTH_GET_REV_NUM = 33
+	UBERTOOTH_GET_REV_NUM = 33,
+	UBERTOOTH_LED_SPECAN  = 34
 };
 
 enum operating_modes {
@@ -130,7 +131,8 @@ enum operating_modes {
 	MODE_TX_TEST    = 3,
 	MODE_SPECAN     = 4,
 	MODE_RANGE_TEST = 5,
-	MODE_REPEATER   = 6
+	MODE_REPEATER   = 6,
+	MODE_LED_SPECAN = 7
 };
 
 enum modulations {
@@ -155,6 +157,7 @@ volatile u32 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
+volatile u8 rssi_threshold = 225;
 
 /* DMA linked list items */
 typedef struct {
@@ -560,6 +563,15 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		requested_mode = MODE_SPECAN;
 		*piLen = 0;
 		break;
+
+	case UBERTOOTH_LED_SPECAN:
+		if (pSetup->wValue > 256)
+			return FALSE;
+		rssi_threshold = pSetup->wValue;
+		requested_mode = MODE_LED_SPECAN;
+		*piLen = 0;
+		break;
+
 
 	case UBERTOOTH_GET_REV_NUM:
 		pbData[0] = SVN_REV_NUM & 0xFF;
@@ -1117,11 +1129,79 @@ void specan()
 	RXLED_CLR;
 }
 
+/* LED based spectrum analysis */
+void led_specan()
+{
+	u8 lvl;
+    u8 i = 0;
+    u16 channels[3] = {2412, 2437, 2462};
+    //void (*set[3]) = {TXLED_SET, RXLED_SET, USRLED_SET};
+    //void (*clr[3]) = {TXLED_CLR, RXLED_CLR, USRLED_CLR};
+
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	//HGM_SET;
+#endif
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x134b); // without PRNG
+	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+	cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+	cc2400_set(RSSI,    0x00F1); // RSSI Sample over 2 symbols
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	while ((cc2400_status() & FS_LOCK));
+
+	while (requested_mode == MODE_LED_SPECAN) {
+		cc2400_set(FSDIV, channels[i] - 1);
+		cc2400_strobe(SFSON);
+		while (!(cc2400_status() & FS_LOCK));
+		cc2400_strobe(SRX);
+
+		lvl = cc2400_get(RSSI) >> 8;
+        if (lvl > rssi_threshold) {
+            switch (i) {
+                case 0:
+                    TXLED_SET;
+                    break;
+                case 1:
+                    RXLED_SET;
+                    break;
+                case 2:
+                    USRLED_SET;
+                    break;
+            }
+        }
+        else {
+            switch (i) {
+                case 0:
+                    TXLED_CLR;
+                    break;
+                case 1:
+                    RXLED_CLR;
+                    break;
+                case 2:
+                    USRLED_CLR;
+                    break;
+            }
+        }
+
+		i = (i+1) % 3;
+
+		USBHwISR();
+        wait(1);
+		cc2400_strobe(SRFOFF);
+		while ((cc2400_status() & FS_LOCK));
+	}
+	mode = MODE_IDLE;
+}
+
 int main()
 {
 	ubertooth_init();
 	clkn_init();
 	ubertooth_usb_init();
+    //requested_mode = MODE_LED_SPECAN;
 
 	while (1) {
 		USBHwISR();
@@ -1135,6 +1215,8 @@ int main()
 			cc2400_repeater();
 		else if (requested_mode == MODE_SPECAN && mode != MODE_SPECAN)
 			specan();
+		else if (requested_mode == MODE_LED_SPECAN && mode != MODE_LED_SPECAN)
+			led_specan();
 		//FIXME do other modes like this
 	}
 }

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"nmefiprstvl::a::c::d::")) != EOF) {
+	while ((opt=getopt(argc,argv,"nmefiprstvl::a::c::d::q::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -117,6 +117,13 @@ int main(int argc, char *argv[])
 				if (r >= 0) {
 					printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 				}
+			}
+			break;
+		case 'q':
+			if (optarg) {
+				r = cmd_led_specan(devh, atoi(optarg));
+			} else {
+				r = cmd_led_specan(devh, 225);
 			}
 			break;
 		case 'n':

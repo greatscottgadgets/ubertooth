@@ -244,6 +244,19 @@ int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq)
 	return 0;
 }
 
+int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_LED_SPECAN,
+			rssi_threshold, 0, NULL, 0, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return 0;
+}
+
 int cmd_set_usrled(struct libusb_device_handle* devh, u16 state)
 {
 	int r;
