@@ -27,6 +27,7 @@ static void usage()
 {
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
+	printf("\t-h display this message\n");
 	printf("\t-f activate flash programming (DFU) mode\n");
 	printf("\t-i activate In-System Programming (ISP) mode\n");
 	printf("\t-l get status of USR LED\n");
@@ -47,6 +48,7 @@ static void usage()
 	printf("\t-d0 turn off all LED\n");
 	printf("\t-d1 turn on all LED\n");
 	printf("\t-v get firmware revision number\n");
+	printf("\t-q start LED spectrum analyzer\n");
 }
 
 int main(int argc, char *argv[])
@@ -59,7 +61,7 @@ int main(int argc, char *argv[])
 	if (devh == NULL)
 		return 1;
 
-	while ((opt=getopt(argc,argv,"nmefiprstvl::a::c::d::q::")) != EOF) {
+	while ((opt=getopt(argc,argv,"hnmefiprstvl::a::c::d::q::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -151,6 +153,7 @@ int main(int argc, char *argv[])
 				printf("firmware revision number: %d\n", r);
 			}
 			break;
+		case 'h':
 		default:
 			usage();
 			return 1;
