@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 02:04:11 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 04:24:19 PM MDT
 
 BeginCmp
 TimeStamp = /4E4697D7;
@@ -281,14 +281,14 @@ IdModule  = 0603D;
 EndCmp
 
 BeginCmp
-TimeStamp = /4E46E172;
+TimeStamp = /4E4849D7;
 Reference = D16;
-ValeurCmp = DIODE;
-IdModule  = SOT23EBC;
+ValeurCmp = BAW56;
+IdModule  = GSG-SOT23-3;
 EndCmp
 
 BeginCmp
-TimeStamp = /4E4606E7;
+TimeStamp = /4E483136;
 Reference = J1;
 ValeurCmp = PCB_Antenna;
 IdModule  = GSG-2.4GHz-meander-f-antenna;
