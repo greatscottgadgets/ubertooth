@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 01:54:43 PM MDT
+PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 03:06:02 PM MDT
 
 # Created by Pcbnew(2011-06-30 BZR 3033)-stable
 
@@ -60,6 +60,7 @@ TextModWidth 80
 PadSize 7000 7000
 PadDrill 0
 Pad2MaskClearance 40
+Pad2PasteClearanceRatio -0.12
 AuxiliaryAxisOrg 0 0
 PcbPlotParams (pcbplotparams (layerselection 284721153) (usegerberextensions true) (excludeedgelayer false) (linewidth 60) (plotframeref false) (viasonmask false) (mode 1) (useauxorigin false) (hpglpennumber 1) (hpglpenspeed 20) (hpglpendiameter 15) (hpglpenoverlay 0) (pscolor true) (psnegative false) (psa4output false) (plotreference false) (plotvalue false) (plotothertext false) (plotinvisibletext false) (padsonsilk false) (subtractmaskfromsilk false) (outputformat 1) (mirror false) (drillshape 1) (scaleselection 1) (outputdirectory ""))
 $EndSETUP
@@ -4612,7 +4613,7 @@ Le 98
 $EndPAD
 $EndMODULE  1pin
 $MODULE GSG-BK-912
-Po 39000 39000 450 15 4E4978D9 4E470503 ~~
+Po 39000 39000 450 15 4E498352 4E470503 ~~
 Li GSG-BK-912
 Sc 4E470503
 AR /4E4697D7
@@ -4645,7 +4646,7 @@ Ne 6 "GND"
 Po 0 0
 Le 33
 .SolderMask -1138
-.SolderPaste -1575
+.SolderPaste -1138
 $EndPAD
 $PAD
 Sh "1" R 1000 2000 0 0 450
@@ -4740,12 +4741,12 @@ Po 19480 23220 394 394 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
-Te "$Rev: 334 $"
+Te "$Rev: 335 $"
 Po 30310 38260 394 394 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
-Te "15"
+Te "13"
 Po 33760 33700 3000 5000 750 0
 De 21 1 0 Normal
 $EndTEXTPCB

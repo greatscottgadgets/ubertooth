@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 03:06:02 PM MDT
+PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 03:14:02 PM MDT
 
 # Created by Pcbnew(2011-06-30 BZR 3033)-stable
 
@@ -57,7 +57,7 @@ TextPcbSize 394 394
 EdgeModWidth 80
 TextModSize 394 394
 TextModWidth 80
-PadSize 7000 7000
+PadSize 472 886
 PadDrill 0
 Pad2MaskClearance 40
 Pad2PasteClearanceRatio -0.12
@@ -4746,7 +4746,7 @@ Po 30310 38260 394 394 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
-Te "13"
+Te "15"
 Po 33760 33700 3000 5000 750 0
 De 21 1 0 Normal
 $EndTEXTPCB
