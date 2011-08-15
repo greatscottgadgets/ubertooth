@@ -38,7 +38,7 @@ encoding utf-8
 Sheet 1 1
 Title "Broccoli"
 Date "14 aug 2011"
-Rev "$Rev: 296 $"
+Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
 Comment2 ""

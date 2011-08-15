@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 02:32:37 AM MDT
+PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 02:40:20 AM MDT
 
 # Created by Pcbnew(2011-06-30 BZR 3033)-stable
 
@@ -35,14 +35,14 @@ InternalUnit 0.000100 INCH
 Layers 2
 Layer[0] Back signal
 Layer[15] Front signal
-TrackWidth 500
+TrackWidth 80
 TrackWidthList 120
 TrackWidthList 500
 TrackClearence 80
 ZoneClearence 100
 TrackMinWidth 80
-DrawSegmWidth 320
-EdgeSegmWidth 320
+DrawSegmWidth 20
+EdgeSegmWidth 80
 ViaSize 250
 ViaDrill 150
 ViaMinSize 200
@@ -57,8 +57,8 @@ TextPcbSize 394 394
 EdgeModWidth 80
 TextModSize 394 394
 TextModWidth 80
-PadSize 2600 2600
-PadDrill 2600
+PadSize 472 886
+PadDrill 0
 Pad2MaskClearance 40
 AuxiliaryAxisOrg 0 0
 PcbPlotParams (pcbplotparams (layerselection 284721153) (usegerberextensions true) (excludeedgelayer false) (linewidth 60) (plotframeref false) (viasonmask false) (mode 1) (useauxorigin false) (hpglpennumber 1) (hpglpenspeed 20) (hpglpendiameter 15) (hpglpenoverlay 0) (pscolor true) (psnegative false) (psa4output false) (plotreference false) (plotvalue false) (plotothertext false) (plotinvisibletext false) (padsonsilk false) (subtractmaskfromsilk false) (outputformat 1) (mirror false) (drillshape 1) (scaleselection 1) (outputdirectory ""))
@@ -4590,7 +4590,7 @@ Li 1pin
 Cd module 1 pin (ou trou mecanique de percage)
 Kw DEV
 Sc 4E48D52E
-AR 
+AR 1pin
 Op 0 0 0
 T0 0 -1200 400 400 0 100 N V 21 N "1PIN"
 T1 0 1100 400 400 0 100 N I 21 N "P***"
@@ -4610,7 +4610,7 @@ Li 1pin
 Cd module 1 pin (ou trou mecanique de percage)
 Kw DEV
 Sc 4E48D544
-AR 
+AR 1pin
 Op 0 0 0
 T0 0 -1200 400 400 0 100 N V 21 N "1PIN"
 T1 0 1100 400 400 0 100 N I 21 N "P***"
@@ -4630,7 +4630,7 @@ Li 1pin
 Cd module 1 pin (ou trou mecanique de percage)
 Kw DEV
 Sc 4E48D551
-AR 
+AR 1pin
 Op 0 0 0
 T0 0 -1200 400 400 0 100 N V 21 N "1PIN"
 T1 0 1100 400 400 0 100 N I 21 N "P***"
@@ -4720,7 +4720,7 @@ Po 19480 23220 394 394 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
-Te "$Rev: $"
+Te "$Rev$"
 Po 29540 38220 394 394 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
