@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun 14 Aug 2011 09:11:59 PM MDT
+EESchema Schematic File Version 2  date Mon 15 Aug 2011 09:54:29 AM MDT
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -37,7 +37,7 @@ $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
 Title "Broccoli"
-Date "14 aug 2011"
+Date "15 aug 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -764,6 +764,9 @@ U 1 1 4E485958
 P 10150 750
 F 0 "SW1" H 10300 860 50  0000 C CNN
 F 1 "SW_PUSH" H 10150 670 50  0000 C CNN
+F 4 "TE Connectivity" H 10150 750 60  0001 C CNN "Field1"
+F 5 "FSM4JSMATR" H 10150 750 60  0001 C CNN "Field2"
+F 6 "SWITCH TACT MINI 6X6MM SMD GW" H 10150 750 60  0001 C CNN "Field3"
 	1    10150 750 
 	1    0    0    -1  
 $EndComp
@@ -774,6 +777,9 @@ U 1 1 4E4849D7
 P 3800 9650
 F 0 "D16" H 3800 9750 40  0000 C CNN
 F 1 "BAW56" H 3800 9550 40  0000 C CNN
+F 4 "MCC" H 3800 9650 60  0001 C CNN "Field1"
+F 5 "BAW56-TP" H 3800 9650 60  0001 C CNN "Field2"
+F 6 "Diodes (General Purpose, Power, Switching) 100V" H 3800 9650 60  0001 C CNN "Field3"
 	1    3800 9650
 	0    1    1    0   
 $EndComp
@@ -792,6 +798,7 @@ U 1 1 4E483136
 P 2100 4450
 F 0 "J1" H 2110 4570 60  0000 C CNN
 F 1 "PCB Antenna" V 2210 4390 40  0000 C CNN
+F 4 "DNP" H 2100 4450 60  0001 C CNN "Field1"
 	1    2100 4450
 	-1   0    0    -1  
 $EndComp
