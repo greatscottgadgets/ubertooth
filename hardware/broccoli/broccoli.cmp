@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 04:24:19 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 09:12:27 PM MDT
 
 BeginCmp
 TimeStamp = /4E4697D7;
@@ -537,6 +537,13 @@ TimeStamp = /4E46877A;
 Reference = R21;
 ValeurCmp = 330;
 IdModule  = 0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E485958;
+Reference = SW1;
+ValeurCmp = SW_PUSH;
+IdModule  = GSG-SPST-FSM4JSMATR;
 EndCmp
 
 BeginCmp
