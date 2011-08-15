@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 09:12:27 PM MDT
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 14 Aug 2011 10:29:07 PM MDT
 
 BeginCmp
 TimeStamp = /4E4697D7;
@@ -557,7 +557,7 @@ BeginCmp
 TimeStamp = /4E45DCDB;
 Reference = U2;
 ValeurCmp = TRC104;
-IdModule  = QFN24;
+IdModule  = GSG-QFN24;
 EndCmp
 
 BeginCmp

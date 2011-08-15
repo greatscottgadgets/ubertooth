@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Sun 14 Aug 2011 09:12:27 PM MDT
+# EESchema Netlist Version 1.1 created  Sun 14 Aug 2011 10:29:07 PM MDT
 (
  ( /4E4697D7 GSG-BK-912 BT1 CR2032
   ( 1 N-000047 )
@@ -348,7 +348,7 @@
   ( 4 N-000051 )
   ( 5 N-000048 )
  )
- ( /4E45DCDB QFN24 U2 TRC104
+ ( /4E45DCDB GSG-QFN24 U2 TRC104
   ( 0 GND )
   ( 1 N-000086 )
   ( 2 /SCLK )
