@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 02:40:20 AM MDT
+PCBNEW-BOARD Version 1 date Mon 15 Aug 2011 02:44:12 AM MDT
 
 # Created by Pcbnew(2011-06-30 BZR 3033)-stable
 
@@ -4721,7 +4721,7 @@ De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
 Te "$Rev$"
-Po 29540 38220 394 394 80 0
+Po 30310 38260 394 394 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
