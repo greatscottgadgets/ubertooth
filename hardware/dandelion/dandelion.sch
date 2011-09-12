@@ -1,0 +1,3284 @@
+EESchema Schematic File Version 2  date Sun 04 Sep 2011 11:04:05 PM MDT
+LIBS:ubertooth-symbols
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:dandelion-cache
+EELAYER 25  0
+EELAYER END
+$Descr User 17000 11000
+encoding utf-8
+Sheet 1 1
+Title "Dandelion"
+Date "5 sep 2011"
+Rev "$Rev$"
+Comp "Copyright 2010, 2011 Michael Ossmann"
+Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+Wire Wire Line
+	13350 800  13250 800 
+Wire Wire Line
+	13250 800  13250 750 
+Wire Wire Line
+	1050 7850 1150 7850
+Wire Wire Line
+	1050 7650 1150 7650
+Wire Wire Line
+	1050 7450 1150 7450
+Wire Wire Line
+	3600 1950 3600 1800
+Wire Wire Line
+	9100 8150 9100 8350
+Wire Wire Line
+	850  9550 850  9450
+Connection ~ 4150 9550
+Wire Wire Line
+	4250 9450 4250 9550
+Wire Wire Line
+	4250 9550 3650 9550
+Wire Wire Line
+	3650 9550 3650 9450
+Wire Notes Line
+	4750 5750 4750 8050
+Wire Notes Line
+	4750 5750 1800 5750
+Wire Notes Line
+	1800 5750 1800 8050
+Wire Notes Line
+	1800 8050 4750 8050
+Wire Notes Line
+	16450 9300 16450 4850
+Wire Notes Line
+	16450 9300 13850 9300
+Wire Notes Line
+	13850 9300 13850 4850
+Wire Notes Line
+	13850 4850 16450 4850
+Wire Notes Line
+	6150 550  500  550 
+Wire Notes Line
+	6150 550  6150 5450
+Wire Notes Line
+	6150 5450 500  5450
+Wire Notes Line
+	500  5450 500  550 
+Wire Wire Line
+	13750 4800 13750 4900
+Wire Wire Line
+	13550 5000 13750 5000
+Wire Wire Line
+	13550 5200 13750 5200
+Wire Wire Line
+	13750 5400 13550 5400
+Wire Wire Line
+	13550 5600 13750 5600
+Wire Wire Line
+	13550 5800 13650 5800
+Wire Wire Line
+	13650 5800 13650 5900
+Connection ~ 4250 6900
+Wire Wire Line
+	12050 5900 12250 5900
+Wire Wire Line
+	5300 3550 5400 3550
+Wire Wire Line
+	15800 2600 16000 2600
+Wire Wire Line
+	15800 2400 16000 2400
+Connection ~ 11000 2100
+Wire Wire Line
+	11000 2200 11000 2000
+Wire Wire Line
+	11000 2100 11350 2100
+Wire Wire Line
+	11350 2100 11350 2000
+Wire Wire Line
+	10800 850  10800 2800
+Wire Wire Line
+	10800 2800 12800 2800
+Wire Wire Line
+	15250 5450 15150 5450
+Wire Wire Line
+	15150 5450 15150 4450
+Wire Wire Line
+	15150 4450 16450 4450
+Wire Wire Line
+	16450 4450 16450 550 
+Wire Wire Line
+	16450 550  14450 550 
+Wire Wire Line
+	14450 550  14450 950 
+Wire Wire Line
+	16250 2100 16250 4250
+Wire Wire Line
+	16250 2100 15800 2100
+Wire Wire Line
+	15800 2700 16050 2700
+Wire Wire Line
+	16150 4150 16150 2200
+Wire Wire Line
+	12800 2200 11450 2200
+Wire Wire Line
+	11450 2200 11450 2000
+Wire Wire Line
+	15250 6050 14950 6050
+Wire Wire Line
+	14950 6050 14950 4250
+Wire Wire Line
+	14950 4250 16250 4250
+Wire Wire Line
+	15250 6650 14750 6650
+Wire Wire Line
+	14750 6650 14750 4050
+Wire Wire Line
+	14750 4050 16050 4050
+Wire Wire Line
+	15250 7250 14550 7250
+Wire Wire Line
+	14550 7250 14550 3950
+Wire Wire Line
+	15250 7850 14350 7850
+Wire Wire Line
+	14350 7850 14350 3950
+Wire Wire Line
+	15250 8450 14150 8450
+Wire Wire Line
+	14150 8450 14150 3950
+Wire Wire Line
+	15250 9050 13950 9050
+Wire Wire Line
+	13950 9050 13950 3950
+Wire Wire Line
+	14150 950  14150 750 
+Wire Wire Line
+	12050 6000 12250 6000
+Wire Wire Line
+	12050 5700 12250 5700
+Wire Wire Line
+	12600 3400 12600 3300
+Wire Wire Line
+	12800 1250 12800 2100
+Wire Wire Line
+	13950 950  13950 750 
+Wire Wire Line
+	12800 2600 12600 2600
+Connection ~ 12050 2200
+Wire Wire Line
+	12050 1750 12050 2200
+Connection ~ 12200 2200
+Wire Wire Line
+	12200 2200 12200 1100
+Connection ~ 12600 2200
+Wire Wire Line
+	12600 1500 12600 1600
+Wire Wire Line
+	12800 2700 12500 2700
+Wire Wire Line
+	12400 2100 12400 2300
+Connection ~ 13100 8400
+Wire Wire Line
+	13100 8400 13000 8400
+Wire Wire Line
+	13100 7800 13100 6500
+Wire Wire Line
+	13100 6500 12050 6500
+Connection ~ 13200 8600
+Wire Wire Line
+	13200 8300 13200 9050
+Wire Wire Line
+	12400 7700 12400 7800
+Wire Wire Line
+	13100 8600 12600 8600
+Wire Wire Line
+	12600 8600 12600 8700
+Wire Wire Line
+	13600 9200 13600 9100
+Connection ~ 2300 3150
+Wire Wire Line
+	1150 2950 2300 2950
+Wire Wire Line
+	2300 2950 2300 3250
+Connection ~ 1250 3150
+Wire Wire Line
+	1250 3150 1250 3450
+Wire Wire Line
+	1250 3450 2600 3450
+Wire Wire Line
+	1050 6850 1150 6850
+Wire Wire Line
+	1100 6450 1050 6450
+Connection ~ 2000 6950
+Wire Wire Line
+	2100 6950 1900 6950
+Wire Wire Line
+	1900 6950 1900 6900
+Wire Wire Line
+	5050 6900 5050 6800
+Connection ~ 3500 6850
+Wire Wire Line
+	3500 6800 3500 6950
+Wire Wire Line
+	2000 7450 2000 7550
+Wire Wire Line
+	3200 6850 3500 6850
+Wire Wire Line
+	3300 7350 3300 6950
+Wire Wire Line
+	3300 6950 3200 6950
+Wire Wire Line
+	4150 10150 4150 10050
+Wire Wire Line
+	10400 9000 10400 9100
+Connection ~ 10400 8500
+Wire Wire Line
+	10600 8500 10400 8500
+Wire Wire Line
+	7050 6100 5550 6100
+Wire Wire Line
+	5550 6100 5550 3250
+Wire Wire Line
+	7050 5900 5750 5900
+Wire Wire Line
+	5750 5900 5750 3050
+Wire Wire Line
+	7050 5700 5950 5700
+Wire Wire Line
+	5950 5700 5950 2850
+Connection ~ 4100 4850
+Wire Wire Line
+	4100 4850 4100 4650
+Wire Wire Line
+	5300 3150 5650 3150
+Wire Wire Line
+	5300 2950 5850 2950
+Wire Wire Line
+	5300 3350 6850 3350
+Wire Wire Line
+	6850 3350 6850 4900
+Connection ~ 5400 3850
+Wire Wire Line
+	7050 5600 6050 5600
+Wire Wire Line
+	7050 4700 6950 4700
+Connection ~ 4900 1850
+Wire Wire Line
+	4900 1850 4900 1750
+Wire Wire Line
+	5400 4450 5400 4350
+Connection ~ 4600 4850
+Wire Wire Line
+	4600 4950 4600 4850
+Wire Wire Line
+	4900 4650 4900 4850
+Wire Wire Line
+	4900 4850 3900 4850
+Connection ~ 4400 4850
+Wire Wire Line
+	4400 4850 4400 4650
+Wire Wire Line
+	3900 4850 3900 4650
+Wire Wire Line
+	3700 5250 3700 5350
+Connection ~ 3800 4750
+Wire Wire Line
+	3800 4650 3800 4750
+Wire Wire Line
+	3700 4850 3700 4650
+Wire Wire Line
+	2400 5350 2400 5250
+Wire Wire Line
+	2400 4650 2400 4850
+Wire Wire Line
+	5500 1950 5500 1850
+Wire Wire Line
+	5500 1850 5400 1850
+Wire Wire Line
+	2750 1650 2750 1550
+Wire Wire Line
+	4000 1950 4000 1000
+Connection ~ 4100 1850
+Wire Wire Line
+	5000 1850 2400 1850
+Connection ~ 3400 1850
+Wire Wire Line
+	3800 1850 3800 1950
+Connection ~ 2500 2150
+Wire Wire Line
+	2500 1850 2500 3050
+Wire Wire Line
+	2000 1850 1900 1850
+Wire Wire Line
+	1900 1850 1900 2250
+Connection ~ 2500 2850
+Wire Wire Line
+	2500 2850 2600 2850
+Wire Wire Line
+	2500 2150 2400 2150
+Wire Wire Line
+	2500 3050 2600 3050
+Wire Wire Line
+	2500 3550 2600 3550
+Wire Wire Line
+	11500 950  11500 850 
+Wire Wire Line
+	4050 9150 4050 9550
+Wire Wire Line
+	4250 7000 4250 6900
+Connection ~ 6450 6900
+Wire Wire Line
+	6750 6900 6750 6400
+Wire Wire Line
+	6750 6900 6450 6900
+Connection ~ 12300 4900
+Wire Wire Line
+	12300 5000 12300 4850
+Wire Wire Line
+	3350 8950 3350 9050
+Connection ~ 4250 1000
+Wire Wire Line
+	4250 1100 4250 750 
+Wire Wire Line
+	4250 7600 4250 7700
+Wire Wire Line
+	3350 9650 3350 9550
+Connection ~ 3000 8950
+Wire Wire Line
+	15750 5450 15850 5450
+Wire Wire Line
+	7750 1050 7750 1100
+Wire Wire Line
+	7750 1100 7650 1100
+Wire Wire Line
+	7650 1200 9500 1200
+Wire Wire Line
+	9500 1200 9500 3150
+Wire Wire Line
+	7650 1400 9300 1400
+Wire Wire Line
+	9300 1400 9300 3150
+Wire Wire Line
+	7650 1600 9100 1600
+Wire Wire Line
+	9100 1600 9100 3150
+Wire Wire Line
+	7650 1800 8300 1800
+Wire Wire Line
+	8300 1800 8300 2850
+Wire Wire Line
+	8300 2850 8700 2850
+Wire Wire Line
+	8700 2850 8700 3150
+Wire Wire Line
+	4000 1000 4250 1000
+Wire Wire Line
+	4250 1600 4250 1500
+Connection ~ 6950 4700
+Wire Wire Line
+	9300 8150 9300 8200
+Wire Wire Line
+	9500 8150 9500 8200
+Wire Wire Line
+	1050 7050 1150 7050
+Wire Wire Line
+	7050 4800 6950 4800
+Wire Wire Line
+	1200 9450 1200 9550
+Wire Wire Line
+	1700 9050 1500 9050
+Wire Wire Line
+	1500 9050 1500 9250
+Wire Wire Line
+	1100 6050 1050 6050
+Wire Wire Line
+	6650 9100 6650 9000
+Wire Wire Line
+	6650 9000 6550 9000
+Wire Wire Line
+	10200 3150 10200 1550
+Wire Wire Line
+	10200 1550 10000 1550
+Wire Wire Line
+	10000 1550 10000 1650
+Wire Wire Line
+	9900 2450 9900 2550
+Wire Wire Line
+	9900 2550 9950 2550
+Wire Wire Line
+	9950 2550 9950 2800
+Wire Wire Line
+	9950 2800 10100 2800
+Wire Wire Line
+	10100 2800 10100 3150
+Wire Wire Line
+	6550 8600 6850 8600
+Wire Wire Line
+	6850 8600 6850 6500
+Connection ~ 9900 8500
+Wire Wire Line
+	9900 8150 9900 8600
+Connection ~ 7450 9300
+Wire Wire Line
+	7550 9300 7450 9300
+Wire Wire Line
+	7450 9400 7450 9000
+Wire Wire Line
+	7450 9000 7550 9000
+Wire Wire Line
+	8700 8150 8700 9200
+Wire Wire Line
+	8700 9200 8350 9200
+Wire Wire Line
+	9000 8150 9000 9000
+Wire Wire Line
+	9000 9000 8350 9000
+Wire Wire Line
+	10500 3150 10500 3050
+Wire Wire Line
+	12750 5700 12750 5600
+Wire Wire Line
+	9600 9100 9600 9200
+Connection ~ 10100 9100
+Wire Wire Line
+	9900 9100 10100 9100
+Wire Wire Line
+	9700 2650 9700 3150
+Wire Wire Line
+	12050 5400 12300 5400
+Wire Wire Line
+	12300 5400 12300 5550
+Wire Wire Line
+	12050 6300 12150 6300
+Wire Wire Line
+	12200 6600 12050 6600
+Connection ~ 12150 6700
+Connection ~ 10300 2250
+Connection ~ 10700 2250
+Wire Wire Line
+	10300 1550 10300 3150
+Wire Wire Line
+	10000 3150 10000 2450
+Wire Wire Line
+	9900 1650 9800 1650
+Wire Wire Line
+	9800 1650 9800 3150
+Wire Wire Line
+	6850 6500 7050 6500
+Wire Wire Line
+	6750 6400 7050 6400
+Wire Wire Line
+	9000 2300 9000 3150
+Connection ~ 8600 2350
+Wire Wire Line
+	6750 5200 6750 4900
+Wire Wire Line
+	6750 5200 7050 5200
+Wire Wire Line
+	7050 5000 6950 5000
+Wire Wire Line
+	6950 5000 6950 5100
+Wire Wire Line
+	6950 5100 7050 5100
+Connection ~ 6450 5300
+Wire Wire Line
+	6750 4900 6350 4900
+Connection ~ 6450 4900
+Wire Wire Line
+	6400 5300 7050 5300
+Connection ~ 9000 2350
+Connection ~ 10300 2250
+Wire Wire Line
+	8900 3150 8900 2650
+Wire Wire Line
+	8900 2650 8600 2650
+Wire Wire Line
+	8600 2650 8600 2250
+Wire Wire Line
+	10500 3050 10700 3050
+Connection ~ 6450 6300
+Wire Wire Line
+	6450 7000 6450 6800
+Wire Wire Line
+	7050 6600 6950 6600
+Connection ~ 10700 2250
+Wire Wire Line
+	10400 3150 10400 2550
+Wire Wire Line
+	10700 2200 10700 2550
+Wire Wire Line
+	12150 7200 12150 7100
+Wire Wire Line
+	12150 6700 12150 6600
+Connection ~ 12150 6600
+Wire Wire Line
+	12050 5300 12150 5300
+Wire Wire Line
+	10100 9150 10100 8150
+Wire Wire Line
+	10300 8350 10300 8150
+Wire Wire Line
+	9600 8600 9600 8150
+Wire Wire Line
+	9600 9600 9600 9700
+Wire Wire Line
+	12050 6200 12750 6200
+Wire Wire Line
+	10700 2550 10400 2550
+Connection ~ 10500 2550
+Wire Wire Line
+	8350 8900 8800 8900
+Wire Wire Line
+	8800 8900 8800 8150
+Wire Wire Line
+	8350 9100 8600 9100
+Wire Wire Line
+	8600 9100 8600 8150
+Wire Wire Line
+	8350 9300 8900 9300
+Wire Wire Line
+	8900 9300 8900 8500
+Wire Wire Line
+	7550 9100 7450 9100
+Connection ~ 7450 9100
+Wire Wire Line
+	7550 8900 7450 8900
+Wire Wire Line
+	7450 8900 7450 8850
+Wire Wire Line
+	6550 8500 9900 8500
+Connection ~ 8900 8500
+Wire Wire Line
+	6950 6600 6950 8700
+Wire Wire Line
+	6950 8700 6550 8700
+Wire Wire Line
+	6550 8900 6650 8900
+Wire Wire Line
+	12750 5200 12750 5150
+Wire Wire Line
+	9900 3150 9900 2650
+Wire Wire Line
+	9900 2650 10100 2650
+Wire Wire Line
+	10100 2650 10100 2450
+Wire Wire Line
+	10100 1650 10300 1650
+Connection ~ 10300 1650
+Wire Wire Line
+	1050 6250 1150 6250
+Wire Wire Line
+	1050 7250 1150 7250
+Wire Wire Line
+	1700 9150 1600 9150
+Wire Wire Line
+	1600 9150 1600 8950
+Connection ~ 1600 8950
+Wire Wire Line
+	1700 8950 600  8950
+Connection ~ 1200 8950
+Wire Wire Line
+	3000 9450 3000 9550
+Wire Wire Line
+	6850 4900 7050 4900
+Wire Wire Line
+	9700 8250 9700 8150
+Wire Wire Line
+	9400 8250 9400 8150
+Wire Wire Line
+	3650 1600 3650 1500
+Wire Wire Line
+	3650 1000 3900 1000
+Wire Wire Line
+	8800 3150 8800 2750
+Wire Wire Line
+	8800 2750 8400 2750
+Wire Wire Line
+	8400 2750 8400 1700
+Wire Wire Line
+	8400 1700 7650 1700
+Wire Wire Line
+	8600 3150 8600 2950
+Wire Wire Line
+	8600 2950 8200 2950
+Wire Wire Line
+	8200 2950 8200 1900
+Wire Wire Line
+	8200 1900 7650 1900
+Wire Wire Line
+	9200 3150 9200 1500
+Wire Wire Line
+	9200 1500 7650 1500
+Wire Wire Line
+	7650 1300 9400 1300
+Wire Wire Line
+	9400 1300 9400 3150
+Wire Wire Line
+	7750 2100 7750 2000
+Wire Wire Line
+	7750 2000 7650 2000
+Wire Wire Line
+	16250 5450 16350 5450
+Wire Wire Line
+	16250 5750 16350 5750
+Wire Wire Line
+	15750 5750 15850 5750
+Wire Wire Line
+	15750 6350 15850 6350
+Wire Wire Line
+	16350 6350 16250 6350
+Wire Wire Line
+	16350 6050 16250 6050
+Wire Wire Line
+	15750 6050 15850 6050
+Wire Wire Line
+	15750 7250 15850 7250
+Wire Wire Line
+	16350 7250 16250 7250
+Wire Wire Line
+	16350 7550 16250 7550
+Wire Wire Line
+	15750 7550 15850 7550
+Wire Wire Line
+	15750 6950 15850 6950
+Wire Wire Line
+	16350 6950 16250 6950
+Wire Wire Line
+	16350 6650 16250 6650
+Wire Wire Line
+	15750 6650 15850 6650
+Wire Wire Line
+	15750 8150 15850 8150
+Wire Wire Line
+	16350 8150 16250 8150
+Wire Wire Line
+	16350 8450 16250 8450
+Wire Wire Line
+	15750 8450 15850 8450
+Wire Wire Line
+	15750 9050 15850 9050
+Wire Wire Line
+	16350 9050 16250 9050
+Wire Wire Line
+	16350 8750 16250 8750
+Wire Wire Line
+	15750 8750 15850 8750
+Wire Wire Line
+	16350 7850 16250 7850
+Wire Wire Line
+	15750 7850 15850 7850
+Wire Wire Line
+	16350 5450 16350 9150
+Connection ~ 16350 5750
+Connection ~ 16350 6050
+Connection ~ 16350 6350
+Connection ~ 16350 6650
+Connection ~ 16350 6950
+Connection ~ 16350 7250
+Connection ~ 16350 7550
+Connection ~ 16350 7850
+Connection ~ 16350 8150
+Connection ~ 16350 8450
+Connection ~ 16350 8750
+Connection ~ 16350 9050
+Wire Wire Line
+	3750 8950 2800 8950
+Connection ~ 3350 8950
+Wire Wire Line
+	3650 1100 3650 750 
+Connection ~ 3650 1000
+Wire Wire Line
+	3000 8950 3000 9050
+Wire Wire Line
+	1200 8950 1200 9050
+Connection ~ 10500 3050
+Connection ~ 12300 5400
+Wire Wire Line
+	12150 5300 12150 4900
+Wire Wire Line
+	12150 4900 12300 4900
+Wire Wire Line
+	6450 6400 6450 6300
+Wire Wire Line
+	6350 6300 7050 6300
+Wire Wire Line
+	2600 3350 2300 3350
+Wire Wire Line
+	2500 3150 2600 3150
+Wire Wire Line
+	2500 2750 2600 2750
+Connection ~ 2500 2750
+Wire Wire Line
+	2600 2950 2500 2950
+Connection ~ 2500 2950
+Wire Wire Line
+	2000 2150 1900 2150
+Connection ~ 1900 2150
+Wire Wire Line
+	3400 1850 3400 1950
+Connection ~ 2500 1850
+Wire Wire Line
+	4100 1850 4100 1950
+Connection ~ 3800 1850
+Wire Wire Line
+	3900 1000 3900 1950
+Wire Wire Line
+	3700 1950 3700 1750
+Wire Wire Line
+	3700 1750 3350 1750
+Wire Wire Line
+	3350 1750 3350 1550
+Wire Wire Line
+	3350 1550 3250 1550
+Wire Wire Line
+	2600 3650 2500 3650
+Wire Wire Line
+	2500 3650 2500 4750
+Wire Wire Line
+	3500 4750 3500 4650
+Connection ~ 2500 4750
+Connection ~ 2400 4750
+Wire Wire Line
+	2400 4750 3600 4750
+Wire Wire Line
+	3600 4750 3600 4650
+Connection ~ 3500 4750
+Wire Wire Line
+	5100 4750 3700 4750
+Connection ~ 3700 4750
+Wire Wire Line
+	4000 4650 4000 4750
+Connection ~ 4000 4750
+Wire Wire Line
+	5100 5350 5100 5250
+Wire Wire Line
+	4300 4850 4300 4650
+Connection ~ 4300 4850
+Connection ~ 4500 4850
+Wire Wire Line
+	4500 4850 4500 4650
+Wire Wire Line
+	5400 3950 5400 3850
+Wire Wire Line
+	5400 3750 5300 3750
+Wire Wire Line
+	5300 3450 6950 3450
+Wire Wire Line
+	6950 3450 6950 4800
+Wire Wire Line
+	5300 3850 6050 3850
+Wire Wire Line
+	6050 3850 6050 5600
+Wire Wire Line
+	5950 2850 5300 2850
+Wire Wire Line
+	5750 3050 5300 3050
+Wire Wire Line
+	5550 3250 5300 3250
+Wire Wire Line
+	4200 4650 4200 5050
+Wire Wire Line
+	5850 2950 5850 5800
+Wire Wire Line
+	5850 5800 7050 5800
+Wire Wire Line
+	5650 3150 5650 6000
+Wire Wire Line
+	5650 6000 7050 6000
+Wire Wire Line
+	10400 8150 10400 8600
+Wire Wire Line
+	11000 8500 11100 8500
+Connection ~ 4050 9550
+Wire Wire Line
+	7050 6200 3300 6200
+Wire Wire Line
+	3300 6200 3300 6750
+Wire Wire Line
+	3300 6750 3200 6750
+Wire Wire Line
+	2000 7050 2000 6950
+Wire Wire Line
+	3300 7750 3300 7850
+Wire Wire Line
+	3500 6300 3500 6200
+Connection ~ 3500 6200
+Wire Wire Line
+	5050 7400 5050 7300
+Wire Wire Line
+	5050 6200 5050 6300
+Connection ~ 5050 6200
+Wire Wire Line
+	3200 7250 3300 7250
+Connection ~ 3300 7250
+Wire Wire Line
+	1050 6650 1150 6650
+Wire Wire Line
+	5100 4850 5100 4650
+Connection ~ 5100 4750
+Wire Wire Line
+	2300 3250 2600 3250
+Wire Wire Line
+	2050 3150 2300 3150
+Wire Wire Line
+	1450 3150 1150 3150
+Wire Wire Line
+	1700 3350 1350 3350
+Wire Wire Line
+	1350 3350 1350 3050
+Wire Wire Line
+	1350 3050 1150 3050
+Wire Wire Line
+	12900 8950 12900 9050
+Wire Wire Line
+	13300 9050 13300 8850
+Wire Wire Line
+	12600 9200 12600 9100
+Wire Wire Line
+	13200 8600 13600 8600
+Wire Wire Line
+	13600 8600 13600 8700
+Wire Wire Line
+	12700 7500 12700 8000
+Wire Wire Line
+	13200 7800 13200 6400
+Wire Wire Line
+	13200 6400 12050 6400
+Wire Wire Line
+	13100 8300 13100 9050
+Connection ~ 13100 8600
+Wire Wire Line
+	12600 2200 12600 2100
+Wire Wire Line
+	12800 2500 12700 2500
+Wire Wire Line
+	12400 1500 12400 1600
+Connection ~ 12400 2300
+Wire Wire Line
+	11800 1200 11800 1100
+Wire Wire Line
+	12100 1100 12100 1200
+Wire Wire Line
+	12100 1200 12050 1200
+Wire Wire Line
+	12050 1200 12050 1350
+Wire Wire Line
+	12600 2400 12800 2400
+Wire Wire Line
+	15800 2800 16000 2800
+Wire Wire Line
+	12800 850  12800 750 
+Wire Wire Line
+	12600 2900 12600 2700
+Connection ~ 12600 2700
+Wire Wire Line
+	12050 5800 12250 5800
+Wire Wire Line
+	14050 950  14050 750 
+Wire Wire Line
+	14250 950  14250 750 
+Wire Wire Line
+	14050 3950 14050 8750
+Wire Wire Line
+	14050 8750 15250 8750
+Wire Wire Line
+	14250 3950 14250 8150
+Wire Wire Line
+	14250 8150 15250 8150
+Wire Wire Line
+	14450 3950 14450 7550
+Wire Wire Line
+	14450 7550 15250 7550
+Wire Wire Line
+	14650 3950 14650 6950
+Wire Wire Line
+	14650 6950 15250 6950
+Wire Wire Line
+	16150 4150 14850 4150
+Wire Wire Line
+	14850 4150 14850 6350
+Wire Wire Line
+	14850 6350 15250 6350
+Wire Wire Line
+	12800 2300 11250 2300
+Wire Wire Line
+	11250 2300 11250 2000
+Wire Wire Line
+	11550 2400 11550 2000
+Wire Wire Line
+	16050 4050 16050 2700
+Wire Wire Line
+	16150 2200 15800 2200
+Wire Wire Line
+	15250 5750 15050 5750
+Wire Wire Line
+	15050 5750 15050 4350
+Wire Wire Line
+	15050 4350 16350 4350
+Wire Wire Line
+	16350 4350 16350 650 
+Wire Wire Line
+	16350 650  14550 650 
+Wire Wire Line
+	14550 650  14550 950 
+Wire Wire Line
+	10900 850  9600 850 
+Wire Wire Line
+	9600 850  9600 3150
+Connection ~ 10800 850 
+Wire Wire Line
+	11000 2700 11000 2600
+Wire Wire Line
+	14350 950  14350 750 
+Wire Wire Line
+	15800 2300 16000 2300
+Wire Wire Line
+	15800 2500 16000 2500
+Wire Wire Line
+	5300 3650 5400 3650
+Wire Wire Line
+	14650 950  14650 750 
+Wire Wire Line
+	12050 6100 12250 6100
+Wire Wire Line
+	4150 6700 4250 6700
+Wire Wire Line
+	4250 6700 4250 6600
+Wire Wire Line
+	13550 5700 13750 5700
+Wire Wire Line
+	13550 5500 13750 5500
+Wire Wire Line
+	13550 5300 13750 5300
+Wire Wire Line
+	13550 5100 13750 5100
+Wire Wire Line
+	13750 4900 13550 4900
+Wire Wire Line
+	12500 8400 12400 8400
+Wire Wire Line
+	12400 8400 12400 8200
+Wire Notes Line
+	16500 4000 10850 4000
+Wire Notes Line
+	16500 4000 16500 500 
+Wire Notes Line
+	16500 500  10850 500 
+Wire Notes Line
+	10850 500  10850 4000
+Wire Wire Line
+	4150 6900 4550 6900
+Wire Wire Line
+	4550 6900 4550 8650
+Wire Wire Line
+	4550 8650 4050 8650
+Wire Wire Line
+	4050 8650 4050 8750
+Wire Wire Line
+	3650 9050 3650 8950
+Connection ~ 3650 8950
+Wire Wire Line
+	4150 9550 4150 9650
+Wire Wire Line
+	850  9050 850  8950
+Connection ~ 850  8950
+Wire Wire Line
+	12300 1100 12300 2300
+Connection ~ 12300 2300
+Wire Wire Line
+	3500 1950 3500 1800
+Wire Wire Line
+	12800 1350 13000 1350
+Connection ~ 12800 1350
+Wire Wire Line
+	13000 1350 13000 1000
+Wire Wire Line
+	13000 1000 13350 1000
+$Comp
+L VCC #PWR76
+U 1 1 4E64581C
+P 13250 750
+F 0 "#PWR76" H 13250 850 30  0001 C CNN
+F 1 "VCC" H 13250 850 30  0000 C CNN
+	1    13250 750 
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_2 P19
+U 1 1 4E6457F7
+P 13700 900
+F 0 "P19" V 13650 900 40  0000 C CNN
+F 1 "PCB JUMPER" V 13750 900 40  0000 C CNN
+F 2 "0603bridged" H 13700 900 60  0001 C CNN
+F 4 "DNP" V 13700 900 60  0001 C CNN "Field4"
+	1    13700 900 
+	1    0    0    1   
+$EndComp
+Text Notes 6250 3000 0    60   ~ 0
+U4: LPC1756 or better is recommended\nAny of the following should work:\nLPC1752, LPC1754, LPC1756, LPC1758, LPC1759
+$Comp
+L CONN_1 P18
+U 1 1 4E5BE6A6
+P 900 7850
+F 0 "P18" H 980 7850 40  0000 L CNN
+F 1 "ADO3" H 900 7905 30  0001 C CNN
+F 2 "testpad-50mil" H 900 7850 60  0001 C CNN
+F 4 "DNP" H 900 7850 60  0001 C CNN "Field4"
+	1    900  7850
+	-1   0    0    1   
+$EndComp
+Text Label 1150 7850 0    40   ~ 0
+ADO3
+Text Label 1150 7650 0    40   ~ 0
+ATEST2
+$Comp
+L CONN_1 P17
+U 1 1 4E5BE6A2
+P 900 7650
+F 0 "P17" H 980 7650 40  0000 L CNN
+F 1 "ATEST2" H 900 7705 30  0001 C CNN
+F 2 "testpad-50mil" H 900 7650 60  0001 C CNN
+F 4 "DNP" H 900 7650 60  0001 C CNN "Field4"
+	1    900  7650
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P5
+U 1 1 4E5BE69D
+P 900 7450
+F 0 "P5" H 980 7450 40  0000 L CNN
+F 1 "ATEST1" H 900 7505 30  0001 C CNN
+F 2 "testpad-50mil" H 900 7450 60  0001 C CNN
+F 4 "DNP" H 900 7450 60  0001 C CNN "Field4"
+	1    900  7450
+	-1   0    0    1   
+$EndComp
+Text Label 1150 7450 0    40   ~ 0
+ATEST1
+Text Label 3600 1800 3    40   ~ 0
+ATEST2
+Text Label 3500 1800 3    40   ~ 0
+ATEST1
+Text Label 9100 8350 1    40   ~ 0
+ADO3
+NoConn ~ 9200 8150
+NoConn ~ 10200 8150
+Text Notes 11150 600  0    60   ~ 0
+P15 for programming U5 with Pogoprog or other TTL serial device
+Text Notes 10950 2950 0    60   ~ 0
+P14 for programming or\ndebugging U5 with Renesas E8a
+$Comp
+L C C3
+U 1 1 4E596DF5
+P 12600 3100
+F 0 "C3" H 12650 3200 50  0000 L CNN
+F 1 "100nF" H 12650 3000 50  0000 L CNN
+F 2 "0402" H 12600 3100 60  0001 C CNN
+F 4 "Murata" H 12600 3100 60  0001 C CNN "Field1"
+F 5 "GRM155R71C104KA88D" H 12600 3100 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 12600 3100 60  0001 C CNN "Field3"
+	1    12600 3100
+	1    0    0    -1  
+$EndComp
+NoConn ~ 11900 1100
+Text Notes 10950 1400 0    60   ~ 0
+supplied power not\nto exceed 3.3V
+NoConn ~ 12050 5600
+NoConn ~ 12050 5500
+NoConn ~ 12050 5200
+NoConn ~ 12050 5100
+NoConn ~ 12050 5000
+NoConn ~ 12050 4900
+NoConn ~ 12050 4800
+NoConn ~ 12050 4700
+NoConn ~ 7050 5500
+NoConn ~ 7050 5400
+$Comp
+L GND #PWR1
+U 1 1 4E59558F
+P 850 9550
+F 0 "#PWR1" H 850 9550 30  0001 C CNN
+F 1 "GND" H 850 9480 30  0001 C CNN
+	1    850  9550
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C2
+U 1 1 4E595581
+P 850 9250
+F 0 "C2" H 650 9350 50  0000 L CNN
+F 1 "10µF" H 600 9150 50  0000 L CNN
+F 2 "GSG-1206" H 850 9250 60  0001 C CNN
+F 4 "TDK" H 850 9250 60  0001 C CNN "Field1"
+F 5 "C3216Y5V1A106ZT/1.15" H 850 9250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 1206 10uF 10V Y5V +80/-20%" H 850 9250 60  0001 C CNN "Field3"
+F 7 "DIY" H 850 9250 60  0001 C CNN "Field4"
+	1    850  9250
+	-1   0    0    -1  
+$EndComp
+$Comp
+L TCR5SB U1
+U 1 1 4E594D40
+P 2250 9050
+F 0 "U1" H 2250 9300 60  0000 C CNN
+F 1 "NCP502" H 2250 8800 60  0000 C CNN
+F 2 "GSG-SC70-5" H 2250 9050 60  0001 C CNN
+F 4 "ON Semiconductor" H 2250 9050 60  0001 C CNN "Field1"
+F 5 "NCP502SQ35T2G" H 2250 9050 60  0001 C CNN "Field2"
+F 6 "IC REG VOLTAGE 180MA 3.5V SC70-6" H 2250 9050 60  0001 C CNN "Field3"
+F 7 "DIY" H 2250 9050 60  0001 C CNN "Field4"
+	1    2250 9050
+	1    0    0    -1  
+$EndComp
+$Comp
+L DIODESCH D16
+U 1 1 4E5947A7
+P 3650 9250
+F 0 "D16" H 3650 9350 40  0000 C CNN
+F 1 "DIODESCH" H 3650 9150 40  0000 C CNN
+F 2 "GSG-SOD-523F" H 3650 9250 60  0001 C CNN
+F 4 "Fairchild" H 3650 9250 60  0001 C CNN "Field1"
+F 5 "RB521S30" H 3650 9250 60  0001 C CNN "Field2"
+F 6 "DIODE SCHOTTKY 30V 200MA SOD523F" H 3650 9250 60  0001 C CNN "Field3"
+F 7 "DIY" H 3650 9250 60  0001 C CNN "Field4"
+	1    3650 9250
+	0    1    1    0   
+$EndComp
+Text Notes 13100 1150 0    60   ~ 0
+C4 optional\nfor ADC
+Text Notes 10450 9400 0    60   ~ 0
+Field4 in component properties indicates:\n\nDIY: Do It Yourself parts to be\ninstalled by user for\nUbertooth function\n\nDNP: Do Not Populate optional\nparts not needed for Ubertooth\nfunction or built in to PCB\n\nnone: installed at factory
+Text Notes 4250 8950 0    60   ~ 0
+if installing power\nswitching circuit, cut\nPCB JUMPER above
+$Comp
+L R R25
+U 1 1 4E588B5D
+P 12400 1850
+F 0 "R25" V 12480 1850 50  0000 C CNN
+F 1 "10k" V 12400 1850 50  0000 C CNN
+F 2 "0603" H 12400 1850 60  0001 C CNN
+F 4 "Bourns" H 12400 1850 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 12400 1850 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 12400 1850 60  0001 C CNN "Field3"
+	1    12400 1850
+	-1   0    0    1   
+$EndComp
+Text Notes 2000 6050 0    100  ~ 0
+factory install
+Text Notes 15250 5150 0    100  ~ 0
+factory install
+Text Notes 15100 950  0    100  ~ 0
+factory install
+Text Notes 4900 850  0    100  ~ 0
+factory install
+Text Notes 12750 4400 0    60   ~ 0
+R8C expansion port\nmostly pins that can be\nrepurposed if LPC175x\nis not installed
+Text Notes 4600 9900 0    60   ~ 0
+C15 optional to reduce glitch when\nswitching from USB to battery power
+$Comp
+L VCC #PWR79
+U 1 1 4E58849C
+P 13750 4800
+F 0 "#PWR79" H 13750 4900 30  0001 C CNN
+F 1 "VCC" H 13750 4900 30  0000 C CNN
+	1    13750 4800
+	1    0    0    -1  
+$EndComp
+Text Label 13750 5000 2    40   ~ 0
+P4_2
+Text Label 13750 5100 2    40   ~ 0
+MISO
+Text Label 13750 5200 2    40   ~ 0
+MOSI
+Text Label 13750 5300 2    40   ~ 0
+SCK
+Text Label 13750 5400 2    40   ~ 0
+P4_5
+Text Label 13750 5500 2    40   ~ 0
+P0_0
+Text Label 13750 5600 2    40   ~ 0
+XIN
+Text Label 13750 5700 2    40   ~ 0
+XOUT
+$Comp
+L GND #PWR78
+U 1 1 4E588404
+P 13650 5900
+F 0 "#PWR78" H 13650 5900 30  0001 C CNN
+F 1 "GND" H 13650 5830 30  0001 C CNN
+	1    13650 5900
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_10 P16
+U 1 1 4E5883EA
+P 13200 5350
+F 0 "P16" V 13150 5350 60  0000 C CNN
+F 1 "R8C EXPAND" V 13250 5350 60  0000 C CNN
+F 2 "PIN_ARRAY_5x2" H 13200 5350 60  0001 C CNN
+F 4 "DNP" V 13200 5350 60  0001 C CNN "Field4"
+	1    13200 5350
+	-1   0    0    1   
+$EndComp
+Text Label 12800 2100 1    40   ~ 0
+P4_2
+$Comp
+L VCC #PWR23
+U 1 1 4E5881FD
+P 4250 6600
+F 0 "#PWR23" H 4250 6700 30  0001 C CNN
+F 1 "VCC" H 4250 6700 30  0000 C CNN
+	1    4250 6600
+	-1   0    0    -1  
+$EndComp
+$Comp
+L CONN_2 P13
+U 1 1 4E5881E7
+P 3800 6800
+F 0 "P13" V 3750 6800 40  0000 C CNN
+F 1 "PCB JUMPER" V 3850 6800 40  0000 C CNN
+F 2 "0603bridged" H 3800 6800 60  0001 C CNN
+F 4 "DNP" V 3800 6800 60  0001 C CNN "Field4"
+	1    3800 6800
+	-1   0    0    -1  
+$EndComp
+Text Label 3300 6200 0    40   ~ 0
+CC1V8
+Text Label 12250 5900 2    40   ~ 0
+P4_5
+Text Label 12250 6100 2    40   ~ 0
+P0_0
+Text Label 14650 750  3    40   ~ 0
+CC1V8
+Text Label 14350 750  3    40   ~ 0
+CC3V3
+$Comp
+L GND #PWR31
+U 1 1 4E587EC1
+P 5400 3550
+F 0 "#PWR31" H 5400 3550 30  0001 C CNN
+F 1 "GND" H 5400 3480 30  0001 C CNN
+	1    5400 3550
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR32
+U 1 1 4E587EB0
+P 5400 3650
+F 0 "#PWR32" H 5400 3650 30  0001 C CNN
+F 1 "GND" H 5400 3580 30  0001 C CNN
+	1    5400 3650
+	0    -1   -1   0   
+$EndComp
+Text Label 16000 2300 2    40   ~ 0
+CSN
+Text Label 16000 2600 2    40   ~ 0
+SCLK
+Text Label 16000 2400 2    40   ~ 0
+SI
+Text Label 16000 2500 2    40   ~ 0
+SO
+Text Label 5300 3850 0    40   ~ 0
+CC3V3
+$Comp
+L GND #PWR57
+U 1 1 4E587A8C
+P 11000 2700
+F 0 "#PWR57" H 11000 2700 30  0001 C CNN
+F 1 "GND" H 11000 2630 30  0001 C CNN
+	1    11000 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C1
+U 1 1 4E58798A
+P 11000 2400
+F 0 "C1" H 10800 2500 50  0000 L CNN
+F 1 "10µF" H 10750 2300 50  0000 L CNN
+F 2 "GSG-1206" H 11000 2400 60  0001 C CNN
+F 4 "TDK" H 11000 2400 60  0001 C CNN "Field1"
+F 5 "C3216Y5V1A106ZT/1.15" H 11000 2400 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 1206 10uF 10V Y5V +80/-20%" H 11000 2400 60  0001 C CNN "Field3"
+	1    11000 2400
+	-1   0    0    1   
+$EndComp
+Text Label 14250 750  3    40   ~ 0
+SCK
+Text Label 14150 750  3    40   ~ 0
+MOSI
+Text Label 14050 750  3    40   ~ 0
+MISO
+Text Label 12250 6000 2    40   ~ 0
+SCK
+Text Label 12250 5800 2    40   ~ 0
+MOSI
+Text Label 12250 5700 2    40   ~ 0
+MISO
+$Comp
+L DIODESCH D18
+U 1 1 4E585AF4
+P 12050 1550
+F 0 "D18" H 12050 1650 40  0000 C CNN
+F 1 "DIODESCH" H 12050 1450 40  0000 C CNN
+F 2 "GSG-SOD-523F" H 12050 1550 60  0001 C CNN
+F 4 "Fairchild" H 12050 1550 60  0001 C CNN "Field1"
+F 5 "RB521S30" H 12050 1550 60  0001 C CNN "Field2"
+F 6 "DIODE SCHOTTKY 30V 200MA SOD523F" H 12050 1550 60  0001 C CNN "Field3"
+	1    12050 1550
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR70
+U 1 1 4E583A7E
+P 12600 3400
+F 0 "#PWR70" H 12600 3400 30  0001 C CNN
+F 1 "GND" H 12600 3330 30  0001 C CNN
+	1    12600 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR74
+U 1 1 4E583A51
+P 12800 750
+F 0 "#PWR74" H 12800 750 30  0001 C CNN
+F 1 "GND" H 12800 680 30  0001 C CNN
+	1    12800 750 
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C4
+U 1 1 4E583A38
+P 12800 1050
+F 0 "C4" H 12600 1150 50  0000 L CNN
+F 1 "100nF" H 12550 950 50  0000 L CNN
+F 2 "0603" H 12800 1050 60  0001 C CNN
+F 4 "TDK" H 12800 1050 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 12800 1050 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 12800 1050 60  0001 C CNN "Field3"
+F 7 "DNP" H 12800 1050 60  0001 C CNN "Field4"
+	1    12800 1050
+	1    0    0    -1  
+$EndComp
+Text Label 12600 2600 0    40   ~ 0
+XIN
+Text Label 12600 2400 0    40   ~ 0
+XOUT
+Text Label 13950 750  3    40   ~ 0
+P0_0
+Text Label 16000 2800 2    40   ~ 0
+P4_5
+NoConn ~ 12000 1100
+$Comp
+L GND #PWR60
+U 1 1 4E582BFE
+P 11800 1200
+F 0 "#PWR60" H 11800 1200 30  0001 C CNN
+F 1 "GND" H 11800 1130 30  0001 C CNN
+	1    11800 1200
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_6 P15
+U 1 1 4E582BCB
+P 12050 750
+F 0 "P15" V 12000 750 60  0000 C CNN
+F 1 "R8C PROGRAM" V 12100 750 60  0000 C CNN
+F 2 "PIN_ARRAY-6X1" H 12050 750 60  0001 C CNN
+F 4 "DNP" V 12050 750 60  0001 C CNN "Field4"
+	1    12050 750 
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR59
+U 1 1 4E582B04
+P 11550 2400
+F 0 "#PWR59" H 11550 2400 30  0001 C CNN
+F 1 "GND" H 11550 2330 30  0001 C CNN
+	1    11550 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR56
+U 1 1 4E582AFC
+P 11000 2000
+F 0 "#PWR56" H 11000 2100 30  0001 C CNN
+F 1 "VCC" H 11000 2100 30  0000 C CNN
+	1    11000 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_4 P14
+U 1 1 4E582AE9
+P 11400 1650
+F 0 "P14" V 11350 1650 50  0000 C CNN
+F 1 "E8A" V 11450 1650 50  0000 C CNN
+F 2 "PIN_ARRAY-4X1" H 11400 1650 60  0001 C CNN
+F 4 "DNP" V 11400 1650 60  0001 C CNN "Field4"
+	1    11400 1650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L VCC #PWR66
+U 1 1 4E582A4A
+P 12400 1500
+F 0 "#PWR66" H 12400 1600 30  0001 C CNN
+F 1 "VCC" H 12400 1600 30  0000 C CNN
+	1    12400 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR69
+U 1 1 4E582A41
+P 12600 1500
+F 0 "#PWR69" H 12600 1600 30  0001 C CNN
+F 1 "VCC" H 12600 1600 30  0000 C CNN
+	1    12600 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR68
+U 1 1 4E582A2D
+P 12500 2700
+F 0 "#PWR68" H 12500 2800 30  0001 C CNN
+F 1 "VCC" H 12500 2800 30  0000 C CNN
+	1    12500 2700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR72
+U 1 1 4E582A19
+P 12700 2500
+F 0 "#PWR72" H 12700 2500 30  0001 C CNN
+F 1 "GND" H 12700 2430 30  0001 C CNN
+	1    12700 2500
+	0    1    1    0   
+$EndComp
+$Comp
+L R R26
+U 1 1 4E5829F4
+P 12600 1850
+F 0 "R26" V 12500 1850 50  0000 C CNN
+F 1 "4k7" V 12600 1850 50  0000 C CNN
+F 2 "0603" H 12600 1850 60  0001 C CNN
+F 4 "Panasonic-ECG" V 12600 1850 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ472V" V 12600 1850 60  0001 C CNN "Field2"
+F 6 "RES 4.7K OHM 1/10W 5% 0603 SMD" V 12600 1850 60  0001 C CNN "Field3"
+	1    12600 1850
+	-1   0    0    1   
+$EndComp
+$Comp
+L GSG-R8C/2K/2L U5
+U 1 1 4E582985
+P 14300 2450
+F 0 "U5" H 14300 2300 60  0000 C CNN
+F 1 "R5F212L4SNFP" H 14300 2150 60  0000 C CNN
+F 2 "GSG-P-LQFP32-7x7-0.80" H 14300 2450 60  0001 C CNN
+F 4 "Renesas" H 14300 2450 60  0001 C CNN "Field1"
+F 5 "R5F212L4SNFP#U0" H 14300 2450 60  0001 C CNN "Field2"
+F 6 "IC R8C/2L MCU FLASH 32LQFP" H 14300 2450 60  0001 C CNN "Field3"
+	1    14300 2450
+	0    1    1    0   
+$EndComp
+Text Label 13300 8850 3    40   ~ 0
+VBUS
+Text Label 12700 7500 3    40   ~ 0
+USB_CONNECT
+NoConn ~ 13000 9050
+$Comp
+L INDUCTOR L1
+U 1 1 4E56C88E
+P 2000 3350
+F 0 "L1" V 1950 3350 40  0000 C CNN
+F 1 "12nH" V 2100 3350 40  0000 C CNN
+F 2 "0402" H 2000 3350 60  0001 C CNN
+F 4 "Johanson Technology" V 2000 3350 60  0001 C CNN "Field1"
+F 5 "L-07C12NJV6T" V 2000 3350 60  0001 C CNN "Field2"
+F 6 "CER INDUCTOR 12NH 0402" V 2000 3350 60  0001 C CNN "Field3"
+	1    2000 3350
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR11
+U 1 1 4E4DA463
+P 2500 3150
+F 0 "#PWR11" H 2500 3150 30  0001 C CNN
+F 1 "GND" H 2500 3080 30  0001 C CNN
+	1    2500 3150
+	0    1    1    0   
+$EndComp
+$Comp
+L GSG-FOLDED-DIPOLE J1
+U 1 1 4E56C805
+P 850 3050
+F 0 "J1" H 950 3300 60  0000 C CNN
+F 1 "PCB antenna" V 550 3050 60  0000 C CNN
+F 2 "GSG-2.4GHz-FOLDED-DIPOLE" H 850 3050 60  0001 C CNN
+F 4 "DNP" H 850 3050 60  0001 C CNN "Field4"
+	1    850  3050
+	1    0    0    -1  
+$EndComp
+Text Notes 2050 7800 0    60   ~ 0
+1V8 supply for CC2400
+Text Notes 1300 8550 0    60   ~ 0
+3V supply (VCC) switches between battery and\nUSB power depending on bus power availability
+Text Notes 6950 800  0    60   ~ 0
+digital expansion port
+$Comp
+L 1V8 #PWR29
+U 1 1 4E5460A4
+P 5100 4650
+F 0 "#PWR29" H 5100 4790 20  0001 C CNN
+F 1 "1V8" H 5100 4760 30  0000 C CNN
+	1    5100 4650
+	1    0    0    -1  
+$EndComp
+Text Label 1150 6850 0    40   ~ 0
+GIO6
+Text Label 1150 6650 0    40   ~ 0
+GIO1
+$Comp
+L 1V8 #PWR3
+U 1 1 4E545FDB
+P 1100 6450
+F 0 "#PWR3" H 1100 6590 20  0001 C CNN
+F 1 "1V8" H 1100 6560 30  0000 C CNN
+	1    1100 6450
+	0    1    1    0   
+$EndComp
+$Comp
+L CONN_1 P10
+U 1 1 4E545FCF
+P 900 6850
+F 0 "P10" H 980 6850 40  0000 L CNN
+F 1 "GIO6" H 900 6905 30  0001 C CNN
+F 2 "testpad-50mil" H 900 6850 60  0001 C CNN
+F 4 "DNP" H 900 6850 60  0001 C CNN "Field4"
+	1    900  6850
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P9
+U 1 1 4E545FCD
+P 900 6650
+F 0 "P9" H 980 6650 40  0000 L CNN
+F 1 "GIO1" H 900 6705 30  0001 C CNN
+F 2 "testpad-50mil" H 900 6650 60  0001 C CNN
+F 4 "DNP" H 900 6650 60  0001 C CNN "Field4"
+	1    900  6650
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P8
+U 1 1 4E545FC6
+P 900 6450
+F 0 "P8" H 980 6450 40  0000 L CNN
+F 1 "1V8" H 900 6505 30  0001 C CNN
+F 2 "testpad-50mil" H 900 6450 60  0001 C CNN
+F 4 "DNP" H 900 6450 60  0001 C CNN "Field4"
+	1    900  6450
+	-1   0    0    1   
+$EndComp
+Text Label 5300 3450 0    40   ~ 0
+DIO
+Text Label 5300 3350 0    40   ~ 0
+DCLK
+Text Label 5300 3250 0    40   ~ 0
+CSN
+Text Label 5300 3150 0    40   ~ 0
+SCLK
+Text Label 5300 3050 0    40   ~ 0
+SI
+Text Label 5300 2950 0    40   ~ 0
+SO
+Text Label 5300 2850 0    40   ~ 0
+GIO6
+$Comp
+L VCC #PWR15
+U 1 1 4E545B8C
+P 3200 7250
+F 0 "#PWR15" H 3200 7350 30  0001 C CNN
+F 1 "VCC" H 3200 7350 30  0000 C CNN
+	1    3200 7250
+	0    -1   -1   0   
+$EndComp
+$Comp
+L 1V8 #PWR7
+U 1 1 4E545B64
+P 1900 6900
+F 0 "#PWR7" H 1900 7040 20  0001 C CNN
+F 1 "1V8" H 1900 7010 30  0000 C CNN
+	1    1900 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR28
+U 1 1 4E545B2A
+P 5050 7400
+F 0 "#PWR28" H 5050 7400 30  0001 C CNN
+F 1 "GND" H 5050 7330 30  0001 C CNN
+	1    5050 7400
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D17
+U 1 1 4E545B23
+P 5050 7100
+F 0 "D17" H 5050 7200 50  0000 C CNN
+F 1 "1V8LED" H 5050 7000 50  0000 C CNN
+F 2 "0603D" H 5050 7100 60  0001 C CNN
+F 4 "Kingbright" H 5050 7100 60  0001 C CNN "Field1"
+F 5 "APT1608SGC" H 5050 7100 60  0001 C CNN "Field2"
+F 6 "Standard LED - SMD GREEN WATER CLEAR" H 5050 7100 60  0001 C CNN "Field3"
+F 7 "DIY" H 5050 7100 60  0001 C CNN "Field4"
+	1    5050 7100
+	0    1    1    0   
+$EndComp
+$Comp
+L R R24
+U 1 1 4E545B08
+P 5050 6550
+F 0 "R24" V 5130 6550 50  0000 C CNN
+F 1 "330" V 5050 6550 50  0000 C CNN
+F 2 "0603" H 5050 6550 60  0001 C CNN
+F 4 "Bourns" H 5050 6550 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 5050 6550 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 5050 6550 60  0001 C CNN "Field3"
+F 7 "DIY" V 5050 6550 60  0001 C CNN "Field4"
+	1    5050 6550
+	-1   0    0    1   
+$EndComp
+$Comp
+L R R23
+U 1 1 4E545AE5
+P 3500 6550
+F 0 "R23" V 3580 6550 50  0000 C CNN
+F 1 "10k" V 3500 6550 50  0000 C CNN
+F 2 "0603" H 3500 6550 60  0001 C CNN
+F 4 "Bourns" H 3500 6550 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 3500 6550 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 3500 6550 60  0001 C CNN "Field3"
+	1    3500 6550
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR18
+U 1 1 4E545AB2
+P 3500 6950
+F 0 "#PWR18" H 3500 6950 30  0001 C CNN
+F 1 "GND" H 3500 6880 30  0001 C CNN
+	1    3500 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR16
+U 1 1 4E545AB0
+P 3300 7850
+F 0 "#PWR16" H 3300 7850 30  0001 C CNN
+F 1 "GND" H 3300 7780 30  0001 C CNN
+	1    3300 7850
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR8
+U 1 1 4E545AAD
+P 2000 7550
+F 0 "#PWR8" H 2000 7550 30  0001 C CNN
+F 1 "GND" H 2000 7480 30  0001 C CNN
+	1    2000 7550
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C16
+U 1 1 4E545AA2
+P 3300 7550
+F 0 "C16" H 3350 7650 50  0000 L CNN
+F 1 "1µF" H 3350 7450 50  0000 L CNN
+F 2 "0603" H 3300 7550 60  0001 C CNN
+F 4 "TDK" H 3300 7550 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C105K" H 3300 7550 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 1uF 16volts X5R 10%" H 3300 7550 60  0001 C CNN "Field3"
+	1    3300 7550
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C11
+U 1 1 4E545A98
+P 2000 7250
+F 0 "C11" H 2050 7350 50  0000 L CNN
+F 1 "1µF" H 2050 7150 50  0000 L CNN
+F 2 "0603" H 2000 7250 60  0001 C CNN
+F 4 "TDK" H 2000 7250 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C105K" H 2000 7250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 1uF 16volts X5R 10%" H 2000 7250 60  0001 C CNN "Field3"
+	1    2000 7250
+	1    0    0    -1  
+$EndComp
+$Comp
+L TCR5SB U2
+U 1 1 4E5459E7
+P 2650 6850
+F 0 "U2" H 2650 7100 60  0000 C CNN
+F 1 "PT7M8206" H 2650 6600 60  0000 C CNN
+F 2 "SOT23-5" H 2650 6850 60  0001 C CNN
+F 4 "Pericom" H 2650 6850 60  0001 C CNN "Field1"
+F 5 "PT7M8206B18TA5EX" H 2650 6850 60  0001 C CNN "Field2"
+F 6 "IC REG LDO 1.8V 0.3A SOT23" H 2650 6850 60  0001 C CNN "Field3"
+	1    2650 6850
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR21
+U 1 1 4E5449C1
+P 4150 10150
+F 0 "#PWR21" H 4150 10150 30  0001 C CNN
+F 1 "GND" H 4150 10080 30  0001 C CNN
+	1    4150 10150
+	1    0    0    -1  
+$EndComp
+$Comp
+L CP1 C15
+U 1 1 4E5449AD
+P 4150 9850
+F 0 "C15" H 4200 9950 50  0000 L CNN
+F 1 "100µF" H 4200 9750 50  0000 L CNN
+F 2 "GSG-UUR1C101MCL1GS" H 4150 9850 60  0001 C CNN
+F 4 "Nichicon" H 4150 9850 60  0001 C CNN "Field1"
+F 5 "UUR1C101MCL1GS" H 4150 9850 60  0001 C CNN "Field2"
+F 6 "Aluminum Electrolytic Capacitors - SMD 16volts 100uF 20% 85C 8X6.2" H 4150 9850 60  0001 C CNN "Field3"
+F 7 "DNP" H 4150 9850 60  0001 C CNN "Field4"
+	1    4150 9850
+	1    0    0    -1  
+$EndComp
+Text Label 11100 8500 0    40   ~ 0
+GIO1
+$Comp
+L C C21
+U 1 1 4E54473A
+P 10800 8500
+F 0 "C21" H 10850 8600 50  0000 L CNN
+F 1 "100pF" H 10850 8400 50  0000 L CNN
+F 2 "0603" H 10800 8500 60  0001 C CNN
+F 4 "TDK" H 10800 8500 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H101J" H 10800 8500 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 100pF 50volts C0G 5%" H 10800 8500 60  0001 C CNN "Field3"
+F 7 "DIY" H 10800 8500 60  0001 C CNN "Field4"
+	1    10800 8500
+	0    -1   -1   0   
+$EndComp
+$Comp
+L C C20
+U 1 1 4E5446F4
+P 10400 8800
+F 0 "C20" H 10450 8900 50  0000 L CNN
+F 1 "220pF" H 10450 8700 50  0000 L CNN
+F 2 "0603" H 10400 8800 60  0001 C CNN
+F 4 "TDK" H 10400 8800 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H221K" H 10400 8800 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 220pF 50volts X7R 10%" H 10400 8800 60  0001 C CNN "Field3"
+F 7 "DIY" H 10400 8800 60  0001 C CNN "Field4"
+	1    10400 8800
+	1    0    0    -1  
+$EndComp
+NoConn ~ 10500 8150
+Text Label 4200 5050 1    40   ~ 0
+GIO1
+$Comp
+L 1V8 #PWR27
+U 1 1 4E4DA93A
+P 4900 1750
+F 0 "#PWR27" H 4900 1890 20  0001 C CNN
+F 1 "1V8" H 4900 1860 30  0000 C CNN
+	1    4900 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L 1V8 #PWR33
+U 1 1 4E4DA931
+P 5400 3750
+F 0 "#PWR33" H 5400 3890 20  0001 C CNN
+F 1 "1V8" H 5400 3860 30  0000 C CNN
+	1    5400 3750
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR34
+U 1 1 4E4DA91B
+P 5400 4450
+F 0 "#PWR34" H 5400 4450 30  0001 C CNN
+F 1 "GND" H 5400 4380 30  0001 C CNN
+	1    5400 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C19
+U 1 1 4E4DA913
+P 5400 4150
+F 0 "C19" H 5450 4250 50  0000 L CNN
+F 1 "100nF" H 5450 4050 50  0000 L CNN
+F 2 "0402" H 5400 4150 60  0001 C CNN
+F 4 "Murata" H 5400 4150 60  0001 C CNN "Field1"
+F 5 "GRM155R71C104KA88D" H 5400 4150 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 5400 4150 60  0001 C CNN "Field3"
+	1    5400 4150
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR26
+U 1 1 4E4DA8CA
+P 4600 4950
+F 0 "#PWR26" H 4600 4950 30  0001 C CNN
+F 1 "GND" H 4600 4880 30  0001 C CNN
+	1    4600 4950
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR30
+U 1 1 4E4DA8B5
+P 5100 5350
+F 0 "#PWR30" H 5100 5350 30  0001 C CNN
+F 1 "GND" H 5100 5280 30  0001 C CNN
+	1    5100 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR20
+U 1 1 4E4DA8AF
+P 3700 5350
+F 0 "#PWR20" H 3700 5350 30  0001 C CNN
+F 1 "GND" H 3700 5280 30  0001 C CNN
+	1    3700 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C17
+U 1 1 4E4DA888
+P 5100 5050
+F 0 "C17" H 5150 5150 50  0000 L CNN
+F 1 "100nF" H 5150 4950 50  0000 L CNN
+F 2 "0402" H 5100 5050 60  0001 C CNN
+F 4 "Murata" H 5100 5050 60  0001 C CNN "Field1"
+F 5 "GRM155R71C104KA88D" H 5100 5050 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 5100 5050 60  0001 C CNN "Field3"
+	1    5100 5050
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C12
+U 1 1 4E4DA879
+P 3700 5050
+F 0 "C12" H 3750 5150 50  0000 L CNN
+F 1 "68pF" H 3750 4950 50  0000 L CNN
+F 2 "0402" H 3700 5050 60  0001 C CNN
+F 4 "Murata" H 3700 5050 60  0001 C CNN "Field1"
+F 5 "GRM1555C1H680JZ01D" H 3700 5050 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 68PF 50V 5%" H 3700 5050 60  0001 C CNN "Field3"
+	1    3700 5050
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR10
+U 1 1 4E4DA867
+P 2400 5350
+F 0 "#PWR10" H 2400 5350 30  0001 C CNN
+F 1 "GND" H 2400 5280 30  0001 C CNN
+	1    2400 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L 1V8 #PWR9
+U 1 1 4E4DA85D
+P 2400 4650
+F 0 "#PWR9" H 2400 4790 20  0001 C CNN
+F 1 "1V8" H 2400 4760 30  0000 C CNN
+	1    2400 4650
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C8
+U 1 1 4E4DA7F0
+P 2400 5050
+F 0 "C8" H 2450 5150 50  0000 L CNN
+F 1 "10nF" H 2450 4950 50  0000 L CNN
+F 2 "0402" H 2400 5050 60  0001 C CNN
+F 4 "Murata" H 2400 5050 60  0001 C CNN "Field1"
+F 5 "GRM155R71E103KA01D" H 2400 5050 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.01uF 25volts X7R 10%" H 2400 5050 60  0001 C CNN "Field3"
+	1    2400 5050
+	1    0    0    -1  
+$EndComp
+NoConn ~ 5300 2750
+$Comp
+L GND #PWR13
+U 1 1 4E4DA701
+P 2750 1650
+F 0 "#PWR13" H 2750 1650 30  0001 C CNN
+F 1 "GND" H 2750 1580 30  0001 C CNN
+	1    2750 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R22
+U 1 1 4E4DA6F0
+P 3000 1550
+F 0 "R22" V 3080 1550 50  0000 C CNN
+F 1 "43k" V 3000 1550 50  0000 C CNN
+F 2 "0402" H 3000 1550 60  0001 C CNN
+F 4 "KOA Speer" V 3000 1550 60  0001 C CNN "Field1"
+F 5 "RK73H1ETTP4302F" V 3000 1550 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0402 1/16watts 43Kohms 1%" V 3000 1550 60  0001 C CNN "Field3"
+	1    3000 1550
+	0    1    1    0   
+$EndComp
+$Comp
+L C C10
+U 1 1 4E4DA6C0
+P 4250 1300
+F 0 "C10" H 4300 1400 50  0000 L CNN
+F 1 "27pF" H 4300 1200 50  0000 L CNN
+F 2 "0603" H 4250 1300 60  0001 C CNN
+F 4 "TDK" H 4250 1300 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H270J" H 4250 1300 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%" H 4250 1300 60  0001 C CNN "Field3"
+	1    4250 1300
+	-1   0    0    1   
+$EndComp
+NoConn ~ 4500 1950
+NoConn ~ 4400 1950
+NoConn ~ 4300 1950
+NoConn ~ 4200 1950
+$Comp
+L GND #PWR35
+U 1 1 4E4DA649
+P 5500 1950
+F 0 "#PWR35" H 5500 1950 30  0001 C CNN
+F 1 "GND" H 5500 1880 30  0001 C CNN
+	1    5500 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C18
+U 1 1 4E4DA62D
+P 5200 1850
+F 0 "C18" H 5250 1950 50  0000 L CNN
+F 1 "68pF" H 5250 1750 50  0000 L CNN
+F 2 "0402" H 5200 1850 60  0001 C CNN
+F 4 "Murata" H 5200 1850 60  0001 C CNN "Field1"
+F 5 "GRM1555C1H680JZ01D" H 5200 1850 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 68PF 50V 5%" H 5200 1850 60  0001 C CNN "Field3"
+	1    5200 1850
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 3400 4650
+NoConn ~ 2600 3850
+NoConn ~ 2600 3750
+$Comp
+L GND #PWR6
+U 1 1 4E4DA5EA
+P 1900 2250
+F 0 "#PWR6" H 1900 2250 30  0001 C CNN
+F 1 "GND" H 1900 2180 30  0001 C CNN
+	1    1900 2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C6
+U 1 1 4E4DA4EF
+P 2200 1850
+F 0 "C6" H 2250 1950 50  0000 L CNN
+F 1 "68pF" H 2250 1750 50  0000 L CNN
+F 2 "0402" H 2200 1850 60  0001 C CNN
+F 4 "Murata" H 2200 1850 60  0001 C CNN "Field1"
+F 5 "GRM1555C1H680JZ01D" H 2200 1850 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 68PF 50V 5%" H 2200 1850 60  0001 C CNN "Field3"
+	1    2200 1850
+	0    1    1    0   
+$EndComp
+$Comp
+L C C7
+U 1 1 4E4DA480
+P 2200 2150
+F 0 "C7" H 2250 2250 50  0000 L CNN
+F 1 "100nF" H 2250 2050 50  0000 L CNN
+F 2 "0402" H 2200 2150 60  0001 C CNN
+F 4 "Murata" H 2200 2150 60  0001 C CNN "Field1"
+F 5 "GRM155R71C104KA88D" H 2200 2150 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%" H 2200 2150 60  0001 C CNN "Field3"
+	1    2200 2150
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR12
+U 1 1 4E4DA468
+P 2500 3550
+F 0 "#PWR12" H 2500 3550 30  0001 C CNN
+F 1 "GND" H 2500 3480 30  0001 C CNN
+	1    2500 3550
+	0    1    1    0   
+$EndComp
+$Comp
+L INDUCTOR L4
+U 1 1 4E4DA2A6
+P 1750 3150
+F 0 "L4" V 1700 3150 40  0000 C CNN
+F 1 "27nH" V 1850 3150 40  0000 C CNN
+F 2 "0402gap" H 1750 3150 60  0001 C CNN
+F 4 "TDK" V 1750 3150 60  0001 C CNN "Field1"
+F 5 "MLK1005S27NJ" V 1750 3150 60  0001 C CNN "Field2"
+F 6 "INDUCTOR MULTILAYER 27NH 0402" V 1750 3150 60  0001 C CNN "Field3"
+	1    1750 3150
+	0    -1   -1   0   
+$EndComp
+$Comp
+L CC2400 U3
+U 1 1 4E4D600A
+P 3950 3300
+F 0 "U3" H 3950 3400 60  0000 C CNN
+F 1 "CC2400" H 3950 3200 60  0000 C CNN
+F 2 "QFN48" H 3950 3300 60  0001 C CNN
+F 4 "Texas Instruments" H 3950 3300 60  0001 C CNN "Field1"
+F 5 "CC2400" H 3950 3300 60  0001 C CNN "Field2"
+F 6 "IC RF TXRX 2.4GHZ LP 48-QFN" H 3950 3300 60  0001 C CNN "Field3"
+	1    3950 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR58
+U 1 1 4E485999
+P 11500 950
+F 0 "#PWR58" H 11500 950 30  0001 C CNN
+F 1 "GND" H 11500 880 30  0001 C CNN
+	1    11500 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L LPC175X U4
+U 1 1 4CD23A14
+P 9550 5650
+F 0 "U4" H 9550 5750 60  0000 C CNN
+F 1 "LPC175X" H 9550 5550 60  0000 C CNN
+F 2 "LQFP80" H 9550 5650 60  0001 C CNN
+F 4 "NXP" H 9550 5650 60  0001 C CNN "Field1"
+F 5 "LPC1756FBD80,551" H 9550 5650 60  0001 C CNN "Field2"
+F 6 "Microcontrollers (MCU) ARM Cortex M3 Micro Controller" H 9550 5650 60  0001 C CNN "Field3"
+F 7 "DIY" H 9550 5650 60  0001 C CNN "Field4"
+	1    9550 5650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SW_PUSH SW1
+U 1 1 4E485958
+P 11200 850
+F 0 "SW1" H 11350 960 50  0000 C CNN
+F 1 "SW_PUSH" H 11200 770 50  0000 C CNN
+F 2 "GSG-SPST-FSM4JSMATR" H 11200 850 60  0001 C CNN
+F 4 "TE Connectivity" H 11200 850 60  0001 C CNN "Field1"
+F 5 "FSM2JSMA" H 11200 850 60  0001 C CNN "Field2"
+F 6 "SWITCH TACT 6MM SMD GULL WING" H 11200 850 60  0001 C CNN "Field3"
+	1    11200 850 
+	1    0    0    -1  
+$EndComp
+$Comp
+L USB-MINI-B J2
+U 1 1 4E46E93E
+P 13100 9300
+F 0 "J2" H 13100 9600 60  0000 C CNN
+F 1 "USB-MICRO-B" H 13100 8950 60  0000 C CNN
+F 2 "GSG-USB-MICROB-FCI-10103594" H 13100 9300 60  0001 C CNN
+F 4 "FCI" H 13100 9300 60  0001 C CNN "Field1"
+F 5 "10103594-0001LF" H 13100 9300 60  0001 C CNN "Field2"
+F 6 "USB Connectors 5P Quick Connect Micro USB TypeB Rcpt" H 13100 9300 60  0001 C CNN "Field3"
+F 7 "DIY" H 13100 9300 60  0001 C CNN "Field4"
+	1    13100 9300
+	0    1    1    0   
+$EndComp
+$Comp
+L VCC #PWR2
+U 1 1 4E46E8C9
+P 1100 6050
+F 0 "#PWR2" H 1100 6150 30  0001 C CNN
+F 1 "VCC" H 1100 6150 30  0000 C CNN
+	1    1100 6050
+	0    1    1    0   
+$EndComp
+$Comp
+L MOSFET_P Q2
+U 1 1 4E46CB51
+P 3950 8950
+F 0 "Q2" H 3950 9140 60  0000 R CNN
+F 1 "MOSFET_P" H 3950 8770 60  0000 R CNN
+F 2 "SOT23GDS" H 3950 8950 60  0001 C CNN
+F 4 "ON Semiconductor" H 3950 8950 60  0001 C CNN "Field1"
+F 5 "NTR4171PT1G" H 3950 8950 60  0001 C CNN "Field2"
+F 6 "MOSFET Small Signal PFET SOT23 30V TR 0.075R" H 3950 8950 60  0001 C CNN "Field3"
+F 7 "DIY" H 3950 8950 60  0001 C CNN "Field4"
+	1    3950 8950
+	1    0    0    1   
+$EndComp
+$Comp
+L GND #PWR24
+U 1 1 4E46A7F6
+P 4250 7700
+F 0 "#PWR24" H 4250 7700 30  0001 C CNN
+F 1 "GND" H 4250 7630 30  0001 C CNN
+	1    4250 7700
+	-1   0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR25
+U 1 1 4E469CDF
+P 4250 9450
+F 0 "#PWR25" H 4250 9550 30  0001 C CNN
+F 1 "VCC" H 4250 9550 30  0000 C CNN
+	1    4250 9450
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR17
+U 1 1 4E4697FF
+P 3350 9650
+F 0 "#PWR17" H 3350 9650 30  0001 C CNN
+F 1 "GND" H 3350 9580 30  0001 C CNN
+	1    3350 9650
+	1    0    0    -1  
+$EndComp
+$Comp
+L BATTERY BT1
+U 1 1 4E4697D7
+P 4250 7300
+F 0 "BT1" H 4250 7500 50  0000 C CNN
+F 1 "CR2032" H 4250 7110 50  0000 C CNN
+F 2 "GSG-BK-912" H 4250 7300 60  0001 C CNN
+F 4 "MPD" H 4250 7300 60  0001 C CNN "Field1"
+F 5 "BK-912" H 4250 7300 60  0001 C CNN "Field2"
+F 6 "HOLDER COIN CELL 20MM SMD" H 4250 7300 60  0001 C CNN "Field3"
+	1    4250 7300
+	0    -1   1    0   
+$EndComp
+$Comp
+L R R1
+U 1 1 4E4696AA
+P 3350 9300
+F 0 "R1" V 3430 9300 50  0000 C CNN
+F 1 "10k" V 3350 9300 50  0000 C CNN
+F 2 "0603" H 3350 9300 60  0001 C CNN
+F 4 "Bourns" H 3350 9300 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 3350 9300 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 3350 9300 60  0001 C CNN "Field3"
+F 7 "DIY" V 3350 9300 60  0001 C CNN "Field4"
+	1    3350 9300
+	-1   0    0    1   
+$EndComp
+$Comp
+L VCC #PWR47
+U 1 1 4E468B62
+P 9300 8200
+F 0 "#PWR47" H 9300 8300 30  0001 C CNN
+F 1 "VCC" H 9300 8300 30  0000 C CNN
+	1    9300 8200
+	-1   0    0    1   
+$EndComp
+$Comp
+L VCC #PWR49
+U 1 1 4E468B5F
+P 9500 8200
+F 0 "#PWR49" H 9500 8300 30  0001 C CNN
+F 1 "VCC" H 9500 8300 30  0000 C CNN
+	1    9500 8200
+	-1   0    0    1   
+$EndComp
+$Comp
+L VCC #PWR52
+U 1 1 4E468B5C
+P 10100 9150
+F 0 "#PWR52" H 10100 9250 30  0001 C CNN
+F 1 "VCC" H 10100 9250 30  0000 C CNN
+	1    10100 9150
+	-1   0    0    1   
+$EndComp
+$Comp
+L VCC #PWR67
+U 1 1 4E468B40
+P 12400 7700
+F 0 "#PWR67" H 12400 7800 30  0001 C CNN
+F 1 "VCC" H 12400 7800 30  0000 C CNN
+	1    12400 7700
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR63
+U 1 1 4E468B2E
+P 12200 6600
+F 0 "#PWR63" H 12200 6700 30  0001 C CNN
+F 1 "VCC" H 12200 6700 30  0000 C CNN
+	1    12200 6600
+	0    1    1    0   
+$EndComp
+$Comp
+L VCC #PWR64
+U 1 1 4E468B25
+P 12300 4850
+F 0 "#PWR64" H 12300 4950 30  0001 C CNN
+F 1 "VCC" H 12300 4950 30  0000 C CNN
+	1    12300 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR73
+U 1 1 4E468B21
+P 12750 5150
+F 0 "#PWR73" H 12750 5250 30  0001 C CNN
+F 1 "VCC" H 12750 5250 30  0000 C CNN
+	1    12750 5150
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR41
+U 1 1 4E468B14
+P 7450 8850
+F 0 "#PWR41" H 7450 8950 30  0001 C CNN
+F 1 "VCC" H 7450 8950 30  0000 C CNN
+	1    7450 8850
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR37
+U 1 1 4E468AFA
+P 6350 6300
+F 0 "#PWR37" H 6350 6400 30  0001 C CNN
+F 1 "VCC" H 6350 6400 30  0000 C CNN
+	1    6350 6300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L VCC #PWR38
+U 1 1 4E468AE6
+P 6400 5300
+F 0 "#PWR38" H 6400 5400 30  0001 C CNN
+F 1 "VCC" H 6400 5400 30  0000 C CNN
+	1    6400 5300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L VCC #PWR46
+U 1 1 4E468ADC
+P 9000 2300
+F 0 "#PWR46" H 9000 2400 30  0001 C CNN
+F 1 "VCC" H 9000 2400 30  0000 C CNN
+	1    9000 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR55
+U 1 1 4E468AC8
+P 10700 2200
+F 0 "#PWR55" H 10700 2300 30  0001 C CNN
+F 1 "VCC" H 10700 2300 30  0000 C CNN
+	1    10700 2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR80
+U 1 1 4E4689EA
+P 16350 9150
+F 0 "#PWR80" H 16350 9150 30  0001 C CNN
+F 1 "GND" H 16350 9080 30  0001 C CNN
+	1    16350 9150
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D9
+U 1 1 4E46877E
+P 16050 7850
+F 0 "D9" H 16050 7950 50  0000 C CNN
+F 1 "LED9" H 16050 7750 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 7850 60  0001 C CNN
+F 4 "OSRAM" H 16050 7850 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 7850 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 7850 60  0001 C CNN "Field3"
+	1    16050 7850
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R17
+U 1 1 4E46877D
+P 15500 7850
+F 0 "R17" V 15580 7850 50  0000 C CNN
+F 1 "220" V 15500 7850 50  0000 C CNN
+F 2 "0603" H 15500 7850 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 7850 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 7850 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 7850 60  0001 C CNN "Field3"
+	1    15500 7850
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D12
+U 1 1 4E46877C
+P 16050 8750
+F 0 "D12" H 16050 8850 50  0000 C CNN
+F 1 "LED12" H 16050 8650 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 8750 60  0001 C CNN
+F 4 "OSRAM" H 16050 8750 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 8750 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 8750 60  0001 C CNN "Field3"
+	1    16050 8750
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R20
+U 1 1 4E46877B
+P 15500 8750
+F 0 "R20" V 15580 8750 50  0000 C CNN
+F 1 "220" V 15500 8750 50  0000 C CNN
+F 2 "0603" H 15500 8750 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 8750 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 8750 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 8750 60  0001 C CNN "Field3"
+	1    15500 8750
+	0    1    1    0   
+$EndComp
+$Comp
+L R R21
+U 1 1 4E46877A
+P 15500 9050
+F 0 "R21" V 15580 9050 50  0000 C CNN
+F 1 "220" V 15500 9050 50  0000 C CNN
+F 2 "0603" H 15500 9050 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 9050 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 9050 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 9050 60  0001 C CNN "Field3"
+	1    15500 9050
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D13
+U 1 1 4E468779
+P 16050 9050
+F 0 "D13" H 16050 9150 50  0000 C CNN
+F 1 "LED13" H 16050 8950 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 9050 60  0001 C CNN
+F 4 "OSRAM" H 16050 9050 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 9050 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 9050 60  0001 C CNN "Field3"
+	1    16050 9050
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D11
+U 1 1 4E468778
+P 16050 8450
+F 0 "D11" H 16050 8550 50  0000 C CNN
+F 1 "LED11" H 16050 8350 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 8450 60  0001 C CNN
+F 4 "OSRAM" H 16050 8450 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 8450 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 8450 60  0001 C CNN "Field3"
+	1    16050 8450
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R19
+U 1 1 4E468777
+P 15500 8450
+F 0 "R19" V 15580 8450 50  0000 C CNN
+F 1 "220" V 15500 8450 50  0000 C CNN
+F 2 "0603" H 15500 8450 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 8450 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 8450 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 8450 60  0001 C CNN "Field3"
+	1    15500 8450
+	0    1    1    0   
+$EndComp
+$Comp
+L R R18
+U 1 1 4E468776
+P 15500 8150
+F 0 "R18" V 15580 8150 50  0000 C CNN
+F 1 "220" V 15500 8150 50  0000 C CNN
+F 2 "0603" H 15500 8150 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 8150 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 8150 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 8150 60  0001 C CNN "Field3"
+	1    15500 8150
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D10
+U 1 1 4E468775
+P 16050 8150
+F 0 "D10" H 16050 8250 50  0000 C CNN
+F 1 "LED10" H 16050 8050 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 8150 60  0001 C CNN
+F 4 "OSRAM" H 16050 8150 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 8150 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 8150 60  0001 C CNN "Field3"
+	1    16050 8150
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D5
+U 1 1 4E468770
+P 16050 6650
+F 0 "D5" H 16050 6750 50  0000 C CNN
+F 1 "LED5" H 16050 6550 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 6650 60  0001 C CNN
+F 4 "OSRAM" H 16050 6650 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 6650 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 6650 60  0001 C CNN "Field3"
+	1    16050 6650
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R6
+U 1 1 4E46876F
+P 15500 6650
+F 0 "R6" V 15580 6650 50  0000 C CNN
+F 1 "220" V 15500 6650 50  0000 C CNN
+F 2 "0603" H 15500 6650 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 6650 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 6650 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 6650 60  0001 C CNN "Field3"
+	1    15500 6650
+	0    1    1    0   
+$EndComp
+$Comp
+L R R7
+U 1 1 4E46876E
+P 15500 6950
+F 0 "R7" V 15580 6950 50  0000 C CNN
+F 1 "220" V 15500 6950 50  0000 C CNN
+F 2 "0603" H 15500 6950 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 6950 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 6950 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 6950 60  0001 C CNN "Field3"
+	1    15500 6950
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D6
+U 1 1 4E46876D
+P 16050 6950
+F 0 "D6" H 16050 7050 50  0000 C CNN
+F 1 "LED6" H 16050 6850 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 6950 60  0001 C CNN
+F 4 "OSRAM" H 16050 6950 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 6950 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 6950 60  0001 C CNN "Field3"
+	1    16050 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D8
+U 1 1 4E46876C
+P 16050 7550
+F 0 "D8" H 16050 7650 50  0000 C CNN
+F 1 "LED8" H 16050 7450 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 7550 60  0001 C CNN
+F 4 "OSRAM" H 16050 7550 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 7550 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 7550 60  0001 C CNN "Field3"
+	1    16050 7550
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R14
+U 1 1 4E46876B
+P 15500 7550
+F 0 "R14" V 15580 7550 50  0000 C CNN
+F 1 "220" V 15500 7550 50  0000 C CNN
+F 2 "0603" H 15500 7550 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 7550 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 7550 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 7550 60  0001 C CNN "Field3"
+	1    15500 7550
+	0    1    1    0   
+$EndComp
+$Comp
+L R R11
+U 1 1 4E46876A
+P 15500 7250
+F 0 "R11" V 15580 7250 50  0000 C CNN
+F 1 "220" V 15500 7250 50  0000 C CNN
+F 2 "0603" H 15500 7250 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 7250 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 7250 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 7250 60  0001 C CNN "Field3"
+	1    15500 7250
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D7
+U 1 1 4E468769
+P 16050 7250
+F 0 "D7" H 16050 7350 50  0000 C CNN
+F 1 "LED7" H 16050 7150 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 7250 60  0001 C CNN
+F 4 "OSRAM" H 16050 7250 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 7250 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 7250 60  0001 C CNN "Field3"
+	1    16050 7250
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D3
+U 1 1 4E468761
+P 16050 6050
+F 0 "D3" H 16050 6150 50  0000 C CNN
+F 1 "LED3" H 16050 5950 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 6050 60  0001 C CNN
+F 4 "OSRAM" H 16050 6050 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 6050 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 6050 60  0001 C CNN "Field3"
+	1    16050 6050
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R4
+U 1 1 4E468760
+P 15500 6050
+F 0 "R4" V 15580 6050 50  0000 C CNN
+F 1 "220" V 15500 6050 50  0000 C CNN
+F 2 "0603" H 15500 6050 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 6050 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 6050 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 6050 60  0001 C CNN "Field3"
+	1    15500 6050
+	0    1    1    0   
+$EndComp
+$Comp
+L R R5
+U 1 1 4E46875F
+P 15500 6350
+F 0 "R5" V 15580 6350 50  0000 C CNN
+F 1 "220" V 15500 6350 50  0000 C CNN
+F 2 "0603" H 15500 6350 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 6350 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 6350 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 6350 60  0001 C CNN "Field3"
+	1    15500 6350
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D4
+U 1 1 4E46875E
+P 16050 6350
+F 0 "D4" H 16050 6450 50  0000 C CNN
+F 1 "LED4" H 16050 6250 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 6350 60  0001 C CNN
+F 4 "OSRAM" H 16050 6350 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 6350 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 6350 60  0001 C CNN "Field3"
+	1    16050 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D2
+U 1 1 4E468758
+P 16050 5750
+F 0 "D2" H 16050 5850 50  0000 C CNN
+F 1 "LED2" H 16050 5650 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 5750 60  0001 C CNN
+F 4 "OSRAM" H 16050 5750 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 5750 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 5750 60  0001 C CNN "Field3"
+	1    16050 5750
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R3
+U 1 1 4E468757
+P 15500 5750
+F 0 "R3" V 15580 5750 50  0000 C CNN
+F 1 "220" V 15500 5750 50  0000 C CNN
+F 2 "0603" H 15500 5750 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 5750 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 5750 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 5750 60  0001 C CNN "Field3"
+	1    15500 5750
+	0    1    1    0   
+$EndComp
+$Comp
+L R R2
+U 1 1 4E460F18
+P 15500 5450
+F 0 "R2" V 15580 5450 50  0000 C CNN
+F 1 "220" V 15500 5450 50  0000 C CNN
+F 2 "0603" H 15500 5450 60  0001 C CNN
+F 4 "Panasonic-ECG" H 15500 5450 60  0001 C CNN "Field1"
+F 5 "ERJ-3GEYJ221V" H 15500 5450 60  0001 C CNN "Field2"
+F 6 "RES 220 OHM 1/10W 5% 0603 SMD" H 15500 5450 60  0001 C CNN "Field3"
+	1    15500 5450
+	0    1    1    0   
+$EndComp
+$Comp
+L LED D1
+U 1 1 4E460E8A
+P 16050 5450
+F 0 "D1" H 16050 5550 50  0000 C CNN
+F 1 "LED1" H 16050 5350 50  0000 C CNN
+F 2 "GSG-1206D" H 16050 5450 60  0001 C CNN
+F 4 "OSRAM" H 16050 5450 60  0001 C CNN "Field1"
+F 5 "LG N971-KN-1" H 16050 5450 60  0001 C CNN "Field2"
+F 6 "LED CHIPLED 570NM GREEN 1206 SMD" H 16050 5450 60  0001 C CNN "Field3"
+	1    16050 5450
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR43
+U 1 1 4E460AA4
+P 7750 1050
+F 0 "#PWR43" H 7750 1150 30  0001 C CNN
+F 1 "VCC" H 7750 1150 30  0000 C CNN
+	1    7750 1050
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR44
+U 1 1 4E460A90
+P 7750 2100
+F 0 "#PWR44" H 7750 2100 30  0001 C CNN
+F 1 "GND" H 7750 2030 30  0001 C CNN
+	1    7750 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_10 P1
+U 1 1 4E460A80
+P 7300 1550
+F 0 "P1" V 7250 1550 60  0000 C CNN
+F 1 "DIGITAL" V 7350 1550 60  0000 C CNN
+F 2 "PIN_ARRAY_5x2" H 7300 1550 60  0001 C CNN
+F 4 "DNP" V 7300 1550 60  0001 C CNN "Field4"
+	1    7300 1550
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR22
+U 1 1 4E45F877
+P 4250 1600
+F 0 "#PWR22" H 4250 1600 30  0001 C CNN
+F 1 "GND" H 4250 1530 30  0001 C CNN
+	1    4250 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR19
+U 1 1 4E45F873
+P 3650 1600
+F 0 "#PWR19" H 3650 1600 30  0001 C CNN
+F 1 "GND" H 3650 1530 30  0001 C CNN
+	1    3650 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C9
+U 1 1 4E45F74C
+P 3650 1300
+F 0 "C9" H 3700 1400 50  0000 L CNN
+F 1 "27pF" H 3700 1200 50  0000 L CNN
+F 2 "0603" H 3650 1300 60  0001 C CNN
+F 4 "TDK" H 3650 1300 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H270J" H 3650 1300 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%" H 3650 1300 60  0001 C CNN "Field3"
+	1    3650 1300
+	-1   0    0    1   
+$EndComp
+Text Label 1150 7250 0    40   ~ 0
+DIO
+$Comp
+L C C29
+U 1 1 4E45A909
+P 3000 9250
+F 0 "C29" H 3050 9350 50  0000 L CNN
+F 1 "1µF" H 3050 9150 50  0000 L CNN
+F 2 "0603" H 3000 9250 60  0001 C CNN
+F 4 "TDK" H 3000 9250 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C105K" H 3000 9250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 1uF 16volts X5R 10%" H 3000 9250 60  0001 C CNN "Field3"
+F 7 "DIY" H 3000 9250 60  0001 C CNN "Field4"
+	1    3000 9250
+	1    0    0    -1  
+$EndComp
+$Comp
+L CRYSTAL X1
+U 1 1 4E456466
+P 3950 750
+F 0 "X1" H 3950 900 60  0000 C CNN
+F 1 "XCVR XTAL" H 3950 600 60  0000 C CNN
+F 2 "GSG-HC-49S" H 3950 750 60  0001 C CNN
+F 4 "TXC" H 3950 750 60  0001 C CNN "Field1"
+F 5 "9C-16.000MEEJ-T" H 3950 750 60  0001 C CNN "Field2"
+F 6 "Crystals 16.000MHz 10ppm -20 +70C 18pF" H 3950 750 60  0001 C CNN "Field3"
+	1    3950 750 
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR77
+U 1 1 4E4563D8
+P 13600 9200
+F 0 "#PWR77" H 13600 9200 30  0001 C CNN
+F 1 "GND" H 13600 9130 30  0001 C CNN
+	1    13600 9200
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C13
+U 1 1 4E4563BC
+P 13600 8900
+F 0 "C13" H 13650 9000 50  0000 L CNN
+F 1 "18pF" H 13650 8800 50  0000 L CNN
+F 2 "0603" H 13600 8900 60  0001 C CNN
+F 4 "TDK" H 13600 8900 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H180JT" H 13600 8900 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 18pF 50volts C0G 5%" H 13600 8900 60  0001 C CNN "Field3"
+F 7 "DIY" H 13600 8900 60  0001 C CNN "Field4"
+	1    13600 8900
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR71
+U 1 1 4E456257
+P 12600 9200
+F 0 "#PWR71" H 12600 9200 30  0001 C CNN
+F 1 "GND" H 12600 9130 30  0001 C CNN
+	1    12600 9200
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C14
+U 1 1 4E45623A
+P 12600 8900
+F 0 "C14" H 12650 9000 50  0000 L CNN
+F 1 "18pF" H 12650 8800 50  0000 L CNN
+F 2 "0603" H 12600 8900 60  0001 C CNN
+F 4 "TDK" H 12600 8900 60  0001 C CNN "Field1"
+F 5 "C1608C0G1H180JT" H 12600 8900 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 18pF 50volts C0G 5%" H 12600 8900 60  0001 C CNN "Field3"
+F 7 "DIY" H 12600 8900 60  0001 C CNN "Field4"
+	1    12600 8900
+	-1   0    0    1   
+$EndComp
+Text Label 10300 8350 1    40   ~ 0
+VBUS
+$Comp
+L GND #PWR51
+U 1 1 4E1A18AC
+P 9700 8250
+F 0 "#PWR51" H 9700 8250 30  0001 C CNN
+F 1 "GND" H 9700 8180 30  0001 C CNN
+	1    9700 8250
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR48
+U 1 1 4E1A18A8
+P 9400 8250
+F 0 "#PWR48" H 9400 8250 30  0001 C CNN
+F 1 "GND" H 9400 8180 30  0001 C CNN
+	1    9400 8250
+	1    0    0    -1  
+$EndComp
+Text Label 1150 7050 0    40   ~ 0
+DCLK
+$Comp
+L CONN_1 P11
+U 1 1 4E1A143A
+P 900 7050
+F 0 "P11" H 980 7050 40  0000 L CNN
+F 1 "DCLK" H 900 7105 30  0001 C CNN
+F 2 "testpad-50mil" H 900 7050 60  0001 C CNN
+F 4 "DNP" H 900 7050 60  0001 C CNN "Field4"
+	1    900  7050
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR54
+U 1 1 4DFFDD15
+P 10400 9100
+F 0 "#PWR54" H 10400 9100 30  0001 C CNN
+F 1 "GND" H 10400 9030 30  0001 C CNN
+	1    10400 9100
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR14
+U 1 1 4DFFD7F8
+P 3000 9550
+F 0 "#PWR14" H 3000 9550 30  0001 C CNN
+F 1 "GND" H 3000 9480 30  0001 C CNN
+	1    3000 9550
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C25
+U 1 1 4DFFD7D5
+P 1200 9250
+F 0 "C25" H 1250 9350 50  0000 L CNN
+F 1 "1µF" H 1250 9150 50  0000 L CNN
+F 2 "0603" H 1200 9250 60  0001 C CNN
+F 4 "TDK" H 1200 9250 60  0001 C CNN "Field1"
+F 5 "C1608X5R1C105K" H 1200 9250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 1uF 16volts X5R 10%" H 1200 9250 60  0001 C CNN "Field3"
+F 7 "DIY" H 1200 9250 60  0001 C CNN "Field4"
+	1    1200 9250
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR4
+U 1 1 4DFFD7B4
+P 1200 9550
+F 0 "#PWR4" H 1200 9550 30  0001 C CNN
+F 1 "GND" H 1200 9480 30  0001 C CNN
+	1    1200 9550
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR5
+U 1 1 4DFFD79D
+P 1500 9250
+F 0 "#PWR5" H 1500 9250 30  0001 C CNN
+F 1 "GND" H 1500 9180 30  0001 C CNN
+	1    1500 9250
+	1    0    0    -1  
+$EndComp
+Text Notes 850  5900 0    40   ~ 0
+test points
+$Comp
+L CONN_1 P12
+U 1 1 4D1F669C
+P 900 7250
+F 0 "P12" H 980 7250 40  0000 L CNN
+F 1 "DIO" H 900 7305 30  0001 C CNN
+F 2 "testpad-50mil" H 900 7250 60  0001 C CNN
+F 4 "DNP" H 900 7250 60  0001 C CNN "Field4"
+	1    900  7250
+	-1   0    0    1   
+$EndComp
+Text Label 1150 6250 0    40   ~ 0
+VBUS
+$Comp
+L CONN_1 P7
+U 1 1 4D1F4F1B
+P 900 6250
+F 0 "P7" H 980 6250 40  0000 L CNN
+F 1 "VBUS" H 900 6305 30  0001 C CNN
+F 2 "testpad-50mil" H 900 6250 60  0001 C CNN
+F 4 "DNP" H 900 6250 60  0001 C CNN "Field4"
+	1    900  6250
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_1 P6
+U 1 1 4D1F4F19
+P 900 6050
+F 0 "P6" H 980 6050 40  0000 L CNN
+F 1 "VCC" H 900 6105 30  0001 C CNN
+F 2 "testpad-50mil" H 900 6050 60  0001 C CNN
+F 4 "DNP" H 900 6050 60  0001 C CNN "Field4"
+	1    900  6050
+	-1   0    0    1   
+$EndComp
+$Comp
+L BC856 Q1
+U 1 1 4D1A6C3F
+P 12500 8000
+F 0 "Q1" H 12500 7850 60  0000 R CNN
+F 1 "PDTA123Y" H 12500 8150 60  0000 R CNN
+F 2 "SOT416" H 12500 8000 60  0001 C CNN
+F 4 "NXP" H 12500 8000 60  0001 C CNN "Field1"
+F 5 "PDTA123YE,115" H 12500 8000 60  0001 C CNN "Field2"
+F 6 "PNP resistor-equipped transistor" H 12500 8000 60  0001 C CNN "Field3"
+F 7 "DIY" H 12500 8000 60  0001 C CNN "Field4"
+	1    12500 8000
+	-1   0    0    1   
+$EndComp
+NoConn ~ 6550 8800
+Text Label 600  8950 0    40   ~ 0
+VBUS
+Text Notes 9800 1250 0    60   ~ 0
+Ubertooth\nexpansion\nconnector
+Text Notes 7600 9550 0    60   ~ 0
+JTAG connector
+Text Notes 5950 9250 0    60   ~ 0
+LPC175x\nprogramming\nconnector
+NoConn ~ 8900 8150
+Text Label 6650 8900 0    40   ~ 0
+ISP
+$Comp
+L GND #PWR40
+U 1 1 4CDB22DD
+P 6650 9100
+F 0 "#PWR40" H 6650 9100 30  0001 C CNN
+F 1 "GND" H 6650 9030 30  0001 C CNN
+	1    6650 9100
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_6 P2
+U 1 1 4CDB225C
+P 6200 8750
+F 0 "P2" V 6150 8750 60  0000 C CNN
+F 1 "LPC PROGRAM" V 6250 8750 60  0000 C CNN
+F 2 "PIN_ARRAY-6X1" H 6200 8750 60  0001 C CNN
+F 4 "DNP" V 6200 8750 60  0001 C CNN "Field4"
+	1    6200 8750
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR42
+U 1 1 4CDB21C8
+P 7450 9400
+F 0 "#PWR42" H 7450 9400 30  0001 C CNN
+F 1 "GND" H 7450 9330 30  0001 C CNN
+	1    7450 9400
+	1    0    0    -1  
+$EndComp
+NoConn ~ 7550 9200
+$Comp
+L CONN_5X2 P3
+U 1 1 4CDB2134
+P 7950 9100
+F 0 "P3" H 7950 9400 60  0000 C CNN
+F 1 "JTAG" V 7950 9100 50  0000 C CNN
+F 2 "50MIL-HEADER-2X5-TH" H 7950 9100 60  0001 C CNN
+F 4 "DNP" H 7950 9100 60  0001 C CNN "Field4"
+	1    7950 9100
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D15
+U 1 1 4CDB17F8
+P 12750 5400
+F 0 "D15" H 12750 5500 50  0000 C CNN
+F 1 "USBLED" H 12750 5300 50  0000 C CNN
+F 2 "0603D" H 12750 5400 60  0001 C CNN
+F 4 "Kingbright" H 12750 5400 60  0001 C CNN "Field1"
+F 5 "APT1608EC" H 12750 5400 60  0001 C CNN "Field2"
+F 6 "Standard LED - SMD HI EFF RED WTR CLR" H 12750 5400 60  0001 C CNN "Field3"
+F 7 "DIY" H 12750 5400 60  0001 C CNN "Field4"
+	1    12750 5400
+	0    1    1    0   
+$EndComp
+$Comp
+L R R15
+U 1 1 4CDB17E7
+P 12750 5950
+F 0 "R15" V 12830 5950 50  0000 C CNN
+F 1 "330" V 12750 5950 50  0000 C CNN
+F 2 "0603" H 12750 5950 60  0001 C CNN
+F 4 "Bourns" H 12750 5950 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 12750 5950 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 12750 5950 60  0001 C CNN "Field3"
+F 7 "DIY" V 12750 5950 60  0001 C CNN "Field4"
+	1    12750 5950
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED D14
+U 1 1 4CDB1751
+P 9600 9400
+F 0 "D14" H 9600 9500 50  0000 C CNN
+F 1 "RSTLED" H 9600 9300 50  0000 C CNN
+F 2 "0603D" H 9600 9400 60  0001 C CNN
+F 4 "Kingbright" H 9600 9400 60  0001 C CNN "Field1"
+F 5 "APT1608SGC" H 9600 9400 60  0001 C CNN "Field2"
+F 6 "Standard LED - SMD GREEN WATER CLEAR" H 9600 9400 60  0001 C CNN "Field3"
+F 7 "DIY" H 9600 9400 60  0001 C CNN "Field4"
+	1    9600 9400
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR50
+U 1 1 4CDB1729
+P 9600 9700
+F 0 "#PWR50" H 9600 9700 30  0001 C CNN
+F 1 "GND" H 9600 9630 30  0001 C CNN
+	1    9600 9700
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R8
+U 1 1 4CDB170B
+P 9600 8850
+F 0 "R8" V 9680 8850 50  0000 C CNN
+F 1 "330" V 9600 8850 50  0000 C CNN
+F 2 "0603" H 9600 8850 60  0001 C CNN
+F 4 "Bourns" H 9600 8850 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-331ELF" H 9600 8850 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT" H 9600 8850 60  0001 C CNN "Field3"
+F 7 "DIY" V 9600 8850 60  0001 C CNN "Field4"
+	1    9600 8850
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR75
+U 1 1 4CDB152E
+P 12900 8950
+F 0 "#PWR75" H 12900 8950 30  0001 C CNN
+F 1 "GND" H 12900 8880 30  0001 C CNN
+	1    12900 8950
+	-1   0    0    1   
+$EndComp
+$Comp
+L R R9
+U 1 1 4CDB143F
+P 9900 8850
+F 0 "R9" V 9980 8850 50  0000 C CNN
+F 1 "10k" V 9900 8850 50  0000 C CNN
+F 2 "0603" H 9900 8850 60  0001 C CNN
+F 4 "Bourns" H 9900 8850 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 9900 8850 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 9900 8850 60  0001 C CNN "Field3"
+F 7 "DIY" V 9900 8850 60  0001 C CNN "Field4"
+	1    9900 8850
+	-1   0    0    1   
+$EndComp
+Text Label 9700 3100 1    40   ~ 0
+USB_CONNECT
+$Comp
+L R R16
+U 1 1 4CDB1118
+P 12750 8400
+F 0 "R16" V 12830 8400 50  0000 C CNN
+F 1 "1k5" V 12750 8400 50  0000 C CNN
+F 2 "0603" H 12750 8400 60  0001 C CNN
+F 4 "Bourns" H 12750 8400 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-152ELF" H 12750 8400 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 1.5KOHMS 5% 1/10WATT" H 12750 8400 60  0001 C CNN "Field3"
+F 7 "DIY" V 12750 8400 60  0001 C CNN "Field4"
+	1    12750 8400
+	0    -1   -1   0   
+$EndComp
+$Comp
+L R R12
+U 1 1 4CDB10C2
+P 13200 8050
+F 0 "R12" V 13100 8050 50  0000 C CNN
+F 1 "33" V 13200 8050 50  0000 C CNN
+F 2 "0603" H 13200 8050 60  0001 C CNN
+F 4 "Vishay/Dale" H 13200 8050 60  0001 C CNN "Field1"
+F 5 "CRCW060333R0FKEA" H 13200 8050 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 1/16watt 33ohms 1% 100ppm" H 13200 8050 60  0001 C CNN "Field3"
+F 7 "DIY" V 13200 8050 60  0001 C CNN "Field4"
+	1    13200 8050
+	-1   0    0    1   
+$EndComp
+$Comp
+L R R13
+U 1 1 4CDB10B7
+P 13100 8050
+F 0 "R13" V 13180 8050 50  0000 C CNN
+F 1 "33" V 13100 8050 50  0000 C CNN
+F 2 "0603" H 13100 8050 60  0001 C CNN
+F 4 "Vishay/Dale" H 13100 8050 60  0001 C CNN "Field1"
+F 5 "CRCW060333R0FKEA" H 13100 8050 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 1/16watt 33ohms 1% 100ppm" H 13100 8050 60  0001 C CNN "Field3"
+F 7 "DIY" V 13100 8050 60  0001 C CNN "Field4"
+	1    13100 8050
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR65
+U 1 1 4CDB0FC5
+P 12300 5550
+F 0 "#PWR65" H 12300 5550 30  0001 C CNN
+F 1 "GND" H 12300 5480 30  0001 C CNN
+	1    12300 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C34
+U 1 1 4CDB0FAF
+P 12300 5200
+F 0 "C34" H 12350 5300 50  0000 L CNN
+F 1 "100nF" H 12350 5100 50  0000 L CNN
+F 2 "0603" H 12300 5200 60  0001 C CNN
+F 4 "TDK" H 12300 5200 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 12300 5200 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 12300 5200 60  0001 C CNN "Field3"
+F 7 "DIY" H 12300 5200 60  0001 C CNN "Field4"
+	1    12300 5200
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR61
+U 1 1 4CDB0F9B
+P 12150 6300
+F 0 "#PWR61" H 12150 6300 30  0001 C CNN
+F 1 "GND" H 12150 6230 30  0001 C CNN
+	1    12150 6300
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 9800 8150
+NoConn ~ 10000 8150
+$Comp
+L C C33
+U 1 1 4CDB0E51
+P 12150 6900
+F 0 "C33" H 12200 7000 50  0000 L CNN
+F 1 "100nF" H 12200 6800 50  0000 L CNN
+F 2 "0603" H 12150 6900 60  0001 C CNN
+F 4 "TDK" H 12150 6900 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 12150 6900 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 12150 6900 60  0001 C CNN "Field3"
+F 7 "DIY" H 12150 6900 60  0001 C CNN "Field4"
+	1    12150 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR62
+U 1 1 4CDB0E78
+P 12150 7200
+F 0 "#PWR62" H 12150 7200 30  0001 C CNN
+F 1 "GND" H 12150 7130 30  0001 C CNN
+	1    12150 7200
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR39
+U 1 1 4CDB0B1A
+P 6450 7000
+F 0 "#PWR39" H 6450 7000 30  0001 C CNN
+F 1 "GND" H 6450 6930 30  0001 C CNN
+	1    6450 7000
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C27
+U 1 1 4CDB0AFB
+P 6450 6600
+F 0 "C27" H 6500 6700 50  0000 L CNN
+F 1 "100nF" H 6500 6500 50  0000 L CNN
+F 2 "0603" H 6450 6600 60  0001 C CNN
+F 4 "TDK" H 6450 6600 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 6450 6600 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 6450 6600 60  0001 C CNN "Field3"
+F 7 "DIY" H 6450 6600 60  0001 C CNN "Field4"
+	1    6450 6600
+	1    0    0    -1  
+$EndComp
+Text Label 10700 3050 0    40   ~ 0
+ISP
+$Comp
+L R R10
+U 1 1 4CDAF3FC
+P 10500 2800
+F 0 "R10" V 10400 2800 50  0000 C CNN
+F 1 "10k" V 10500 2800 50  0000 C CNN
+F 2 "0603" H 10500 2800 60  0001 C CNN
+F 4 "Bourns" H 10500 2800 60  0001 C CNN "Field1"
+F 5 "CR0603-JW-103ELF" H 10500 2800 60  0001 C CNN "Field2"
+F 6 "Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT" H 10500 2800 60  0001 C CNN "Field3"
+F 7 "DIY" V 10500 2800 60  0001 C CNN "Field4"
+	1    10500 2800
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR53
+U 1 1 4CDAF373
+P 10300 1550
+F 0 "#PWR53" H 10300 1550 30  0001 C CNN
+F 1 "GND" H 10300 1480 30  0001 C CNN
+	1    10300 1550
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C30
+U 1 1 4CDAF340
+P 10500 2250
+F 0 "C30" H 10300 2350 50  0000 L CNN
+F 1 "100nF" H 10250 2150 50  0000 L CNN
+F 2 "0603" H 10500 2250 60  0001 C CNN
+F 4 "TDK" H 10500 2250 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 10500 2250 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 10500 2250 60  0001 C CNN "Field3"
+F 7 "DIY" H 10500 2250 60  0001 C CNN "Field4"
+	1    10500 2250
+	0    -1   -1   0   
+$EndComp
+$Comp
+L CONN_3X2 P4
+U 1 1 4CDAF1FD
+P 9950 2050
+F 0 "P4" H 9950 2300 50  0000 C CNN
+F 1 "EXPAND" V 9950 2100 40  0000 C CNN
+F 2 "PIN_ARRAY_3X2" H 9950 2050 60  0001 C CNN
+F 4 "DNP" H 9950 2050 60  0001 C CNN "Field4"
+	1    9950 2050
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR45
+U 1 1 4CDAE97D
+P 8600 2250
+F 0 "#PWR45" H 8600 2250 30  0001 C CNN
+F 1 "GND" H 8600 2180 30  0001 C CNN
+	1    8600 2250
+	-1   0    0    1   
+$EndComp
+$Comp
+L C C28
+U 1 1 4CDAE93A
+P 8800 2350
+F 0 "C28" H 8850 2450 50  0000 L CNN
+F 1 "100nF" H 8850 2250 50  0000 L CNN
+F 2 "0603" H 8800 2350 60  0001 C CNN
+F 4 "TDK" H 8800 2350 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 8800 2350 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 8800 2350 60  0001 C CNN "Field3"
+F 7 "DIY" H 8800 2350 60  0001 C CNN "Field4"
+	1    8800 2350
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR36
+U 1 1 4CDAE58F
+P 6350 4900
+F 0 "#PWR36" H 6350 4900 30  0001 C CNN
+F 1 "GND" H 6350 4830 30  0001 C CNN
+	1    6350 4900
+	0    1    1    0   
+$EndComp
+$Comp
+L C C26
+U 1 1 4CDAE56D
+P 6450 5100
+F 0 "C26" H 6500 5200 50  0000 L CNN
+F 1 "100nF" H 6500 5000 50  0000 L CNN
+F 2 "0603" H 6450 5100 60  0001 C CNN
+F 4 "TDK" H 6450 5100 60  0001 C CNN "Field1"
+F 5 "C1608X7R1H104K" H 6450 5100 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%" H 6450 5100 60  0001 C CNN "Field3"
+F 7 "DIY" H 6450 5100 60  0001 C CNN "Field4"
+	1    6450 5100
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
