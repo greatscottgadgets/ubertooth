@@ -20,6 +20,9 @@ Boston, MA 02110-1301, USA.
 project code name: Broccoli
 
 Trying out another wireless transceiver IC (TRC104).  It isn't finished yet.
+There are problems with the TRC104 oscillator that need to be resolved before
+testing can be completed.  Firmware for this design is being developed in
+branches/broccoli but the hardware is in trunk.
 
 hardware notes:
 
