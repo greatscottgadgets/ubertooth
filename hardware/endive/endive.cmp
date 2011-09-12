@@ -1,0 +1,87 @@
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sat 10 Sep 2011 04:55:16 PM MDT
+
+BeginCmp
+TimeStamp = /4E6BC3BB;
+Reference = D1;
+ValeurCmp = DIODESCH;
+IdModule  = GSG-SOD-523F;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCA4A;
+Reference = D2;
+ValeurCmp = VCCLED;
+IdModule  = 0603D;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCA5A;
+Reference = D3;
+ValeurCmp = RESETLED;
+IdModule  = 0603D;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCA5F;
+Reference = D4;
+ValeurCmp = MODELED;
+IdModule  = 0603D;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BC41A;
+Reference = P1;
+ValeurCmp = CONN_4;
+IdModule  = PIN_ARRAY-4X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BC46E;
+Reference = P2;
+ValeurCmp = CONN_4;
+IdModule  = POGOPIN-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BC429;
+Reference = P3;
+ValeurCmp = CONN_7X2;
+IdModule  = PIN_ARRAY_7x2;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BC40B;
+Reference = P4;
+ValeurCmp = CONN_6;
+IdModule  = PIN_ARRAY-6X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCA63;
+Reference = R1;
+ValeurCmp = 330;
+IdModule  = 0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCA67;
+Reference = R2;
+ValeurCmp = 330;
+IdModule  = 0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCA69;
+Reference = R3;
+ValeurCmp = 330;
+IdModule  = 0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /4E6BCC00;
+Reference = SW1;
+ValeurCmp = SPST;
+IdModule  = GSG-SSSS810701;
+EndCmp
+
+EndListe

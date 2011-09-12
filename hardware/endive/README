@@ -1,0 +1,35 @@
+Copyright 2010, 2011 Michael Ossmann
+
+These files are part of Project Ubertooth.
+
+This is a free hardware design; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+This design is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this design; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 51 Franklin Street,
+Boston, MA 02110-1301, USA.
+
+project code name: Endive
+
+This is an adapter for the E8a programming connector on Dandelion.  It can be
+used with either a Renesas E8a or a Pogoprog or similar FTDI board.
+
+hardware notes:
+
+Schematic and layout files were designed in KiCad, an open source electronic
+design automation package.
+
+PCB description: 2 layer PCB 1.6 mm
+DE104iML or equivalent substrate (Er=4.42@2.4GHz TanD=0.016)
+double side solder mask black
+double side silkscreen white
+10 mil min trace width and
+10 mil min isolation

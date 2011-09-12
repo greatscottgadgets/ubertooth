@@ -1,0 +1,124 @@
+# EESchema Netlist Version 1.1 created  Sat 10 Sep 2011 04:55:16 PM MDT
+(
+ ( /4E6BC3BB GSG-SOD-523F D1 DIODESCH
+  ( 1 /MODE )
+  ( 2 N-000011 )
+ )
+ ( /4E6BCA4A 0603D D2 VCCLED
+  ( 1 /VCC )
+  ( 2 N-000008 )
+ )
+ ( /4E6BCA5A 0603D D3 RESETLED
+  ( 1 /VCC )
+  ( 2 N-000009 )
+ )
+ ( /4E6BCA5F 0603D D4 MODELED
+  ( 1 /VCC )
+  ( 2 N-000010 )
+ )
+ ( /4E6BC41A PIN_ARRAY-4X1 P1 CONN_4
+  ( 1 /RESET )
+  ( 2 /VCC )
+  ( 3 /MODE )
+  ( 4 GND )
+ )
+ ( /4E6BC46E POGOPIN-4 P2 CONN_4
+  ( 1 /RESET )
+  ( 2 /VCC )
+  ( 3 /MODE )
+  ( 4 GND )
+ )
+ ( /4E6BC429 PIN_ARRAY_7x2 P3 CONN_7X2
+  ( 1 ? )
+  ( 2 GND )
+  ( 3 ? )
+  ( 4 GND )
+  ( 5 ? )
+  ( 6 GND )
+  ( 7 /MODE )
+  ( 8 /VIN )
+  ( 9 ? )
+  ( 10 GND )
+  ( 11 ? )
+  ( 12 GND )
+  ( 13 /RESET )
+  ( 14 GND )
+ )
+ ( /4E6BC40B PIN_ARRAY-6X1 P4 CONN_6
+  ( 1 GND )
+  ( 2 ? )
+  ( 3 /VIN )
+  ( 4 N-000011 )
+  ( 5 /MODE )
+  ( 6 /RESET )
+ )
+ ( /4E6BCA63 0603 R1 330
+  ( 1 N-000008 )
+  ( 2 GND )
+ )
+ ( /4E6BCA67 0603 R2 330
+  ( 1 N-000009 )
+  ( 2 /RESET )
+ )
+ ( /4E6BCA69 0603 R3 330
+  ( 1 N-000010 )
+  ( 2 /MODE )
+ )
+ ( /4E6BCC00 GSG-SSSS810701 SW1 SPST
+  ( 1 /VIN )
+  ( 2 /VCC )
+ )
+)
+*
+{ Allowed footprints by component:
+$component D1
+ D?
+ S*
+$endlist
+$component D2
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D3
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D4
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$endfootprintlist
+}
