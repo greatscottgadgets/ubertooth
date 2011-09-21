@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun 04 Sep 2011 11:04:05 PM MDT
+EESchema Schematic File Version 2  date Tue 20 Sep 2011 08:05:10 PM MDT
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -37,7 +37,7 @@ $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
 Title "Dandelion"
-Date "5 sep 2011"
+Date "21 sep 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -1962,11 +1962,11 @@ L C C10
 U 1 1 4E4DA6C0
 P 4250 1300
 F 0 "C10" H 4300 1400 50  0000 L CNN
-F 1 "27pF" H 4300 1200 50  0000 L CNN
+F 1 "20pF" H 4300 1200 50  0000 L CNN
 F 2 "0603" H 4250 1300 60  0001 C CNN
 F 4 "TDK" H 4250 1300 60  0001 C CNN "Field1"
-F 5 "C1608C0G1H270J" H 4250 1300 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%" H 4250 1300 60  0001 C CNN "Field3"
+F 5 "C1608C0G1H200J" H 4250 1300 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 20pF 50volts C0G 5%" H 4250 1300 60  0001 C CNN "Field3"
 	1    4250 1300
 	-1   0    0    1   
 $EndComp
@@ -2703,11 +2703,11 @@ L C C9
 U 1 1 4E45F74C
 P 3650 1300
 F 0 "C9" H 3700 1400 50  0000 L CNN
-F 1 "27pF" H 3700 1200 50  0000 L CNN
+F 1 "20pF" H 3700 1200 50  0000 L CNN
 F 2 "0603" H 3650 1300 60  0001 C CNN
 F 4 "TDK" H 3650 1300 60  0001 C CNN "Field1"
-F 5 "C1608C0G1H270J" H 3650 1300 60  0001 C CNN "Field2"
-F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%" H 3650 1300 60  0001 C CNN "Field3"
+F 5 "C1608C0G1H200J" H 3650 1300 60  0001 C CNN "Field2"
+F 6 "Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 20pF 50volts C0G 5%" H 3650 1300 60  0001 C CNN "Field3"
 	1    3650 1300
 	-1   0    0    1   
 $EndComp

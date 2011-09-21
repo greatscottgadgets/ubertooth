@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Sun 04 Sep 2011 11:04:12 PM MDT
+# EESchema Netlist Version 1.1 created  Tue 20 Sep 2011 08:05:14 PM MDT
 (
  ( /4E6457F7 0603bridged  P19 PCB_JUMPER {Lib=CONN_2}
   (    1 /P4_2 )
@@ -193,7 +193,7 @@
   (    1 N-000007 )
   (    2 GND )
  )
- ( /4E4DA6C0 0603  C10 27pF {Lib=C}
+ ( /4E4DA6C0 0603  C10 20pF {Lib=C}
   (    1 GND )
   (    2 N-000119 )
  )
@@ -486,7 +486,7 @@
   (    9 N-000020 )
   (   10 VCC )
  )
- ( /4E45F74C 0603  C9 27pF {Lib=C}
+ ( /4E45F74C 0603  C9 20pF {Lib=C}
   (    1 GND )
   (    2 N-000129 )
  )
