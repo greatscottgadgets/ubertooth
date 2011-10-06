@@ -39,7 +39,7 @@ static void usage()
 	printf("\t-a get power amplifier level\n");
 	printf("\t-a[0-7] set power amplifier level\n");
 	printf("\t-c get channel in MHz\n");
-	printf("\t-c[0-78] set channel in MHz\n");
+	printf("\t-c[2400-2483] set channel in MHz\n");
 	printf("\t-r full reset\n");
 	printf("\t-n initiate range test\n");
 	printf("\t-m display range test result\n");
