@@ -1,0 +1,121 @@
+#!/usr/bin/perl
+# -*- perl -*-
+
+# Copyright (C) 2010 DJ Delorie <dj@redhat.com>
+#
+# This file is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3, or (at your option) any later
+# version.
+# 
+# This file is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this file; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+
+$in = shift;
+$outc = shift;
+$outs = shift;
+
+open(I, $in);
+open(S, ">$outs");
+open(H, ">$outc");
+
+print H "typedef unsigned char byte;\n\n";
+print H "typedef unsigned short word;\n\n";
+print H "typedef unsigned long dword;\n\n";
+
+while (<I>) {
+    s/\#.*//;
+    s/[\r\n]+$//;
+
+    if (/\[ivec\]/) {
+	$ivect = 0;
+	while (<I>) {
+	    last if /\[done\]/;
+	    next unless /\S/;
+	    $n = $_;
+	    $n =~ s/[\r\n]$//;
+
+	    if ($n =~ m@(\S*) *= *(\S+)@) {
+		$ivect = $2;
+		$n = $1;
+	    }
+
+	    if ($n ne "-") {
+		$i4 = $ivect * 4;
+		printf S "ivec_$n = $i4\n";
+		printf H "#define ivec_$n $ivect\n";
+	    }
+
+	    $ivect ++;
+	}
+	next;
+    }
+
+    ($name, $addr, $bits) = split(' ', $_, 3);
+    next unless $name =~ /\S/;
+
+    $type = "byte";
+
+    if ($bits eq ".bits") {
+	$bits = "b7 b6 b5 b4 b3 b2 b1 b0";
+    }
+
+    if ($bits =~ /^\.HI\s*(.*)/) {
+	$type = "word";
+	$bits = $1;
+    }
+
+    if ($bits) {
+	print S "\n";
+	print H "\n";
+	$nl = "\n";
+    } else {
+	print S $nl;
+	print H $nl;
+	$nl = '';
+    }
+    print S "$name\t= 0x$addr\n";
+
+    if ($bits) {
+	$bitf = 0;
+	$unspec = 0;
+	$type = "${name}_type";
+	print H "typedef union {\n";
+	print H "  struct {\n";
+	$sbits = '';
+	for $field (reverse split(' ', $bits)) {
+	    if ($field eq ":") {
+		print H "    byte unspec_$unspec:1;\n";
+		$unspec ++;
+		$bitf ++;
+	    } elsif ($field =~ /(.*):(\d)/) {
+		print H "    byte $1:$2;\n";
+		printf S " ${name}_$1\t= 0x%02x\n", ((1 << $2) - 1) << $bitf;
+		$bitf += $2;
+	    } else {
+		print H "    byte $field:1;\n";
+		printf S " ${name}_$field\t= 0x%02x\n", 1 << $bitf;
+		$sbits .= sprintf " \$$field\t= %d\n", $bitf;
+		$bitf ++;
+	    }
+	}
+	print S $sbits;
+	print H "  };\n";
+	print H "  byte b;\n";
+	print H "} $type;\n";
+    }
+
+    print H "#define $name (*(volatile $type *)0x$addr)\n";
+}
+
+print H '
+#define set_ivect(f,n) \
+  asm ("mov.w #%%lo16(%d0),_ivects+%d1"   : : "s" (f), "g" (n*4)); \
+  asm ("mov.w #%%hi16(%d0),_ivects+%d1" : : "s" (f), "g" (n*4+2));
+';
