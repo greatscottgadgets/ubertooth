@@ -1189,7 +1189,7 @@ void led_specan()
 		i = (i+1) % 3;
 
 		USBHwISR();
-        wait(1);
+        //wait(1);
 		cc2400_strobe(SRFOFF);
 		while ((cc2400_status() & FS_LOCK));
 	}
@@ -1201,7 +1201,6 @@ int main()
 	ubertooth_init();
 	clkn_init();
 	ubertooth_usb_init();
-    //requested_mode = MODE_LED_SPECAN;
 
 	while (1) {
 		USBHwISR();
