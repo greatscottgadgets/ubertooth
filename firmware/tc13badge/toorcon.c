@@ -21,6 +21,7 @@
 
 #include "tc13badge.h"
 #include "cc2400.h"
+#include "bitmaps.h"
 
 void delay(uint16_t duration);
 void sleep(void);
@@ -33,8 +34,15 @@ void specan_init(void);
 void led_specan(void);
 void post(void);
 void main(void);
+int logo_update(void);
+int icon_update(void);
+void pov_logo(void);
+void pov_icon(void);
+void easter_egg(void);
 
 uint8_t tests_completed = 0;
+int easter_threshold = -169;
+uint8_t easter_is_coming = 0;
 volatile int timesup = 0;
 volatile int button_pressed = 0;
 uint8_t pwm[13];
@@ -172,6 +180,17 @@ inline void sweep(uint8_t low, uint8_t high, uint16_t base, uint8_t* store)
 		if (rssi > floor)
 			store[i] = MAX(store[i], (rssi - floor) >> 1);
 
+		if (channel == 2472) {
+			easter_threshold = rssi;
+		} else if ((channel == 2470) || (channel == 2474)) {
+			if ((rssi + 3) < easter_threshold) {
+				if (easter_is_coming < 169) {
+					easter_is_coming++;
+				}
+			} else if (easter_is_coming > 1) {
+				easter_is_coming -= 2;
+			}
+		}
 	}
 }
 
@@ -318,6 +337,8 @@ void main(void)
 	tests_completed = 0;
 	timesup = 0;
 	button_pressed = 0;
+	easter_threshold = 0;
+	easter_is_coming = 0;
 
 	r8c_init();
 	post();
@@ -332,6 +353,11 @@ void main(void)
 		button_pressed = 0;
 		for (i = 2197; i; i--) {
 			led_specan();
+			if (easter_is_coming == 169) {
+				easter_is_coming = 0;
+				easter_egg();
+				break;
+			}
 			if (button_pressed) {
 				delay(28561);
 				break;
@@ -339,4 +365,102 @@ void main(void)
 		}
 		sleep();
 	}
+}
+
+int logo_update(void)
+{
+	static int i = 0;
+	static int j = 0;
+	static int m = 0;
+	int k;
+
+	for (k = 0; k < 13; k++) {
+		set_led(k, (((logo[i][k] ^ key[m]) >> j) & 0x01));
+		m = (m + 1) % KEY_LEN;
+	}
+
+	j = (j + 1) % 8;
+	i = (i + 1) % LOGO_LEN;
+
+	return i;
+}
+
+int icon_update(void)
+{
+	static int i = 0;
+	static int j = 0;
+	static int m = 0;
+	int k;
+
+	for (k = 0; k < 13; k++) {
+		set_led(k, (((icon[i][k] ^ key[m]) >> j) & 0x01));
+		m = (m + 1) % KEY_LEN;
+	}
+
+	j = (j + 1) % 8;
+	i = (i + 1) % ICON_LEN;
+	if (i == 0)
+		m = 0;
+
+	return i;
+}
+
+void pov_logo(void)
+{
+	delay(2197);
+
+	while (logo_update())
+		delay(13);
+	all_leds_off();
+
+	delay(28561);
+}
+
+void pov_icon(void)
+{
+	delay(2197);
+
+	while (icon_update())
+		delay(13);
+	all_leds_off();
+
+	delay(28561);
+}
+
+void easter_egg(void)
+{
+	uart_off();
+	cc2400_off();
+
+	pov_logo();
+	stop_until_button();
+	pov_icon();
+	stop_until_button();
+	pov_logo();
+	stop_until_button();
+	pov_icon();
+	stop_until_button();
+	pov_logo();
+	stop_until_button();
+	pov_icon();
+	stop_until_button();
+	pov_logo();
+	stop_until_button();
+	pov_icon();
+	stop_until_button();
+	pov_logo();
+	stop_until_button();
+	pov_icon();
+	stop_until_button();
+	pov_logo();
+	stop_until_button();
+	pov_icon();
+	stop_until_button();
+	pov_logo();
+	stop_until_button();
+
+	cc2400_init();
+	uart_init();
+	cc2400_clock_start();
+	button_pressed = 0;
 }
