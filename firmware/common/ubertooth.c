@@ -68,6 +68,16 @@ void gpio_init()
 	/* set P2.9 as USB_CONNECT */
 	PINSEL4 = (PINSEL4 & ~(3 << 18)) | (1 << 18);
 #endif
+#ifdef TC13BADGE
+	FIO0DIR = 0;
+	FIO1DIR = (PIN_CC3V3 | PIN_CC1V8 | PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO3DIR = 0;
+	FIO4DIR = PIN_SSEL1;
+
+	/* set P2.9 as USB_CONNECT */
+	PINSEL4 = (PINSEL4 & ~(3 << 18)) | (1 << 18);
+#endif
 
 	/* set all outputs low */
 	FIO0PIN = 0;
@@ -84,6 +94,7 @@ void gpio_init()
 void ubertooth_init()
 {
 	gpio_init();
+	//FIXME R8C stuff here?
 	cc2400_init();
 	clock_start();
 }
@@ -104,7 +115,7 @@ void dio_ssp_init()
 	/* set P1.18 as MOSI0 */
 	PINSEL1 = (PINSEL1 & ~(3 << 4)) | (2 << 4);
 #endif
-#ifdef UBERTOOTH_ONE
+#if defined UBERTOOTH_ONE || defined TC13BADGE
 	/* set P0.7 as SCK1 */
 	PINSEL0 = (PINSEL0 & ~(3 << 14)) | (2 << 14);
 
@@ -149,7 +160,9 @@ void atest_init()
 
 void cc2400_init()
 {
+#if defined UBERTOOTH_ZERO || defined UBERTOOTH_ONE
 	atest_init();
+#endif
 
 	/* activate 1V8 supply for CC2400 */
 	CC1V8_SET;

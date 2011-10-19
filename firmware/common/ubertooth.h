@@ -61,6 +61,27 @@
 #define PIN_PAEN   (1 << 7 ) /* P2.7 */
 #define PIN_HGM    (1 << 8 ) /* P2.8 */
 #endif
+#ifdef TC13BADGE
+#define PIN_CC1V8    (1 << 0 ) /* P1.0  */
+#define PIN_CC3V3    (1 << 14) /* P1.14 */
+#define PIN_VBUS     (1 << 30) /* P1.30 */
+#define PIN_DIGITAL2 (1 << 0 ) /* P2.0  */
+#define PIN_DIGITAL3 (1 << 1 ) /* P2.1  */
+#define PIN_DIGITAL4 (1 << 2 ) /* P2.2  */
+#define PIN_DIGITAL5 (1 << 3 ) /* P2.3  */
+#define PIN_DIGITAL6 (1 << 4 ) /* P2.4  */
+#define PIN_DIGITAL7 (1 << 5 ) /* P2.5  */
+#define PIN_DIGITAL8 (1 << 6 ) /* P2.6  */
+#define PIN_DIGITAL9 (1 << 7 ) /* P2.7  */
+#define PIN_SW1      (1 << 8 ) /* P2.8  */
+#define PIN_CSN      (1 << 1 ) /* P1.1  */
+#define PIN_SCLK     (1 << 4 ) /* P1.4  */
+#define PIN_MOSI     (1 << 8 ) /* P1.8  */
+#define PIN_MISO     (1 << 9 ) /* P1.9  */
+#define PIN_GIO6     (1 << 10) /* P1.10 */
+#define PIN_SSEL1    (1 << 28) /* P4.28 */
+/* RX, TX, and BT/GR are fixed to ground on TC13BADGE */
+#endif
 
 /* indicator LED control */
 #ifdef UBERTOOTH_ZERO
@@ -85,13 +106,31 @@
 #define TXLED_SET  (FIO1SET = PIN_TXLED)
 #define TXLED_CLR  (FIO1CLR = PIN_TXLED)
 #endif
+#ifdef TC13BADGE
+//FIXME The LEDs need to be controlled by talking to the R8C.
+#define USRLED     0
+#define USRLED_SET
+#define USRLED_CLR
+#define RXLED      0
+#define RXLED_SET
+#define RXLED_CLR
+#define TXLED      0
+#define TXLED_SET
+#define TXLED_CLR
+#endif
+
+/* SW1 button press */
+#ifdef TC13BADGE
+#define SW1 (!(FIO2PIN & PIN_SW1))
+#endif
+
 
 /* SSEL (SPI slave select) control for CC2400 DIO (un-buffered) serial */
 #ifdef UBERTOOTH_ZERO
 #define DIO_SSEL_SET  (FIO2SET = PIN_SSEL0)
 #define DIO_SSEL_CLR  (FIO2CLR = PIN_SSEL0)
 #endif
-#ifdef UBERTOOTH_ONE
+#if defined UBERTOOTH_ONE || defined TC13BADGE
 #define DIO_SSEL_SET  (FIO4SET = PIN_SSEL1)
 #define DIO_SSEL_CLR  (FIO4CLR = PIN_SSEL1)
 #endif
@@ -140,6 +179,19 @@
 #define BTGR_CLR   (FIO1CLR = PIN_BTGR)
 #define MISO       (FIO2PIN & PIN_MISO)
 #endif
+#ifdef TC13BADGE
+#define CC3V3_SET  (FIO1SET = PIN_CC3V3)
+#define CC3V3_CLR  (FIO1CLR = PIN_CC3V3)
+#define CSN_SET    (FIO1SET = PIN_CSN)
+#define CSN_CLR    (FIO1CLR = PIN_CSN)
+#define SCLK_SET   (FIO1SET = PIN_SCLK)
+#define SCLK_CLR   (FIO1CLR = PIN_SCLK)
+#define MOSI_SET   (FIO1SET = PIN_MOSI)
+#define MOSI_CLR   (FIO1CLR = PIN_MOSI)
+#define GIO6_SET   (FIO1SET = PIN_GIO6)
+#define GIO6_CLR   (FIO1CLR = PIN_GIO6)
+#define MISO       (FIO1PIN & PIN_MISO)
+#endif
 
 /*
  * DIO_SSP is the SSP assigned to the CC2400's secondary ("un-buffered") serial
@@ -152,7 +204,7 @@
 #define DIO_SSP_DMACR SSP0DMACR
 #define DIO_SSP_SRC   (1 << 1) /* for DMACCxConfig register */
 #endif
-#ifdef UBERTOOTH_ONE
+#if defined UBERTOOTH_ONE || defined TC13BADGE
 #define DIO_SSP_CR0   SSP1CR0
 #define DIO_SSP_CR1   SSP1CR1
 #define DIO_SSP_DR    SSP1DR
