@@ -118,7 +118,7 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 {
 	u8 buffer[BUFFER_SIZE];
 	int r;
-	int i, j, k;
+	int i, j;
 	int xfer_blocks;
 	int num_xfers;
 	int transferred;
