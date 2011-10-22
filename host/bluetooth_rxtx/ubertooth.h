@@ -22,7 +22,11 @@
 #ifndef __UBERTOOTH_H__
 #define __UBERTOOTH_H__
 
+#ifdef FREEBSD
+#include <libusb.h>
+#else
 #include <libusb-1.0/libusb.h>
+#endif
 
 #define u8 uint8_t
 #define u16 uint16_t

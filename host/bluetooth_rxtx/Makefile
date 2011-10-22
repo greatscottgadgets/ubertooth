@@ -18,7 +18,13 @@
 # Boston, MA 02110-1301, USA.
 
 CC = gcc
-LIBUSB = usb-1.0
+OS = $(shell uname)
+ifeq ($(OS), FreeBSD)
+	LIBUSB = usb
+	CFLAGS += -DFREEBSD
+else
+	LIBUSB = usb-1.0
+endif
 LIBBTBB = btbb
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
