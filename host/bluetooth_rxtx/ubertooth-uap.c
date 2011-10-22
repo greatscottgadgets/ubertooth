@@ -193,8 +193,10 @@ int main(int argc, char *argv[])
 	int r = 0;
 	struct libusb_device_handle *devh = ubertooth_start();
 
-	if (devh == NULL)
+	if (devh == NULL) {
+		usage();
 		return 1;
+	}
 
 	init_piconet(&pn);
 
