@@ -58,8 +58,10 @@ int main(int argc, char *argv[])
 	struct libusb_device_handle *devh = ubertooth_start();
 	rangetest_result rr;
 
-	if (devh == NULL)
+	if (devh == NULL) {
+		usage();
 		return 1;
+	}
 
 	while ((opt=getopt(argc,argv,"hnmefiprstvl::a::c::d::q::")) != EOF) {
 		switch(opt) {
