@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPCB (2010-04-21 BZR 23xx)-stable date = Mon Dec 27 13:25:21 2010
+Cmp-Mod V01 Created by CvPCB (2011-06-30 BZR 3033)-stable date = Sun 23 Oct 2011 11:09:03 PM MDT
 
 BeginCmp
 TimeStamp = /4CDDA7E7;
@@ -38,8 +38,8 @@ EndCmp
 BeginCmp
 TimeStamp = /4CDDCB6A;
 Reference = J1;
-ValeurCmp = USB-MINI-B;
-IdModule  = USB-KOBICONN-154-15320-E;
+ValeurCmp = USB-MICRO-B;
+IdModule  = GSG-USB-MICROB-FCI-10103594;
 EndCmp
 
 BeginCmp
@@ -50,10 +50,17 @@ IdModule  = POGOPIN-6;
 EndCmp
 
 BeginCmp
+TimeStamp = /4EA4E0D6;
+Reference = P2;
+ValeurCmp = CONN_6;
+IdModule  = PIN_ARRAY-6X1;
+EndCmp
+
+BeginCmp
 TimeStamp = /4CDDB0FC;
 Reference = R1;
 ValeurCmp = DNP;
-IdModule  = 0603;
+IdModule  = 0603bridged;
 EndCmp
 
 BeginCmp
@@ -74,6 +81,20 @@ BeginCmp
 TimeStamp = /4CDDA631;
 Reference = R4;
 ValeurCmp = 330;
+IdModule  = 0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /4EA4EC49;
+Reference = R5;
+ValeurCmp = DNP;
+IdModule  = 0603bridged;
+EndCmp
+
+BeginCmp
+TimeStamp = /4EA4EC65;
+Reference = R6;
+ValeurCmp = DNP;
 IdModule  = 0603;
 EndCmp
 

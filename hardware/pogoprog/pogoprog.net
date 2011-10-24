@@ -1,4 +1,4 @@
-# EESchema Netlist Version 1.1 created  Mon Dec 27 13:25:21 2010
+# EESchema Netlist Version 1.1 created  Sun 23 Oct 2011 11:09:03 PM MDT
 (
  ( /4CDDA7E7 0603 C1 100nF
   ( 1 3V3 )
@@ -13,14 +13,14 @@
   ( 2 GND )
  )
  ( /4CDDA608 0603D D1 TXLED
-  ( 1 N-000015 )
+  ( 1 N-000017 )
   ( 2 /TXLED )
  )
  ( /4CDDA621 0603D D2 RXLED
-  ( 1 N-000014 )
+  ( 1 N-000016 )
   ( 2 /RXLED )
  )
- ( /4CDDCB6A USB-KOBICONN-154-15320-E J1 USB-MINI-B
+ ( /4CDDCB6A GSG-USB-MICROB-FCI-10103594 J1 USB-MICRO-B
   ( 1 /VBUS )
   ( 2 /D- )
   ( 3 /D+ )
@@ -29,40 +29,56 @@
  )
  ( /4CDDAFDF POGOPIN-6 P1 CONN_6
   ( 1 GND )
-  ( 2 /RTS )
-  ( 3 /VOUT )
+  ( 2 N-000001 )
+  ( 3 /VCCIO )
   ( 4 /TXD )
   ( 5 /RXD )
   ( 6 /DTR )
  )
- ( /4CDDB0FC 0603 R1 DNP
-  ( 1 /VOUT )
+ ( /4EA4E0D6 PIN_ARRAY-6X1 P2 CONN_6
+  ( 1 GND )
+  ( 2 N-000001 )
+  ( 3 /VCCIO )
+  ( 4 /TXD )
+  ( 5 /RXD )
+  ( 6 /DTR )
+ )
+ ( /4CDDB0FC 0603bridged R1 DNP
+  ( 1 /VCCIO )
   ( 2 3V3 )
  )
  ( /4CDDB10B 0603 R2 DNP
   ( 1 /VBUS )
-  ( 2 /VOUT )
+  ( 2 /VCCIO )
  )
  ( /4CDDA629 0603 R3 330
   ( 1 3V3 )
-  ( 2 N-000015 )
+  ( 2 N-000017 )
  )
  ( /4CDDA631 0603 R4 330
   ( 1 3V3 )
-  ( 2 N-000014 )
+  ( 2 N-000016 )
+ )
+ ( /4EA4EC49 0603bridged R5 DNP
+  ( 1 /RTS )
+  ( 2 N-000001 )
+ )
+ ( /4EA4EC65 0603 R6 DNP
+  ( 1 /CTS )
+  ( 2 N-000001 )
  )
  ( /4CDDA5D6 SSOP-28 U1 FT232RL
   ( 1 /TXD )
   ( 2 /DTR )
   ( 3 /RTS )
-  ( 4 3V3 )
+  ( 4 /VCCIO )
   ( 5 /RXD )
   ( 6 ? )
   ( 7 GND )
   ( 8 ? )
   ( 9 ? )
   ( 10 ? )
-  ( 11 ? )
+  ( 11 /CTS )
   ( 12 ? )
   ( 13 ? )
   ( 14 ? )
@@ -135,6 +151,18 @@ $component R3
  R?-*
 $endlist
 $component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R6
  R?
  SM0603
  SM0805
