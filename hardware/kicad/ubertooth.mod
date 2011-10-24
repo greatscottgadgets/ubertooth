@@ -1,4 +1,4 @@
-PCBNEW-LibModule-V1  Tue 20 Sep 2011 09:11:08 PM MDT
+PCBNEW-LibModule-V1  Sun 23 Oct 2011 10:33:50 PM MDT
 # encoding utf-8
 $INDEX
 0402
@@ -1177,45 +1177,6 @@ Ne 0 ""
 Po 1000 -250
 $EndPAD
 $EndMODULE  50MIL-HEADER-2x5-TH
-$MODULE 0603bridged
-Po 0 0 0 15 4D015141 00000000 ~~
-Li 0603bridged
-Sc 00000000
-AR
-Op 0 0 0
-.SolderMask 40
-T0 0 0 240 240 0 60 N V 21 N"0603"
-T1 0 0 240 240 0 60 N I 21 N"VAL**"
-DS 540 -240 -540 -240 80 21
-DS -540 -240 -540 240 80 21
-DS -540 240 540 240 80 21
-DS 540 240 540 -240 80 21
-$PAD
-Sh "2" R 340 340 0 0 0
-Dr 0 0 0
-At SMD N 00888000
-Ne 0 ""
-Po 300 0
-.SolderMask 40
-.LocalClearance 70
-$EndPAD
-$PAD
-Sh "1" R 340 340 0 0 0
-Dr 0 0 0
-At SMD N 00888000
-Ne 0 ""
-Po -300 0
-.SolderMask 40
-.LocalClearance 70
-$EndPAD
-$PAD
-Sh "" R 280 70 0 0 0
-Dr 0 0 0
-At SMD N 00008000
-Ne 0 ""
-Po 0 0
-$EndPAD
-$EndMODULE  0603bridged
 $MODULE 0402gap
 Po 0 0 0 15 4D016C4A 00000000 ~~
 Li 0402gap
@@ -5557,4 +5518,44 @@ Po 4500 0
 Le 79
 $EndPAD
 $EndMODULE  GSG-BK-912
+$MODULE 0603bridged
+Po 0 0 0 15 4EA4EA91 00000000 ~~
+Li 0603bridged
+Sc 00000000
+AR 
+Op 0 0 0
+.SolderMask 40
+T0 0 0 240 240 0 60 N V 21 N "0603"
+T1 0 0 240 240 0 60 N I 21 N "VAL**"
+DS 540 -240 -540 -240 80 21
+DS -540 -240 -540 240 80 21
+DS -540 240 540 240 80 21
+DS 540 240 540 -240 80 21
+$PAD
+Sh "2" R 340 340 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 300 0
+.SolderMask 40
+.LocalClearance 70
+$EndPAD
+$PAD
+Sh "1" R 340 340 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -300 0
+.SolderMask 40
+.LocalClearance 70
+$EndPAD
+$PAD
+Sh "" R 280 70 0 0 0
+Dr 0 0 0
+At SMD N 00808000
+Ne 0 ""
+Po 0 0
+Le 33
+$EndPAD
+$EndMODULE  0603bridged
 $EndLIBRARY
