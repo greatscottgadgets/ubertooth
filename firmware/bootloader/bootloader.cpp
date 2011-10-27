@@ -62,20 +62,22 @@ extern "C" {
 
 #define LE_WORD(x)		((x)&0xFF),((x)>>8)
 
-/* Ubertooth Zero
+/*
+ * Ubertooth Zero:
+ *
  * pin expansion connector (J1) pin 13 which is GPIO P2.7, configure
- * pull-up and check if it has been jumpered to ground (pin 1)
-
- * On Ubertooth One:
-
-* expansion connector (P4) pin 3 which is GPIO P0.22, same
-* configuration, ground is at pin 1.
-*/
+ * pull-up and check if it has been jumpered to ground (pin 1).
+ *
+ * On Ubertooth One and ToorCon 13 Badge:
+ *
+ * expansion connector (P4) pin 3 which is GPIO P0.22, same
+ * configuration, ground is at pin 1.
+ */
 
 #ifdef UBERTOOTH_ZERO
 #define ENTRY_PIN (!(FIO2PIN & (1 << 7)))
 #endif
-#ifdef UBERTOOTH_ONE
+#if defined UBERTOOTH_ONE || defined TC13BADGE
 #define ENTRY_PIN (!(FIO0PIN & (1 << 22)))
 #endif
 
@@ -268,13 +270,15 @@ int main(void)
 {
 	gpio_init();
 
-	if (bootloader_ctrl == DFU_MODE) {
-		ubertooth_init();
-		run_bootloader();
-	} else if (ENTRY_PIN) {
-		use_timeout = true;
-		ubertooth_init();
-		run_bootloader();
+	if (VBUS) {
+		if (bootloader_ctrl == DFU_MODE) {
+			ubertooth_init();
+			run_bootloader();
+		} else if (ENTRY_PIN) {
+			use_timeout = true;
+			ubertooth_init();
+			run_bootloader();
+		}
 	}
 
 	bootloader_ctrl = 0;

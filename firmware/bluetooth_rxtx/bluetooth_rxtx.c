@@ -613,20 +613,29 @@ static void clkn_init()
 {
 	/*
 	 * Because these are reset defaults, we're assuming TIMER0 is powered on
-	 * and in timer mode.  The TIMER0 peripheral clock should have been set to
-	 * cclk/2 (50 MHz) by clock_start().
+	 * and in timer mode.  The TIMER0 peripheral clock should have been set by
+	 * clock_start().
 	 */
 
 	/* stop and reset the timer to zero */
 	T0TCR = TCR_Counter_Reset;
 	clkn_high = 0;
 
+#ifdef TC13BADGE
+	/*
+	 * The peripheral clock has a period of 33.3ns.  3 pclk periods makes one
+	 * CLK100NS period (100ns).  CLK100NS resets every 2^15 * 10^5 (3276800000)
+	 * steps, roughly 5.5 minutes.
+	 */
+	T0PR = 2;
+#else
 	/*
 	 * The peripheral clock has a period of 20ns.  5 pclk periods makes one
 	 * CLK100NS period (100ns).  CLK100NS resets every 2^15 * 10^5 (3276800000)
 	 * steps, roughly 5.5 minutes.
 	 */
 	T0PR = 4;
+#endif
 	T0MR0 = 3276799999;
 	T0MCR = TMCR_MR0R | TMCR_MR0I;
 	ISER0 |= ISER0_ISE_TIMER0;

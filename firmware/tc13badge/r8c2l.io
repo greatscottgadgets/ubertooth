@@ -84,7 +84,7 @@ inten f9  int3pl int3en : : int1pl int1en int0pl int0en
 intf  fa  int3f:2 : : int1f:2 int0f:2
 kien  fb
 pur0  fc  .bits
-pur1  fd
+pur1  fd  .bits
 
 tracr  100 : : tundf tedgf : tstop tcstf tstart
 traioc 101 : : tipf:2 tiosel toena topcr tedgsel

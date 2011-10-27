@@ -53,6 +53,11 @@ void __attribute__((interrupt)) int3_handler(void)
 	button_pressed++;
 }
 
+/* interrupt service routine for INT0 (R8C_CTL) */
+void __attribute__((interrupt)) int0_handler(void)
+{
+}
+
 /* interrupt service routine for Timer RA */
 void __attribute__((interrupt)) timer_ra_handler(void)
 {
@@ -77,6 +82,7 @@ void sleep(void)
 	cc2400_init();
 	uart_init();
 	cc2400_clock_start();
+	pulse_leds(13);
 }
 
 void pulse_leds(uint8_t led)
@@ -341,17 +347,27 @@ void main(void)
 	easter_is_coming = 0;
 
 	r8c_init();
+	r8c_takeover_init();
 	post();
 
-	if (!button_pressed)
+	if ((!button_pressed) && R8C_CTL)
 		sleep();
 
 	while (1) {
-		pulse_leds(13);
 		specan_init();
 		delay(28561);
 		button_pressed = 0;
 		for (i = 2197; i; i--) {
+			if (!R8C_CTL) {
+				r8c_takeover();
+				while (!R8C_CTL)
+					stop_until_button();
+				r8c_take_back();
+				specan_init();
+				button_pressed = 0;
+				easter_is_coming = 0;
+				i = 2197;
+			}
 			led_specan();
 			if (easter_is_coming == 169) {
 				easter_is_coming = 0;

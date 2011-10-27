@@ -38,15 +38,7 @@ void gpio_init()
 	 * Set all pins for GPIO.  This shouldn't be necessary after a reset, but
 	 * we might get called at other times.
 	 */
-	PINSEL0 = 0;
-	PINSEL1 = 0;
-	PINSEL2 = 0;
-	PINSEL3 = 0;
-	PINSEL4 = 0;
-	PINSEL7 = 0;
-	PINSEL8 = 0;
-	PINSEL9 = 0;
-	PINSEL10 = 0;
+	all_pins_off();
 
 	/* set certain pins as outputs, all others inputs */
 #ifdef UBERTOOTH_ZERO
@@ -64,20 +56,59 @@ void gpio_init()
 	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI | PIN_PAEN | PIN_HGM);
 	FIO3DIR = 0;
 	FIO4DIR = (PIN_TX | PIN_SSEL1);
-
-	/* set P2.9 as USB_CONNECT */
-	PINSEL4 = (PINSEL4 & ~(3 << 18)) | (1 << 18);
 #endif
 #ifdef TC13BADGE
+	/*
+	 * Leave all the CC2400 pins configured as inputs until cc2400_init() is
+	 * called so that we don't interfere with the R8C's control of the CC2400.
+	 */
 	FIO0DIR = 0;
-	FIO1DIR = (PIN_CC3V3 | PIN_CC1V8 | PIN_CSN | PIN_SCLK | PIN_MOSI);
-	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO1DIR = PIN_R8C_CTL;
+	FIO2DIR = 0;
 	FIO3DIR = 0;
-	FIO4DIR = PIN_SSEL1;
-
-	/* set P2.9 as USB_CONNECT */
-	PINSEL4 = (PINSEL4 & ~(3 << 18)) | (1 << 18);
+	FIO4DIR = 0;
 #endif
+
+	/* set all outputs low */
+	FIO0PIN = 0;
+	FIO1PIN = 0;
+	FIO2PIN = 0;
+	FIO3PIN = 0;
+	FIO4PIN = 0;
+
+#ifdef TC13BADGE
+	/* R8C_CTL is active low */
+	R8C_CTL_SET;
+#endif
+}
+
+void all_pins_off(void)
+{
+	/* configure all pins for GPIO */
+	PINSEL0 = 0;
+	PINSEL1 = 0;
+	PINSEL2 = 0;
+	PINSEL3 = 0;
+	PINSEL4 = 0;
+	PINSEL7 = 0;
+	PINSEL9 = 0;
+	PINSEL10 = 0;
+
+	/* configure all pins as inputs */
+	FIO0DIR = 0;
+	FIO1DIR = 0;
+	FIO2DIR = 0;
+	FIO3DIR = 0;
+	FIO4DIR = 0;
+
+	/* pull-up on every pin */
+	PINMODE0 = 0;
+	PINMODE1 = 0;
+	PINMODE2 = 0;
+	PINMODE3 = 0;
+	PINMODE4 = 0;
+	PINMODE7 = 0;
+	PINMODE9 = 0;
 
 	/* set all outputs low */
 	FIO0PIN = 0;
@@ -94,7 +125,6 @@ void gpio_init()
 void ubertooth_init()
 {
 	gpio_init();
-	//FIXME R8C stuff here?
 	cc2400_init();
 	clock_start();
 }
@@ -160,7 +190,25 @@ void atest_init()
 
 void cc2400_init()
 {
-#if defined UBERTOOTH_ZERO || defined UBERTOOTH_ONE
+#ifdef TC13BADGE
+	/* request CC2400 control from the R8C */
+	r8c_takeover();
+
+	/* configure output pins for CC2400 control */
+	FIO0DIR = 0;
+	FIO1DIR = (PIN_CC3V3 | PIN_CC1V8 | PIN_CSN | PIN_SCLK | PIN_MOSI |
+			PIN_R8C_CTL);
+	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO3DIR = 0;
+	FIO4DIR = PIN_SSEL1;
+
+	/* set all outputs low */
+	FIO0PIN = 0;
+	FIO1PIN = 0; /* assuming we have already asserted R8C_CTL low */
+	FIO2PIN = 0;
+	FIO3PIN = 0;
+	FIO4PIN = 0;
+#else
 	atest_init();
 #endif
 
@@ -321,7 +369,11 @@ void clock_start()
 	 * errata sheet says we must select peripheral clock before enabling and
 	 * connecting PLL0
  	 */
+#ifdef TC13BADGE
+	PCLKSEL0  = (1 << 2); /* TIMER0 at cclk (30 MHz) */
+#else
 	PCLKSEL0  = (2 << 2); /* TIMER0 at cclk/2 (50 MHz) */
+#endif
 	PCLKSEL1  = 0;
 
 	/* switch to main oscillator */
@@ -360,10 +412,11 @@ void clock_start()
 	while (!(PLL1STAT & PLL1STAT_PLLC1_STAT));
 }
 
-
 /* reset the LPC17xx, the cc2400 will be handled by the boot code */
 void reset()
 {
+	all_pins_off();
+
 	/* Enable the watchdog with reset enabled */
 	USRLED_CLR;
 	WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;
@@ -374,6 +427,21 @@ void reset()
 	/* sleep for 1s (minimum) */
 	wait(1);
 }
+
+/* take control of R8C microcontroller and CC2400 on the ToorCon 13 badge */
+#ifdef TC13BADGE
+void r8c_takeover(void)
+{
+	//FIXME low power mode during wait for VBUS
+	while (!VBUS);
+
+	/* drop R8C_CTL to let the R8C know we are taking over */
+	R8C_CTL_CLR;
+
+	/* wait for the R8C to acknowledge the takeover */
+	while (R8C_ACK);
+}
+#endif
 
 //FIXME ssp
 //FIXME tx/rx

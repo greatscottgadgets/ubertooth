@@ -103,6 +103,11 @@
 #define SI_CLR     (p1.b4 = 0)
 #define SO         p1.b5
 
+/* R8C takeover by LPC175x */
+#define R8C_CTL     p4.b5
+#define R8C_ACK_SET (p0.b0 = 1)
+#define R8C_ACK_CLR (p0.b0 = 0)
+
 void cc2400_init(void);
 void cc2400_off(void);
 uint8_t cc2400_spi_byte(uint8_t data);
@@ -125,5 +130,8 @@ void all_leds_off(void);
 void uart_init(void);
 void uart_off(void);
 void stop_until_button(void);
+void r8c_takeover_init(void);
+void r8c_takeover(void);
+void r8c_take_back(void);
 
 #endif /* __TC13BADGE_H */

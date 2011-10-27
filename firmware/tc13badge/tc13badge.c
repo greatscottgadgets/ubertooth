@@ -39,6 +39,9 @@ static void wait()
 
 void cc2400_init()
 {
+	/* CSN (slave select) is active low */
+	CSN_SET;
+
 	/* set up GPIO pins */
 	prcr.prc2 = 1; // write enable pd0
 	pd0.b5 = 1;    // CC3V3 output
@@ -55,9 +58,6 @@ void cc2400_init()
 	/* activate 1V8 supply for CC2400 */
 	CC1V8_SET;
 	wait();
-
-	/* CSN (slave select) is active low */
-	CSN_SET;
 
 	/* activate 3V3 supply for CC2400 IO */
 	CC3V3_SET;
@@ -519,6 +519,9 @@ void uart_off(void)
  * is pressed.  See Renesas Application Note REJ05B1064-0102.
  *
  * This requires that int3_init() has been executed once.
+ *
+ * Also, if r8c_takeover_ini() has been called, a wake-up will
+ * occur if the R8C_CTL line is toggled by the LPC175x.
  */
 void stop_until_button(void)
 {
@@ -532,4 +535,48 @@ void stop_until_button(void)
 	cm1.b7 = 0;
 	cm0.b6 = 0; // enable division change
 	prcr.prc0 = 0; // enable control register protection
+}
+
+void r8c_takeover_init(void)
+{
+	/* R8C_ACK is active low */
+	R8C_ACK_SET;
+
+	/* set up GPIO pins */
+	prcr.prc2 = 1; // write enable pd0
+	pd0.b0 = 1;    // R8C_ACK output
+	pd4.b5 = 0;    // R8C_CTL input
+	pur1.b1 = 1;   // enable R8C_CTL (p4_5) pull-up resistor 
+
+	/* set up INT0 interrupt (R8C_CTL) */
+	DISABLE_INTERRUPTS;
+	int0ic = 0x00;
+	inten.int0en = 1;
+	inten.int0pl = 1; // trigger on both edges
+	intf.b = 0x00; // filter disabled for stop mode compatibility
+	int0ic = 0x01; // set INT3 interrupt priority
+	FOUR_NOPS;
+	ENABLE_INTERRUPTS;
+}
+
+/* allow LPC175x to take control */
+void r8c_takeover(void)
+{
+	all_leds_off();
+	uart_off();
+	cc2400_off();
+	prcr.prc2 = 1; // write enable pd0
+	pd0.b5 = 0;    // CC3V3 input
+	pd1.b0 = 0;    // CC1V8 input
+	pd1.b3 = 0;    // CSN input
+	R8C_ACK_CLR;
+}
+
+/* take control back from LPC175x */
+void r8c_take_back(void)
+{
+	R8C_ACK_SET;
+	cc2400_init();
+	uart_init();
+	cc2400_clock_start();
 }

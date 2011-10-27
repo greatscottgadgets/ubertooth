@@ -33,6 +33,7 @@
 #define PIN_TXLED  (1 << 29) /* P4.29 */
 #define PIN_CC1V8  (1 << 29) /* P1.29 */
 #define PIN_CC3V3  (1 << 0 ) /* P1.0  */
+#define PIN_VBUS   (1 << 30) /* P1.30 */
 #define PIN_RX     (1 << 1 ) /* P1.1  */
 #define PIN_TX     (1 << 4 ) /* P1.4  */
 #define PIN_CSN    (1 << 8 ) /* P1.8  */
@@ -49,6 +50,7 @@
 #define PIN_TXLED  (1 << 8 ) /* P1.8  */
 #define PIN_CC1V8  (1 << 9 ) /* P1.9  */
 #define PIN_CC3V3  (1 << 14) /* P1.14 */
+#define PIN_VBUS   (1 << 30) /* P1.30 */
 #define PIN_RX     (1 << 15) /* P1.15 */
 #define PIN_TX     (1 << 29) /* P4.29 */
 #define PIN_CSN    (1 << 5 ) /* P2.5  */
@@ -80,6 +82,8 @@
 #define PIN_MISO     (1 << 9 ) /* P1.9  */
 #define PIN_GIO6     (1 << 10) /* P1.10 */
 #define PIN_SSEL1    (1 << 28) /* P4.28 */
+#define PIN_R8C_CTL  (1 << 22) /* P1.22 connects to R8C's P4_5 */
+#define PIN_R8C_ACK  (1 << 19) /* P1.19 connects to R8C's P0_0 */
 /* RX, TX, and BT/GR are fixed to ground on TC13BADGE */
 #endif
 
@@ -121,9 +125,15 @@
 
 /* SW1 button press */
 #ifdef TC13BADGE
-#define SW1 (!(FIO2PIN & PIN_SW1))
+#define SW1 (FIO2PIN & PIN_SW1)
 #endif
 
+/* R8C control */
+#ifdef TC13BADGE
+#define R8C_CTL_SET (FIO1SET = PIN_R8C_CTL)
+#define R8C_CTL_CLR (FIO1CLR = PIN_R8C_CTL)
+#define R8C_ACK     (FIO1PIN & PIN_R8C_ACK)
+#endif
 
 /* SSEL (SPI slave select) control for CC2400 DIO (un-buffered) serial */
 #ifdef UBERTOOTH_ZERO
@@ -222,16 +232,29 @@
 #define HGM_CLR  (FIO2CLR = PIN_HGM)
 #endif
 
+/* USB VBUS monitoring */
+#define VBUS (FIO1PIN & PIN_VBUS)
+
 /*
  * clock configuration
  *
- * main oscillator:  16 MHz
+ * main oscillator:  16 MHz (from CC2400)
  * CPU clock (PLL0): 100 MHz
  * USB clock (PLL1): 48 MHz
+ *
+ * The ToorCon 13 badge is configured with a 30 MHz CPU clock instead of 100
+ * MHz to reduce heat at the voltage regulator.  This is a sufficient clock
+ * speed for passive Bluetooth monitoring.
  */
-#define CCLKSEL 3
+#ifdef TC13BADGE
+#define MSEL0 14
+#define NSEL0 0
+#define CCLKSEL 15
+#else
 #define MSEL0 24
 #define NSEL0 1
+#define CCLKSEL 3
+#endif
 #define MSEL1 34
 #define PSEL1 0
 
@@ -247,6 +270,7 @@ extern uint32_t bootloader_ctrl;
 
 void wait(u8 seconds);
 void gpio_init(void);
+void all_pins_off(void);
 void ubertooth_init(void);
 void dio_ssp_init(void);
 void atest_init(void);
@@ -261,5 +285,6 @@ u8 cc2400_strobe(u8 reg);
 void cc2400_reset(void);
 void clock_start(void);
 void reset(void);
+void r8c_takeover(void);
 
 #endif /* __UBERTOOTH_H */
