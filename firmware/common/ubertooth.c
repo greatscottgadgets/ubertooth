@@ -183,9 +183,9 @@ void atest_init()
 
 	/* P0.25 is ATEST1, P0.26 is ATEST2 */
 	PINSEL1 &= ~((0x3 << 20) | (0x3 << 18)); // set as GPIO
-	FIO0DIR &= ~((0x3 << 25)); // set as input
-	PINMODE1 |= ((0x5 << 19)); // no pull-up/pull-down
-	PINMODE1 &= ~((0x5 << 18)); // no pull-up/pull-down
+	FIO0DIR &= ~(0x3 << 25); // set as input
+	PINMODE1 |= (0x5 << 19); // no pull-up/pull-down
+	PINMODE1 &= ~(0x5 << 18); // no pull-up/pull-down
 }
 
 void cc2400_init()
@@ -432,14 +432,40 @@ void reset()
 #ifdef TC13BADGE
 void r8c_takeover(void)
 {
-	//FIXME low power mode during wait for VBUS
-	while (!VBUS);
+	/* wait until user presses SW1 while USB is connected */
+	while (SW1 || !VBUS) {
+		/* turn off power to all peripherals except GPIO */
+		PCONP = PCONP_PCGPIO;
+
+		/* enable interrupt on falling edge of P2.8 (SW1) */
+		IO2IntEnF |= (0x1 << 8);
+		ISER0 |= ISER0_ISE_EINT3;
+
+		/* go into power-down mode and wait for interrupt */
+		SCB_SCR = SCB_SCR_SLEEPDEEP;
+		PCON = (PCON_PM0 | PCON_BOGD);
+		asm("WFI");
+
+		/* disable interrupt */
+		IO2IntEnF &= ~(0x1 << 8);
+		ICER0 |= ICER0_ICE_EINT3;
+
+		/* turn power back on for peripherals we use */
+		PCONP = (PCONP_PCTIM0 | PCONP_PCSSP1 | PCONP_PCGPIO | PCONP_PCSSP0);
+	}
 
 	/* drop R8C_CTL to let the R8C know we are taking over */
 	R8C_CTL_CLR;
 
 	/* wait for the R8C to acknowledge the takeover */
 	while (R8C_ACK);
+}
+
+/* interrupt handler for SW1 */
+void EINT3_IRQHandler(void)
+{
+	/* clear interrupt */
+	IO2IntClr |= (0x1 << 8);
 }
 #endif
 

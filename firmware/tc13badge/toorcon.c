@@ -379,7 +379,8 @@ void main(void)
 				break;
 			}
 		}
-		sleep();
+		if (R8C_CTL)
+			sleep();
 	}
 }
 
