@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Tue 20 Sep 2011 08:05:10 PM MDT
+EESchema Schematic File Version 2  date Thu 27 Oct 2011 05:57:17 PM MDT
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -37,7 +37,7 @@ $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
 Title "Dandelion"
-Date "21 sep 2011"
+Date "27 oct 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -45,6 +45,10 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+Text Notes 9250 9900 0    60   ~ 0
+see note at D17
+Text Notes 5250 7400 0    60   ~ 0
+D17 (1V8LED) and D14\n(RSTLED) are included in\nthe design as an option\nfor those who choose to\noperate exclusively on\nUSB power.  Omit them\nif you plan to use a\nbattery.
 Wire Wire Line
 	13350 800  13250 800 
 Wire Wire Line
