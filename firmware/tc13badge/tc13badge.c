@@ -505,7 +505,7 @@ void uart_init(void)
 	u0brg = 3;     // fast clock rate
 	u0c1.te = 1;   // enable transmit
 	u0c1.re = 1;   // enable receive
- }
+}
 
 void uart_off(void)
 {

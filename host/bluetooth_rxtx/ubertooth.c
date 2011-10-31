@@ -645,3 +645,20 @@ int cmd_get_rev_num(struct libusb_device_handle* devh)
 
 	return result[0] | (result[1] << 8);
 }
+
+int cmd_get_board_id(struct libusb_device_handle* devh)
+{
+	u8 board_id;
+	int r;
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_BOARD_ID, 0, 0,
+			&board_id, 1, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+		return r;
+	} else if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+
+	return board_id;
+}

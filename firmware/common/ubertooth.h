@@ -26,6 +26,21 @@
 #include "types.h"
 #include "cc2400.h"
 
+/* hardware identification number */
+#define BOARD_ID_UBERTOOTH_ZERO 0
+#define BOARD_ID_UBERTOOTH_ONE  1
+#define BOARD_ID_TC13BADGE      2
+
+#ifdef UBERTOOTH_ZERO
+#define BOARD_ID BOARD_ID_UBERTOOTH_ZERO
+#endif
+#ifdef UBERTOOTH_ONE
+#define BOARD_ID BOARD_ID_UBERTOOTH_ONE
+#endif
+#ifdef TC13BADGE
+#define BOARD_ID BOARD_ID_TC13BADGE
+#endif
+
 /* GPIO pins */
 #ifdef UBERTOOTH_ZERO
 #define PIN_USRLED (1 << 11) /* P0.11 */

@@ -23,6 +23,12 @@
 #include <stdio.h>
 #include <getopt.h>
 
+const char* board_names[] = {
+	"Ubertooth Zero",
+	"Ubertooth One",
+	"ToorCon 13 Badge"
+};
+
 static void usage()
 {
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
@@ -48,6 +54,7 @@ static void usage()
 	printf("\t-d0 turn off all LED\n");
 	printf("\t-d1 turn on all LED\n");
 	printf("\t-v get firmware revision number\n");
+	printf("\t-b get hardware board id number\n");
 	printf("\t-q start LED spectrum analyzer\n");
 }
 
@@ -63,7 +70,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	while ((opt=getopt(argc,argv,"hnmefiprstvl::a::c::d::q::")) != EOF) {
+	while ((opt=getopt(argc,argv,"hnmefiprstvbl::a::c::d::q::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -153,6 +160,12 @@ int main(int argc, char *argv[])
 			r = cmd_get_rev_num(devh);
 			if (r >= 0) {
 				printf("firmware revision number: %d\n", r);
+			}
+			break;
+		case 'b':
+			r = cmd_get_board_id(devh);
+			if (r >= 0) {
+				printf("board id number: %d (%s)\n", r, board_names[r]);
 			}
 			break;
 		case 'h':

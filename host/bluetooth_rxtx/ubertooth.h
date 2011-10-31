@@ -42,47 +42,54 @@
 #define BUFFER_SIZE 102400
 
 enum ubertooth_usb_commands {
-    UBERTOOTH_PING        = 0,
-    UBERTOOTH_RX_SYMBOLS  = 1,
-    UBERTOOTH_TX_SYMBOLS  = 2,
-    UBERTOOTH_GET_USRLED  = 3,
-    UBERTOOTH_SET_USRLED  = 4,
-    UBERTOOTH_GET_RXLED   = 5,
-    UBERTOOTH_SET_RXLED   = 6,
-    UBERTOOTH_GET_TXLED   = 7,
-    UBERTOOTH_SET_TXLED   = 8,
-    UBERTOOTH_GET_1V8     = 9,
-    UBERTOOTH_SET_1V8     = 10,
-    UBERTOOTH_GET_CHANNEL = 11,
-    UBERTOOTH_SET_CHANNEL = 12,
-    UBERTOOTH_RESET       = 13,
-	UBERTOOTH_GET_SERIAL  = 14,
-	UBERTOOTH_GET_PARTNUM = 15,
-	UBERTOOTH_GET_PAEN    = 16,
-	UBERTOOTH_SET_PAEN    = 17,
-	UBERTOOTH_GET_HGM     = 18,
-	UBERTOOTH_SET_HGM     = 19,
-	UBERTOOTH_TX_TEST     = 20,
-	UBERTOOTH_STOP        = 21,
-	UBERTOOTH_GET_MOD     = 22,
-	UBERTOOTH_SET_MOD     = 23,
-	UBERTOOTH_SET_ISP     = 24,
-	UBERTOOTH_FLASH       = 25,
-	BOOTLOADER_FLASH      = 26,
-	UBERTOOTH_SPECAN      = 27,
-	UBERTOOTH_GET_PALEVEL = 28,
-	UBERTOOTH_SET_PALEVEL = 29,
-	UBERTOOTH_REPEATER    = 30,
-	UBERTOOTH_RANGE_TEST  = 31,
-	UBERTOOTH_RANGE_CHECK = 32,
-	UBERTOOTH_GET_REV_NUM = 33,
-	UBERTOOTH_LED_SPECAN  = 34
+    UBERTOOTH_PING         = 0,
+    UBERTOOTH_RX_SYMBOLS   = 1,
+    UBERTOOTH_TX_SYMBOLS   = 2,
+    UBERTOOTH_GET_USRLED   = 3,
+    UBERTOOTH_SET_USRLED   = 4,
+    UBERTOOTH_GET_RXLED    = 5,
+    UBERTOOTH_SET_RXLED    = 6,
+    UBERTOOTH_GET_TXLED    = 7,
+    UBERTOOTH_SET_TXLED    = 8,
+    UBERTOOTH_GET_1V8      = 9,
+    UBERTOOTH_SET_1V8      = 10,
+    UBERTOOTH_GET_CHANNEL  = 11,
+    UBERTOOTH_SET_CHANNEL  = 12,
+    UBERTOOTH_RESET        = 13,
+	UBERTOOTH_GET_SERIAL   = 14,
+	UBERTOOTH_GET_PARTNUM  = 15,
+	UBERTOOTH_GET_PAEN     = 16,
+	UBERTOOTH_SET_PAEN     = 17,
+	UBERTOOTH_GET_HGM      = 18,
+	UBERTOOTH_SET_HGM      = 19,
+	UBERTOOTH_TX_TEST      = 20,
+	UBERTOOTH_STOP         = 21,
+	UBERTOOTH_GET_MOD      = 22,
+	UBERTOOTH_SET_MOD      = 23,
+	UBERTOOTH_SET_ISP      = 24,
+	UBERTOOTH_FLASH        = 25,
+	BOOTLOADER_FLASH       = 26,
+	UBERTOOTH_SPECAN       = 27,
+	UBERTOOTH_GET_PALEVEL  = 28,
+	UBERTOOTH_SET_PALEVEL  = 29,
+	UBERTOOTH_REPEATER     = 30,
+	UBERTOOTH_RANGE_TEST   = 31,
+	UBERTOOTH_RANGE_CHECK  = 32,
+	UBERTOOTH_GET_REV_NUM  = 33,
+	UBERTOOTH_LED_SPECAN   = 34,
+	UBERTOOTH_GET_BOARD_ID = 35
 };
 
 enum modulations {
 	MOD_BT_BASIC_RATE = 0,
 	MOD_BT_LOW_ENERGY = 1,
 	MOD_80211_FHSS    = 2
+};
+
+enum board_ids {
+	BOARD_ID_UBERTOOTH_ZERO = 0,
+	BOARD_ID_UBERTOOTH_ONE  = 1,
+	BOARD_ID_TC13BADGE      = 2
 };
 
 /*
@@ -138,5 +145,6 @@ int cmd_get_rangeresult(struct libusb_device_handle* devh, rangetest_result *rr)
 int cmd_range_test(struct libusb_device_handle* devh);
 int cmd_repeater(struct libusb_device_handle* devh);
 int cmd_get_rev_num(struct libusb_device_handle* devh);
+int cmd_get_board_id(struct libusb_device_handle* devh);
 
 #endif
