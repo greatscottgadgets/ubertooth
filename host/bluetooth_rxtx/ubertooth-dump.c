@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Michael Ossmann
+ * Copyright 2010, 2011 Michael Ossmann
  *
  * This file is part of Project Ubertooth.
  *
@@ -29,8 +29,8 @@ int main()
 		return 1;
 
 	//FIXME cli mod options
-	cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
-	while (stream_rx(devh, 512, 0xFFFF) == 0);
+	//cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
+	rx_dump(devh);
 
 	ubertooth_stop(devh);
 	return 0;

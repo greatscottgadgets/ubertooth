@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Michael Ossmann
+ * Copyright 2010, 2011 Michael Ossmann
  *
  * This file is part of Project Ubertooth.
  *
@@ -28,6 +28,8 @@
 #include <libusb-1.0/libusb.h>
 #endif
 
+#include <bluetooth_piconet.h>
+
 #define u8 uint8_t
 #define u16 uint16_t
 #define u32 uint32_t
@@ -40,6 +42,15 @@
 #define CTRL_OUT    (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT)
 #define TIMEOUT     2000
 #define BUFFER_SIZE 102400
+#define NUM_BANKS   10
+
+/* RX USB packet parameters */
+#define PKT_LEN       64
+#define SYM_LEN       50
+#define SYM_OFFSET    14
+#define PKTS_PER_XFER 8
+#define XFER_LEN      (PKT_LEN * PKTS_PER_XFER)
+#define BANK_LEN      (SYM_LEN * PKTS_PER_XFER)
 
 enum ubertooth_usb_commands {
     UBERTOOTH_PING         = 0,
@@ -113,12 +124,18 @@ typedef struct {
 	u8 reply_num;
 } rangetest_result;
 
+typedef void (*rx_callback)(void* args, uint8_t* buf, int bank);
+
 struct libusb_device_handle* ubertooth_start();
 void ubertooth_stop(struct libusb_device_handle *devh);
-int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		u16 low_freq, u16 high_freq);
 int cmd_ping(struct libusb_device_handle* devh);
+int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
+		uint16_t num_blocks, rx_callback cb, void* cb_args);
+void rx_lap(struct libusb_device_handle* devh);
+void rx_uap(struct libusb_device_handle* devh, piconet* pn);
+void rx_dump(struct libusb_device_handle* devh);
 int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
 int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
 int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold);

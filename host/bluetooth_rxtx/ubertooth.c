@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Michael Ossmann
+ * Copyright 2010, 2011 Michael Ossmann
  *
  * This file is part of Project Ubertooth.
  *
@@ -21,10 +21,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <bluetooth_packet.h>
 
 #include "ubertooth.h"
 
-void show_libusb_error(int error_code);
+//this stuff should probably be in a struct managed by the calling program
+char symbols[NUM_BANKS][BANK_LEN];
+u8 *empty_buf = NULL;
+u8 *full_buf = NULL;
+u8 really_full = 0;
+struct libusb_transfer *rx_xfer = NULL;
 
 void show_libusb_error(int error_code)
 {
@@ -51,15 +57,49 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 	return devh;
 }
 
-int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
+static void cb_xfer(struct libusb_transfer *xfer)
 {
-	u8 buffer[BUFFER_SIZE];
+	int r;
+	uint8_t *tmp;
+
+	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
+		fprintf(stderr, "rx_xfer status: %d\n", xfer->status);
+		libusb_free_transfer(xfer);
+		rx_xfer = NULL;
+		return;
+	}
+
+	while (really_full)
+		fprintf(stderr, "uh oh, full_buf not emptied\n");
+
+	tmp = full_buf;
+	full_buf = empty_buf;
+	empty_buf = tmp;
+	really_full = 1;
+
+	rx_xfer->buffer = empty_buf;
+
+	while (1) {
+		r = libusb_submit_transfer(rx_xfer);
+		if (r < 0)
+			fprintf(stderr, "rx_xfer submission from callback: %d\n", r);
+		else
+			break;
+	}
+}
+
+int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
+		uint16_t num_blocks, rx_callback cb, void* cb_args)
+{
 	int r;
 	int i, j, k;
 	int xfer_blocks;
 	int num_xfers;
-	int transferred;
-	u32 time; /* in 100 nanosecond units */
+	uint32_t time; /* in 100 nanosecond units */
+	uint8_t clkn_high;
+	uint8_t bank = 0;
+	uint8_t rx_buf1[BUFFER_SIZE];
+	uint8_t rx_buf2[BUFFER_SIZE];
 
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
@@ -70,47 +110,180 @@ int stream_rx(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks)
 
 	if (xfer_size > BUFFER_SIZE)
 		xfer_size = BUFFER_SIZE;
-	xfer_blocks = xfer_size / 64;
-	xfer_size = xfer_blocks * 64;
+	xfer_blocks = xfer_size / PKT_LEN;
+	xfer_size = xfer_blocks * PKT_LEN;
 	num_xfers = num_blocks / xfer_blocks;
 	num_blocks = num_xfers * xfer_blocks;
 
 	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
 			num_blocks, xfer_size);
 
+	empty_buf = &rx_buf1[0];
+	full_buf = &rx_buf2[0];
+	really_full = 0;
+	rx_xfer = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(rx_xfer, devh, DATA_IN, empty_buf,
+			xfer_size, cb_xfer, NULL, TIMEOUT);
+
 	cmd_rx_syms(devh, num_blocks);
 
-	while (num_xfers--) {
-		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
-				&transferred, TIMEOUT);
-		if (r < 0) {
-			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
-			return -1;
+	r = libusb_submit_transfer(rx_xfer);
+	if (r < 0) {
+		fprintf(stderr, "rx_xfer submission: %d\n", r);
+		return -1;
+	}
+
+	while (1) {
+		while (!really_full) {
+			r = libusb_handle_events(NULL);
+			if (r < 0) {
+				fprintf(stderr, "libusb_handle_events: %d\n", r);
+				return -1;
+			}
 		}
-		if (transferred != xfer_size) {
-			fprintf(stderr, "bad data read size (%d)\n", transferred);
-			return -1;
-		}
-		fprintf(stderr, "transferred %d bytes\n", transferred);
+		//fprintf(stderr, "transfer completed\n");
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			time = buffer[4 + 64 * i]
-					| (buffer[5 + 64 * i] << 8)
-					| (buffer[6 + 64 * i] << 16)
-					| (buffer[7 + 64 * i] << 24);
-			fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-			for (j = 64 * i + 14; j < 64 * i + 64; j++) {
-				//printf("%02x", buffer[j]);
-				/* output one byte for each received symbol (0 or 1) */
-				for (k = 0; k < 8; k++) {
-					printf("%c", (buffer[j] & 0x80) >> 7 );
-					buffer[j] <<= 1;
-				}
-			}
+			(*cb)(cb_args, full_buf + PKT_LEN * i, bank);
+			bank = (bank + 1) % NUM_BANKS;
 		}
+		really_full = 0;
 		fflush(stderr);
 	}
+}
+
+static uint32_t extract_time(uint8_t* buf)
+{
+	return buf[4] | (buf[5] << 8) | (buf[6] << 16) | (buf[7] << 24);
+}
+
+static uint32_t extract_clkn_high(uint8_t* buf)
+{
+	return buf[3];
+}
+
+static void unpack_symbols(uint8_t* buf, char* unpacked)
+{
+	int i, j;
+
+	buf += SYM_OFFSET;
+	for (i = 0; i < SYM_LEN; i++) {
+		/* output one byte for each received symbol (0x00 or 0x01) */
+		for (j = 0; j < 8; j++) {
+			unpacked[i * 8 + j] = (buf[i] & 0x80) >> 7;
+			buf[i] <<= 1;
+		}
+	}
+}
+
+static void cb_lap(void* args, uint8_t* buf, int bank)
+{
+	char syms[BANK_LEN * NUM_BANKS];
+	int i, j, k;
+	int r;
+	uint32_t time; /* in 100 nanosecond units */
+	uint8_t clkn_high;
+	packet pkt;
+	uint8_t channel = 39; //FIXME hard coded
+
+	time = extract_time(buf);
+	clkn_high = extract_clkn_high(buf);
+	unpack_symbols(buf, symbols[bank]);
+	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+
+	/* awfully repetitious */
+	k = 0;
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < BANK_LEN; j++)
+			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+
+	r = sniff_ac(syms, BANK_LEN);
+
+	if (r > -1) {
+		for (i = 2; i < NUM_BANKS; i++)
+			for (j = 0; j < BANK_LEN; j++)
+				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+
+		init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+		pkt.channel = channel;
+
+		printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
+				channel, pkt.LAP, time + r * 10, pkt.clkn);
+	}
+}
+
+/* sniff all packets and identify LAPs */
+void rx_lap(struct libusb_device_handle* devh)
+{
+	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
+}
+
+static void cb_uap(void* args, uint8_t* buf, int bank)
+{
+	char syms[BANK_LEN * NUM_BANKS];
+	int i, j, k;
+	int r;
+	uint32_t time; /* in 100 nanosecond units */
+	uint8_t clkn_high;
+	packet pkt;
+	uint8_t channel = 39; //FIXME hard coded
+	piconet* pn = (piconet *)args;
+
+	time = extract_time(buf);
+	clkn_high = extract_clkn_high(buf);
+	unpack_symbols(buf, symbols[bank]);
+	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+
+	/* awfully repetitious */
+	k = 0;
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < BANK_LEN; j++)
+			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+
+	r = find_ac(syms, BANK_LEN, pn->LAP);
+
+	if (r > -1) {
+		for (i = 2; i < NUM_BANKS; i++)
+			for (j = 0; j < BANK_LEN; j++)
+				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+
+		init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+		pkt.channel = channel;
+
+		if (pkt.LAP == pn->LAP && header_present(&pkt)) {
+			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
+					channel, pkt.LAP, time + r * 10, pkt.clkn);
+			if (UAP_from_header(&pkt, pn))
+				exit(0);
+		}
+	}
+}
+
+/* sniff one target LAP until the UAP is determined */
+void rx_uap(struct libusb_device_handle* devh, piconet* pn)
+{
+	stream_rx_usb(devh, XFER_LEN, 0, cb_uap, pn);
+}
+
+static void cb_dump(void* args, uint8_t* buf, int bank)
+{
+	int i;
+	uint32_t time; /* in 100 nanosecond units */
+
+	time = extract_time(buf);
+	unpack_symbols(buf, symbols[bank]);
+	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+	for (i = 0; i < BANK_LEN; i++)
+		printf("%c", symbols[bank][i]);
+}
+
+/* dump received symbols to stdout */
+void rx_dump(struct libusb_device_handle* devh)
+{
+	stream_rx_usb(devh, XFER_LEN, 0, cb_dump, NULL);
 }
 
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
@@ -127,8 +300,8 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 
 	if (xfer_size > BUFFER_SIZE)
 		xfer_size = BUFFER_SIZE;
-	xfer_blocks = xfer_size / 64;
-	xfer_size = xfer_blocks * 64;
+	xfer_blocks = xfer_size / PKT_LEN;
+	xfer_size = xfer_blocks * PKT_LEN;
 	num_xfers = num_blocks / xfer_blocks;
 	num_blocks = num_xfers * xfer_blocks;
 
@@ -152,12 +325,12 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			time = buffer[4 + 64 * i]
-					| (buffer[5 + 64 * i] << 8)
-					| (buffer[6 + 64 * i] << 16)
-					| (buffer[7 + 64 * i] << 24);
+			time = buffer[4 + PKT_LEN * i]
+					| (buffer[5 + PKT_LEN * i] << 8)
+					| (buffer[6 + PKT_LEN * i] << 16)
+					| (buffer[7 + PKT_LEN * i] << 24);
 			fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-			for (j = 64 * i + 14; j < 64 * i + 62; j += 3) {
+			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];
 				if (buffer[j + 2] > 150) //FIXME 
 					printf("%f, %d, %d\n", ((double)time)/10000000, frequency, buffer[j + 2]);
@@ -171,6 +344,8 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
+	//FIXME make sure xfers are not active
+	libusb_free_transfer(rx_xfer);
 	if (devh != NULL)
 		libusb_release_interface(devh, 0);
 	libusb_close(devh);
