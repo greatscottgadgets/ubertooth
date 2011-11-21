@@ -95,8 +95,6 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	int i, j, k;
 	int xfer_blocks;
 	int num_xfers;
-	uint32_t time; /* in 100 nanosecond units */
-	uint8_t clkn_high;
 	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
@@ -150,6 +148,20 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		}
 		really_full = 0;
 		fflush(stderr);
+	}
+}
+
+/* file should be in full USB packet format (ubertooth-dump -f) */
+int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
+{
+	uint8_t bank = 0;
+	uint8_t buf[BUFFER_SIZE];
+
+	fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
+
+	while (fread(buf, sizeof(buf[0]), PKT_LEN, fp)) {
+		(*cb)(cb_args, buf, bank);
+		bank = (bank + 1) % NUM_BANKS;
 	}
 }
 
@@ -220,6 +232,12 @@ void rx_lap(struct libusb_device_handle* devh)
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
 }
 
+/* sniff all packets and identify LAPs */
+void rx_lap_file(FILE* fp)
+{
+	stream_rx_file(fp, 0, cb_lap, NULL);
+}
+
 static void cb_uap(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
@@ -280,10 +298,24 @@ static void cb_dump(void* args, uint8_t* buf, int bank)
 		printf("%c", symbols[bank][i]);
 }
 
-/* dump received symbols to stdout */
-void rx_dump(struct libusb_device_handle* devh)
+static void cb_dump_full(void* args, uint8_t* buf, int bank)
 {
-	stream_rx_usb(devh, XFER_LEN, 0, cb_dump, NULL);
+	int i;
+	uint32_t time; /* in 100 nanosecond units */
+
+	time = extract_time(buf);
+	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+	for (i = 0; i < PKT_LEN; i++)
+		printf("%c", buf[i]);
+}
+
+/* dump received symbols to stdout */
+void rx_dump(struct libusb_device_handle* devh, int full)
+{
+	if (full)
+		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_full, NULL);
+	else
+		stream_rx_usb(devh, XFER_LEN, 0, cb_dump, NULL);
 }
 
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,

@@ -28,6 +28,7 @@
 #include <libusb-1.0/libusb.h>
 #endif
 
+#include <stdio.h>
 #include <bluetooth_piconet.h>
 
 #define u8 uint8_t
@@ -133,9 +134,11 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		uint16_t num_blocks, rx_callback cb, void* cb_args);
+int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args);
 void rx_lap(struct libusb_device_handle* devh);
+void rx_lap_file(FILE* fp);
 void rx_uap(struct libusb_device_handle* devh, piconet* pn);
-void rx_dump(struct libusb_device_handle* devh);
+void rx_dump(struct libusb_device_handle* devh, int full);
 int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
 int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
 int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold);
