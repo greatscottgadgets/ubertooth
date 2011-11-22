@@ -27,6 +27,7 @@ static void usage(void)
 {
 	printf("ubertooth-lap - passive Bluetooth monitoring with LAP detection\n");
 	printf("Usage:\n");
+	printf("\t-h this help\n");
 	printf("\t-i filename\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
@@ -39,9 +40,6 @@ int main(int argc, char *argv[])
 
 	while ((opt=getopt(argc,argv,"hi:")) != EOF) {
 		switch(opt) {
-		case 'h':
-			usage();
-			return 1;
 		case 'i':
 			infile = fopen(optarg, "r");
 			if (infile == NULL) {
@@ -50,6 +48,7 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 			break;
+		case 'h':
 		default:
 			usage();
 			return 1;

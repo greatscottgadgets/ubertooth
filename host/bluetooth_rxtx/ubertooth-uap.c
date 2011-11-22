@@ -28,45 +28,62 @@ static void usage()
 {
 	printf("ubertooth-uap - passive UAP discovery for a particular LAP\n");
 	printf("Usage:\n");
+	printf("\t-h this help\n");
+	printf("\t-i filename\n");
 	printf("\t-l LAP (in hexadecimal)\n");
+	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
 int main(int argc, char *argv[])
 {
 	int opt;
-	int argcount = 0;
+	int have_lap = 0;
 	char *end;
 	int r = 0;
-	struct libusb_device_handle *devh = ubertooth_start();
+	struct libusb_device_handle *devh = NULL;
+	FILE* infile = NULL;
 	piconet pn;
-
-	if (devh == NULL) {
-		usage();
-		return 1;
-	}
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"l:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:")) != EOF) {
 		switch(opt) {
+		case 'i':
+			infile = fopen(optarg, "r");
+			if (infile == NULL) {
+				printf("Could not open file %s\n", optarg);
+				usage();
+				return 1;
+			}
+			break;
 		case 'l':
 			pn.LAP = strtol(optarg, &end, 16);
 			if (end != optarg)
-				++argcount;
+				++have_lap;
 			break;
+		case 'h':
 		default:
 			usage();
 			return 1;
 		}
 	}
-	if (argcount != 1) {
+	if (have_lap != 1) {
 		usage();
 		return 1;
 	}
 
-	rx_uap(devh, &pn);
-
-	ubertooth_stop(devh);
+	if (infile == NULL) {
+		devh = ubertooth_start();
+		if (devh == NULL) {
+			usage();
+			return 1;
+		}
+		rx_uap(devh, &pn);
+		ubertooth_stop(devh);
+	} else {
+		rx_uap_file(infile, &pn);
+		fclose(infile);
+	}
 
 	return 0;
 }

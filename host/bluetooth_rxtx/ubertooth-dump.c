@@ -26,6 +26,7 @@ static void usage(void)
 {
 	printf("ubertooth-dump - output a continuous stream of received bits\n");
 	printf("Usage:\n");
+	printf("\t-h this help\n");
 	printf("\t-f dump full USB packets, not just the received bits\n");
 	printf("\nThis program sends binary data to stdout.  You probably don't want to\n");
 	printf("run it from a terminal (especially with -f) without redirecting the output.\n");
@@ -51,10 +52,9 @@ int main(int argc, char *argv[])
 			full = 1;
 			break;
 		case 'h':
+		default:
 			usage();
 			return 1;
-		default:
-			break;
 		}
 	}
 

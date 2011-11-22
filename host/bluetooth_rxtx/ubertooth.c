@@ -157,7 +157,7 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	uint8_t bank = 0;
 	uint8_t buf[BUFFER_SIZE];
 
-	fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
+	//fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
 
 	while (fread(buf, sizeof(buf[0]), PKT_LEN, fp)) {
 		(*cb)(cb_args, buf, bank);
@@ -284,6 +284,12 @@ static void cb_uap(void* args, uint8_t* buf, int bank)
 void rx_uap(struct libusb_device_handle* devh, piconet* pn)
 {
 	stream_rx_usb(devh, XFER_LEN, 0, cb_uap, pn);
+}
+
+/* sniff one target LAP until the UAP is determined */
+void rx_uap_file(FILE* fp, piconet* pn)
+{
+	stream_rx_file(fp, 0, cb_uap, pn);
 }
 
 static void cb_dump(void* args, uint8_t* buf, int bank)
