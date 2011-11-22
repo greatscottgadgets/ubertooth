@@ -113,8 +113,8 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	num_xfers = num_blocks / xfer_blocks;
 	num_blocks = num_xfers * xfer_blocks;
 
-	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
-			num_blocks, xfer_size);
+	//fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
+			//num_blocks, xfer_size);
 
 	empty_buf = &rx_buf1[0];
 	full_buf = &rx_buf2[0];

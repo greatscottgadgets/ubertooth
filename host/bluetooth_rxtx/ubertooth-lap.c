@@ -21,17 +21,53 @@
 
 #include "ubertooth.h"
 #include <bluetooth_packet.h>
+#include <getopt.h>
 
-int main()
+static void usage(void)
 {
-	struct libusb_device_handle *devh = ubertooth_start();
+	printf("ubertooth-lap - passive Bluetooth monitoring with LAP detection\n");
+	printf("Usage:\n");
+	printf("\t-i filename\n");
+	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
+}
 
-	if (devh == NULL)
-		return 1;
+int main(int argc, char *argv[])
+{
+	int opt;
+	struct libusb_device_handle *devh = NULL;
+	FILE* infile = NULL;
 
-	rx_lap(devh);
+	while ((opt=getopt(argc,argv,"hi:")) != EOF) {
+		switch(opt) {
+		case 'h':
+			usage();
+			return 1;
+		case 'i':
+			infile = fopen(optarg, "r");
+			if (infile == NULL) {
+				printf("Could not open file %s\n", optarg);
+				usage();
+				return 1;
+			}
+			break;
+		default:
+			usage();
+			return 1;
+		}
+	}
 
-	ubertooth_stop(devh);
+	if (infile == NULL) {
+		devh = ubertooth_start();
+		if (devh == NULL) {
+			usage();
+			return 1;
+		}
+		rx_lap(devh);
+		ubertooth_stop(devh);
+	} else {
+		rx_lap_file(infile);
+		fclose(infile);
+	}
 
 	return 0;
 }
