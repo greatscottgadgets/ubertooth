@@ -271,7 +271,7 @@ static void cb_uap(void* args, uint8_t* buf, int bank)
 		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
 		pkt.channel = channel;
 
-		if (pkt.LAP == pn->LAP && header_present(&pkt)) {
+		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 					channel, pkt.LAP, time + r * 10, pkt.clkn);
 			if (UAP_from_header(&pkt, pn))
@@ -290,6 +290,82 @@ void rx_uap(struct libusb_device_handle* devh, piconet* pn)
 void rx_uap_file(FILE* fp, piconet* pn)
 {
 	stream_rx_file(fp, 0, cb_uap, pn);
+}
+
+static void cb_hop(void* args, uint8_t* buf, int bank)
+{
+	char syms[BANK_LEN * NUM_BANKS];
+	int i, j, k;
+	int r;
+	uint32_t time; /* in 100 nanosecond units */
+	uint8_t clkn_high;
+	packet pkt;
+	uint8_t channel = 39; //FIXME hard coded
+	piconet* pn = (piconet *)args;
+	uint8_t uap = pn->UAP;
+
+	time = extract_time(buf);
+	clkn_high = extract_clkn_high(buf);
+	unpack_symbols(buf, symbols[bank]);
+	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+
+	/* awfully repetitious */
+	k = 0;
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < BANK_LEN; j++)
+			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+
+	r = find_ac(syms, BANK_LEN, pn->LAP);
+
+	if (r > -1) {
+		for (i = 2; i < NUM_BANKS; i++)
+			for (j = 0; j < BANK_LEN; j++)
+				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+
+		init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
+		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+		pkt.channel = channel;
+
+		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
+			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
+					channel, pkt.LAP, time + r * 10, pkt.clkn);
+			if (pn->have_clk6) {
+				UAP_from_header(&pkt, pn);
+				if (!pn->have_clk6) {
+					printf("CLK1-27 discovery failed\n");
+					exit(1); //FIXME
+					winnow(pn);
+				}
+				if (pn->have_clk27) {
+					printf("got CLK1-27\n");
+					exit(0);
+				}
+			} else {
+				if (UAP_from_header(&pkt, pn)) {
+					if (uap == pn->UAP) {
+						printf("got CLK1-6\n");
+						init_hop_reversal(0, pn);
+						winnow(pn);
+					} else {
+						printf("failed to confirm UAP\n");
+						exit(1);
+					}
+				}
+			}
+		}
+	}
+}
+
+/* sniff one target address until CLK is determined */
+void rx_hop(struct libusb_device_handle* devh, piconet* pn)
+{
+	stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
+}
+
+/* sniff one target LAP until the UAP is determined */
+void rx_hop_file(FILE* fp, piconet* pn)
+{
+	stream_rx_file(fp, 0, cb_hop, pn);
 }
 
 static void cb_dump(void* args, uint8_t* buf, int bank)

@@ -28,7 +28,7 @@ endif
 LIBBTBB = btbb
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
-all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap
+all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop
 
 ubertooth-dump: ubertooth-dump.c ubertooth.c ubertooth.h
 	$(CC) $(CFLAGS) ubertooth-dump.c ubertooth.c -o ubertooth-dump $(LDFLAGS)
@@ -45,5 +45,8 @@ ubertooth-util: ubertooth-util.c ubertooth.c ubertooth.h
 ubertooth-uap: ubertooth-uap.c ubertooth.c ubertooth.h
 	$(CC) $(CFLAGS) ubertooth-uap.c ubertooth.c -o ubertooth-uap $(LDFLAGS)
 
+ubertooth-hop: ubertooth-hop.c ubertooth.c ubertooth.h
+	$(CC) $(CFLAGS) ubertooth-hop.c ubertooth.c -o ubertooth-hop $(LDFLAGS)
+
 clean:
-	rm -f ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap *.o
+	rm -f ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop *.o

@@ -139,6 +139,8 @@ void rx_lap(struct libusb_device_handle* devh);
 void rx_lap_file(FILE* fp);
 void rx_uap(struct libusb_device_handle* devh, piconet* pn);
 void rx_uap_file(FILE* fp, piconet* pn);
+void rx_hop(struct libusb_device_handle* devh, piconet* pn);
+void rx_hop_file(FILE* fp, piconet* pn);
 void rx_dump(struct libusb_device_handle* devh, int full);
 int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
 int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
