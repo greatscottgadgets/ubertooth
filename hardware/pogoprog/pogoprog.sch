@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Mon 24 Oct 2011 12:37:25 AM MDT
+EESchema Schematic File Version 2  date Mon 19 Dec 2011 10:01:30 AM MST
 LIBS:ubertooth-symbols
 LIBS:power
 LIBS:device
@@ -37,7 +37,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 1
 Title "Ubertooth Pogoprog"
-Date "24 oct 2011"
+Date "19 dec 2011"
 Rev "$Rev$"
 Comp "Copyright 2010 Michael Ossmann"
 Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
@@ -210,7 +210,7 @@ L CONN_6 P2
 U 1 1 4EA4E0D6
 P 3350 2600
 F 0 "P2" V 3300 2600 60  0000 C CNN
-F 1 "CONN_6" V 3400 2600 60  0000 C CNN
+F 1 "DNP" V 3400 2600 60  0000 C CNN
 	1    3350 2600
 	0    -1   -1   0   
 $EndComp
@@ -235,9 +235,9 @@ U 1 1 4CDDCB6A
 P 6500 5400
 F 0 "J1" H 6500 5700 60  0000 C CNN
 F 1 "USB-MICRO-B" H 6500 5050 60  0000 C CNN
-F 4 "Kobiconn" H 6500 5400 60  0001 C CNN "Field1"
-F 5 "154-15320-E" H 6500 5400 60  0001 C CNN "Field2"
-F 6 "USB & Firewire Connectors 5 PIN B TYPE CON RT ANGLE SMT" H 6500 5400 60  0001 C CNN "Field6"
+F 4 "FCI" H 6500 5400 60  0001 C CNN "Field1"
+F 5 "10103594-0001LF" H 6500 5400 60  0001 C CNN "Field2"
+F 6 "USB Connectors 5P Quick Connect Micro USB TypeB Rcpt" H 6500 5400 60  0001 C CNN "Field6"
 	1    6500 5400
 	0    1    1    0   
 $EndComp
@@ -349,7 +349,10 @@ L CONN_6 P1
 U 1 1 4CDDAFDF
 P 4150 2600
 F 0 "P1" V 4100 2600 60  0000 C CNN
-F 1 "CONN_6" V 4200 2600 60  0000 C CNN
+F 1 "pogopins" V 4200 2600 60  0000 C CNN
+F 4 "SparkFun" V 4150 2600 60  0001 C CNN "Field1"
+F 5 "PRT-09174" V 4150 2600 60  0001 C CNN "Field2"
+F 6 "QTY 6 Pogo Pins w/ Pointed Tip" V 4150 2600 60  0001 C CNN "Field3"
 	1    4150 2600
 	0    -1   -1   0   
 $EndComp
