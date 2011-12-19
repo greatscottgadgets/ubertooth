@@ -24,7 +24,7 @@ DrawLar=20
 EdgeLar=80
 TxtLar=80
 MSegLar=80
-LastNetListRead=dandelion.net
+LastNetListRead=tc13badge.net
 [pcbnew/libraries]
 LibDir=../kicad
 LibName1=sockets

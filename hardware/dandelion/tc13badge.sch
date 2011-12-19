@@ -30,13 +30,13 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:dandelion-cache
+LIBS:tc13badge-cache
 EELAYER 25  0
 EELAYER END
 $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
-Title "Dandelion"
+Title "ToorCon 13 Badge"
 Date "27 oct 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
