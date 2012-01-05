@@ -163,11 +163,11 @@ int Btbb_Phy::DissectorBtbb(kis_packet *in_pack) {
 	if (chunk == NULL)
 		return 0;
 
-	if (chunk->dlt != KDLT_BTBB)
+	if (chunk->dlt != KDLT_BTBB) {
 		return 0;
+	}
 
 	if (chunk->length < 14) {
-		_MSG("Short Bluetooth baseband frame!", MSGFLAG_ERROR);
 		in_pack->error = 1;
 		return 0;
 	}
@@ -205,10 +205,17 @@ int Btbb_Phy::ClassifierBtbb(kis_packet *in_pack) {
 	common->phyid = phyid;
 	common->type = packet_basic_phy;
 
-	common->device.longmac =
-		((uint64_t)pi->nap << 32) |
-		((uint32_t)pi->uap << 24) |
-		lap;
+	uint8_t bdaddr[6];
+	bdaddr[0] = (pi->nap >> 8) & 0xFF;
+	bdaddr[1] = pi->nap & 0xFF;
+	bdaddr[2] = pi->uap & 0xFF;
+	bdaddr[3] = (pi->lap >> 16) & 0xFF;
+	bdaddr[4] = (pi->lap >> 8) & 0xFF;
+	bdaddr[5] = pi->lap & 0xFF;
+
+	common->device = mac_addr(bdaddr, 6);
+	common->device.SetPhy(phyid);
+
 	common->source = common->device;
 
 	in_pack->insert(pack_comp_common, common);
@@ -247,11 +254,19 @@ int Btbb_Phy::TrackerBtbb(kis_packet *in_pack) {
 		btbb = new btbb_device_component;
 		devinfo->devref->insert(dev_comp_btbbdev, btbb);
 
+		uint8_t bdaddr[6];
+		bdaddr[0] = (pi->nap >> 8) & 0xFF;
+		bdaddr[1] = pi->nap & 0xFF;
+		bdaddr[2] = pi->uap & 0xFF;
+		bdaddr[3] = (pi->lap >> 16) & 0xFF;
+		bdaddr[4] = (pi->lap >> 8) & 0xFF;
+		bdaddr[5] = pi->lap & 0xFF;
+
 		btbb->lap = pi->lap;
-		btbb->bdaddr.longmac =
-			((uint64_t)pi->nap << 32) |
-			((uint32_t)pi->uap << 24) |
-			pi->lap;
+		btbb->bdaddr = mac_addr(bdaddr, 6);
+
+		_MSG("Detected new Bluetooth baseband device " + 
+			 btbb->bdaddr.Mac2String(), MSGFLAG_INFO);
 	}
 
 	return 1;

@@ -71,28 +71,26 @@ int ubertooth_register(GlobalRegistry *in_globalreg) {
 	if (globalreg->sourcetracker->RegisterPacketSource(new PacketSource_Ubertooth(globalreg)) < 0 || globalreg->fatal_condition)
 		return -1;
 
-	/*
-	globalreg->packetchain->RegisterHandler(&kis_btbb_dissector, NULL,
-											CHAINPOS_LLCDISSECT, 1);
-											*/
+	if (globalreg->kismet_instance == KISMET_INSTANCE_SERVER) {
 
-	pack_comp_btbb =
-		globalreg->packetchain->RegisterPacketComponent("BTBBFRAME");
+		pack_comp_btbb =
+			globalreg->packetchain->RegisterPacketComponent("BTBBFRAME");
 
-	// dumpfile that inherits from the global one
-	Dumpfile_Pcap *btbbdump;
-	btbbdump = 
-		new Dumpfile_Pcap(globalreg, "pcapbtbb", KDLT_BTBB,
-						  globalreg->pcapdump, NULL, NULL);
-	btbbdump->SetVolatile(1);
+		// dumpfile that inherits from the global one
+		Dumpfile_Pcap *btbbdump;
+		btbbdump = 
+			new Dumpfile_Pcap(globalreg, "pcapbtbb", KDLT_BTBB,
+							  globalreg->pcapdump, NULL, NULL);
+		btbbdump->SetVolatile(1);
 
-	// Tracker
-	Tracker_BTBB *trackbtbb = new Tracker_BTBB(globalreg);
+		// Tracker
+		Tracker_BTBB *trackbtbb = new Tracker_BTBB(globalreg);
 
-	// Phyneutral btbb phy
-	if (globalreg->devicetracker->RegisterPhyHandler(new Btbb_Phy(globalreg)) < 0) {
-		_MSG("Failed to load BTBB PHY handler", MSGFLAG_ERROR);
-		return -1;
+		// Phyneutral btbb phy
+		if (globalreg->devicetracker->RegisterPhyHandler(new Btbb_Phy(globalreg)) < 0) {
+			_MSG("Failed to load BTBB PHY handler", MSGFLAG_ERROR);
+			return -1;
+		}
 	}
 
 	return 1;
