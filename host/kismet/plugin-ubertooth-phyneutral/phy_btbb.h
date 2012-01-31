@@ -101,7 +101,7 @@ protected:
 	int proto_ref_btbbdev;
 
 	// Device components
-	int dev_comp_btbbdev;
+	int dev_comp_btbbdev, dev_comp_common;
 
 	// Packet components
 	int pack_comp_btbb, pack_comp_common, pack_comp_device;

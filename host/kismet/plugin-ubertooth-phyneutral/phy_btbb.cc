@@ -124,6 +124,7 @@ Btbb_Phy::Btbb_Phy(GlobalRegistry *in_globalreg, Devicetracker *in_tracker,
 											CHAINPOS_TRACKER, 100);
 
 	dev_comp_btbbdev = devicetracker->RegisterDeviceComponent("BTBB_DEV");
+	dev_comp_common = devicetracker->RegisterDeviceComponent("COMMON");
 
 	pack_comp_btbb = globalreg->packetchain->RegisterPacketComponent("UBERTOOTH");
 	pack_comp_common = globalreg->packetchain->RegisterPacketComponent("COMMON");
@@ -240,10 +241,20 @@ int Btbb_Phy::TrackerBtbb(kis_packet *in_pack) {
 	kis_tracked_device_info *devinfo = 
 		(kis_tracked_device_info *) in_pack->fetch(pack_comp_device);
 	btbb_device_component *btbb = NULL;
+	kis_device_common *commondev = NULL;
 
 	// If we dont' have btbb, or we're filtered (ie first time seen),
 	// ignore it
 	if (pi == NULL || in_pack->filtered || devinfo == NULL)
+		return 0;
+
+	if (devinfo->devref == NULL)
+		return 0;
+
+	// Get the common
+	commondev = (kis_device_common *) devinfo->devref->fetch(dev_comp_common);
+
+	if (commondev == NULL)
 		return 0;
 
 	/* track this LAP now that we've seen it twice */
@@ -264,6 +275,9 @@ int Btbb_Phy::TrackerBtbb(kis_packet *in_pack) {
 
 		btbb->lap = pi->lap;
 		btbb->bdaddr = mac_addr(bdaddr, 6);
+
+		commondev->type_string = "Bluetooth";
+		commondev->name = btbb->bdaddr.Mac2String();
 
 		_MSG("Detected new Bluetooth baseband device " + 
 			 btbb->bdaddr.Mac2String(), MSGFLAG_INFO);
