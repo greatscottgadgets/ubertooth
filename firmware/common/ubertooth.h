@@ -301,5 +301,9 @@ void cc2400_reset(void);
 void clock_start(void);
 void reset(void);
 void r8c_takeover(void);
+void cc2400_tune_rx(uint16_t channel);
+void cc2400_tune_tx(uint16_t channel);
+void cc2400_hop_rx(uint16_t channel);
+void cc2400_hop_tx(uint16_t channel);
 
 #endif /* __UBERTOOTH_H */

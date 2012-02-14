@@ -469,5 +469,47 @@ void EINT3_IRQHandler(void)
 }
 #endif
 
+/*
+ * Tune the CC2400 to a frequency in MHz for RX.  The calling function should
+ * ensure that the CC2400 is in the IDLE state.
+ */
+void cc2400_tune_rx(uint16_t channel)
+{
+	cc2400_set(FSDIV, channel - 1);
+}
+
+/*
+ * Tune the CC2400 to a frequency in MHz for TX.  The calling function should
+ * ensure that the CC2400 is in the IDLE state.
+ */
+void cc2400_tune_tx(uint16_t channel)
+{
+	cc2400_set(FSDIV, channel);
+}
+
+/* Hop to a new RX frequency in MHz.  Assumes starting from RX or TX state. */
+void cc2400_hop_rx(uint16_t channel)
+{
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK));
+	cc2400_tune_rx(channel);
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	cc2400_strobe(SRX);
+}
+
+/* Hop to a new TX frequency in MHz.  Assumes starting from RX or TX state. */
+void cc2400_hop_tx(uint16_t channel)
+{
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK));
+	cc2400_tune_rx(channel);
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	cc2400_strobe(SRX);
+}
+
 //FIXME ssp
 //FIXME tx/rx

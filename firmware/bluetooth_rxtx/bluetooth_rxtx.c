@@ -55,7 +55,7 @@ typedef void (*IAP)(u32[], u32[]);
 IAP iap_entry = (IAP)IAP_LOCATION;
 
 /*
- * CLK100NS is a free-running clock with a period of 100ns.  It resets every
+ * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
  * 2^15 * 10^5 cycles (about 5.5 minutes) and is used to compute CLKN.
  *
  * CLKN is the native (local) clock as defined in the Bluetooth specification.
@@ -66,6 +66,13 @@ IAP iap_entry = (IAP)IAP_LOCATION;
 #define CLK100NS T0TC
 volatile u8 clkn_high;
 #define CLKN ((clkn_high << 20) | (CLK100NS / 3125))
+
+/*
+ * CLK_TUNE_TIME is the duration in units of 100 ns that we reserve for tuning
+ * the radio while frequency hopping.  We start the tuning process
+ * CLK_TUNE_TIME * 100 ns prior to the start of an upcoming time slot.
+*/
+#define CLK_TUNE_TIME   2250
 
 #define BULK_IN_EP		0x82
 #define BULK_OUT_EP		0x05
@@ -629,15 +636,15 @@ static void clkn_init()
 #ifdef TC13BADGE
 	/*
 	 * The peripheral clock has a period of 33.3ns.  3 pclk periods makes one
-	 * CLK100NS period (100ns).  CLK100NS resets every 2^15 * 10^5 (3276800000)
-	 * steps, roughly 5.5 minutes.
+	 * CLK100NS period (100 ns).  CLK100NS resets every 2^15 * 10^5
+	 * (3276800000) steps, roughly 5.5 minutes.
 	 */
 	T0PR = 2;
 #else
 	/*
 	 * The peripheral clock has a period of 20ns.  5 pclk periods makes one
-	 * CLK100NS period (100ns).  CLK100NS resets every 2^15 * 10^5 (3276800000)
-	 * steps, roughly 5.5 minutes.
+	 * CLK100NS period (100 ns).  CLK100NS resets every 2^15 * 10^5
+	 * (3276800000) steps, roughly 5.5 minutes.
 	 */
 	T0PR = 4;
 #endif
@@ -1036,6 +1043,7 @@ void cc2400_repeater()
 #endif
 }
 
+/* single channel Bluetooth monitoring */
 void bt_stream_rx()
 {
 	u8 *tmp = NULL;
@@ -1049,6 +1057,70 @@ void bt_stream_rx()
 	dma_init();
 	dio_ssp_start();
 	cc2400_rx();
+
+	while (rx_pkts) {
+		/* wait for DMA transfer */
+		while ((rx_tc == 0) && (rx_err == 0));
+		if (rx_tc % 2) {
+			/* swap buffers */
+			tmp = active_rxbuf;
+			active_rxbuf = idle_rxbuf;
+			idle_rxbuf = tmp;
+		}
+		if (rx_err)
+			status |= DMA_ERROR;
+		if (rx_tc) {
+			if (rx_tc > 1)
+				status |= DMA_OVERFLOW;
+			if (enqueue(idle_rxbuf))
+				--rx_pkts;
+			else
+				status |= FIFO_OVERFLOW;
+		}
+
+		/* send via USB */
+		epstat = USBHwEPGetStatus(BULK_IN_EP);
+		if (!(epstat & EPSTAT_B1FULL))
+			dequeue();
+		if (!(epstat & EPSTAT_B2FULL))
+			dequeue();
+		USBHwISR();
+
+		rx_tc = 0;
+		rx_err = 0;
+	}
+	//FIXME turn off rx
+	RXLED_CLR;
+}
+
+/*
+ * This is like bt_stream_rx except it hops along with a target piconet.  This
+ * does not do any packet detection; it just tunes the radio 1600 times per
+ * second to hop along with a target and streams as many raw symbols per hop
+ * (many of which represent background noise, not actual packets) as possible.
+ *
+ * FIXME This is mostly copied from elsewhere and is incomplete.
+ */
+void bt_hop_rx()
+{
+	u8 *tmp = NULL;
+	u8 epstat;
+	int i;
+
+	RXLED_SET;
+
+	queue_init();
+	dio_ssp_init();
+	dma_init();
+	dio_ssp_start();
+	cc2400_rx();
+
+	// could use T0MR1 interrupts
+	//T0MR1 = ;
+	//T0MCR = TMCR_MR1R | TMCR_MR1I;
+	//
+	// probably should just take a 400 symbol chunk instead and tune/wait after
+	// that
 
 	while (rx_pkts) {
 		/* wait for DMA transfer */
