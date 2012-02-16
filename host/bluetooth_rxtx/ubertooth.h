@@ -45,6 +45,9 @@
 #define BUFFER_SIZE 102400
 #define NUM_BANKS   10
 
+#define FALSE       0
+#define TRUE        1
+
 /* RX USB packet parameters */
 #define PKT_LEN       64
 #define SYM_LEN       50
@@ -131,6 +134,8 @@ struct libusb_device_handle* ubertooth_start();
 void ubertooth_stop(struct libusb_device_handle *devh);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		u16 low_freq, u16 high_freq);
+int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
+		u16 low_freq, u16 high_freq, int gnuplot);
 int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		uint16_t num_blocks, rx_callback cb, void* cb_args);
