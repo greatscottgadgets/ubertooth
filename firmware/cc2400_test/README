@@ -2,4 +2,4 @@ cc2400_test.c powers up the CC2400 wireless transceiver and exercises the SPI
 control interface to verify that the CC2400 responds with an expected default
 register value.
 
-On success USRLED is illuminated.
+On success all LEDs are illuminated.
