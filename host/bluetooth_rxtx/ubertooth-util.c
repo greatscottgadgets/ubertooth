@@ -46,6 +46,7 @@ static void usage()
 	printf("\t-a[0-7] set power amplifier level\n");
 	printf("\t-c get channel in MHz\n");
 	printf("\t-c[2400-2483] set channel in MHz\n");
+        printf("\t-C[1-79] set channel\n");
 	printf("\t-r full reset\n");
 	printf("\t-n initiate range test\n");
 	printf("\t-m display range test result\n");
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	while ((opt=getopt(argc,argv,"hnmefiprstvbl::a::c::d::q::")) != EOF) {
+	while ((opt=getopt(argc,argv,"hnmefiprstvbl::a::C::c::d::q::")) != EOF) {
 		switch(opt) {
 		case 'f':
 			r = cmd_flash(devh);
@@ -120,6 +121,17 @@ int main(int argc, char *argv[])
 				}
 			}
 			break;
+		case 'C':
+                        if (optarg) {
+                                r = cmd_set_channel(devh, atoi(optarg) +2402);
+                        } else {
+                                r = cmd_get_channel(devh);
+                                if (r >= 0) {
+                                        printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
+                                }
+                        }
+                        break;
+	
 		case 'c':
 			if (optarg) {
 				r = cmd_set_channel(devh, atoi(optarg));
