@@ -45,9 +45,6 @@
 #define BUFFER_SIZE 102400
 #define NUM_BANKS   10
 
-#define FALSE       0
-#define TRUE        1
-
 /* RX USB packet parameters */
 #define PKT_LEN       64
 #define SYM_LEN       50

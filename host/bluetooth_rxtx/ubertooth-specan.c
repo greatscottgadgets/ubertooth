@@ -21,6 +21,7 @@
 
 #include "ubertooth.h"
 #include <getopt.h>
+#include <stdbool.h>
 
 static void usage(void)
 {
@@ -35,7 +36,7 @@ static void usage(void)
 
 int main(int argc, char *argv[])
 {
-	int opt, gnuplot= FALSE;
+	int opt, gnuplot= false;
 	int lower= 2402, upper= 2480;
 
 	struct libusb_device_handle *devh = ubertooth_start();
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
 	while ((opt=getopt(argc,argv,"hgl::u::")) != EOF) {
 		switch(opt) {
 		case 'g':
-			gnuplot= TRUE;
+			gnuplot= true;
 			break;
 		case 'l':
 			if (optarg)
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 	while (1)
 		//specan(devh, 512, 0xFFFF, 2268, 2794);
 		if(gnuplot)
-			do_specan(devh, 512, 0xFFFF, lower, upper, TRUE);
+			do_specan(devh, 512, 0xFFFF, lower, upper, true);
 		else
 			specan(devh, 512, 0xFFFF, lower, upper);
 
