@@ -19,9 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ubertooth.h"
 #include <getopt.h>
 #include <stdbool.h>
+#include "ubertooth.h"
+
+extern char Quiet;
 
 static void usage(void)
 {
@@ -30,6 +32,7 @@ static void usage(void)
 	printf("\t-h this help\n");
 	printf("\t-g output suitable for gnuplotStreaming\n");
 	printf("\t-l lower frequency (default 2402)\n");
+	printf("\t-q quiet (suppress stderr chatter)\n");
 	printf("\t-u upper frequency (default 2480)\n");
 }
 
@@ -47,7 +50,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	while ((opt=getopt(argc,argv,"hgl::u::")) != EOF) {
+	while ((opt=getopt(argc,argv,"hgl::qu::")) != EOF) {
 		switch(opt) {
 		case 'g':
 			gnuplot= true;
@@ -57,6 +60,9 @@ int main(int argc, char *argv[])
 				lower= atoi(optarg);
 			else
 				printf("lower: %d\n", lower);
+			break;
+		case 'q':
+			Quiet= true;
 			break;
 		case 'u':
 			if (optarg)

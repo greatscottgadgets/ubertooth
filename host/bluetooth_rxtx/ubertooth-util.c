@@ -29,11 +29,14 @@ const char* board_names[] = {
 	"ToorCon 13 Badge"
 };
 
+extern char Ubertooth_Device;
+
 static void usage()
 {
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
 	printf("\t-h display this message\n");
+	printf("\t-u[0-7] specify ubertooth device to use (MUST be first option!)\n");
 	printf("\t-f activate flash programming (DFU) mode\n");
 	printf("\t-i activate In-System Programming (ISP) mode\n");
 	printf("\t-l get status of USR LED\n");
@@ -63,29 +66,41 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int r = 0;
-	struct libusb_device_handle *devh = ubertooth_start();
+	struct libusb_device_handle *devh= NULL;
 	rangetest_result rr;
-
-	if (devh == NULL) {
-		usage();
-		return 1;
-	}
-
-	while ((opt=getopt(argc,argv,"hnmefiprstvbl::a::C::c::d::q::")) != EOF) {
+	
+	while ((opt=getopt(argc,argv,"u:hnmefiprstvbl::a::C::c::d::q::")) != EOF) {
 		switch(opt) {
+		// 'u' must go first as it may effect all other commands
+		case 'u': 
+			Ubertooth_Device = atoi(optarg);
+			devh = ubertooth_start();
+                        break;
 		case 'f':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_flash(devh);
 			break;
 		case 'i':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_set_isp(devh);
 			break;
 		case 'l':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			if (optarg)
 				r = cmd_set_usrled(devh, atoi(optarg));
 			else
 				printf("USR LED status: %d\n", r = cmd_get_usrled(devh));
 			break;
 		case 'd':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			if (optarg) {
 				r = cmd_set_usrled(devh, atoi(optarg));
 				r = cmd_set_rxled(devh, atoi(optarg));
@@ -98,20 +113,35 @@ int main(int argc, char *argv[])
 			r = (r >= 0) ? 0 : r;
 			break;
 		case 'p':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			printf("Part ID: %X\n", r = cmd_get_partnum(devh));
 			r = (r >= 0) ? 0 : r;
 			break;
 		case 'r':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_reset(devh);
 			break;
 		case 's':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_get_serial(devh);
 			r = (r >= 0) ? 0 : r;
 			break;
 		case 't':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_tx_test(devh);
 			break;
 		case 'a':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			if (optarg) {
 				r = cmd_set_palevel(devh, atoi(optarg));
 			} else {
@@ -122,6 +152,9 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'C':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
                         if (optarg) {
                                 r = cmd_set_channel(devh, atoi(optarg) +2402);
                         } else {
@@ -133,6 +166,9 @@ int main(int argc, char *argv[])
                         break;
 	
 		case 'c':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			if (optarg) {
 				r = cmd_set_channel(devh, atoi(optarg));
 			} else {
@@ -143,6 +179,9 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'q':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			if (optarg) {
 				r = cmd_led_specan(devh, atoi(optarg));
 			} else {
@@ -150,9 +189,15 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'n':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_range_test(devh);
 			break;
 		case 'm':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_get_rangeresult(devh, &rr);
 			if (r == 0) {
 				if (rr.valid) {
@@ -166,15 +211,24 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'e':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_repeater(devh);
 			break;
 		case 'v':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_get_rev_num(devh);
 			if (r >= 0) {
 				printf("firmware revision number: %d\n", r);
 			}
 			break;
 		case 'b':
+			if (devh == NULL) {
+				devh = ubertooth_start();
+			}
 			r = cmd_get_board_id(devh);
 			if (r >= 0) {
 				printf("board id number: %d (%s)\n", r, board_names[r]);
@@ -186,6 +240,16 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
+
+	if (devh == NULL) {
+		devh = ubertooth_start();
+	}
+
+	if (devh == NULL) {
+		usage();
+		return 1;
+	}
+
 
 	return r;
 }

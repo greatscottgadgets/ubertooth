@@ -33,6 +33,7 @@ u8 *full_buf = NULL;
 u8 really_full = 0;
 struct libusb_transfer *rx_xfer = NULL;
 char Quiet= false;
+char Ubertooth_Device= -1;
 
 void show_libusb_error(int error_code)
 {
@@ -54,8 +55,37 @@ void show_libusb_error(int error_code)
 
 static struct libusb_device_handle* find_ubertooth_device(void)
 {
+	struct libusb_context *ctx = NULL;
+	struct libusb_device **usb_list = NULL;
 	struct libusb_device_handle *devh = NULL;
-	devh = libusb_open_device_with_vid_pid(NULL, VENDORID, PRODUCTID);
+	struct libusb_device_descriptor desc;
+	int usb_devs, i, r, ubertooths= 0;
+	int ubertooth_devs[]= {0,0,0,0,0,0,0,0};
+
+	usb_devs= libusb_get_device_list(ctx, &usb_list);
+	for(i= 0 ; i < usb_devs ; ++i) {
+		r= libusb_get_device_descriptor(usb_list[i], &desc);
+		if(r < 0)
+			fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
+		if (desc.idVendor == VENDORID && desc.idProduct == PRODUCTID) {
+			ubertooth_devs[ubertooths]= i;
+			ubertooths++;
+			}
+		}
+	if(ubertooths == 1)
+		devh = libusb_open_device_with_vid_pid(NULL, VENDORID, PRODUCTID);
+	else {
+		if (Ubertooth_Device < 0) {
+			fprintf(stderr, "multiple Ubertooth devices found! Use '-u' to specify device number (MUST be first option!)\n");
+			for(i= 0 ; i < ubertooths ; ++i) {
+				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
+				fprintf(stderr, "  device %d: vendor: %04x product %04x\n", i, desc.idVendor, desc.idProduct);
+				}
+			}
+		else {
+			libusb_open(usb_list[ubertooth_devs[Ubertooth_Device]], &devh);
+			}
+		}
 	return devh;
 }
 
