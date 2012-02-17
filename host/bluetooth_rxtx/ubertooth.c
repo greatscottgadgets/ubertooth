@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <bluetooth_packet.h>
 
 #include "ubertooth.h"
@@ -31,6 +32,7 @@ u8 *empty_buf = NULL;
 u8 *full_buf = NULL;
 u8 really_full = 0;
 struct libusb_transfer *rx_xfer = NULL;
+char Quiet= false;
 
 void show_libusb_error(int error_code)
 {
@@ -403,11 +405,11 @@ void rx_dump(struct libusb_device_handle* devh, int full)
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		u16 low_freq, u16 high_freq)
 {
-	return do_specan(devh, xfer_size, num_blocks, low_freq, high_freq, FALSE);
+	return do_specan(devh, xfer_size, num_blocks, low_freq, high_freq, false);
 }
 
 int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
-		u16 low_freq, u16 high_freq, int gnuplot)
+		u16 low_freq, u16 high_freq, char gnuplot)
 {
 	u8 buffer[BUFFER_SIZE];
 	int r;
@@ -425,8 +427,9 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	num_xfers = num_blocks / xfer_blocks;
 	num_blocks = num_xfers * xfer_blocks;
 
-	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
-			num_blocks, xfer_size);
+	if(!Quiet)
+		fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
+				num_blocks, xfer_size);
 
 	cmd_specan(devh, low_freq, high_freq);
 
@@ -441,7 +444,8 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 			fprintf(stderr, "bad data read size (%d)\n", transferred);
 			return -1;
 		}
-		fprintf(stderr, "transferred %d bytes\n", transferred);
+		if(!Quiet)
+			fprintf(stderr, "transferred %d bytes\n", transferred);
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
@@ -449,7 +453,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 					| (buffer[5 + PKT_LEN * i] << 8)
 					| (buffer[6 + PKT_LEN * i] << 16)
 					| (buffer[7 + PKT_LEN * i] << 24);
-			if(!gnuplot)
+			if(!Quiet)
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = PKT_LEN * i + SYM_OFFSET, l= 0; j < PKT_LEN * i + 62; j += 3, ++l) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];
