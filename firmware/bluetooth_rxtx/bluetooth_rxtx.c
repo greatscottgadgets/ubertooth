@@ -234,6 +234,7 @@ int enqueue(u8 *buf)
 
 	fifo[t].clkn_high = clkn_high;
 	fifo[t].clk100ns = CLK100NS;
+	fifo[t].channel = channel-2402;
 
 	USRLED_SET;
 	for (i = 0; i < DMA_SIZE; i++)

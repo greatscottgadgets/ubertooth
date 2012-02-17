@@ -125,7 +125,7 @@ typedef struct {
 	u8 reply_num;
 } rangetest_result;
 
-typedef void (*rx_callback)(void* args, uint8_t* buf, int bank, uint8_t channel);
+typedef void (*rx_callback)(void* args, uint8_t* buf, int bank);
 
 struct libusb_device_handle* ubertooth_start();
 void ubertooth_stop(struct libusb_device_handle *devh);

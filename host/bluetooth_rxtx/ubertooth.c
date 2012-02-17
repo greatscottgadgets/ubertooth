@@ -161,8 +161,6 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	libusb_fill_bulk_transfer(rx_xfer, devh, DATA_IN, empty_buf,
 			xfer_size, cb_xfer, NULL, TIMEOUT);
 
-	// FIXME pull channel from xfer once firmware support is there
-	uint8_t channel = (uint8_t)(cmd_get_channel(devh)-2402);
 	cmd_rx_syms(devh, num_blocks);
 
 	r = libusb_submit_transfer(rx_xfer);
@@ -183,7 +181,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			(*cb)(cb_args, full_buf + PKT_LEN * i, bank, channel);
+			(*cb)(cb_args, full_buf + PKT_LEN * i, bank);
 			bank = (bank + 1) % NUM_BANKS;
 		}
 		really_full = 0;
@@ -200,9 +198,14 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	//fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
 
 	while (fread(buf, sizeof(buf[0]), PKT_LEN, fp)) {
-		(*cb)(cb_args, buf, bank, 0); // FIXME unknown channel
+		(*cb)(cb_args, buf, bank);
 		bank = (bank + 1) % NUM_BANKS;
 	}
+}
+
+static uint8_t extract_channel(uint8_t* buf)
+{
+	return buf[2];
 }
 
 static uint32_t extract_time(uint8_t* buf)
@@ -229,15 +232,17 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 	}
 }
 
-static void cb_lap(void* args, uint8_t* buf, int bank, uint8_t channel)
+static void cb_lap(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	int r;
+	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
 	packet pkt;
 
+	channel = extract_channel(buf);
 	time = extract_time(buf);
 	clkn_high = extract_clkn_high(buf);
 	unpack_symbols(buf, symbols[bank]);
@@ -277,16 +282,18 @@ void rx_lap_file(FILE* fp)
 	stream_rx_file(fp, 0, cb_lap, NULL);
 }
 
-static void cb_uap(void* args, uint8_t* buf, int bank, uint8_t channel)
+static void cb_uap(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	int r;
+	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
 	packet pkt;
 	piconet* pn = (piconet *)args;
 
+	channel = extract_channel(buf);
 	time = extract_time(buf);
 	clkn_high = extract_clkn_high(buf);
 	unpack_symbols(buf, symbols[bank]);
@@ -330,17 +337,19 @@ void rx_uap_file(FILE* fp, piconet* pn)
 	stream_rx_file(fp, 0, cb_uap, pn);
 }
 
-static void cb_hop(void* args, uint8_t* buf, int bank, uint8_t channel)
+static void cb_hop(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	int r;
+	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
 	packet pkt;
 	piconet* pn = (piconet *)args;
 	uint8_t uap = pn->UAP;
 
+	channel = extract_channel(buf);
 	time = extract_time(buf);
 	clkn_high = extract_clkn_high(buf);
 	unpack_symbols(buf, symbols[bank]);
@@ -405,11 +414,13 @@ void rx_hop_file(FILE* fp, piconet* pn)
 	stream_rx_file(fp, 0, cb_hop, pn);
 }
 
-static void cb_dump(void* args, uint8_t* buf, int bank, uint8_t channel)
+static void cb_dump(void* args, uint8_t* buf, int bank)
 {
 	int i;
+	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 
+	channel = extract_channel(buf);
 	time = extract_time(buf);
 	unpack_symbols(buf, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
@@ -417,11 +428,13 @@ static void cb_dump(void* args, uint8_t* buf, int bank, uint8_t channel)
 		printf("%c", symbols[bank][i]);
 }
 
-static void cb_dump_full(void* args, uint8_t* buf, int bank, uint8_t channel)
+static void cb_dump_full(void* args, uint8_t* buf, int bank)
 {
 	int i;
+	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 
+	channel = extract_channel(buf);
 	time = extract_time(buf);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 	for (i = 0; i < PKT_LEN; i++)
