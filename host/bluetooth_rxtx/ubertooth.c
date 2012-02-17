@@ -79,8 +79,12 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 			fprintf(stderr, "multiple Ubertooth devices found! Use '-u' to specify device number (MUST be first option!)\n");
 			for(i= 0 ; i < ubertooths ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
-				fprintf(stderr, "  device %d: vendor: %04x product %04x\n", i, desc.idVendor, desc.idProduct);
+				libusb_open(usb_list[ubertooth_devs[i]], &devh);
+				fprintf(stderr, "  device %d: serial no: ", i);
+				cmd_get_serial(devh);
+				libusb_close(devh);
 				}
+			devh= NULL;
 			}
 		else {
 			libusb_open(usb_list[ubertooth_devs[Ubertooth_Device]], &devh);
