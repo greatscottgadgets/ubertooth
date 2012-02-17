@@ -22,6 +22,7 @@
 #include "ubertooth.h"
 #include <stdio.h>
 #include <getopt.h>
+#include <unistd.h>
 
 const char* board_names[] = {
 	"Ubertooth Zero",
@@ -36,30 +37,24 @@ static void usage()
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
 	printf("\t-h display this message\n");
-	printf("\t-u[0-7] specify ubertooth device to use (MUST be first option!)\n");
+	printf("\t-u<0-7> set ubertooth device to use (MUST be first option!)\n");
 	printf("\t-f activate flash programming (DFU) mode\n");
 	printf("\t-i activate In-System Programming (ISP) mode\n");
-	printf("\t-l get status of USR LED\n");
-	printf("\t-l0 turn off USR LED\n");
-	printf("\t-l1 turn on USR LED\n");
+	printf("\t-l[0-1] get/set USR LED\n");
 	printf("\t-p get microcontroller Part ID\n");
 	printf("\t-s get microcontroller serial number\n");
 	printf("\t-t intitiate continuous transmit test\n");
-	printf("\t-a get power amplifier level\n");
-	printf("\t-a[0-7] set power amplifier level\n");
-	printf("\t-c get channel in MHz\n");
-	printf("\t-c[2400-2483] set channel in MHz\n");
-        printf("\t-C[1-79] set channel\n");
+	printf("\t-a[0-7] get/set power amplifier level\n");
+	printf("\t-c[2400-2483] get/set channel in MHz\n");
+        printf("\t-C[1-79] get/set channel\n");
 	printf("\t-r full reset\n");
 	printf("\t-n initiate range test\n");
 	printf("\t-m display range test result\n");
 	printf("\t-e start repeater mode\n");
-	printf("\t-d get status of all LEDs\n");
-	printf("\t-d0 turn off all LED\n");
-	printf("\t-d1 turn on all LED\n");
+	printf("\t-d[0-1] get/set all LED\n");
 	printf("\t-v get firmware revision number\n");
 	printf("\t-b get hardware board id number\n");
-	printf("\t-q start LED spectrum analyzer\n");
+	printf("\t-q[1-255 (RSSI threshold)] start LED spectrum analyzer\n");
 }
 
 int main(int argc, char *argv[])
@@ -68,171 +63,93 @@ int main(int argc, char *argv[])
 	int r = 0;
 	struct libusb_device_handle *devh= NULL;
 	rangetest_result rr;
-	
+	int do_ubertooth, do_flash, do_isp, do_leds, do_part, do_reset;
+	int do_serial, do_tx, do_palevel, do_channel, do_led_specan;
+	int do_range_test, do_repeater, do_firmware, do_board_id;
+	int do_range_result, do_all_leds;
+
+	// set command states to negative as a starter
+	// setting to 0 means 'do it'
+	// setting to positive is value of specified argument
+	do_ubertooth= do_flash= do_isp= do_leds= do_part= do_reset= -1;
+	do_serial= do_tx= do_palevel= do_channel= do_led_specan= -1;
+	do_range_test= do_repeater= do_firmware= do_board_id= -1;
+	do_range_result= do_all_leds= -1;
+
 	while ((opt=getopt(argc,argv,"u:hnmefiprstvbl::a::C::c::d::q::")) != EOF) {
 		switch(opt) {
-		// 'u' must go first as it may effect all other commands
 		case 'u': 
-			Ubertooth_Device = atoi(optarg);
-			devh = ubertooth_start();
+			do_ubertooth= atoi(optarg);
                         break;
 		case 'f':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_flash(devh);
+			do_flash= 0;
 			break;
 		case 'i':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_set_isp(devh);
+			do_isp= 0;
 			break;
 		case 'l':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
 			if (optarg)
-				r = cmd_set_usrled(devh, atoi(optarg));
+				do_leds= atoi(optarg);
 			else
-				printf("USR LED status: %d\n", r = cmd_get_usrled(devh));
+				do_leds= 2; // can't use 0 as it's a valid option
 			break;
 		case 'd':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			if (optarg) {
-				r = cmd_set_usrled(devh, atoi(optarg));
-				r = cmd_set_rxled(devh, atoi(optarg));
-				r = cmd_set_txled(devh, atoi(optarg));
-			} else {
-				printf("USR LED status: %d\n", r = cmd_get_usrled(devh));
-				printf("RX LED status : %d\n", r = cmd_get_rxled(devh));
-				printf("TX LED status : %d\n", r = cmd_get_txled(devh));
-			}
-			r = (r >= 0) ? 0 : r;
+			if (optarg)
+				do_all_leds= atoi(optarg);
+			else
+				do_all_leds= 2; // can't use 0 as it's a valid option
 			break;
 		case 'p':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			printf("Part ID: %X\n", r = cmd_get_partnum(devh));
-			r = (r >= 0) ? 0 : r;
+			do_part= 0;
 			break;
 		case 'r':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_reset(devh);
+			do_reset= 0;
 			break;
 		case 's':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_get_serial(devh);
-			r = (r >= 0) ? 0 : r;
+			do_serial= 0;
 			break;
 		case 't':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_tx_test(devh);
+			do_tx= 0;
 			break;
 		case 'a':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			if (optarg) {
-				r = cmd_set_palevel(devh, atoi(optarg));
-			} else {
-				r = cmd_get_palevel(devh);
-				if (r >= 0) {
-					printf("PA level: %d\n", r);
-				}
-			}
+			if (optarg)
+				do_palevel= atoi(optarg);
+			else
+				do_palevel= 0;
 			break;
 		case 'C':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-                        if (optarg) {
-                                r = cmd_set_channel(devh, atoi(optarg) +2402);
-                        } else {
-                                r = cmd_get_channel(devh);
-                                if (r >= 0) {
-                                        printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
-                                }
-                        }
+                        if (optarg)
+				do_channel= atoi(optarg) +2402;
+                        else
+				do_channel= 0;
                         break;
 	
 		case 'c':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			if (optarg) {
-				r = cmd_set_channel(devh, atoi(optarg));
-			} else {
-				r = cmd_get_channel(devh);
-				if (r >= 0) {
-					printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
-				}
-			}
+			if (optarg)
+				do_channel= atoi(optarg);
+			else
+				do_channel= 0;
 			break;
 		case 'q':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			if (optarg) {
-				r = cmd_led_specan(devh, atoi(optarg));
-			} else {
-				r = cmd_led_specan(devh, 225);
-			}
+			if (optarg)
+				do_led_specan= atoi(optarg);
+			else
+				do_led_specan= 0;
 			break;
 		case 'n':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_range_test(devh);
+			do_range_test= 0;
 			break;
 		case 'm':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_get_rangeresult(devh, &rr);
-			if (r == 0) {
-				if (rr.valid) {
-					printf("request PA level : %d\n", rr.request_pa);
-					printf("request number   : %d\n", rr.request_num);
-					printf("reply PA level   : %d\n", rr.reply_pa);
-					printf("reply number     : %d\n", rr.reply_num);
-				} else {
-					printf("invalid range test result\n");
-				}
-			}
+			do_range_result= 0;
 			break;
 		case 'e':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_repeater(devh);
+			do_repeater= 0;
 			break;
 		case 'v':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_get_rev_num(devh);
-			if (r >= 0) {
-				printf("firmware revision number: %d\n", r);
-			}
+			do_firmware= 0;
 			break;
 		case 'b':
-			if (devh == NULL) {
-				devh = ubertooth_start();
-			}
-			r = cmd_get_board_id(devh);
-			if (r >= 0) {
-				printf("board id number: %d (%s)\n", r, board_names[r]);
-			}
+			do_board_id= 0;
 			break;
 		case 'h':
 		default:
@@ -241,15 +158,100 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (devh == NULL) {
-		devh = ubertooth_start();
-	}
+	// initial configuration actions
+	if(do_ubertooth >= 0)
+		Ubertooth_Device = do_ubertooth;
 
+	// initialise device
+	devh = ubertooth_start();
 	if (devh == NULL) {
 		usage();
 		return 1;
 	}
+	if(do_reset == 0) {
+		cmd_reset(devh);
+		sleep(2);
+		devh = ubertooth_start();
+	}
 
+	// device configuration actions
+	if(do_all_leds == 0 || do_all_leds == 1) {
+		cmd_set_usrled(devh, do_all_leds);
+		cmd_set_rxled(devh, do_all_leds);
+		cmd_set_txled(devh, do_all_leds);
+	}
+	if(do_channel > 0)
+		cmd_set_channel(devh, do_channel);
+	if(do_leds == 0 || do_leds == 1)
+		cmd_set_usrled(devh, do_leds);
+	if(do_palevel > 0)
+		cmd_set_palevel(devh, do_palevel);
+	
+	// reporting actions
+	if(do_all_leds == 2) {
+		printf("USR LED status: %d\n", cmd_get_usrled(devh));
+		printf("RX LED status : %d\n", cmd_get_rxled(devh));
+		printf("TX LED status : %d\n", cmd_get_txled(devh));
+	}
+	if(do_board_id == 0) {
+		r= cmd_get_board_id(devh);
+		printf("Board ID Number: %d (%s)\n", r, board_names[r]);
+	}
+	if(do_channel == 0) {
+		r= cmd_get_channel(devh);
+		printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
+		}
+	if(do_firmware == 0)
+		printf("Firmare revision: %d\n", cmd_get_rev_num(devh));
+	if(do_leds == 2)
+		printf("USR LED status: %d\n", cmd_get_usrled(devh));
+	if(do_palevel == 0)
+		printf("PA Level: %d\n", cmd_get_palevel(devh));
+	if(do_part == 0)
+		printf("Part ID: %X\n", r = cmd_get_partnum(devh));
+	if(do_range_result == 0) {
+		r = cmd_get_rangeresult(devh, &rr);
+		if (r == 0) {
+			if (rr.valid) {
+				printf("request PA level : %d\n", rr.request_pa);
+				printf("request number   : %d\n", rr.request_num);
+				printf("reply PA level   : %d\n", rr.reply_pa);
+				printf("reply number     : %d\n", rr.reply_num);
+			} else {
+				printf("invalid range test result\n");
+			}
+		}
+	}
+	if(do_serial == 0) {
+		printf("Serial No: ");
+		cmd_get_serial(devh);
+	}
 
-	return r;
+	// final actions
+	if(do_flash == 0) {
+		printf("Entering flash programming (DFU) mode\n");
+		return cmd_flash(devh);
+	}
+	if(do_isp == 0) {
+		printf("Entering flash programming (ISP) mode\n");
+		return cmd_set_isp(devh);
+	}
+	if(do_led_specan >= 0) {
+		printf("Entering LED specan mode\n");
+		return cmd_led_specan(devh, do_led_specan ? do_led_specan : 255);
+	}
+	if(do_range_test == 0) {
+		printf("Starting range test\n");
+		return cmd_range_test(devh);
+	}
+	if(do_repeater == 0) {
+		printf("Starting repeater\n");
+		return cmd_repeater(devh);
+	}
+	if(do_tx == 0) {
+		printf("Starting TX test\n");
+		return cmd_tx_test(devh);
+	}
+
+	return;
 }
