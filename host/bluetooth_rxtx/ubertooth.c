@@ -74,6 +74,8 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 		}
 	if(ubertooths == 1)
 		devh = libusb_open_device_with_vid_pid(NULL, VENDORID, PRODUCTID);
+	else if (ubertooths == 0)
+		return NULL;
 	else {
 		if (Ubertooth_Device < 0) {
 			fprintf(stderr, "multiple Ubertooth devices found! Use '-u' to specify device number (MUST be first option!)\n");
