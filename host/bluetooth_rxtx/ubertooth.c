@@ -891,13 +891,9 @@ int cmd_get_palevel(struct libusb_device_handle* devh)
 	int r;
 
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_PALEVEL, 0, 0,
-			&level, sizeof(level), 3000);
-	if (r != LIBUSB_SUCCESS) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
+			&level, 1, 3000);
+	if (r < 0) {
+		show_libusb_error(r);
 		return r;
 	}
 	return level;
