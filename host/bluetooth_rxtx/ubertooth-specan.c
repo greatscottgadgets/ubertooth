@@ -24,6 +24,7 @@
 #include "ubertooth.h"
 
 extern char Quiet;
+extern char Ubertooth_Device;
 
 static void usage(void)
 {
@@ -34,6 +35,7 @@ static void usage(void)
 	printf("\t-l lower frequency (default 2402)\n");
 	printf("\t-q quiet (suppress stderr chatter)\n");
 	printf("\t-u upper frequency (default 2480)\n");
+	printf("\t-U<0-7> set ubertooth device to use\n");
 }
 
 
@@ -42,15 +44,10 @@ int main(int argc, char *argv[])
 	int opt, gnuplot= false;
 	int lower= 2402, upper= 2480;
 
-	struct libusb_device_handle *devh = ubertooth_start();
-
-	if (devh == NULL) {
-		usage();
-		return 1;
-	}
+	struct libusb_device_handle *devh = NULL;
 
 
-	while ((opt=getopt(argc,argv,"hgl::qu::")) != EOF) {
+	while ((opt=getopt(argc,argv,"hgl::qu::U:")) != EOF) {
 		switch(opt) {
 		case 'g':
 			gnuplot= true;
@@ -70,12 +67,23 @@ int main(int argc, char *argv[])
 			else
 				printf("upper: %d\n", upper);
 			break;
+		case 'U':
+			Ubertooth_Device= atoi(optarg);
+			break;
 		case 'h':
 		default:
 			usage();
 			return 1;
 		}
 	}
+
+	devh = ubertooth_start();
+
+	if (devh == NULL) {
+		usage();
+		return 1;
+	}
+
 
 	while (1)
 		//specan(devh, 512, 0xFFFF, 2268, 2794);

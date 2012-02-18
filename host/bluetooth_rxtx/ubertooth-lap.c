@@ -23,12 +23,15 @@
 #include <bluetooth_packet.h>
 #include <getopt.h>
 
+extern char Ubertooth_Device;
+
 static void usage(void)
 {
 	printf("ubertooth-lap - passive Bluetooth monitoring with LAP detection\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
+	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
@@ -38,7 +41,7 @@ int main(int argc, char *argv[])
 	struct libusb_device_handle *devh = NULL;
 	FILE* infile = NULL;
 
-	while ((opt=getopt(argc,argv,"hi:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:U:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -47,6 +50,9 @@ int main(int argc, char *argv[])
 				usage();
 				return 1;
 			}
+			break;
+		case 'U':
+			Ubertooth_Device= atoi(optarg);
 			break;
 		case 'h':
 		default:

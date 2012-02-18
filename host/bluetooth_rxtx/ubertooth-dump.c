@@ -28,6 +28,7 @@ static void usage(void)
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-f dump full USB packets, not just the received bits\n");
+	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\nThis program sends binary data to stdout.  You probably don't want to\n");
 	printf("run it from a terminal (especially with -f) without redirecting the output.\n");
 }
@@ -40,16 +41,21 @@ static void usage(void)
  * 50 of those 64 bytes contain the received symbols (packed 8 per byte).
  */
 
+extern char Ubertooth_Device;
+
 int main(int argc, char *argv[])
 {
 	int opt;
 	int full = 0;
-	struct libusb_device_handle *devh = ubertooth_start();
+	struct libusb_device_handle *devh = NULL;
 
-	while ((opt=getopt(argc,argv,"fh")) != EOF) {
+	while ((opt=getopt(argc,argv,"fhU:")) != EOF) {
 		switch(opt) {
 		case 'f':
 			full = 1;
+			break;
+		case 'U':
+			Ubertooth_Device= atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -57,6 +63,8 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
+
+	devh = ubertooth_start();
 
 	if (devh == NULL) {
 		usage();

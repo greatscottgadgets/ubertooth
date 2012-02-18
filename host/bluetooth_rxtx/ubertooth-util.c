@@ -40,11 +40,12 @@ static void usage()
 	printf("\t-b get hardware board id number\n");
 	printf("\t-c[2400-2483] get/set channel in MHz\n");
         printf("\t-C[1-79] get/set channel\n");
-	printf("\t-d[0-1] get/set all LED\n");
+	printf("\t-d[0-1] get/set all LEDs\n");
 	printf("\t-e start repeater mode\n");
 	printf("\t-f activate flash programming (DFU) mode\n");
 	printf("\t-h display this message\n");
 	printf("\t-i activate In-System Programming (ISP) mode\n");
+	printf("\t-I identify ubertooth device by flashing all LEDs\n");
 	printf("\t-l[0-1] get/set USR LED\n");
 	printf("\t-m display range test result\n");
 	printf("\t-n initiate range test\n");
@@ -53,7 +54,7 @@ static void usage()
 	printf("\t-r full reset\n");
 	printf("\t-s get microcontroller serial number\n");
 	printf("\t-t intitiate continuous transmit test\n");
-	printf("\t-u<0-7> set ubertooth device to use\n");
+	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-v get firmware revision number\n");
 }
 
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
 	int do_ubertooth, do_flash, do_isp, do_leds, do_part, do_reset;
 	int do_serial, do_tx, do_palevel, do_channel, do_led_specan;
 	int do_range_test, do_repeater, do_firmware, do_board_id;
-	int do_range_result, do_all_leds;
+	int do_range_result, do_all_leds, do_identify;
 
 	// set command states to negative as a starter
 	// setting to 0 means 'do it'
@@ -74,11 +75,11 @@ int main(int argc, char *argv[])
 	do_ubertooth= do_flash= do_isp= do_leds= do_part= do_reset= -1;
 	do_serial= do_tx= do_palevel= do_channel= do_led_specan= -1;
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
-	do_range_result= do_all_leds= -1;
+	do_range_result= do_all_leds= do_identify= -1;
 
-	while ((opt=getopt(argc,argv,"u:hnmefiprstvbl::a::C::c::d::q::")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprstvbl::a::C::c::d::q::")) != EOF) {
 		switch(opt) {
-		case 'u': 
+		case 'U': 
 			do_ubertooth= atoi(optarg);
                         break;
 		case 'f':
@@ -86,6 +87,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'i':
 			do_isp= 0;
+			break;
+		case 'I':
+			do_identify= 0;
 			break;
 		case 'l':
 			if (optarg)
@@ -237,13 +241,24 @@ int main(int argc, char *argv[])
 		printf("Entering flash programming (DFU) mode\n");
 		return cmd_flash(devh);
 	}
+	if(do_identify == 0) {
+		printf("Flashing LEDs on ubertooth device number %d\n", (Ubertooth_Device >= 0) ? Ubertooth_Device : 0);
+		while(42) {
+			do_identify= !do_identify;
+			cmd_set_usrled(devh, do_identify);
+			cmd_set_rxled(devh, do_identify);
+			cmd_set_txled(devh, do_identify);
+			sleep(1);
+		}
+	}
 	if(do_isp == 0) {
 		printf("Entering flash programming (ISP) mode\n");
 		return cmd_set_isp(devh);
 	}
 	if(do_led_specan >= 0) {
-		printf("Entering LED specan mode\n");
-		return cmd_led_specan(devh, do_led_specan ? do_led_specan : 225);
+		do_led_specan= do_led_specan ? do_led_specan : 225;
+		printf("Entering LED specan mode (RSSI %d)\n", do_led_specan);
+		return cmd_led_specan(devh, do_led_specan);
 	}
 	if(do_range_test == 0) {
 		printf("Starting range test\n");

@@ -78,7 +78,7 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 		return NULL;
 	else {
 		if (Ubertooth_Device < 0) {
-			fprintf(stderr, "multiple Ubertooth devices found! Use '-u' to specify device number\n");
+			fprintf(stderr, "multiple Ubertooth devices found! Use '-U' to specify device number\n");
 			for(i= 0 ; i < ubertooths ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
 				libusb_open(usb_list[ubertooth_devs[i]], &devh);

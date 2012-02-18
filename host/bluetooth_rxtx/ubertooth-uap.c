@@ -24,13 +24,16 @@
 #include <bluetooth_piconet.h>
 #include <getopt.h>
 
+extern char Ubertooth_Device;
+
 static void usage()
 {
 	printf("ubertooth-uap - passive UAP discovery for a particular LAP\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
-	printf("\t-l LAP (in hexadecimal)\n");
+	printf("\t-l<LAP> (in hexadecimal)\n");
+	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
@@ -46,7 +49,7 @@ int main(int argc, char *argv[])
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hi:l:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:U:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -60,6 +63,9 @@ int main(int argc, char *argv[])
 			pn.LAP = strtol(optarg, &end, 16);
 			if (end != optarg)
 				++have_lap;
+			break;
+		case 'U':
+			Ubertooth_Device= atoi(optarg);
 			break;
 		case 'h':
 		default:
