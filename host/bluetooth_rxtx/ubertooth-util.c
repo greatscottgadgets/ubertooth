@@ -36,25 +36,25 @@ static void usage()
 {
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
-	printf("\t-h display this message\n");
-	printf("\t-u<0-7> set ubertooth device to use (MUST be first option!)\n");
-	printf("\t-f activate flash programming (DFU) mode\n");
-	printf("\t-i activate In-System Programming (ISP) mode\n");
-	printf("\t-l[0-1] get/set USR LED\n");
-	printf("\t-p get microcontroller Part ID\n");
-	printf("\t-s get microcontroller serial number\n");
-	printf("\t-t intitiate continuous transmit test\n");
 	printf("\t-a[0-7] get/set power amplifier level\n");
+	printf("\t-b get hardware board id number\n");
 	printf("\t-c[2400-2483] get/set channel in MHz\n");
         printf("\t-C[1-79] get/set channel\n");
-	printf("\t-r full reset\n");
-	printf("\t-n initiate range test\n");
-	printf("\t-m display range test result\n");
-	printf("\t-e start repeater mode\n");
 	printf("\t-d[0-1] get/set all LED\n");
-	printf("\t-v get firmware revision number\n");
-	printf("\t-b get hardware board id number\n");
+	printf("\t-e start repeater mode\n");
+	printf("\t-f activate flash programming (DFU) mode\n");
+	printf("\t-h display this message\n");
+	printf("\t-i activate In-System Programming (ISP) mode\n");
+	printf("\t-l[0-1] get/set USR LED\n");
+	printf("\t-m display range test result\n");
+	printf("\t-n initiate range test\n");
+	printf("\t-p get microcontroller Part ID\n");
 	printf("\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
+	printf("\t-r full reset\n");
+	printf("\t-s get microcontroller serial number\n");
+	printf("\t-t intitiate continuous transmit test\n");
+	printf("\t-u<0-7> set ubertooth device to use\n");
+	printf("\t-v get firmware revision number\n");
 }
 
 int main(int argc, char *argv[])
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	if(do_reset == 0) {
-		cmd_reset(devh);
+		r= cmd_reset(devh);
 		sleep(2);
 		devh = ubertooth_start();
 	}
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 	if(do_leds == 2)
 		printf("USR LED status: %d\n", r= cmd_get_usrled(devh));
 	if(do_palevel == 0)
-		printf("PA Level: %d\n", cmd_get_palevel(devh));
+		printf("PA Level: %d\n", r= cmd_get_palevel(devh));
 	if(do_part == 0) {
 		printf("Part ID: %X\n", r = cmd_get_partnum(devh));
 		r = (r >= 0) ? 0 : r;
