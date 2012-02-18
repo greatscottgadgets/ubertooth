@@ -54,7 +54,7 @@ static void usage()
 	printf("\t-d[0-1] get/set all LED\n");
 	printf("\t-v get firmware revision number\n");
 	printf("\t-b get hardware board id number\n");
-	printf("\t-q[1-255 (RSSI threshold)] start LED spectrum analyzer\n");
+	printf("\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
 }
 
 int main(int argc, char *argv[])
@@ -178,20 +178,22 @@ int main(int argc, char *argv[])
 	if(do_all_leds == 0 || do_all_leds == 1) {
 		cmd_set_usrled(devh, do_all_leds);
 		cmd_set_rxled(devh, do_all_leds);
-		cmd_set_txled(devh, do_all_leds);
+		r= cmd_set_txled(devh, do_all_leds);
+		r = (r >= 0) ? 0 : r;
 	}
 	if(do_channel > 0)
-		cmd_set_channel(devh, do_channel);
+		r= cmd_set_channel(devh, do_channel);
 	if(do_leds == 0 || do_leds == 1)
-		cmd_set_usrled(devh, do_leds);
+		r= cmd_set_usrled(devh, do_leds);
 	if(do_palevel > 0)
-		cmd_set_palevel(devh, do_palevel);
+		r= cmd_set_palevel(devh, do_palevel);
 	
 	// reporting actions
 	if(do_all_leds == 2) {
 		printf("USR LED status: %d\n", cmd_get_usrled(devh));
 		printf("RX LED status : %d\n", cmd_get_rxled(devh));
-		printf("TX LED status : %d\n", cmd_get_txled(devh));
+		printf("TX LED status : %d\n", r= cmd_get_txled(devh));
+		r = (r >= 0) ? 0 : r;
 	}
 	if(do_board_id == 0) {
 		r= cmd_get_board_id(devh);
@@ -202,13 +204,15 @@ int main(int argc, char *argv[])
 		printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 		}
 	if(do_firmware == 0)
-		printf("Firmare revision: %d\n", cmd_get_rev_num(devh));
+		printf("Firmare revision: %d\n", r= cmd_get_rev_num(devh));
 	if(do_leds == 2)
-		printf("USR LED status: %d\n", cmd_get_usrled(devh));
+		printf("USR LED status: %d\n", r= cmd_get_usrled(devh));
 	if(do_palevel == 0)
 		printf("PA Level: %d\n", cmd_get_palevel(devh));
-	if(do_part == 0)
+	if(do_part == 0) {
 		printf("Part ID: %X\n", r = cmd_get_partnum(devh));
+		r = (r >= 0) ? 0 : r;
+	}
 	if(do_range_result == 0) {
 		r = cmd_get_rangeresult(devh, &rr);
 		if (r == 0) {
@@ -224,7 +228,8 @@ int main(int argc, char *argv[])
 	}
 	if(do_serial == 0) {
 		printf("Serial No: ");
-		cmd_get_serial(devh);
+		r= cmd_get_serial(devh);
+		r = (r >= 0) ? 0 : r;
 	}
 
 	// final actions
@@ -238,7 +243,7 @@ int main(int argc, char *argv[])
 	}
 	if(do_led_specan >= 0) {
 		printf("Entering LED specan mode\n");
-		return cmd_led_specan(devh, do_led_specan ? do_led_specan : 255);
+		return cmd_led_specan(devh, do_led_specan ? do_led_specan : 225);
 	}
 	if(do_range_test == 0) {
 		printf("Starting range test\n");
@@ -253,5 +258,5 @@ int main(int argc, char *argv[])
 		return cmd_tx_test(devh);
 	}
 
-	return;
+	return r;
 }
