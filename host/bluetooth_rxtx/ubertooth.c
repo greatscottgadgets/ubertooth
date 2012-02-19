@@ -541,7 +541,7 @@ struct libusb_device_handle* ubertooth_start()
 
 	devh = find_ubertooth_device();
 	if (devh == NULL) {
-		fprintf(stderr, "could not find Ubertooth device\n");
+		fprintf(stderr, "could not open Ubertooth device\n");
 		ubertooth_stop(devh);
 		return NULL;
 	}
@@ -817,6 +817,22 @@ int cmd_reset(struct libusb_device_handle* devh)
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
 	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
+		show_libusb_error(r);
+		return r;
+	}
+	return 0;
+}
+
+int cmd_stop(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_STOP, 0, 0,
+			NULL, 0, 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+		return r;
+	} else if (r < 0) {
 		show_libusb_error(r);
 		return r;
 	}

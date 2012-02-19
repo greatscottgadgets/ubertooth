@@ -1216,6 +1216,14 @@ void specan()
 	RXLED_CLR;
 }
 
+void cc2400_idle()
+{
+	clock_start();
+	mode = MODE_IDLE;
+	RXLED_CLR;
+	TXLED_CLR;
+}
+
 /* LED based spectrum analysis */
 void led_specan()
 {
@@ -1303,6 +1311,8 @@ int main()
 			specan();
 		else if (requested_mode == MODE_LED_SPECAN && mode != MODE_LED_SPECAN)
 			led_specan();
+		else if (requested_mode == MODE_IDLE && mode != MODE_IDLE)
+			cc2400_idle();
 		//FIXME do other modes like this
 	}
 }

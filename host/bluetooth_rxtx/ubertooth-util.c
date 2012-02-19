@@ -53,6 +53,7 @@ static void usage()
 	printf("\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
 	printf("\t-r full reset\n");
 	printf("\t-s get microcontroller serial number\n");
+	printf("\t-S stop current operation\n");
 	printf("\t-t intitiate continuous transmit test\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-v get firmware revision number\n");
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
 	int r = 0;
 	struct libusb_device_handle *devh= NULL;
 	rangetest_result rr;
-	int do_ubertooth, do_flash, do_isp, do_leds, do_part, do_reset;
+	int do_stop, do_flash, do_isp, do_leds, do_part, do_reset;
 	int do_serial, do_tx, do_palevel, do_channel, do_led_specan;
 	int do_range_test, do_repeater, do_firmware, do_board_id;
 	int do_range_result, do_all_leds, do_identify;
@@ -72,15 +73,15 @@ int main(int argc, char *argv[])
 	// set command states to negative as a starter
 	// setting to 0 means 'do it'
 	// setting to positive is value of specified argument
-	do_ubertooth= do_flash= do_isp= do_leds= do_part= do_reset= -1;
+	do_stop= do_flash= do_isp= do_leds= do_part= do_reset= -1;
 	do_serial= do_tx= do_palevel= do_channel= do_led_specan= -1;
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
 	do_range_result= do_all_leds= do_identify= -1;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprstvbl::a::C::c::d::q::")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::")) != EOF) {
 		switch(opt) {
 		case 'U': 
-			do_ubertooth= atoi(optarg);
+			Ubertooth_Device= atoi(optarg);
                         break;
 		case 'f':
 			do_flash= 0;
@@ -111,6 +112,9 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			do_serial= 0;
+			break;
+		case 'S':
+			do_stop= 0;
 			break;
 		case 't':
 			do_tx= 0;
@@ -162,10 +166,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// initial configuration actions
-	if(do_ubertooth >= 0)
-		Ubertooth_Device = do_ubertooth;
-
 	// initialise device
 	devh = ubertooth_start();
 	if (devh == NULL) {
@@ -173,9 +173,14 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	if(do_reset == 0) {
+		printf("Resetting ubertooth device number %d\n", (Ubertooth_Device >= 0) ? Ubertooth_Device : 0);
 		r= cmd_reset(devh);
 		sleep(2);
 		devh = ubertooth_start();
+	}
+	if(do_stop == 0) {
+		printf("Stopping ubertooth device number %d\n", (Ubertooth_Device >= 0) ? Ubertooth_Device : 0);
+		r= cmd_stop(devh);
 	}
 
 	// device configuration actions
