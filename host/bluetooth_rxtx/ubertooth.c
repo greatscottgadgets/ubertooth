@@ -461,7 +461,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 {
 	u8 buffer[BUFFER_SIZE];
 	int r;
-	int i, j, l;
+	int i, j;
 	int xfer_blocks;
 	int num_xfers;
 	int transferred;
@@ -503,11 +503,13 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 					| (buffer[7 + PKT_LEN * i] << 24);
 			if(!Quiet)
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-			for (j = PKT_LEN * i + SYM_OFFSET, l= 0; j < PKT_LEN * i + 62; j += 3, ++l) {
+			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];
 				if (buffer[j + 2] > 150) //FIXME 
-					if(gnuplot)
-						printf("%d: %d\n", l, buffer[j + 2]);
+					if(gnuplot == GNUPLOT_NORMAL)
+						printf("%d %d\n", frequency, buffer[j + 2]);
+					else if(gnuplot == GNUPLOT_3D)
+						printf("%f %d %d\n", ((double)time)/10000000, frequency, buffer[j + 2]);
 					else
 						printf("%f, %d, %d\n", ((double)time)/10000000, frequency, buffer[j + 2]);
 				if (frequency == high_freq && !gnuplot)

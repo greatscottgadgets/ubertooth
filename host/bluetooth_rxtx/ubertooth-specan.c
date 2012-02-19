@@ -31,7 +31,8 @@ static void usage(void)
 	printf("ubertooth-specan - output a continuous stream of signal strengths\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
-	printf("\t-g output suitable for gnuplotStreaming\n");
+	printf("\t-g output suitable for feedgnuplot\n");
+	printf("\t-G output suitable for 3D feedgnuplot\n");
 	printf("\t-l lower frequency (default 2402)\n");
 	printf("\t-q quiet (suppress stderr chatter)\n");
 	printf("\t-u upper frequency (default 2480)\n");
@@ -47,10 +48,13 @@ int main(int argc, char *argv[])
 	struct libusb_device_handle *devh = NULL;
 
 
-	while ((opt=getopt(argc,argv,"hgl::qu::U:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hgGl::qu::U:")) != EOF) {
 		switch(opt) {
 		case 'g':
-			gnuplot= true;
+			gnuplot= GNUPLOT_NORMAL;
+			break;
+		case 'G':
+			gnuplot= GNUPLOT_3D;
 			break;
 		case 'l':
 			if (optarg)
@@ -88,7 +92,7 @@ int main(int argc, char *argv[])
 	while (1)
 		//specan(devh, 512, 0xFFFF, 2268, 2794);
 		if(gnuplot)
-			do_specan(devh, 512, 0xFFFF, lower, upper, true);
+			do_specan(devh, 512, 0xFFFF, lower, upper, gnuplot);
 		else
 			specan(devh, 512, 0xFFFF, lower, upper);
 
