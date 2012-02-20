@@ -236,7 +236,7 @@ static void cb_lap(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
-	int r;
+	access_code r;
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
@@ -256,17 +256,18 @@ static void cb_lap(void* args, uint8_t* buf, int bank)
 
 	r = sniff_ac(syms, BANK_LEN);
 
-	if (r > -1) {
+	if (r.offset > -1) {
 		for (i = 2; i < NUM_BANKS; i++)
 			for (j = 0; j < BANK_LEN; j++)
 				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-		init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
-		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
+		pkt.LAP = r.LAP;
+		pkt.clkn = (clkn_high << 19) | ((time + r.offset * 10) / 6250);
 		pkt.channel = channel;
 
 		printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-				channel, pkt.LAP, time + r * 10, pkt.clkn);
+				channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
 	}
 }
 
@@ -286,7 +287,7 @@ static void cb_uap(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
-	int r;
+	access_code r;
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
@@ -307,18 +308,19 @@ static void cb_uap(void* args, uint8_t* buf, int bank)
 
 	r = find_ac(syms, BANK_LEN, pn->LAP);
 
-	if (r > -1) {
+	if (r.offset > -1) {
 		for (i = 2; i < NUM_BANKS; i++)
 			for (j = 0; j < BANK_LEN; j++)
 				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-		init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
-		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
+		pkt.LAP = r.LAP;
+		pkt.clkn = (clkn_high << 19) | ((time + r.offset * 10) / 6250);
 		pkt.channel = channel;
 
 		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-					channel, pkt.LAP, time + r * 10, pkt.clkn);
+					channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
 			if (UAP_from_header(&pkt, pn))
 				exit(0);
 		}
@@ -341,7 +343,7 @@ static void cb_hop(void* args, uint8_t* buf, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
-	int r;
+	access_code r;
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
@@ -363,18 +365,19 @@ static void cb_hop(void* args, uint8_t* buf, int bank)
 
 	r = find_ac(syms, BANK_LEN, pn->LAP);
 
-	if (r > -1) {
+	if (r.offset > -1) {
 		for (i = 2; i < NUM_BANKS; i++)
 			for (j = 0; j < BANK_LEN; j++)
 				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-		init_packet(&pkt, &syms[r], BANK_LEN * NUM_BANKS - r);
-		pkt.clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
+		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
+		pkt.LAP = r.LAP;
+		pkt.clkn = (clkn_high << 19) | ((time + r.offset * 10) / 6250);
 		pkt.channel = channel;
 
 		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-					channel, pkt.LAP, time + r * 10, pkt.clkn);
+					channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
 			if (pn->have_clk6) {
 				UAP_from_header(&pkt, pn);
 				if (!pn->have_clk6) {
