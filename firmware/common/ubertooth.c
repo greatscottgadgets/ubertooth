@@ -227,7 +227,7 @@ void cc2400_init()
 
 	/* activate 1V8 supply for CC2400 */
 	CC1V8_SET;
-	wait(1); //FIXME only need to wait 50us
+	wait_us(50);
 
 	/* CSN (slave select) is active low */
 	CSN_SET;
