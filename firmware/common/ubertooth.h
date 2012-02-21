@@ -284,6 +284,8 @@ extern uint32_t bootloader_ctrl;
 #define DFU_MODE 0x4305BB21
 
 void wait(u8 seconds);
+void wait_ms(u32 ms);
+void wait_us(u32 us);
 void gpio_init(void);
 void all_pins_off(void);
 void ubertooth_init(void);

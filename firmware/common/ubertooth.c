@@ -20,13 +20,26 @@
  */
 
 #include "ubertooth.h"
-
 /* delay a number of seconds while on internal oscillator (4 MHz) */
 void wait(u8 seconds)
 {
-	u32 i = 400000 * seconds;
-	while (--i);
+	wait_us(seconds * 1000000);
 }
+
+/* delay a number of milliseconds while on internal oscillator (4 MHz) */
+void wait_ms(u32 ms)
+{
+	wait_us(ms * 1000);
+}
+
+/* delay a number of microseconds while on internal oscillator (4 MHz) */
+/* we only have a resolution of 1000/400, so to the nearest 2.5        */
+void wait_us(u32 us)
+{
+	u32 i = us / 2.5;
+	while(--i);
+}
+
 
 /*
  * This should be called very early by every firmware in order to ensure safe
