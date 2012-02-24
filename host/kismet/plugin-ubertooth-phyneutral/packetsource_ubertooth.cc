@@ -231,6 +231,12 @@ void *ubertooth_cap_thread(void *arg)
 						% NUM_BANKS][k];
 
 			ac = sniff_ac(syms, BANK_LEN);
+			/*
+			 * FIXME: instead of filtering by error_count here, we should pass
+			 * the error_count on and filter in the tracker.  That way we can
+			 * use a lower threshold (0 to 2) for new LAPs than for previously
+			 * seen LAPs (3 or 4).
+			 */
 			if ((ac.offset > -1) && (ac.error_count <= 2)) {
 				/*
 				 * Populate syms with the remaining banks.  We don't know how
