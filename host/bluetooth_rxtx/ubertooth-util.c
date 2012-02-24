@@ -39,7 +39,7 @@ static void usage()
 	printf("\t-a[0-7] get/set power amplifier level\n");
 	printf("\t-b get hardware board id number\n");
 	printf("\t-c[2400-2483] get/set channel in MHz\n");
-        printf("\t-C[1-79] get/set channel\n");
+        printf("\t-C[0-78] get/set channel\n");
 	printf("\t-d[0-1] get/set all LEDs\n");
 	printf("\t-e start repeater mode\n");
 	printf("\t-f activate flash programming (DFU) mode\n");
