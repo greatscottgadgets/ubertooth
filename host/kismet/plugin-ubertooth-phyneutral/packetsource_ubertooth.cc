@@ -231,7 +231,7 @@ void *ubertooth_cap_thread(void *arg)
 						% NUM_BANKS][k];
 
 			ac = sniff_ac(syms, BANK_LEN);
-			if  (ac.offset > -1) {
+			if ((ac.offset > -1) && (ac.error_count <= 2)) {
 				/*
 				 * Populate syms with the remaining banks.  We don't know how
 				 * long the packet is, so we assume the maximum length.
