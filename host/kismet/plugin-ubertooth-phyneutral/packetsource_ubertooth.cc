@@ -122,10 +122,11 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
-void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t clkn)
+void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32_t clkn)
 {
 	packet *pkt = new packet;
 	init_packet(pkt, syms, MAX_SYMBOLS);
+	pkt->LAP = lap;
 	pkt->clkn = clkn;
 	pkt->channel = ubertooth->channel;
 
@@ -152,6 +153,7 @@ void *ubertooth_cap_thread(void *arg)
 {
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
 	int r;
+	access_code ac;
 	int i, j, k, m;
 	int xfer_size = 512;
 	int xfer_blocks;
@@ -228,8 +230,8 @@ void *ubertooth_cap_thread(void *arg)
 				syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
 						% NUM_BANKS][k];
 
-			r = sniff_ac(syms, BANK_LEN);
-			if  (r > -1) {
+			ac = sniff_ac(syms, BANK_LEN);
+			if  (ac.offset > -1) {
 				/*
 				 * Populate syms with the remaining banks.  We don't know how
 				 * long the packet is, so we assume the maximum length.
@@ -242,8 +244,8 @@ void *ubertooth_cap_thread(void *arg)
 						syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
 								% NUM_BANKS][k];
 
-				clkn = (clkn_high << 19) | ((time + r * 10) / 6250);
-				enqueue(ubertooth, &syms[r], clkn);
+				clkn = (clkn_high << 19) | ((time + ac.offset * 10) / 6250);
+				enqueue(ubertooth, &syms[ac.offset], ac.LAP, clkn);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
