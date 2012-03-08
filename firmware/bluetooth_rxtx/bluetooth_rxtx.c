@@ -201,9 +201,46 @@ typedef struct {
 	u8     channel;
 	u8     clkn_high;
 	u32    clk100ns;
-	u8     reserved[6];
+	char   rssi_max;   // Max RSSI seen while collecting symbols in this packet
+	char   rssi_min;   // Min ...
+    char   rssi_avg;   // Average ...
+	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
+	u8     reserved[2];
 	u8     data[DMA_SIZE];
 } usb_pkt_rx;
+
+/*
+ * RSSI
+ */
+int8_t rssi_max;
+int8_t rssi_min;
+uint8_t rssi_count = 0;
+int16_t rssi_sum = 0;
+
+static void rssi_reset(void)
+{
+	rssi_count = 0;
+	rssi_sum = 0;
+}
+
+static void rssi_add(int8_t v)
+{
+	if (rssi_count == 0) {
+		rssi_max = v;
+		rssi_min = v;
+	}
+	else {
+		rssi_max = (v > rssi_max) ? v : rssi_max;
+		rssi_min = (v < rssi_min) ? v : rssi_min;
+	}
+	rssi_sum += v;
+	rssi_count += 1;
+}
+
+static int8_t rssi_avg(void)
+{
+	return rssi_sum / rssi_count;
+}
 
 /*
  * This is supposed to be a lock-free ring buffer, but I haven't verified
@@ -228,13 +265,20 @@ int enqueue(u8 *buf)
 	u8 t = tail & 0x7F;
 	u8 n = (t + 1) & 0x7F;
 
+	usb_pkt_rx *f = &fifo[t];
+
 	/* fail if queue is full */
 	if (h == n)
 		return 0;
 
-	fifo[t].clkn_high = clkn_high;
-	fifo[t].clk100ns = CLK100NS;
-	fifo[t].channel = channel-2402;
+	f->clkn_high = clkn_high;
+	f->clk100ns = CLK100NS;
+	f->channel = channel-2402;
+	f->rssi_min = rssi_min;
+	f->rssi_max = rssi_max;
+	f->rssi_avg = rssi_avg();
+	f->rssi_count = rssi_count;
+	rssi_reset();
 
 	USRLED_SET;
 	for (i = 0; i < DMA_SIZE; i++)
@@ -782,6 +826,7 @@ void cc2400_rx()
 		/* oops */
 		return;
 	}
+	cc2400_set(RSSI, 0x3f); // RSSI - default CS, 8-symbol averaging
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -1060,8 +1105,12 @@ void bt_stream_rx()
 	cc2400_rx();
 
 	while (rx_pkts) {
+
 		/* wait for DMA transfer */
-		while ((rx_tc == 0) && (rx_err == 0));
+		while ((rx_tc == 0) && (rx_err == 0)) {
+			/* take as many rssi readings as possible while waiting */
+			rssi_add(cc2400_get(RSSI) >> 8);
+		}
 		if (rx_tc % 2) {
 			/* swap buffers */
 			tmp = active_rxbuf;
@@ -1125,7 +1174,10 @@ void bt_hop_rx()
 
 	while (rx_pkts) {
 		/* wait for DMA transfer */
-		while ((rx_tc == 0) && (rx_err == 0));
+		while ((rx_tc == 0) && (rx_err == 0)) {
+			/* take as many rssi readings as possible while waiting */
+			rssi_add(cc2400_get(RSSI) >> 8);
+		}
 		if (rx_tc % 2) {
 			/* swap buffers */
 			tmp = active_rxbuf;
