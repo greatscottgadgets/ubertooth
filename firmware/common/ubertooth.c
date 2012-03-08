@@ -237,12 +237,14 @@ void cc2400_init()
 	CC3V3_SET;
 }
 
+/* DELETE ME
 static volatile u32 delay_counter;
 static void spi_delay()
 {
 	delay_counter = 10;
 	while (--delay_counter);
 }
+*/
 
 /*
  * This is a single SPI transaction of variable length, usually 8 or 24 bits.
@@ -271,18 +273,18 @@ u32 cc2400_spi(u8 len, u32 data)
 			MOSI_CLR;
 		data <<= 1;
 
-		spi_delay();
+		//DELETE ME spi_delay();
 
 		SCLK_SET;
 		if (MISO)
 			data |= 1;
 
-		spi_delay();
+		//DELETE ME spi_delay();
 
 		SCLK_CLR;
 	}
 
-	spi_delay();
+	//DELETE ME spi_delay();
 
 	/* end transaction by raising CSN */
 	CSN_SET;
