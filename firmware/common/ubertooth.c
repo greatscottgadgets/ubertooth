@@ -34,10 +34,11 @@ void wait_ms(u32 ms)
 
 /* delay a number of microseconds while on internal oscillator (4 MHz) */
 /* we only have a resolution of 1000/400, so to the nearest 2.5        */
+static volatile u32 wait_us_counter;
 void wait_us(u32 us)
 {
-	u32 i = us / 2.5;
-	while(--i);
+	wait_us_counter = us / 2;
+	while(--wait_us_counter);
 }
 
 
@@ -236,10 +237,11 @@ void cc2400_init()
 	CC3V3_SET;
 }
 
+static volatile u32 delay_counter;
 static void spi_delay()
 {
-	u32 i = 10;
-	while (--i);
+	delay_counter = 10;
+	while (--delay_counter);
 }
 
 /*

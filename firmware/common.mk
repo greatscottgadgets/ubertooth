@@ -98,7 +98,7 @@ OBJDIR = .
 # Optimization level, can be [0, 1, 2, 3, s]. 
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See libc FAQ.)
-OPT = 0
+OPT = s
 
 # Debugging format.
 DEBUG = dwarf-2 -g3
@@ -120,7 +120,7 @@ EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH)
 CSTANDARD = -std=gnu99
 
 # Place -D or -U options here for C sources
-CDEFS  = -D$(LPCUSB_TARGET) $(UBERTOOTH_OPTS) $(COMPILE_OPTS)
+CDEFS  = -D$(LPCUSB_TARGET) $(UBERTOOTH_OPTS) $(COMPILE_OPTS) -Wa,-a,-ad
 
 # Place -D or -U options here for ASM sources
 ADEFS = 
