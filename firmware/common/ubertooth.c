@@ -37,7 +37,12 @@ void wait_ms(u32 ms)
 static volatile u32 wait_us_counter;
 void wait_us(u32 us)
 {
-	wait_us_counter = us / 2;
+	/* This is binary multiply by ~0.3999, i.e, multiply by
+	   0.011011011b. The loop also contains 6 instructions at -Os, so
+	   why this factor works is not at all related to the comment
+	   above ;-) */
+	wait_us_counter =
+		(us>>2) + (us>>3) + (us>>6) + (us>>7) + (us>>10) + (us>>11);
 	while(--wait_us_counter);
 }
 
