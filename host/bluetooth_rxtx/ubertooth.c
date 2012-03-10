@@ -280,7 +280,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		//		syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
 		// Native (Ubertooth) clock
-		clkn = (rx->clkn_high << 19) | ((rx->clk100ns + r.offset * 10) / 6250);
+		clkn = (rx->clkn_high << 20)
+			+ rx->clk100ns / 3125
+			+ r.offset * 10 / 6250;
 
 		// Create packet (not used at this time)
 		//init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
@@ -289,7 +291,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		//pkt.channel = rx->channel;
 
 		systime = time(NULL);
-		printf("systime=%u ch=%d LAP=%06x err=%u time=%u clkn=%u s=%d n=%d snr=%d\n",
+		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clkn=%u s=%d n=%d snr=%d\n",
 			   systime, rx->channel, r.LAP, r.error_count,
 			   rx->clk100ns + r.offset * 10,
 			   clkn, signal_level, noise_level, snr);
