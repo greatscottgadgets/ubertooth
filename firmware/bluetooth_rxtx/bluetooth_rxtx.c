@@ -54,6 +54,9 @@
 typedef void (*IAP)(u32[], u32[]);
 IAP iap_entry = (IAP)IAP_LOCATION;
 
+/* Uptime in milliseconds */
+volatile u32 uptime;
+
 /*
  * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
  * 2^15 * 10^5 cycles (about 5.5 minutes) and is used to compute CLKN.
@@ -63,8 +66,10 @@ IAP iap_entry = (IAP)IAP_LOCATION;
  * slot.
  */
 
-#define CLK100NS T0TC
-volatile u8 clkn_high;
+volatile u8 clkn_high;     // clkn overflow count
+volatile u32 clkn_counter; // clkn msecs
+#define CLK100NS (10000*clkn_counter + T0TC)
+#define CLKN_WRAP 3276800   // clkn reset time in msec (2^15 * 10^5 / 10^3)
 #define CLKN ((clkn_high << 20) | (CLK100NS / 3125))
 
 /*
@@ -165,7 +170,7 @@ volatile u32 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
-volatile u8 rssi_threshold = 225;
+volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
 
 /* DMA linked list items */
 typedef struct {
@@ -416,6 +421,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_RX_SYMBOLS:
+		requested_mode = MODE_RX_SYMBOLS;
 		rx_pkts += pSetup->wValue;
 		if (rx_pkts == 0)
 			rx_pkts = 0xFFFFFFFF;
@@ -620,7 +626,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_LED_SPECAN:
 		if (pSetup->wValue > 256)
 			return FALSE;
-		rssi_threshold = pSetup->wValue;
+		rssi_threshold = (int8_t)pSetup->wValue;
 		requested_mode = MODE_LED_SPECAN;
 		*piLen = 0;
 		break;
@@ -677,6 +683,8 @@ static void clkn_init()
 	/* stop and reset the timer to zero */
 	T0TCR = TCR_Counter_Reset;
 	clkn_high = 0;
+	clkn_counter = 0;
+	uptime = 0;
 
 #ifdef TC13BADGE
 	/*
@@ -693,7 +701,7 @@ static void clkn_init()
 	 */
 	T0PR = 4;
 #endif
-	T0MR0 = 3276799999;
+	T0MR0 = 9999;                   // 100ns * 10000 = 1 ms
 	T0MCR = TMCR_MR0R | TMCR_MR0I;
 	ISER0 |= ISER0_ISE_TIMER0;
 
@@ -701,13 +709,29 @@ static void clkn_init()
 	T0TCR = TCR_Counter_Enable;
 }
 
-/* clkn_high is incremented each time CLK100NS rolls over */
+/* Update uptime. clkn_high is incremented each time CLK100NS rolls
+   over */
 void TIMER0_IRQHandler()
 {
 	if (T0IR & TIR_MR0_Interrupt) {
-		++clkn_high;
+		++uptime;
+		++clkn_counter;
+		if (clkn_counter == CLKN_WRAP) {
+			clkn_counter = 0;
+			++clkn_high;
+		}
 		T0IR |= TIR_MR0_Interrupt;
 	}
+}
+
+/* Sleep (busy wait) for 'millis' milliseconds, where millis <
+ * 2^31. The 'wait' routines in ubertooth.c are matched to the clock
+ * setup at boot time and can not be used while the board is running
+ * at 100MHz. */
+void msleep(uint32_t millis)
+{
+	int32_t stamp = (int32_t)uptime;
+	do { } while ((uint32_t)( (int32_t)uptime - stamp) < millis );
 }
 
 static void dma_init()
@@ -1096,6 +1120,8 @@ void bt_stream_rx()
 	u8 epstat;
 	int i;
 
+	mode = MODE_RX_SYMBOLS;
+
 	RXLED_SET;
 
 	queue_init();
@@ -1104,11 +1130,11 @@ void bt_stream_rx()
 	dio_ssp_start();
 	cc2400_rx();
 
-	while (rx_pkts) {
+	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
 
 		/* wait for DMA transfer */
 		while ((rx_tc == 0) && (rx_err == 0)) {
-			/* take as many rssi readings as possible while waiting */
+			/* take as many rssi readings as possible */
 			rssi_add(cc2400_get(RSSI) >> 8);
 		}
 		if (rx_tc % 2) {
@@ -1139,7 +1165,8 @@ void bt_stream_rx()
 		rx_tc = 0;
 		rx_err = 0;
 	}
-	//FIXME turn off rx
+
+	rx_pkts = 0; // Already 0, or requested mode changed
 	RXLED_CLR;
 }
 
@@ -1156,26 +1183,27 @@ void bt_hop_rx()
 	u8 *tmp = NULL;
 	u8 epstat;
 	int i;
-
+	
 	RXLED_SET;
-
+	
 	queue_init();
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
 	cc2400_rx();
-
+	
 	// could use T0MR1 interrupts
 	//T0MR1 = ;
 	//T0MCR = TMCR_MR1R | TMCR_MR1I;
 	//
-	// probably should just take a 400 symbol chunk instead and tune/wait after
-	// that
-
-	while (rx_pkts) {
+	// probably should just take a 400 symbol chunk instead and
+        // tune/wait after that
+        //
+        // NOTE: TIMER0 is now 1KHz tick ... adjust other code if used
+	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
 		/* wait for DMA transfer */
 		while ((rx_tc == 0) && (rx_err == 0)) {
-			/* take as many rssi readings as possible while waiting */
+			/* take as many rssi readings as possible */
 			rssi_add(cc2400_get(RSSI) >> 8);
 		}
 		if (rx_tc % 2) {
@@ -1206,7 +1234,7 @@ void bt_hop_rx()
 		rx_tc = 0;
 		rx_err = 0;
 	}
-	//FIXME turn off rx
+	rx_pkts = 0; // Already 0, or requested mode changed
 	RXLED_CLR;
 }
 
@@ -1279,11 +1307,11 @@ void cc2400_idle()
 /* LED based spectrum analysis */
 void led_specan()
 {
-	u8 lvl;
-    u8 i = 0;
-    u16 channels[3] = {2412, 2437, 2462};
-    //void (*set[3]) = {TXLED_SET, RXLED_SET, USRLED_SET};
-    //void (*clr[3]) = {TXLED_CLR, RXLED_CLR, USRLED_CLR};
+	int8_t lvl;
+	u8 i = 0;
+	u16 channels[3] = {2412, 2437, 2462};
+	//void (*set[3]) = {TXLED_SET, RXLED_SET, USRLED_SET};
+	//void (*clr[3]) = {TXLED_CLR, RXLED_CLR, USRLED_CLR};
 
 #ifdef UBERTOOTH_ONE
 	PAEN_SET;
@@ -1351,7 +1379,9 @@ int main()
 
 	while (1) {
 		USBHwISR();
-		if (rx_pkts)
+		if (rx_pkts
+		    && requested_mode == MODE_RX_SYMBOLS
+		    && mode != MODE_RX_SYMBOLS )
 			bt_stream_rx();
 		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
 			cc2400_txtest();
