@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <time.h>
 #include <bluetooth_packet.h>
 
 #include "ubertooth.h"
@@ -181,7 +183,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			(*cb)(cb_args, full_buf + PKT_LEN * i, bank);
+			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
 			bank = (bank + 1) % NUM_BANKS;
 		}
 		really_full = 0;
@@ -198,24 +200,9 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	//fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
 
 	while (fread(buf, sizeof(buf[0]), PKT_LEN, fp)) {
-		(*cb)(cb_args, buf, bank);
+		(*cb)(cb_args, (usb_pkt_rx *)buf, bank);
 		bank = (bank + 1) % NUM_BANKS;
 	}
-}
-
-static uint8_t extract_channel(uint8_t* buf)
-{
-	return buf[2];
-}
-
-static uint32_t extract_time(uint8_t* buf)
-{
-	return buf[4] | (buf[5] << 8) | (buf[6] << 16) | (buf[7] << 24);
-}
-
-static uint32_t extract_clkn_high(uint8_t* buf)
-{
-	return buf[3];
 }
 
 static void unpack_symbols(uint8_t* buf, char* unpacked)
@@ -232,42 +219,80 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 	}
 }
 
-static void cb_lap(void* args, uint8_t* buf, int bank)
+#define RSSI_HISTORY_LEN NUM_BANKS
+#define RSSI_BASE (-54)       // CC2400 constant ... do not change
+
+/* Ignore packets with a SNR lower than this in order to reduce
+ * processor load.  TODO: this should be a command line parameter. */
+#define SNR_SQUELCH_LEVEL 12
+#define RSSI_ALPHA 0.001       // IIR constant
+
+static char rssi_history[RSSI_HISTORY_LEN] = {INT8_MIN};
+static float rssi_iir = 0.0;  // Running average
+
+static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	access_code r;
 	uint8_t channel;
-	uint32_t time; /* in 100 nanosecond units */
-	uint8_t clkn_high;
 	packet pkt;
+	int8_t signal_level = INT8_MIN;
+	int8_t noise_level;
+	int8_t snr;
+	uint32_t clkn;
+	time_t systime;
 
-	channel = extract_channel(buf);
-	time = extract_time(buf);
-	clkn_high = extract_clkn_high(buf);
-	unpack_symbols(buf, symbols[bank]);
-	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+	unpack_symbols((uint8_t *)rx, symbols[bank]);
 
-	/* awfully repetitious */
-	k = 0;
+	// Shift rssi max history and append current max
+	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
+		int8_t v = rssi_history[i];
+		rssi_history[i - 1] = v;
+	}
+	rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+
+	// Signal is oldest max value
+	signal_level = rssi_history[0] + RSSI_BASE;
+
+	// Noise is an IIR of averages
+	rssi_iir *= (1.0 - RSSI_ALPHA);
+	rssi_iir += RSSI_ALPHA * (float)(rx->rssi_avg);
+	noise_level = (int)rssi_iir + RSSI_BASE;
+	snr = signal_level - noise_level;
+
+	// RF Squelch before expensive code. Reduces false positives.
+	if (snr < SNR_SQUELCH_LEVEL)
+		return;
+
+	/* Copy 3 banks for analysis */
 	for (i = 0; i < 2; i++)
-		for (j = 0; j < BANK_LEN; j++)
-			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+		memmove(syms + i * BANK_LEN,
+			symbols[(i + 1 + bank) % NUM_BANKS],
+			BANK_LEN);
 
+	// Search for AC
 	r = sniff_ac(syms, BANK_LEN);
-
 	if (r.offset > -1) {
-		for (i = 2; i < NUM_BANKS; i++)
-			for (j = 0; j < BANK_LEN; j++)
-				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+		// Unused at this time
+		//for (i = 2; i < NUM_BANKS; i++)
+		//	for (j = 0; j < BANK_LEN; j++)
+		//		syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
-		pkt.LAP = r.LAP;
-		pkt.clkn = (clkn_high << 19) | ((time + r.offset * 10) / 6250);
-		pkt.channel = channel;
+		// Native (Ubertooth) clock
+		clkn = (rx->clkn_high << 19) | ((rx->clk100ns + r.offset * 10) / 6250);
 
-		printf("GOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-				channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
+		// Create packet (not used at this time)
+		//init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
+		//pkt.LAP = r.LAP;
+		//pkt.clkn = clkn;
+		//pkt.channel = rx->channel;
+
+		systime = time(NULL);
+		printf("systime=%u ch=%d LAP=%06x err=%u time=%u clkn=%u s=%d n=%d snr=%d\n",
+			   systime, rx->channel, r.LAP, r.error_count,
+			   rx->clk100ns + r.offset * 10,
+			   clkn, signal_level, noise_level, snr);
 	}
 }
 
@@ -283,20 +308,22 @@ void rx_lap_file(FILE* fp)
 	stream_rx_file(fp, 0, cb_lap, NULL);
 }
 
-static void cb_uap(void* args, uint8_t* buf, int bank)
+static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
 {
+	uint8_t *buf = (uint8_t*)rx;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	access_code r;
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
+	int8_t *rssi;
 	packet pkt;
 	piconet* pn = (piconet *)args;
 
-	channel = extract_channel(buf);
-	time = extract_time(buf);
-	clkn_high = extract_clkn_high(buf);
+	channel = rx->channel;
+	time = le32toh(rx->clk100ns); // wire format is le32
+	clkn_high = rx->clkn_high;
 	unpack_symbols(buf, symbols[bank]);
 	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 
@@ -339,21 +366,23 @@ void rx_uap_file(FILE* fp, piconet* pn)
 	stream_rx_file(fp, 0, cb_uap, pn);
 }
 
-static void cb_hop(void* args, uint8_t* buf, int bank)
+static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 {
+	uint8_t *buf = (uint8_t*)rx;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	access_code r;
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
+	int8_t *rssi;
 	packet pkt;
 	piconet* pn = (piconet *)args;
 	uint8_t uap = pn->UAP;
 
-	channel = extract_channel(buf);
-	time = extract_time(buf);
-	clkn_high = extract_clkn_high(buf);
+	channel = rx->channel;
+	time = le32toh(rx->clk100ns);  // wire format is le32
+	clkn_high = rx->clkn_high;
 	unpack_symbols(buf, symbols[bank]);
 	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 
@@ -417,29 +446,25 @@ void rx_hop_file(FILE* fp, piconet* pn)
 	stream_rx_file(fp, 0, cb_hop, pn);
 }
 
-static void cb_dump(void* args, uint8_t* buf, int bank)
+static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 {
+	uint8_t *buf = (uint8_t*)rx;
 	int i;
-	uint8_t channel;
-	uint32_t time; /* in 100 nanosecond units */
 
-	channel = extract_channel(buf);
-	time = extract_time(buf);
 	unpack_symbols(buf, symbols[bank]);
-	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	for (i = 0; i < BANK_LEN; i++)
 		printf("%c", symbols[bank][i]);
 }
 
-static void cb_dump_full(void* args, uint8_t* buf, int bank)
+static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 {
+	uint8_t *buf = (uint8_t*)rx;
 	int i;
-	uint8_t channel;
+	int8_t rssi;
 	uint32_t time; /* in 100 nanosecond units */
 
-	channel = extract_channel(buf);
-	time = extract_time(buf);
-	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	for (i = 0; i < PKT_LEN; i++)
 		printf("%c", buf[i]);
 }

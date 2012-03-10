@@ -118,7 +118,11 @@ typedef struct {
 	u8     channel;
 	u8     clkn_high;
 	u32    clk100ns;
-	u8     reserved[6];
+	char   rssi_max;
+	char   rssi_min;
+	char   rssi_avg;
+	u8     rssi_count;
+	u8     reserved[2];
 	u8     data[50];
 } usb_pkt_rx;
 
@@ -130,7 +134,7 @@ typedef struct {
 	u8 reply_num;
 } rangetest_result;
 
-typedef void (*rx_callback)(void* args, uint8_t* buf, int bank);
+typedef void (*rx_callback)(void* args, usb_pkt_rx *rx, int bank);
 
 struct libusb_device_handle* ubertooth_start();
 void ubertooth_stop(struct libusb_device_handle *devh);
