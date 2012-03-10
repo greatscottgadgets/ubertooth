@@ -69,7 +69,7 @@ volatile u32 uptime;
 volatile u8 clkn_high;     // clkn overflow count
 volatile u32 clkn_counter; // clkn msecs
 #define CLK100NS (10000*clkn_counter + T0TC)
-#define CLKN_WRAP 3276800   // clkn reset time in msec (2^15 * 10^5 / 10^3)
+#define CLK100NS_WRAP 327680   // clkn wrap count in msec (2^15 * 10^5 / 10^4)
 #define CLKN ((clkn_high << 20) | (CLK100NS / 3125))
 
 /*
@@ -716,7 +716,7 @@ void TIMER0_IRQHandler()
 	if (T0IR & TIR_MR0_Interrupt) {
 		++uptime;
 		++clkn_counter;
-		if (clkn_counter == CLKN_WRAP) {
+		if (clkn_counter == CLK100NS_WRAP) {
 			clkn_counter = 0;
 			++clkn_high;
 		}
