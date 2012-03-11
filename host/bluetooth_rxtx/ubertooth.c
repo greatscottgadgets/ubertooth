@@ -240,7 +240,8 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	int8_t signal_level = INT8_MIN;
 	int8_t noise_level;
 	int8_t snr;
-	uint32_t clkn;
+	uint32_t clk0;
+	uint32_t clk1;
 	time_t systime;
 
 	unpack_symbols((uint8_t *)rx, symbols[bank]);
@@ -279,22 +280,22 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		//	for (j = 0; j < BANK_LEN; j++)
 		//		syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-		// Native (Ubertooth) clock
-		clkn = (rx->clkn_high << 20)
-			+ rx->clk100ns / 3125
-			+ r.offset * 10 / 6250;
+		// Native (Ubertooth) clock with period 312.5 uS.
+		clk0 = (rx->clkn_high << 20) + (rx->clk100ns + r.offset * 10) / 3125;
+
+		// Bottom bit is not used in calculations, clk1 period is 625 uS.
+		clk1 = clk0 / 2;
 
 		// Create packet (not used at this time)
 		//init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
 		//pkt.LAP = r.LAP;
-		//pkt.clkn = clkn;
+		//pkt.clkn = clk1;
 		//pkt.channel = rx->channel;
 
 		systime = time(NULL);
-		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clkn=%u s=%d n=%d snr=%d\n",
+		printf("systime=%u ch=%d LAP=%06x err=%u clk0=%u s=%d n=%d snr=%d\n",
 			   systime, rx->channel, r.LAP, r.error_count,
-			   rx->clk100ns + r.offset * 10,
-			   clkn, signal_level, noise_level, snr);
+			   clk0, signal_level, noise_level, snr);
 	}
 }
 
