@@ -54,9 +54,6 @@
 typedef void (*IAP)(u32[], u32[]);
 IAP iap_entry = (IAP)IAP_LOCATION;
 
-/* Uptime in milliseconds */
-volatile u32 uptime;
-
 /*
  * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
  * 2^15 * 10^5 cycles (about 5.5 minutes) and is used to compute CLKN.
@@ -66,11 +63,11 @@ volatile u32 uptime;
  * slot.
  */
 
-volatile u8 clkn_high;     // clkn overflow count
-volatile u32 clkn_counter; // clkn msecs
-#define CLK100NS (10000*clkn_counter + T0TC)
-#define CLK100NS_WRAP 327680   // clkn wrap count in msec (2^15 * 10^5 / 10^4)
-#define CLKN ((clkn_high << 20) | (CLK100NS / 3125))
+volatile u8 clkn_high;                       // clkn overflow count
+volatile u32 clkn_low;                       // clkn 3200 Hz counter
+#define CLKN ((clkn_high << 20) + clkn_low)
+#define CLKN_WRAP (1<<20)                    // wrap at clkn period
+#define CLK100NS (3125*clkn_low + T0TC)
 
 /*
  * CLK_TUNE_TIME is the duration in units of 100 ns that we reserve for tuning
@@ -683,25 +680,23 @@ static void clkn_init()
 	/* stop and reset the timer to zero */
 	T0TCR = TCR_Counter_Reset;
 	clkn_high = 0;
-	clkn_counter = 0;
-	uptime = 0;
+	clkn_low = 0;
 
 #ifdef TC13BADGE
 	/*
 	 * The peripheral clock has a period of 33.3ns.  3 pclk periods makes one
-	 * CLK100NS period (100 ns).  CLK100NS resets every 2^15 * 10^5
-	 * (3276800000) steps, roughly 5.5 minutes.
+	 * CLK100NS period (100 ns).
 	 */
 	T0PR = 2;
 #else
 	/*
-	 * The peripheral clock has a period of 20ns.  5 pclk periods makes one
-	 * CLK100NS period (100 ns).  CLK100NS resets every 2^15 * 10^5
-	 * (3276800000) steps, roughly 5.5 minutes.
+	 * The peripheral clock has a period of 20ns.  5 pclk periods
+	 * makes one CLK100NS period (100 ns).
 	 */
 	T0PR = 4;
 #endif
-	T0MR0 = 9999;                   // 100ns * 10000 = 1 ms
+	/* 3125 * 100 ns = 312.5 us, the Bluetooth clock (CLKN). */
+	T0MR0 = 3124;
 	T0MCR = TMCR_MR0R | TMCR_MR0I;
 	ISER0 |= ISER0_ISE_TIMER0;
 
@@ -709,29 +704,26 @@ static void clkn_init()
 	T0TCR = TCR_Counter_Enable;
 }
 
-/* Update uptime. clkn_high is incremented each time CLK100NS rolls
-   over */
+/* Update CLKN. */
 void TIMER0_IRQHandler()
 {
 	if (T0IR & TIR_MR0_Interrupt) {
-		++uptime;
-		++clkn_counter;
-		if (clkn_counter == CLK100NS_WRAP) {
-			clkn_counter = 0;
+		++clkn_low;
+		if (clkn_low == CLKN_WRAP) {
+			clkn_low = 0;
 			++clkn_high;
 		}
 		T0IR |= TIR_MR0_Interrupt;
 	}
 }
 
-/* Sleep (busy wait) for 'millis' milliseconds, where millis <
- * 2^31. The 'wait' routines in ubertooth.c are matched to the clock
- * setup at boot time and can not be used while the board is running
- * at 100MHz. */
+/* Sleep (busy wait) for 'millis' milliseconds. The 'wait' routines in
+ * ubertooth.c are matched to the clock setup at boot time and can not
+ * be used while the board is running at 100MHz. */
 void msleep(uint32_t millis)
 {
-	int32_t stamp = (int32_t)uptime;
-	do { } while ((uint32_t)( (int32_t)uptime - stamp) < millis );
+	uint32_t stop_at = CLKN + millis * 3125 / 1000;  // millis -> clkn ticks
+	do { } while (CLKN < stop_at);                   // TODO: handle wrapping
 }
 
 static void dma_init()
