@@ -707,13 +707,18 @@ static void clkn_init()
 /* Update CLKN. */
 void TIMER0_IRQHandler()
 {
+	// Use non-volatile working register to shave off a couple instructions
+	uint32_t next;
+
 	if (T0IR & TIR_MR0_Interrupt) {
-		++clkn_low;
-		if (clkn_low == CLKN_WRAP) {
+		next = clkn_low + 1;
+		if (next == CLKN_WRAP) {
 			clkn_low = 0;
 			++clkn_high;
 		}
-		T0IR |= TIR_MR0_Interrupt;
+		else
+			clkn_low = next;
+		T0IR = TIR_MR0_Interrupt;
 	}
 }
 
