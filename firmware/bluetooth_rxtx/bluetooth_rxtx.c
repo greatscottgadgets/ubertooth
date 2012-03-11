@@ -223,18 +223,14 @@ static void rssi_reset(void)
 {
 	rssi_count = 0;
 	rssi_sum = 0;
+	rssi_max = INT8_MIN;
+	rssi_min = INT8_MAX;
 }
 
 static void rssi_add(int8_t v)
 {
-	if (rssi_count == 0) {
-		rssi_max = v;
-		rssi_min = v;
-	}
-	else {
-		rssi_max = (v > rssi_max) ? v : rssi_max;
-		rssi_min = (v < rssi_min) ? v : rssi_min;
-	}
+	rssi_max = (v > rssi_max) ? v : rssi_max;
+	rssi_min = (v < rssi_min) ? v : rssi_min;
 	rssi_sum += v;
 	rssi_count += 1;
 }
@@ -280,7 +276,6 @@ int enqueue(u8 *buf)
 	f->rssi_max = rssi_max;
 	f->rssi_avg = rssi_avg();
 	f->rssi_count = rssi_count;
-	rssi_reset();
 
 	USRLED_SET;
 	for (i = 0; i < DMA_SIZE; i++)
@@ -1129,11 +1124,11 @@ void bt_stream_rx()
 
 	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
 
-		/* wait for DMA transfer */
-		while ((rx_tc == 0) && (rx_err == 0)) {
-			/* take as many rssi readings as possible */
+		/* wait for DMA transfer, and take RSSI readings while waiting */
+		rssi_reset();
+		while ((rx_tc == 0) && (rx_err == 0))
 			rssi_add(cc2400_get(RSSI) >> 8);
-		}
+
 		if (rx_tc % 2) {
 			/* swap buffers */
 			tmp = active_rxbuf;
@@ -1196,13 +1191,13 @@ void bt_hop_rx()
 	// probably should just take a 400 symbol chunk instead and
         // tune/wait after that
         //
-        // NOTE: TIMER0 is now 1KHz tick ... adjust other code if used
+        // NOTE: TIMER0 is 3200 Hz
+	/* wait for DMA transfer, and take RSSI readings while waiting */
 	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
-		/* wait for DMA transfer */
-		while ((rx_tc == 0) && (rx_err == 0)) {
-			/* take as many rssi readings as possible */
+		rssi_reset();
+		while ((rx_tc == 0) && (rx_err == 0))
 			rssi_add(cc2400_get(RSSI) >> 8);
-		}
+
 		if (rx_tc % 2) {
 			/* swap buffers */
 			tmp = active_rxbuf;
