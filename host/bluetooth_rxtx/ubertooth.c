@@ -209,7 +209,6 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 {
 	int i, j;
 
-	buf += SYM_OFFSET;
 	for (i = 0; i < SYM_LEN; i++) {
 		/* output one byte for each received symbol (0x00 or 0x01) */
 		for (j = 0; j < 8; j++) {
@@ -244,7 +243,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk1;
 	time_t systime;
 
-	unpack_symbols((uint8_t *)rx, symbols[bank]);
+	unpack_symbols(rx->data, symbols[bank]);
 
 	// Shift rssi max history and append current max
 	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
@@ -313,7 +312,6 @@ void rx_lap_file(FILE* fp)
 
 static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
 {
-	uint8_t *buf = (uint8_t*)rx;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	access_code r;
@@ -327,7 +325,7 @@ static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
 	channel = rx->channel;
 	time = le32toh(rx->clk100ns); // wire format is le32
 	clkn_high = rx->clkn_high;
-	unpack_symbols(buf, symbols[bank]);
+	unpack_symbols(rx->data, symbols[bank]);
 	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 
 	/* awfully repetitious */
@@ -371,7 +369,6 @@ void rx_uap_file(FILE* fp, piconet* pn)
 
 static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 {
-	uint8_t *buf = (uint8_t*)rx;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	access_code r;
@@ -386,7 +383,7 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 	channel = rx->channel;
 	time = le32toh(rx->clk100ns);  // wire format is le32
 	clkn_high = rx->clkn_high;
-	unpack_symbols(buf, symbols[bank]);
+	unpack_symbols(rx->data, symbols[bank]);
 	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 
 	/* awfully repetitious */
@@ -451,10 +448,9 @@ void rx_hop_file(FILE* fp, piconet* pn)
 
 static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 {
-	uint8_t *buf = (uint8_t*)rx;
 	int i;
 
-	unpack_symbols(buf, symbols[bank]);
+	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	for (i = 0; i < BANK_LEN; i++)
 		printf("%c", symbols[bank][i]);
