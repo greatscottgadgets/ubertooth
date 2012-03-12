@@ -1105,6 +1105,52 @@ void cc2400_repeater()
 #endif
 }
 
+#define HOP_NONE      0
+#define HOP_SWEEP     1
+#define HOP_BLUETOOTH 2 // placeholder
+u8 hop_mode = HOP_NONE;
+
+void hop(void)
+{
+	u8 retune = 0;
+
+	// No hopping
+	if (hop_mode == HOP_NONE) {
+		;
+	}
+
+	// Slow sweep ... hop every 16 clkn ticks (200 Hz)
+	else if (hop_mode == HOP_SWEEP) {
+		if ((clkn_low & 0xf) == 0) {
+			channel += 1;
+			if (channel > 2480)
+				channel = 2402;
+			retune = 1;
+		}
+	}
+
+	else if (hop_mode == HOP_BLUETOOTH) {
+		// Check if hop time, or copy channel from wherever, or whatever.
+		;
+	}
+
+	if (retune) {
+		// IDLE mode
+		cc2400_strobe(SRFOFF);
+		while ((cc2400_status() & FS_LOCK));
+		
+		// Retune
+		cc2400_set(FSDIV, channel - 1);
+		
+		// Wait for lock
+		cc2400_strobe(SFSON);
+		while (!(cc2400_status() & FS_LOCK));
+		
+		// RX mode
+		cc2400_strobe(SRX);
+	}
+}
+
 /* single channel Bluetooth monitoring */
 void bt_stream_rx()
 {
@@ -1123,6 +1169,8 @@ void bt_stream_rx()
 	cc2400_rx();
 
 	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
+
+		hop();
 
 		/* wait for DMA transfer, and take RSSI readings while waiting */
 		rssi_reset();
