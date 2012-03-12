@@ -232,9 +232,10 @@ static float rssi_iir = 0.0;  // Running average
 static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
-	int i, j, k;
+	int i;
 	access_code r;
 	uint8_t channel;
+	uint32_t clk100ns; /* in 100 nanosecond units */
 	packet pkt;
 	int8_t signal_level = INT8_MIN;
 	int8_t noise_level;
@@ -243,6 +244,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk1;
 	time_t systime;
 
+	clk100ns = le32toh(rx->clk100ns); // wire format is le32
 	unpack_symbols(rx->data, symbols[bank]);
 
 	// Shift rssi max history and append current max
@@ -274,10 +276,12 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	// Search for AC
 	r = sniff_ac(syms, BANK_LEN);
 	if (r.offset > -1) {
-		// Unused at this time
+		// Copy remaining banks (not used at this time)
 		//for (i = 2; i < NUM_BANKS; i++)
-		//	for (j = 0; j < BANK_LEN; j++)
-		//		syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+		//	memmove(syms + i * BANK_LEN,
+		//			symbols[(i + 1 + bank) % NUM_BANKS],
+		//			BANK_LEN);
+
 
 		// Native (Ubertooth) clock with period 312.5 uS.
 		clk0 = (rx->clkn_high << 20) + (rx->clk100ns + r.offset * 10) / 3125;
@@ -292,9 +296,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		//pkt.channel = rx->channel;
 
 		systime = time(NULL);
-		printf("systime=%u ch=%d LAP=%06x err=%u clk0=%u s=%d n=%d snr=%d\n",
+		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 			   systime, rx->channel, r.LAP, r.error_count,
-			   clk0, signal_level, noise_level, snr);
+			   clk100ns, clk1, signal_level, noise_level, snr);
 	}
 }
 
@@ -313,42 +317,75 @@ void rx_lap_file(FILE* fp)
 static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
-	int i, j, k;
+	int i;
 	access_code r;
 	uint8_t channel;
-	uint32_t time; /* in 100 nanosecond units */
+	uint32_t clk100ns; /* in 100 nanosecond units */
 	uint8_t clkn_high;
-	int8_t *rssi;
 	packet pkt;
+	int8_t signal_level = INT8_MIN;
+	int8_t noise_level;
+	int8_t snr;
+	uint32_t clk0;
+	uint32_t clk1;
+	time_t systime;
 	piconet* pn = (piconet *)args;
 
-	channel = rx->channel;
-	time = le32toh(rx->clk100ns); // wire format is le32
-	clkn_high = rx->clkn_high;
+	clk100ns = le32toh(rx->clk100ns); // wire format is le32
 	unpack_symbols(rx->data, symbols[bank]);
 	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 
-	/* awfully repetitious */
-	k = 0;
+	// Shift rssi max history and append current max
+	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
+		int8_t v = rssi_history[i];
+		rssi_history[i - 1] = v;
+	}
+	rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+
+	// Signal is oldest max value
+	signal_level = rssi_history[0] + RSSI_BASE;
+
+	// Noise is an IIR of averages
+	rssi_iir *= (1.0 - RSSI_ALPHA);
+	rssi_iir += RSSI_ALPHA * (float)(rx->rssi_avg);
+	noise_level = (int)rssi_iir + RSSI_BASE;
+	snr = signal_level - noise_level;
+
+	// RF Squelch before expensive code. Reduces false positives.
+	if (snr < SNR_SQUELCH_LEVEL)
+		return;
+
+	/* Copy 3 banks for analysis */
 	for (i = 0; i < 2; i++)
-		for (j = 0; j < BANK_LEN; j++)
-			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+		memmove(syms + i * BANK_LEN,
+			symbols[(i + 1 + bank) % NUM_BANKS],
+			BANK_LEN);
 
 	r = find_ac(syms, BANK_LEN, pn->LAP);
 
 	if (r.offset > -1) {
+		// Copy remaining banks
 		for (i = 2; i < NUM_BANKS; i++)
-			for (j = 0; j < BANK_LEN; j++)
-				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
+			memmove(syms + i * BANK_LEN,
+					symbols[(i + 1 + bank) % NUM_BANKS],
+					BANK_LEN);
+
+		// Native (Ubertooth) clock with period 312.5 uS.
+		clk0 = (rx->clkn_high << 20) + (rx->clk100ns + r.offset * 10) / 3125;
+
+		// Bottom bit is not used in calculations, clk1 period is 625 uS.
+		clk1 = clk0 / 2;
 
 		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
 		pkt.LAP = r.LAP;
-		pkt.clkn = (clkn_high << 19) | ((time + r.offset * 10) / 6250);
-		pkt.channel = channel;
+		pkt.clkn = clk1;
+		pkt.channel = rx->channel;
 
 		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
-			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-					channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
+			systime = time(NULL);
+			printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
+				   systime, rx->channel, r.LAP, r.error_count,
+				   clk100ns, clk1, signal_level, noise_level, snr);
 			if (UAP_from_header(&pkt, pn))
 				exit(0);
 		}
