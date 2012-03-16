@@ -230,8 +230,12 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {INT8_MIN};
 static float rssi_iir[NUM_CHANNELS] = {0.0};  // Running average
 
+/* Sniff for LAPs. If a piconet is provided, use the given LAP to
+ * search for UAP.
+ */
 static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 {
+	piconet* pn = (piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	access_code r;
@@ -278,32 +282,50 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			symbols[(i + 1 + bank) % NUM_BANKS],
 			BANK_LEN);
 
-	// Search for AC
-	r = sniff_ac(syms, BANK_LEN);
+	/* No piconet given, sniff for any LAP */
+	if (pn == NULL) {
+		r = sniff_ac(syms, BANK_LEN);
+	}
+	/* Find packets for specified LAP.  */
+	else {
+		r = find_ac(syms, BANK_LEN, pn->LAP);
+	}
+
 	if (r.offset > -1) {
-		// Copy remaining banks (not used at this time)
-		//for (i = 2; i < NUM_BANKS; i++)
-		//	memmove(syms + i * BANK_LEN,
-		//			symbols[(i + 1 + bank) % NUM_BANKS],
-		//			BANK_LEN);
 
+		/* Native (Ubertooth) clock with period 312.5 uS. */
+		clk0 = (rx->clkn_high << 20)
+			+ (rx->clk100ns + r.offset * 10) / 3125;
 
-		// Native (Ubertooth) clock with period 312.5 uS.
-		clk0 = (rx->clkn_high << 20) + (rx->clk100ns + r.offset * 10) / 3125;
-
-		// Bottom bit is not used in calculations, clk1 period is 625 uS.
+		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
-
-		// Create packet (not used at this time)
-		//init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
-		//pkt.LAP = r.LAP;
-		//pkt.clkn = clk1;
-		//pkt.channel = rx->channel;
 
 		systime = time(NULL);
 		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
-			   systime, rx->channel, r.LAP, r.error_count,
-			   clk100ns, clk1, signal_level, noise_level, snr);
+		       systime, rx->channel, r.LAP, r.error_count,
+		       clk100ns, clk1, signal_level, noise_level, snr);
+
+		/* Found a packet with the requested LAP */
+		if (pn != NULL && r.LAP == pn->LAP) {
+
+			/* Determining UAP requires more symbols. Copy
+			 * remaining banks. */
+			for (i = 2; i < NUM_BANKS; i++)
+				memmove(syms + i * BANK_LEN,
+					symbols[(i + 1 + bank) % NUM_BANKS],
+					BANK_LEN);
+			
+			init_packet(&pkt, &syms[r.offset],
+				    BANK_LEN * NUM_BANKS - r.offset);
+			pkt.LAP = r.LAP;
+			pkt.clkn = clk1;
+			pkt.channel = rx->channel;
+			if (header_present(&pkt)) {
+				if (UAP_from_header(&pkt, pn))
+					exit(0);
+			}
+		}
+
 	}
 }
 
@@ -319,96 +341,16 @@ void rx_lap_file(FILE* fp)
 	stream_rx_file(fp, 0, cb_lap, NULL);
 }
 
-static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
-{
-	char syms[BANK_LEN * NUM_BANKS];
-	int i;
-	access_code r;
-	uint8_t channel;
-	uint32_t clk100ns; /* in 100 nanosecond units */
-	uint8_t clkn_high;
-	packet pkt;
-	char *channel_rssi_history;
-	int8_t signal_level = INT8_MIN;
-	int8_t noise_level;
-	int8_t snr;
-	uint32_t clk0;
-	uint32_t clk1;
-	time_t systime;
-	piconet* pn = (piconet *)args;
-
-	clk100ns = le32toh(rx->clk100ns); // wire format is le32
-	unpack_symbols(rx->data, symbols[bank]);
-	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-
-	// Shift rssi max history and append current max
-	channel_rssi_history = rssi_history[rx->channel];
-	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
-		int8_t v = channel_rssi_history[i];
-		channel_rssi_history[i - 1] = v;
-	}
-	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
-
-	// Signal is oldest max value
-	signal_level = channel_rssi_history[0] + RSSI_BASE;
-
-	// Noise is an IIR of averages
-	rssi_iir[rx->channel] *= (1.0 - RSSI_ALPHA);
-	rssi_iir[rx->channel] += RSSI_ALPHA * (float)(rx->rssi_avg);
-	noise_level = (int)rssi_iir[rx->channel] + RSSI_BASE;
-	snr = signal_level - noise_level;
-
-	// RF Squelch before expensive code. Reduces false positives.
-	if (snr < SNR_SQUELCH_LEVEL)
-		return;
-
-	/* Copy 3 banks for analysis */
-	for (i = 0; i < 2; i++)
-		memmove(syms + i * BANK_LEN,
-			symbols[(i + 1 + bank) % NUM_BANKS],
-			BANK_LEN);
-
-	r = find_ac(syms, BANK_LEN, pn->LAP);
-
-	if (r.offset > -1) {
-		// Copy remaining banks
-		for (i = 2; i < NUM_BANKS; i++)
-			memmove(syms + i * BANK_LEN,
-					symbols[(i + 1 + bank) % NUM_BANKS],
-					BANK_LEN);
-
-		// Native (Ubertooth) clock with period 312.5 uS.
-		clk0 = (rx->clkn_high << 20) + (rx->clk100ns + r.offset * 10) / 3125;
-
-		// Bottom bit is not used in calculations, clk1 period is 625 uS.
-		clk1 = clk0 / 2;
-
-		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
-		pkt.LAP = r.LAP;
-		pkt.clkn = clk1;
-		pkt.channel = rx->channel;
-
-		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
-			systime = time(NULL);
-			printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
-				   systime, rx->channel, r.LAP, r.error_count,
-				   clk100ns, clk1, signal_level, noise_level, snr);
-			if (UAP_from_header(&pkt, pn))
-				exit(0);
-		}
-	}
-}
-
 /* sniff one target LAP until the UAP is determined */
 void rx_uap(struct libusb_device_handle* devh, piconet* pn)
 {
-	stream_rx_usb(devh, XFER_LEN, 0, cb_uap, pn);
+	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
 }
 
 /* sniff one target LAP until the UAP is determined */
 void rx_uap_file(FILE* fp, piconet* pn)
 {
-	stream_rx_file(fp, 0, cb_uap, pn);
+	stream_rx_file(fp, 0, cb_lap, pn);
 }
 
 static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
