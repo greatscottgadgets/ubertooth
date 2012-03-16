@@ -218,16 +218,17 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 	}
 }
 
+#define NUM_CHANNELS 79
 #define RSSI_HISTORY_LEN NUM_BANKS
 #define RSSI_BASE (-54)       // CC2400 constant ... do not change
 
 /* Ignore packets with a SNR lower than this in order to reduce
  * processor load.  TODO: this should be a command line parameter. */
 #define SNR_SQUELCH_LEVEL 12
-#define RSSI_ALPHA 0.001       // IIR constant
+#define RSSI_ALPHA 0.01       // IIR constant
 
-static char rssi_history[RSSI_HISTORY_LEN] = {INT8_MIN};
-static float rssi_iir = 0.0;  // Running average
+static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {INT8_MIN};
+static float rssi_iir[NUM_CHANNELS] = {0.0};  // Running average
 
 static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 {
@@ -237,6 +238,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint8_t channel;
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	packet pkt;
+	char *channel_rssi_history;
 	int8_t signal_level = INT8_MIN;
 	int8_t noise_level;
 	int8_t snr;
@@ -244,23 +246,26 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk1;
 	time_t systime;
 
+	// TODO: validate input, e.g., rx->channel, before using
+
 	clk100ns = le32toh(rx->clk100ns); // wire format is le32
 	unpack_symbols(rx->data, symbols[bank]);
 
 	// Shift rssi max history and append current max
+	channel_rssi_history = rssi_history[rx->channel];
 	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
-		int8_t v = rssi_history[i];
-		rssi_history[i - 1] = v;
+		int8_t v = channel_rssi_history[i];
+		channel_rssi_history[i - 1] = v;
 	}
-	rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
 	// Signal is oldest max value
-	signal_level = rssi_history[0] + RSSI_BASE;
+	signal_level = channel_rssi_history[0] + RSSI_BASE;
 
 	// Noise is an IIR of averages
-	rssi_iir *= (1.0 - RSSI_ALPHA);
-	rssi_iir += RSSI_ALPHA * (float)(rx->rssi_avg);
-	noise_level = (int)rssi_iir + RSSI_BASE;
+	rssi_iir[rx->channel] *= (1.0 - RSSI_ALPHA);
+	rssi_iir[rx->channel] += RSSI_ALPHA * (float)(rx->rssi_avg);
+	noise_level = (int)rssi_iir[rx->channel] + RSSI_BASE;
 	snr = signal_level - noise_level;
 
 	// RF Squelch before expensive code. Reduces false positives.
@@ -323,6 +328,7 @@ static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	uint8_t clkn_high;
 	packet pkt;
+	char *channel_rssi_history;
 	int8_t signal_level = INT8_MIN;
 	int8_t noise_level;
 	int8_t snr;
@@ -336,19 +342,20 @@ static void cb_uap(void* args, usb_pkt_rx *rx, int bank)
 	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 
 	// Shift rssi max history and append current max
+	channel_rssi_history = rssi_history[rx->channel];
 	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
-		int8_t v = rssi_history[i];
-		rssi_history[i - 1] = v;
+		int8_t v = channel_rssi_history[i];
+		channel_rssi_history[i - 1] = v;
 	}
-	rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
 	// Signal is oldest max value
-	signal_level = rssi_history[0] + RSSI_BASE;
+	signal_level = channel_rssi_history[0] + RSSI_BASE;
 
 	// Noise is an IIR of averages
-	rssi_iir *= (1.0 - RSSI_ALPHA);
-	rssi_iir += RSSI_ALPHA * (float)(rx->rssi_avg);
-	noise_level = (int)rssi_iir + RSSI_BASE;
+	rssi_iir[rx->channel] *= (1.0 - RSSI_ALPHA);
+	rssi_iir[rx->channel] += RSSI_ALPHA * (float)(rx->rssi_avg);
+	noise_level = (int)rssi_iir[rx->channel] + RSSI_BASE;
 	snr = signal_level - noise_level;
 
 	// RF Squelch before expensive code. Reduces false positives.
