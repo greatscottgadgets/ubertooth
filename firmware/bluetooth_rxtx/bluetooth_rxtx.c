@@ -69,6 +69,12 @@ volatile u32 clkn_low;                       // clkn 3200 Hz counter
 #define CLKN_WRAP (1<<20)                    // wrap at clkn period
 #define CLK100NS (3125*clkn_low + T0TC)
 
+#define HOP_NONE      0
+#define HOP_SWEEP     1
+#define HOP_BLUETOOTH 2  // placeholder
+static u8 hop_mode = HOP_NONE;
+static volatile u8 do_hop = 0;           // set by timer interrupt
+
 /*
  * CLK_TUNE_TIME is the duration in units of 100 ns that we reserve for tuning
  * the radio while frequency hopping.  We start the tuning process
@@ -587,10 +593,19 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		*piLen = 2;
 		break;
 
-    case UBERTOOTH_SET_CHANNEL:
+	case UBERTOOTH_SET_CHANNEL:
 		channel = pSetup->wValue;
-		channel = MAX(channel, MIN_FREQ);
-		channel = MIN(channel, MAX_FREQ);
+		/* bluetooth band sweep mode, start at channel 2402 */
+		if (channel == 9999) {
+			hop_mode = HOP_SWEEP;
+			channel = 2402;
+		}
+		/* fixed channel mode, can be outside blueooth band */
+		else {
+			hop_mode = HOP_NONE;
+			channel = MAX(channel, MIN_FREQ);
+			channel = MIN(channel, MAX_FREQ);
+		}
 		break;
 
 	case UBERTOOTH_SET_ISP:
@@ -706,6 +721,8 @@ void TIMER0_IRQHandler()
 	uint32_t next;
 
 	if (T0IR & TIR_MR0_Interrupt) {
+
+		/* Incr clkn, wrap clkn_low at CLKN_WRAP. Ovrflw to clkn_high */
 		next = clkn_low + 1;
 		if (next == CLKN_WRAP) {
 			clkn_low = 0;
@@ -713,6 +730,21 @@ void TIMER0_IRQHandler()
 		}
 		else
 			clkn_low = next;
+
+		/* Trigger hop based on mode */
+
+		/* SWEEP -> 100 Hz */
+		if (hop_mode == HOP_SWEEP) {
+			if ((next & 0x1f) == 0)
+				do_hop = 1;
+		}
+		/* BLUETOOTH -> 1600 Hz */
+		else if (hop_mode == HOP_BLUETOOTH) {
+			if ((next & 0x1) == 0)
+				do_hop == 1;
+		}
+
+		/* Ack interrupt */
 		T0IR = TIR_MR0_Interrupt;
 	}
 }
@@ -1105,53 +1137,43 @@ void cc2400_repeater()
 #endif
 }
 
-#define HOP_NONE      0
-#define HOP_SWEEP     1
-#define HOP_BLUETOOTH 2 // placeholder
-u8 hop_mode = HOP_NONE;
-
 void hop(void)
 {
-	u8 retune = 0;
+	do_hop = 0;
 
 	// No hopping
 	if (hop_mode == HOP_NONE) {
-		;
+		return;
 	}
 
-	// Slow sweep ... hop every 16 clkn ticks (200 Hz)
+	// Slow sweep (100 hops/sec)
 	else if (hop_mode == HOP_SWEEP) {
-		if ((clkn_low & 0xf) == 0) {
-			channel += 1;
-			if (channel > 2480)
-				channel = 2402;
-			retune = 1;
-		}
+		channel += 1;
+		if (channel > 2480)
+			channel = 2402;
 	}
 
 	else if (hop_mode == HOP_BLUETOOTH) {
 		// Check if hop time, or copy channel from wherever, or whatever.
-		;
+		return;
 	}
 
-	if (retune) {
-		// IDLE mode
-		cc2400_strobe(SRFOFF);
-		while ((cc2400_status() & FS_LOCK));
-		
-		// Retune
-		cc2400_set(FSDIV, channel - 1);
-		
-		// Wait for lock
-		cc2400_strobe(SFSON);
-		while (!(cc2400_status() & FS_LOCK));
-		
-		// RX mode
-		cc2400_strobe(SRX);
-	}
+        /* IDLE mode */
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK));
+	
+	/* Retune */
+	cc2400_set(FSDIV, channel - 1);
+	
+	/* Wait for lock */
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	
+	/* RX mode */
+	cc2400_strobe(SRX);
 }
 
-/* single channel Bluetooth monitoring */
+/* Bluetooth packet monitoring */
 void bt_stream_rx()
 {
 	u8 *tmp = NULL;
@@ -1170,7 +1192,9 @@ void bt_stream_rx()
 
 	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
 
-		hop();
+		/* If timer says time to hop, do it */
+		if (do_hop)
+			hop();
 
 		/* wait for DMA transfer, and take RSSI readings while waiting */
 		rssi_reset();
