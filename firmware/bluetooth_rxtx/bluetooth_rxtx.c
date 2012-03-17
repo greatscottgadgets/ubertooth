@@ -211,7 +211,7 @@ typedef struct {
 	u32    clk100ns;
 	char   rssi_max;   // Max RSSI seen while collecting symbols in this packet
 	char   rssi_min;   // Min ...
-    char   rssi_avg;   // Average ...
+	char   rssi_avg;   // Average ...
 	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
 	u8     reserved[2];
 	u8     data[DMA_SIZE];
@@ -241,9 +241,9 @@ static void rssi_add(int8_t v)
 	rssi_count += 1;
 }
 
-static int8_t rssi_avg(void)
+static char rssi_compute_avg(void)
 {
-	return rssi_sum / rssi_count;
+	return (char)(rssi_sum / (int16_t)rssi_count);
 }
 
 /*
@@ -265,6 +265,7 @@ void queue_init()
 int enqueue(u8 *buf)
 {
 	int i;
+	int8_t rssi_avg = rssi_compute_avg();
 	u8 h = head & 0x7F;
 	u8 t = tail & 0x7F;
 	u8 n = (t + 1) & 0x7F;
@@ -275,12 +276,16 @@ int enqueue(u8 *buf)
 	if (h == n)
 		return 0;
 
+	/* ignore if packet has basically no variation  */
+	if ((rssi_max - rssi_avg) < 6)
+		return 1;
+
 	f->clkn_high = clkn_high;
 	f->clk100ns = CLK100NS;
 	f->channel = channel-2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
-	f->rssi_avg = rssi_avg();
+	f->rssi_avg = rssi_avg;
 	f->rssi_count = rssi_count;
 
 	USRLED_SET;
@@ -749,8 +754,8 @@ void TIMER0_IRQHandler()
 
 		/* Trigger hop based on mode */
 
-		/* SWEEP -> 100 Hz */
-		if (hop_mode == HOP_SWEEP) {
+		/* NONE or SWEEP -> 100 Hz */
+		if (hop_mode == HOP_NONE || hop_mode == HOP_SWEEP) {
 			if ((next & 0x1f) == 0)
 				do_hop = 1;
 		}
@@ -1157,9 +1162,10 @@ void hop(void)
 {
 	do_hop = 0;
 
-	// No hopping
+	// No hopping, if channel is set correctly, do nothing
 	if (hop_mode == HOP_NONE) {
-		return;
+		if (cc2400_get(FSDIV) == (channel - 1))
+			return;
 	}
 
 	// Slow sweep (100 hops/sec)
@@ -1176,7 +1182,7 @@ void hop(void)
 
         /* IDLE mode */
 	cc2400_strobe(SRFOFF);
-	while ((cc2400_status() & FS_LOCK));
+	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
 	
 	/* Retune */
 	cc2400_set(FSDIV, channel - 1);
