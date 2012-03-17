@@ -250,7 +250,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk1;
 	time_t systime;
 
-	// TODO: validate input, e.g., rx->channel, before using
+	/* Sanity check */
+	if (rx->channel > (NUM_CHANNELS-1))
+		return;
 
 	clk100ns = le32toh(rx->clk100ns); // wire format is le32
 	unpack_symbols(rx->data, symbols[bank]);
@@ -392,7 +394,7 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 
 		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-					channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
+			       channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
 			if (pn->have_clk6) {
 				UAP_from_header(&pkt, pn);
 				if (!pn->have_clk6) {
