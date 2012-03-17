@@ -284,8 +284,24 @@ int enqueue(u8 *buf)
 	f->rssi_count = rssi_count;
 
 	USRLED_SET;
-	for (i = 0; i < DMA_SIZE; i++)
-		fifo[t].data[i] = buf[i];
+
+	// Unrolled copy of 50 bytes from buf to fifo
+	u32 *p1 = (u32 *)fifo[t].data;
+	u32 *p2 = (u32 *)buf;
+	p1[0] = p2[0];
+	p1[1] = p2[1];
+	p1[2] = p2[2];
+	p1[3] = p2[3];
+	p1[4] = p2[4];
+	p1[5] = p2[5];
+	p1[6] = p2[6];
+	p1[7] = p2[7];
+	p1[8] = p2[8];
+	p1[9] = p2[9];
+	p1[10] = p2[10];
+	p1[11] = p2[11];
+	*(u16 *)&(fifo[t].data[48]) = *(u16 *)&(buf[48]);
+
 	fifo[t].status = status;
 	status = 0;
 	++tail;
