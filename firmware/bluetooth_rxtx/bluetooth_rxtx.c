@@ -895,7 +895,10 @@ void cc2400_rx()
 		/* oops */
 		return;
 	}
-	cc2400_set(RSSI, 0x3f); // RSSI - default CS, 8-symbol averaging
+        /* RSSI - set carrier sense threshold to -70dBm, use 8-symbol
+	 * averaging (0x3). Could use some constants and macros
+	 * here. */
+	cc2400_set(RSSI, ( (256-70+54) & (0x3f << 2)) | 0x3);
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -1218,6 +1221,12 @@ void bt_stream_rx()
 		if (do_hop)
 			hop();
 
+		/* Make the rx led blink based on carrier sense. */
+		if (FIO2PIN0 & (1<<2))
+			RXLED_CLR;
+		else
+			RXLED_SET;
+			      
 		/* wait for DMA transfer, and take RSSI readings while waiting */
 		rssi_reset();
 		while ((rx_tc == 0) && (rx_err == 0))

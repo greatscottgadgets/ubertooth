@@ -377,9 +377,9 @@ void clock_start()
 	/* temporarily set CPU clock divider to 1 */
 	CCLKCFG = 0;
 
-	/* configure CC2400 oscillator */
+	/* configure CC2400 oscillator, output carrier sense on GIO6 */
 	cc2400_reset();
-	cc2400_set(IOCFG, (GIO_ZERO << 9) | (GIO_CLK_16M << 3));
+	cc2400_set(IOCFG, (GIO_CARRIER_SENSE_N << 9) | (GIO_CLK_16M << 3));
 	cc2400_strobe(SXOSCON);
 	while (!(cc2400_status() & XOSC16M_STABLE));
 
