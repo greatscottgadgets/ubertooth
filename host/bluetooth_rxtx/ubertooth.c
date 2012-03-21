@@ -278,7 +278,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	if (snr < SNR_SQUELCH_LEVEL)
 		return;
 
-	/* Copy 3 banks for analysis */
+	/* Copy 2 banks for analysis */
 	for (i = 0; i < 2; i++)
 		memmove(syms + i * BANK_LEN,
 			symbols[(i + 1 + bank) % NUM_BANKS],
@@ -432,6 +432,90 @@ void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 void rx_hop_file(FILE* fp, piconet* pn)
 {
 	stream_rx_file(fp, 0, cb_hop, pn);
+}
+
+/*
+ * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept
+ * that only captures advertising packets.
+ */
+static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
+{
+	char syms[BANK_LEN * NUM_BANKS];
+	int i, j, k;
+	uint32_t access_address = 0;
+	uint8_t channel;
+	uint32_t clk100ns; /* in 100 nanosecond units */
+	char *channel_rssi_history;
+	int8_t signal_level = INT8_MIN;
+	int8_t noise_level;
+	int8_t snr;
+	uint32_t clk0;
+	uint32_t clk1;
+	time_t systime;
+	uint8_t byte;
+
+	/* Sanity check */
+	if (rx->channel > (NUM_CHANNELS-1))
+		return;
+
+	clk100ns = le32toh(rx->clk100ns); // wire format is le32
+	unpack_symbols(rx->data, symbols[bank]);
+
+	// Shift rssi max history and append current max
+	channel_rssi_history = rssi_history[rx->channel];
+	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
+		int8_t v = channel_rssi_history[i];
+		channel_rssi_history[i - 1] = v;
+	}
+	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+
+	// Signal is oldest max value
+	signal_level = channel_rssi_history[0] + RSSI_BASE;
+
+	// Noise is an IIR of averages
+	rssi_iir[rx->channel] *= (1.0 - RSSI_ALPHA);
+	rssi_iir[rx->channel] += RSSI_ALPHA * (float)(rx->rssi_avg);
+	noise_level = (int)rssi_iir[rx->channel] + RSSI_BASE;
+	snr = signal_level - noise_level;
+
+	// RF Squelch before expensive code. Reduces false positives.
+	if (snr < SNR_SQUELCH_LEVEL)
+		return;
+
+	/* Copy 2 banks for analysis */
+	for (i = 0; i < 2; i++)
+		memmove(syms + i * BANK_LEN,
+				symbols[(i + 1 + bank) % NUM_BANKS], BANK_LEN);
+
+	for (i = 32; i < (BANK_LEN + 32); i++) {
+		access_address >>= 1;
+		access_address |= (syms[i] << 31);
+		if (access_address == 0x8e89bed6) { // advertising access address
+			systime = time(NULL);
+			printf("systime=%u freq=%d addr=%08x clk100ns=%u s=%d n=%d snr=%d\n",
+					systime, rx->channel + 2402, access_address,
+					clk100ns, signal_level, noise_level, snr);
+			// hard coded to maximum packet length (46)
+			for (j = 0; j < 46; j++) {
+				byte = 0;
+				for (k = 0; k < 8; k++) {
+					byte |= syms[k + (j * 8) + i - 31] << k;
+				}
+				printf("%02x", byte);
+			}
+			printf("\n\n");
+		}
+	}
+}
+
+void rx_btle(struct libusb_device_handle* devh)
+{
+	stream_rx_usb(devh, XFER_LEN, 0, cb_btle, NULL);
+}
+
+void rx_btle_file(FILE* fp)
+{
+	stream_rx_file(fp, 0, cb_btle, NULL);
 }
 
 static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
