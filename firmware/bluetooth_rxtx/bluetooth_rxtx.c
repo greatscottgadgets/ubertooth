@@ -280,7 +280,7 @@ static void rssi_iir_update(void)
  * multiple of 4 by adding 56. Useful range is -100 to -20. */
 static void cs_trigger_set(int8_t level, u8 samples)
 {
-	level = MIN(MAX(level,-100),(-20));
+	level = MIN(MAX(level,-120),(-20));
 	cc2400_set(RSSI, (uint8_t)((level + 56) & (0x3f << 2)) | (samples&3));
 	cs_threshold = level;
 }
