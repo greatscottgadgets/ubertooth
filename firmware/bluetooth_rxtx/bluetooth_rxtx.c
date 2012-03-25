@@ -728,7 +728,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_SQUELCH:
-		cs_trigger_set((int8_t)pSetup->wValue,CS_SAMPLES_8);
+		cs_trigger_set((int8_t)pSetup->wValue,CS_SAMPLES_4);
 		break;
 
 	case UBERTOOTH_GET_SQUELCH:
@@ -975,7 +975,7 @@ static void cc2400_rx()
 	}
         /* RSSI - set carrier sense threshold to -70dBm, use 8-symbol
 	 * averaging. */
-	cs_trigger_set(cs_threshold, CS_SAMPLES_8);
+	cs_trigger_set(cs_threshold, CS_SAMPLES_4);
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
