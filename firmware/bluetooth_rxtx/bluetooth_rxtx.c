@@ -71,9 +71,19 @@ volatile u32 clkn_low;                       // clkn 3200 Hz counter
 
 #define HOP_NONE      0
 #define HOP_SWEEP     1
-#define HOP_BLUETOOTH 2  // placeholder
-static u8 hop_mode = HOP_NONE;
-static volatile u8 do_hop = 0;           // set by timer interrupt
+#define HOP_BLUETOOTH 2                     // placeholder
+#define CS_THRESHOLD_DEFAULT (uint8_t)(-70)
+#define CS_HOLD_TIME  2                     // min packets to send on cs trig
+u8 hop_mode = HOP_NONE;
+u8 do_hop = 0;                              // set by timer interrupt
+int8_t cs_threshold = CS_THRESHOLD_DEFAULT; // carrier sense threshold in dBm
+volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
+volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
+
+/* Moving average (IIR) of average RSSI of packets. TODO - use integer
+ * math instead of float to get rid of a lot of code. */
+float rssi_iir[79] = {-40.0};
+#define RSSI_IIR_ALPHA 0.01
 
 /*
  * CLK_TUNE_TIME is the duration in units of 100 ns that we reserve for tuning
@@ -137,7 +147,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_RANGE_CHECK  = 32,
 	UBERTOOTH_GET_REV_NUM  = 33,
 	UBERTOOTH_LED_SPECAN   = 34,
-	UBERTOOTH_GET_BOARD_ID = 35
+	UBERTOOTH_GET_BOARD_ID = 35,
+	UBERTOOTH_SET_SQUELCH  = 36,
+	UBERTOOTH_GET_SQUELCH  = 37,
 };
 
 enum operating_modes {
@@ -211,7 +223,7 @@ typedef struct {
 	u32    clk100ns;
 	char   rssi_max;   // Max RSSI seen while collecting symbols in this packet
 	char   rssi_min;   // Min ...
-	char   rssi_avg;   // Average ...
+	char   rssi_iir;   // Average ...
 	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
 	u8     reserved[2];
 	u8     data[DMA_SIZE];
@@ -241,9 +253,56 @@ static void rssi_add(int8_t v)
 	rssi_count += 1;
 }
 
-static char rssi_compute_avg(void)
+/* For sweep mode, update IIR per channel. Otherwise, use single value. */
+static void rssi_iir_update(void)
 {
-	return (char)(rssi_sum / (int16_t)rssi_count);
+	int i;
+	float avg = (float)rssi_sum / (float)rssi_count;
+
+	/* Use array to track 79 Bluetooth channels, or just first
+	 * slot of array if not sweeping. */
+	if (hop_mode == HOP_SWEEP)
+		i = channel - 2402;
+	else
+		i = 0;
+
+	rssi_iir[i] = rssi_iir[i] * (1.0-RSSI_IIR_ALPHA)
+		+ avg * RSSI_IIR_ALPHA;
+}
+
+#define CS_SAMPLES_1 1
+#define CS_SAMPLES_2 2
+#define CS_SAMPLES_4 3
+#define CS_SAMPLES_8 4
+/* Set CC2400 carrier sense threshold and store value to
+ * global. CC2400 RSSI is determined by 54dBm + level. CS threshold is
+ * in 4dBm steps, so the provided level is rounded to the nearest
+ * multiple of 4 by adding 56. Useful range is -100 to -20. */
+static void cs_trigger_set(int8_t level, u8 samples)
+{
+	level = MIN(MAX(level,-100),(-20));
+	cc2400_set(RSSI, (uint8_t)((level + 56) & (0x3f << 2)) | (samples&3));
+	cs_threshold = level;
+}
+
+/* CS comes from CC2400 GIO6, which is LPC P2.2, active low. GPIO
+ * triggers EINT3, which could be used for other things (but is not
+ * currently). TODO - EINT3 should be managed globally, not turned on
+ * and off here. */
+static void cs_trigger_enable(void)
+{
+	cs_trigger = 0;
+	ISER0 |= ISER0_ISE_EINT3;
+	IO2IntClr = PIN_GIO6;      // Clear pending
+	IO2IntEnF |= PIN_GIO6;     // Enable port 2.2 falling (CS active low)
+}
+
+static void cs_trigger_disable(void)
+{
+	IO2IntEnF &= ~PIN_GIO6;    // Disable port 2.2 falling (CS active low)
+	IO2IntClr = PIN_GIO6;      // Clear pending
+	ISER0 &= ~ISER0_ISE_EINT3;
+	cs_trigger = 0;
 }
 
 /*
@@ -262,10 +321,9 @@ void queue_init()
 	tail = 0;
 }
 
-int enqueue(u8 *buf)
+static int enqueue(u8 *buf)
 {
 	int i;
-	int8_t rssi_avg = rssi_compute_avg();
 	u8 h = head & 0x7F;
 	u8 t = tail & 0x7F;
 	u8 n = (t + 1) & 0x7F;
@@ -276,16 +334,15 @@ int enqueue(u8 *buf)
 	if (h == n)
 		return 0;
 
-	/* ignore if packet has basically no variation  */
-	if ((rssi_max - rssi_avg) < 6)
-		return 1;
-
 	f->clkn_high = clkn_high;
 	f->clk100ns = CLK100NS;
 	f->channel = channel-2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
-	f->rssi_avg = rssi_avg;
+	if (hop_mode == HOP_SWEEP)
+		f->rssi_iir = (int8_t)(rssi_iir[channel-2402]+0.5);
+	else
+		f->rssi_iir = (int8_t)(rssi_iir[0]+0.5);
 	f->rssi_count = rssi_count;
 
 	USRLED_SET;
@@ -314,7 +371,7 @@ int enqueue(u8 *buf)
 	return 1;
 }
 
-int dequeue()
+static int dequeue()
 {
 	u8 h = head & 0x7F;
 	u8 t = tail & 0x7F;
@@ -670,13 +727,22 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		*piLen = 1;
 		break;
 
+	case UBERTOOTH_SET_SQUELCH:
+		cs_trigger_set((int8_t)pSetup->wValue,CS_SAMPLES_8);
+		break;
+
+	case UBERTOOTH_GET_SQUELCH:
+		pbData[0] = cs_threshold;
+		*piLen = 1;
+		break;
+
 	default:
 		return FALSE;
 	}
 	return TRUE;
 }
 
-int ubertooth_usb_init()
+static int ubertooth_usb_init()
 {
 	// initialise stack
 	USBInit();
@@ -693,7 +759,7 @@ int ubertooth_usb_init()
 
 	// enable USB interrupts
 	//ISER0 |= ISER0_ISE_USB;
-	
+
 	// connect to bus
 	USBHwConnect(TRUE);
 
@@ -770,10 +836,22 @@ void TIMER0_IRQHandler()
 	}
 }
 
+/* EINT3 handler is also defined in ubertooth.c for TC13BADGE. */
+#ifndef TC13BADGE
+//static volatile u8 txledstate = 1;
+void EINT3_IRQHandler()
+{
+	/* TODO - check specific source of shared interrupt */
+	IO2IntClr = PIN_GIO6;            // clear interrupt
+	cs_trigger = 1;                  // signal trigger
+	cs_timestamp = CLK100NS;         // time at trigger
+}
+#endif // TC13BADGE
+
 /* Sleep (busy wait) for 'millis' milliseconds. The 'wait' routines in
  * ubertooth.c are matched to the clock setup at boot time and can not
  * be used while the board is running at 100MHz. */
-void msleep(uint32_t millis)
+static void msleep(uint32_t millis)
 {
 	uint32_t stop_at = CLKN + millis * 3125 / 1000;  // millis -> clkn ticks
 	do { } while (CLKN < stop_at);                   // TODO: handle wrapping
@@ -875,7 +953,7 @@ static void dio_ssp_start()
 }
 
 /* start un-buffered rx */
-void cc2400_rx()
+static void cc2400_rx()
 {
 	if (modulation == MOD_BT_BASIC_RATE) {
 		cc2400_set(MANAND,  0x7fff);
@@ -896,9 +974,8 @@ void cc2400_rx()
 		return;
 	}
         /* RSSI - set carrier sense threshold to -70dBm, use 8-symbol
-	 * averaging (0x3). Could use some constants and macros
-	 * here. */
-	cc2400_set(RSSI, ( (256-70+54) & (0x3f << 2)) | 0x3);
+	 * averaging. */
+	cs_trigger_set(cs_threshold, CS_SAMPLES_8);
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -1198,16 +1275,34 @@ void hop(void)
 	cc2400_strobe(SRX);
 }
 
+static void send_usb(void)
+{
+	u8 epstat;
+
+	/* send via USB */
+	epstat = USBHwEPGetStatus(BULK_IN_EP);
+	if (!(epstat & EPSTAT_B1FULL)) {
+		dequeue();
+	}
+	if (!(epstat & EPSTAT_B2FULL)) {
+		dequeue();
+	}
+	USBHwISR();
+}
+
 /* Bluetooth packet monitoring */
 void bt_stream_rx()
 {
 	u8 *tmp = NULL;
-	u8 epstat;
+	u8 hold;
+	int8_t rssi;
 	int i;
+	int8_t rssi_at_trigger;
+	int8_t sample_at_trigger;
 
 	mode = MODE_RX_SYMBOLS;
 
-	RXLED_SET;
+	RXLED_CLR;
 
 	queue_init();
 	dio_ssp_init();
@@ -1215,54 +1310,103 @@ void bt_stream_rx()
 	dio_ssp_start();
 	cc2400_rx();
 
+	cs_trigger_enable();
+
+	hold = 0;
+
 	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
 
-		/* If timer says time to hop, do it */
+		/* If timer says time to hop, do it. TODO - set
+		 * per-channel carrier sense threshold. Set by
+		 * firmware or host. TODO - if hop happened, clear
+		 * hold. */
 		if (do_hop)
 			hop();
 
-		/* Make the rx led blink based on carrier sense. */
-		if (FIO2PIN0 & (1<<2))
-			RXLED_CLR;
-		else
-			RXLED_SET;
-			      
-		/* wait for DMA transfer, and take RSSI readings while waiting */
-		rssi_reset();
-		while ((rx_tc == 0) && (rx_err == 0))
-			rssi_add(cc2400_get(RSSI) >> 8);
+		RXLED_CLR;
 
+		/* Wait for DMA transfer. TODO - need more work on
+		 * RSSI. Should send RSSI indications to host even
+		 * when not transferring data. That would also keep
+		 * the USB stream going. This loop runs 50-80 times
+		 * while waiting for DMA, but RSSI sampling does not
+		 * cover all the symbols in a DMA transfer. Can not do
+		 * RSSI sampling in CS interrupt, but could log time
+		 * at multiple trigger points there. */
+		rssi_reset();
+		rssi_at_trigger = INT8_MIN;
+		while ((rx_tc == 0) && (rx_err == 0)) {
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			rssi_add(rssi);
+			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi_at_trigger = rssi;
+				sample_at_trigger = rssi_count; // unused
+			}
+		}
+
+		/* Keep buffer swapping in sync with DMA. */
 		if (rx_tc % 2) {
-			/* swap buffers */
 			tmp = active_rxbuf;
 			active_rxbuf = idle_rxbuf;
 			idle_rxbuf = tmp;
 		}
-		if (rx_err)
+
+		if (rx_err) {
 			status |= DMA_ERROR;
-		if (rx_tc) {
-			if (rx_tc > 1)
-				status |= DMA_OVERFLOW;
-			if (enqueue(idle_rxbuf))
-				--rx_pkts;
-			else
-				status |= FIFO_OVERFLOW;
 		}
 
-		/* send via USB */
-		epstat = USBHwEPGetStatus(BULK_IN_EP);
-		if (!(epstat & EPSTAT_B1FULL))
-			dequeue();
-		if (!(epstat & EPSTAT_B2FULL))
-			dequeue();
-		USBHwISR();
+		/* No DMA transfer? */
+		if (!rx_tc)
+			goto rx_continue;
 
+		/* Missed a DMA trasfer? */
+		if (rx_tc > 1)
+			status |= DMA_OVERFLOW;
+
+		rssi_iir_update();
+
+		/* No trigger or hold? Ignore data. */
+		if (!cs_trigger && (hold == 0)) {
+			goto rx_continue;
+		}
+
+		/* Set squelch hold if there was either a CS trigger,
+		 * or if the current rssi_max is above the same
+		 * threshold. Currently, rssi_max will always break
+		 * the threshold, but this is a placeholder for
+		 * per-channel squelch. */
+		if (cs_trigger || (rssi_max >= (cs_threshold+54))) {
+			hold = CS_HOLD_TIME;
+		}
+
+		/* Reset trigger. */
+		cs_trigger = 0;
+
+		/* Hold expired? Ignore data. */
+		if (hold == 0) {
+			goto rx_continue;
+		}
+		hold--;
+
+		/* Queue data from DMA buffer. */
+		if (enqueue(idle_rxbuf)) {
+			RXLED_SET;
+			--rx_pkts;
+		}
+		else {
+			status |= FIFO_OVERFLOW;
+		}
+
+	rx_continue:
+		send_usb();
 		rx_tc = 0;
 		rx_err = 0;
 	}
 
+	cs_trigger_disable();
 	rx_pkts = 0; // Already 0, or requested mode changed
 	RXLED_CLR;
+	//cs2400_stop();
 }
 
 /*
@@ -1299,7 +1443,7 @@ void bt_hop_rx()
 	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
 		rssi_reset();
 		while ((rx_tc == 0) && (rx_err == 0))
-			rssi_add(cc2400_get(RSSI) >> 8);
+			rssi_add((int8_t)cc2400_get(RSSI) >> 8);
 
 		if (rx_tc % 2) {
 			/* swap buffers */
@@ -1489,6 +1633,9 @@ int main()
 		else if (requested_mode == MODE_LED_SPECAN && mode != MODE_LED_SPECAN)
 			led_specan();
 		else if (requested_mode == MODE_IDLE && mode != MODE_IDLE)
+			/* TODO - this routine calls clock_start(),
+			 * which is overkill for putting the CC2400
+			 * into idle mode. */
 			cc2400_idle();
 		//FIXME do other modes like this
 	}

@@ -94,7 +94,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_RANGE_CHECK  = 32,
 	UBERTOOTH_GET_REV_NUM  = 33,
 	UBERTOOTH_LED_SPECAN   = 34,
-	UBERTOOTH_GET_BOARD_ID = 35
+	UBERTOOTH_GET_BOARD_ID = 35,
+	UBERTOOTH_SET_SQUELCH  = 36,
+	UBERTOOTH_GET_SQUELCH  = 37,
 };
 
 enum modulations {
@@ -181,5 +183,6 @@ int cmd_range_test(struct libusb_device_handle* devh);
 int cmd_repeater(struct libusb_device_handle* devh);
 int cmd_get_rev_num(struct libusb_device_handle* devh);
 int cmd_get_board_id(struct libusb_device_handle* devh);
-
+int cmd_set_squelch(struct libusb_device_handle* devh, u16 level);
+int cmd_get_squelch(struct libusb_device_handle* devh);
 #endif

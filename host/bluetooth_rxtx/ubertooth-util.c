@@ -57,6 +57,7 @@ static void usage()
 	printf("\t-t intitiate continuous transmit test\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-v get firmware revision number\n");
+	printf("\t-z set squelch level\n");
 }
 
 int main(int argc, char *argv[])
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
 	int do_serial, do_tx, do_palevel, do_channel, do_led_specan;
 	int do_range_test, do_repeater, do_firmware, do_board_id;
 	int do_range_result, do_all_leds, do_identify;
+	int do_set_squelch, do_get_squelch, squelch_level;
 
 	// set command states to negative as a starter
 	// setting to 0 means 'do it'
@@ -77,8 +79,9 @@ int main(int argc, char *argv[])
 	do_serial= do_tx= do_palevel= do_channel= do_led_specan= -1;
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
 	do_range_result= do_all_leds= do_identify= -1;
+	do_set_squelch= -1, do_get_squelch= -1;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::")) != EOF) {
 		switch(opt) {
 		case 'U': 
 			Ubertooth_Device= atoi(optarg);
@@ -158,6 +161,15 @@ int main(int argc, char *argv[])
 			break;
 		case 'b':
 			do_board_id= 0;
+			break;
+		case 'z':
+			if (optarg) {
+				squelch_level = atoi(optarg);
+				do_set_squelch = 1;
+			}
+			else {
+				do_get_squelch = 1;
+			}
 			break;
 		case 'h':
 		default:
@@ -276,6 +288,14 @@ int main(int argc, char *argv[])
 	if(do_tx == 0) {
 		printf("Starting TX test\n");
 		return cmd_tx_test(devh);
+	}
+	if(do_set_squelch > 0) {
+		printf("Setting squelch to %d\n", squelch_level);
+		cmd_set_squelch(devh, squelch_level);
+	}
+	if(do_get_squelch > 0) {
+		r = cmd_get_squelch(devh);
+		printf("Squelch set to %d\n", (int8_t)r);
 	}
 
 	return r;

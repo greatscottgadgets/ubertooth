@@ -28,6 +28,8 @@
 
 #include "ubertooth.h"
 
+#define MAX(a,b) ((a)>(b) ? (a) : (b))
+
 //this stuff should probably be in a struct managed by the calling program
 char symbols[NUM_BANKS][BANK_LEN];
 u8 *empty_buf = NULL;
@@ -224,11 +226,10 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 
 /* Ignore packets with a SNR lower than this in order to reduce
  * processor load.  TODO: this should be a command line parameter. */
-#define SNR_SQUELCH_LEVEL 12
-#define RSSI_ALPHA 0.01       // IIR constant
+//#define SNR_SQUELCH_LEVEL 0
 
 static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {INT8_MIN};
-static float rssi_iir[NUM_CHANNELS] = {0.0};  // Running average
+//static float rssi_iir[NUM_CHANNELS] = {0.0};  // Running average
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
@@ -243,7 +244,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	packet pkt;
 	char *channel_rssi_history;
-	int8_t signal_level = INT8_MIN;
+	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
 	uint32_t clk0;
@@ -253,6 +254,8 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
 		return;
+
+	//printf("%d %d %d %d %d\n", rx->channel, rx->rssi_min, rx->rssi_max, rx->rssi_avg, rx->rssi_count);
 
 	clk100ns = le32toh(rx->clk100ns); // wire format is le32
 	unpack_symbols(rx->data, symbols[bank]);
@@ -265,18 +268,17 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	}
 	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
-	// Signal is oldest max value
-	signal_level = channel_rssi_history[0] + RSSI_BASE;
+	// Signal starts in oldest bank, but may cross into second oldest bank.
+	// Take the max or the 2 maxs.
+	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
 
 	// Noise is an IIR of averages
-	rssi_iir[rx->channel] *= (1.0 - RSSI_ALPHA);
-	rssi_iir[rx->channel] += RSSI_ALPHA * (float)(rx->rssi_avg);
-	noise_level = (int)rssi_iir[rx->channel] + RSSI_BASE;
+	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
 	// RF Squelch before expensive code. Reduces false positives.
-	if (snr < SNR_SQUELCH_LEVEL)
-		return;
+	//if (snr < SNR_SQUELCH_LEVEL)
+	//	return;
 
 	/* Copy 2 banks for analysis */
 	for (i = 0; i < 2; i++)
@@ -446,7 +448,7 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	uint8_t channel;
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	char *channel_rssi_history;
-	int8_t signal_level = INT8_MIN;
+	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
 	uint32_t clk0;
@@ -469,18 +471,17 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	}
 	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
-	// Signal is oldest max value
-	signal_level = channel_rssi_history[0] + RSSI_BASE;
+	// Signal starts in oldest bank, but may cross into second oldest bank.
+	// Take the max or the 2 maxs.
+	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
 
 	// Noise is an IIR of averages
-	rssi_iir[rx->channel] *= (1.0 - RSSI_ALPHA);
-	rssi_iir[rx->channel] += RSSI_ALPHA * (float)(rx->rssi_avg);
-	noise_level = (int)rssi_iir[rx->channel] + RSSI_BASE;
+	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
 	// RF Squelch before expensive code. Reduces false positives.
-	if (snr < SNR_SQUELCH_LEVEL)
-		return;
+	//if (snr < SNR_SQUELCH_LEVEL)
+	//	return;
 
 	/* Copy 2 banks for analysis */
 	for (i = 0; i < 2; i++)
@@ -1126,3 +1127,34 @@ int cmd_get_board_id(struct libusb_device_handle* devh)
 
 	return board_id;
 }
+
+int cmd_set_squelch(struct libusb_device_handle* devh, u16 level)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_SQUELCH, level, 0, NULL, 0, 3000);
+	if (r != LIBUSB_SUCCESS) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
+int cmd_get_squelch(struct libusb_device_handle* devh)
+{
+	u8 level;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_SQUELCH, 0, 0,
+			&level, 1, 3000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return level;
+}
+
