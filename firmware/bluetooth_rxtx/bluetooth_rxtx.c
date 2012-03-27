@@ -72,10 +72,11 @@ volatile u32 clkn_low;                       // clkn 3200 Hz counter
 #define HOP_NONE      0
 #define HOP_SWEEP     1
 #define HOP_BLUETOOTH 2                     // placeholder
-#define CS_THRESHOLD_DEFAULT (uint8_t)(-70)
-#define CS_HOLD_TIME  2                     // min packets to send on cs trig
+#define CS_THRESHOLD_DEFAULT (uint8_t)(-120)
+#define CS_HOLD_TIME  2                     // min pkts to send on trig (>=1)
 u8 hop_mode = HOP_NONE;
 u8 do_hop = 0;                              // set by timer interrupt
+u8 cs_no_squelch = 0;                       // rx all packets if set
 int8_t cs_threshold = CS_THRESHOLD_DEFAULT; // carrier sense threshold in dBm
 volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
@@ -211,6 +212,8 @@ volatile u8 status = 0;
 #define DMA_OVERFLOW  0x01
 #define DMA_ERROR     0x02
 #define FIFO_OVERFLOW 0x04
+#define CS_TRIGGER    0x08
+#define RSSI_TRIGGER  0x10
 
 /*
  * USB packet for Bluetooth RX (64 total bytes)
@@ -280,6 +283,7 @@ static void rssi_iir_update(void)
  * multiple of 4 by adding 56. Useful range is -100 to -20. */
 static void cs_trigger_set(int8_t level, u8 samples)
 {
+	cs_no_squelch = (level <= -120);
 	level = MIN(MAX(level,-120),(-20));
 	cc2400_set(RSSI, (uint8_t)((level + 56) & (0x3f << 2)) | (samples&3));
 	cs_threshold = level;
@@ -1365,22 +1369,20 @@ void bt_stream_rx()
 
 		rssi_iir_update();
 
-		/* No trigger or hold? Ignore data. */
-		if (!cs_trigger && (hold == 0)) {
-			goto rx_continue;
+		/* Set squelch hold if there was either a CS trigger, squelch
+		 * is disabled, or if the current rssi_max is above the same
+		 * threshold. Currently, this is redundant, but allows for
+		 * per-channel or other rssi triggers in the future. */
+		if (cs_trigger || cs_no_squelch) {
+			status |= CS_TRIGGER;
+			hold = CS_HOLD_TIME;
+			cs_trigger = 0;
 		}
 
-		/* Set squelch hold if there was either a CS trigger,
-		 * or if the current rssi_max is above the same
-		 * threshold. Currently, rssi_max will always break
-		 * the threshold, but this is a placeholder for
-		 * per-channel squelch. */
-		if (cs_trigger || (rssi_max >= (cs_threshold+54))) {
+		if (rssi_max >= (cs_threshold+54)) {
+			status |= RSSI_TRIGGER;
 			hold = CS_HOLD_TIME;
 		}
-
-		/* Reset trigger. */
-		cs_trigger = 0;
 
 		/* Hold expired? Ignore data. */
 		if (hold == 0) {
