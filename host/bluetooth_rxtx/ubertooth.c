@@ -255,9 +255,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	if (rx->channel > (NUM_CHANNELS-1))
 		return;
 
-	//printf("%d %d %d %d %d\n", rx->channel, rx->rssi_min, rx->rssi_max, rx->rssi_avg, rx->rssi_count);
-
 	clk100ns = le32toh(rx->clk100ns); // wire format is le32
+	//printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min, rx->rssi_max, rx->rssi_avg, rx->rssi_count);
+
 	unpack_symbols(rx->data, symbols[bank]);
 
 	// Shift rssi max history and append current max
