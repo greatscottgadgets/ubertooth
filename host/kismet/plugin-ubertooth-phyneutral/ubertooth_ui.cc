@@ -505,7 +505,7 @@ void UbertoothCliAdd(KPI_ADDCLI_CB_PARMS) {
 }
 
 int UbertoothTimer(TIMEEVENT_PARMS) {
-	ubertooth_data *ubertooth = (ubertooth_data *) parm;
+	ubertooth_data *ubertooth = (ubertooth_data *) auxptr;
 
 	// This isn't efficient at all.. but pull the current line, re-sort the 
 	// data vector, clear the display, recreate the strings in the table, 

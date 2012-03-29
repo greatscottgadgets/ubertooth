@@ -137,7 +137,7 @@ void Protocol_BTBBDEV_enable(PROTO_ENABLE_PARMS) {
 }
 
 int bttracktimer(TIMEEVENT_PARMS) {
-	((Tracker_BTBB *) parm)->BlitDevices(-1);
+	((Tracker_BTBB *) auxptr)->BlitDevices(-1);
 	return 1;
 }
 
