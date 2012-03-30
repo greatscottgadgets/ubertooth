@@ -979,6 +979,7 @@ static void cc2400_idle()
 
 	RXLED_CLR;
 	TXLED_CLR;
+	USRLED_CLR;
 	mode = MODE_IDLE;
 }
 
