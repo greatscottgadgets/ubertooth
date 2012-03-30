@@ -79,6 +79,7 @@ u8 do_hop = 0;                              // set by timer interrupt
 u8 cs_no_squelch = 0;                       // rx all packets if set
 int8_t cs_threshold = CS_THRESHOLD_DEFAULT; // carrier sense threshold in dBm
 volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
+volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
 
 /* Moving average (IIR) of average RSSI of packets. TODO - use integer
@@ -841,6 +842,10 @@ void TIMER0_IRQHandler()
 				do_hop == 1;
 		}
 
+		/* Keepalive trigger fires at 3200/2^9 = 6.25 Hz */
+		if ((next & 0x1ff) == 0)
+			keepalive_trigger = 1;
+
 		/* Ack interrupt */
 		T0IR = TIR_MR0_Interrupt;
 	}
@@ -1413,6 +1418,14 @@ void bt_stream_rx()
 		if (rssi_max >= (cs_threshold+54)) {
 			status |= RSSI_TRIGGER;
 			hold = CS_HOLD_TIME;
+		}
+
+		/* Send a packet once in a while (6.25 Hz) to keep
+		 * host USB reads from timing out. */
+		if (keepalive_trigger) {
+			if (hold == 0)
+				hold = 1;
+			keepalive_trigger = 0;
 		}
 
 		/* Hold expired? Ignore data. */
