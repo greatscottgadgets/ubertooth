@@ -82,7 +82,9 @@ volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
 
 /* Moving average (IIR) of average RSSI of packets. TODO - use integer
- * math instead of float to get rid of a lot of code. */
+ * math instead of float to get rid of a lot of code. If ALPHA is
+ * 1/2^N, N<=8, then s16 values (s8.8) with a 32-bit accumulator
+ * would require only shift/add/sub. */
 float rssi_iir[79] = {-40.0};
 #define RSSI_IIR_ALPHA 0.01
 
@@ -180,9 +182,9 @@ typedef struct {
 
 rangetest_result rr;
 
-volatile u32 mode = MODE_IDLE;
-volatile u32 requested_mode = MODE_IDLE;
-volatile u32 modulation = MOD_BT_BASIC_RATE;
+volatile u8 mode = MODE_IDLE;
+volatile u8 requested_mode = MODE_IDLE;
+volatile u8 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
@@ -281,6 +283,10 @@ static void rssi_iir_update(void)
  * global. CC2400 RSSI is determined by 54dBm + level. CS threshold is
  * in 4dBm steps, so the provided level is rounded to the nearest
  * multiple of 4 by adding 56. Useful range is -100 to -20. */
+
+/* TODO - if level > 0, take this as a minimum SNR. Compare per channel IIR
+ * average to current RSSI.
+ */
 static void cs_trigger_set(int8_t level, u8 samples)
 {
 	cs_no_squelch = (level <= -120);
@@ -929,11 +935,11 @@ void DMA_IRQHandler()
 	/* interrupt on channel 0 */
 	if (DMACIntStat & (1 << 0)) {
 		if (DMACIntTCStat & (1 << 0)) {
-			DMACIntTCClear |= (1 << 0);
+			DMACIntTCClear = (1 << 0);
 			++rx_tc;
 		}
 		if (DMACIntErrStat & (1 << 0)) {
-			DMACIntErrClr |= (1 << 0);
+			DMACIntErrClr = (1 << 0);
 			++rx_err;
 		}
 	}
@@ -954,6 +960,26 @@ static void dio_ssp_start()
 
 	/* activate slave select pin */
 	DIO_SSEL_CLR;
+}
+
+static void dio_ssp_stop()
+{
+	; // TBD
+}
+
+static void cc2400_idle()
+{
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
+
+#ifdef UBERTOOTH_ONE
+	PAEN_CLR;
+	HGM_CLR;
+#endif
+
+	RXLED_CLR;
+	TXLED_CLR;
+	mode = MODE_IDLE;
 }
 
 /* start un-buffered rx */
@@ -1242,6 +1268,8 @@ void cc2400_repeater()
 #endif
 }
 
+/* TODO - return whether hop happened, or should caller have to keep
+ * track of this? */
 void hop(void)
 {
 	do_hop = 0;
@@ -1264,7 +1292,7 @@ void hop(void)
 		return;
 	}
 
-        /* IDLE mode */
+        /* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
 	
@@ -1279,11 +1307,11 @@ void hop(void)
 	cc2400_strobe(SRX);
 }
 
-static void send_usb(void)
+static void handle_usb(void)
 {
 	u8 epstat;
 
-	/* send via USB */
+	/* write queued packets to USB if possible */
 	epstat = USBHwEPGetStatus(BULK_IN_EP);
 	if (!(epstat & EPSTAT_B1FULL)) {
 		dequeue();
@@ -1291,6 +1319,8 @@ static void send_usb(void)
 	if (!(epstat & EPSTAT_B2FULL)) {
 		dequeue();
 	}
+
+	/* polled "interrupt" */
 	USBHwISR();
 }
 
@@ -1400,83 +1430,18 @@ void bt_stream_rx()
 		}
 
 	rx_continue:
-		send_usb();
+		handle_usb();
 		rx_tc = 0;
 		rx_err = 0;
 	}
 
+	/* This call is a nop so far. Since bt_rx_stream() starts the
+	 * stream, it makes sense that it would stop it. TODO - how
+	 * should setup/teardown be handled? Should every new mode be
+	 * starting from scratch? */
+	dio_ssp_stop();
 	cs_trigger_disable();
 	rx_pkts = 0; // Already 0, or requested mode changed
-	RXLED_CLR;
-	//cs2400_stop();
-}
-
-/*
- * This is like bt_stream_rx except it hops along with a target piconet.  This
- * does not do any packet detection; it just tunes the radio 1600 times per
- * second to hop along with a target and streams as many raw symbols per hop
- * (many of which represent background noise, not actual packets) as possible.
- *
- * FIXME This is mostly copied from elsewhere and is incomplete.
- */
-void bt_hop_rx()
-{
-	u8 *tmp = NULL;
-	u8 epstat;
-	int i;
-	
-	RXLED_SET;
-	
-	queue_init();
-	dio_ssp_init();
-	dma_init();
-	dio_ssp_start();
-	cc2400_rx();
-	
-	// could use T0MR1 interrupts
-	//T0MR1 = ;
-	//T0MCR = TMCR_MR1R | TMCR_MR1I;
-	//
-	// probably should just take a 400 symbol chunk instead and
-        // tune/wait after that
-        //
-        // NOTE: TIMER0 is 3200 Hz
-	/* wait for DMA transfer, and take RSSI readings while waiting */
-	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
-		rssi_reset();
-		while ((rx_tc == 0) && (rx_err == 0))
-			rssi_add((int8_t)cc2400_get(RSSI) >> 8);
-
-		if (rx_tc % 2) {
-			/* swap buffers */
-			tmp = active_rxbuf;
-			active_rxbuf = idle_rxbuf;
-			idle_rxbuf = tmp;
-		}
-		if (rx_err)
-			status |= DMA_ERROR;
-		if (rx_tc) {
-			if (rx_tc > 1)
-				status |= DMA_OVERFLOW;
-			if (enqueue(idle_rxbuf))
-				--rx_pkts;
-			else
-				status |= FIFO_OVERFLOW;
-		}
-
-		/* send via USB */
-		epstat = USBHwEPGetStatus(BULK_IN_EP);
-		if (!(epstat & EPSTAT_B1FULL))
-			dequeue();
-		if (!(epstat & EPSTAT_B2FULL))
-			dequeue();
-		USBHwISR();
-
-		rx_tc = 0;
-		rx_err = 0;
-	}
-	rx_pkts = 0; // Already 0, or requested mode changed
-	RXLED_CLR;
 }
 
 /* spectrum analysis */
@@ -1520,13 +1485,8 @@ void specan()
 				//FIXME ought to use different packet type
 				enqueue(buf);
 				i = 0;
-				/* send via USB */
-				epstat = USBHwEPGetStatus(BULK_IN_EP);
-				if (!(epstat & EPSTAT_B1FULL))
-					dequeue();
-				if (!(epstat & EPSTAT_B2FULL))
-					dequeue();
-				USBHwISR();
+
+				handle_usb();
 			}
 
 			cc2400_strobe(SRFOFF);
@@ -1535,14 +1495,6 @@ void specan()
 	}
 	mode = MODE_IDLE;
 	RXLED_CLR;
-}
-
-void cc2400_idle()
-{
-	clock_start();
-	mode = MODE_IDLE;
-	RXLED_CLR;
-	TXLED_CLR;
 }
 
 /* LED based spectrum analysis */
@@ -1635,9 +1587,6 @@ int main()
 		else if (requested_mode == MODE_LED_SPECAN && mode != MODE_LED_SPECAN)
 			led_specan();
 		else if (requested_mode == MODE_IDLE && mode != MODE_IDLE)
-			/* TODO - this routine calls clock_start(),
-			 * which is overkill for putting the CC2400
-			 * into idle mode. */
 			cc2400_idle();
 		//FIXME do other modes like this
 	}
