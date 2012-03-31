@@ -1338,7 +1338,6 @@ void bt_stream_rx()
 	int8_t rssi;
 	int i;
 	int8_t rssi_at_trigger;
-	int8_t sample_at_trigger;
 
 	mode = MODE_RX_SYMBOLS;
 
@@ -1372,16 +1371,18 @@ void bt_stream_rx()
 		 * while waiting for DMA, but RSSI sampling does not
 		 * cover all the symbols in a DMA transfer. Can not do
 		 * RSSI sampling in CS interrupt, but could log time
-		 * at multiple trigger points there. */
+		 * at multiple trigger points there. The MAX() below
+		 * helps with statistics in the case that cs_trigger
+		 * happened before the loop started. */
 		rssi_reset();
 		rssi_at_trigger = INT8_MIN;
 		while ((rx_tc == 0) && (rx_err == 0)) {
 			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
-			rssi_add(rssi);
 			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi = MAX(rssi,(cs_threshold+54));
 				rssi_at_trigger = rssi;
-				sample_at_trigger = rssi_count; // unused
 			}
+			rssi_add(rssi);
 		}
 
 		/* Keep buffer swapping in sync with DMA. */
