@@ -82,12 +82,9 @@ volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
 
-/* Moving average (IIR) of average RSSI of packets. TODO - use integer
- * math instead of float to get rid of a lot of code. If ALPHA is
- * 1/2^N, N<=8, then s16 values (s8.8) with a 32-bit accumulator
- * would require only shift/add/sub. */
-float rssi_iir[79] = {-40.0};
-#define RSSI_IIR_ALPHA 0.01
+/* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
+int16_t rssi_iir[79] = {0};
+#define RSSI_IIR_ALPHA 3       // 3/256 = .012
 
 /*
  * CLK_TUNE_TIME is the duration in units of 100 ns that we reserve for tuning
@@ -241,7 +238,7 @@ typedef struct {
 int8_t rssi_max;
 int8_t rssi_min;
 uint8_t rssi_count = 0;
-int16_t rssi_sum = 0;
+int32_t rssi_sum = 0;
 
 static void rssi_reset(void)
 {
@@ -255,7 +252,7 @@ static void rssi_add(int8_t v)
 {
 	rssi_max = (v > rssi_max) ? v : rssi_max;
 	rssi_min = (v < rssi_min) ? v : rssi_min;
-	rssi_sum += v;
+	rssi_sum += ((int32_t)v * 256);  // scaled int math (x256)
 	rssi_count += 1;
 }
 
@@ -263,7 +260,8 @@ static void rssi_add(int8_t v)
 static void rssi_iir_update(void)
 {
 	int i;
-	float avg = (float)rssi_sum / (float)rssi_count;
+	int32_t avg;
+	int32_t rssi_iir_acc;
 
 	/* Use array to track 79 Bluetooth channels, or just first
 	 * slot of array if not sweeping. */
@@ -272,8 +270,14 @@ static void rssi_iir_update(void)
 	else
 		i = 0;
 
-	rssi_iir[i] = rssi_iir[i] * (1.0-RSSI_IIR_ALPHA)
-		+ avg * RSSI_IIR_ALPHA;
+	// IIR using scaled int math (x256)
+	if (rssi_count != 0)
+		avg = (rssi_sum  + 128) / rssi_count;
+	else
+		avg = 0; // really an error
+	rssi_iir_acc = rssi_iir[i] * (256-RSSI_IIR_ALPHA);
+	rssi_iir_acc += avg * RSSI_IIR_ALPHA;
+	rssi_iir[i] = (int16_t)((rssi_iir_acc + 128) / 256);
 }
 
 #define CS_SAMPLES_1 1
@@ -351,9 +355,9 @@ static int enqueue(u8 *buf)
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
 	if (hop_mode == HOP_SWEEP)
-		f->rssi_iir = (int8_t)(rssi_iir[channel-2402]+0.5);
+		f->rssi_iir = (int8_t)((rssi_iir[channel-2402] + 128)/256);
 	else
-		f->rssi_iir = (int8_t)(rssi_iir[0]+0.5);
+		f->rssi_iir = (int8_t)((rssi_iir[0] + 128)/256);
 	f->rssi_count = rssi_count;
 
 	USRLED_SET;
