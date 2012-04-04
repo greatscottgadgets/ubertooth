@@ -49,7 +49,6 @@
 #include "packetsource_ubertooth.h"
 #include "packet_btbb.h"
 #include "phy_btbb.h"
-#include "tracker_btbb.h"
 
 GlobalRegistry *globalreg = NULL;
 
@@ -82,9 +81,6 @@ int ubertooth_register(GlobalRegistry *in_globalreg) {
 			new Dumpfile_Pcap(globalreg, "pcapbtbb", KDLT_BTBB,
 							  globalreg->pcapdump, NULL, NULL);
 		btbbdump->SetVolatile(1);
-
-		// Tracker
-		Tracker_BTBB *trackbtbb = new Tracker_BTBB(globalreg);
 
 		// Phyneutral btbb phy
 		if (globalreg->devicetracker->RegisterPhyHandler(new Btbb_Phy(globalreg)) < 0) {

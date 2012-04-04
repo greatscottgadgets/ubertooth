@@ -16,33 +16,22 @@ CFLAGS	?= $(CFLAGS) $(CPPFLAGS)
 CFLAGS	+= -I/usr/include -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 
 SRVOBJS = packetsource_ubertooth.o packet_btbb_types.o \
-			phy_btbb.o tracker_btbb.o kismet_ubertooth.o \
+			phy_btbb.o kismet_ubertooth.o \
 			$(RXTX_SRC_DIR)/ubertooth.o
 SRVOUT	= ubertooth.so
 
-CLIOBJS = ubertooth_ui.o
-CLIOUT  = ubertooth_ui.so
-
-all:	$(SRVOUT) $(CLIOUT)
-
-$(CLIOUT):	$(CLIOBJS)
-	$(CC) $(PLUGINLDFLAGS) $(CFLAGS) $(CLIOBJS) -o $(CLIOUT) $(LIBS)
+all:	$(SRVOUT)
 
 $(SRVOUT):	$(SRVOBJS)
 	$(CC) $(PLUGINLDFLAGS) $(CFLAGS) $(SRVOBJS) -o $(SRVOUT) $(LIBS)
 
-install:	$(SRVOUT) $(CLIOUT)
+install:	$(SRVOUT)
 	mkdir -p $(DESTDIR)$(prefix)/$(LIBDIR)/kismet/
 	install -o $(INSTUSR) -g $(INSTGRP) -m 644 $(SRVOUT) $(DESTDIR)$(prefix)/$(LIBDIR)/kismet/$(SRVOUT)
-	mkdir -p $(DESTDIR)$(prefix)/$(LIBDIR)/kismet_client/
-	install -o $(INSTUSR) -g $(INSTGRP) -m 644 $(CLIOUT) $(DESTDIR)$(prefix)/$(LIBDIR)/kismet_client/$(CLIOUT)
 
-
-userinstall:	$(SRVOUT) $(CLIOUT)
+userinstall:	$(SRVOUT)
 	mkdir -p ${HOME}/.kismet/plugins/
 	install -v $(SRVOUT) ${HOME}/.kismet/plugins/$(SRVOUT)
-	mkdir -p ${HOME}/.kismet/client_plugins/
-	install -v $(CLIOUT) ${HOME}/.kismet/client_plugins/$(CLIOUT)
 
 clean:
 	@-rm -f *.o
