@@ -276,6 +276,10 @@ int Btbb_Phy::TrackerBtbb(kis_packet *in_pack) {
 		btbb->lap = pi->lap;
 		btbb->bdaddr = mac_addr(bdaddr, 6);
 
+		// Bluetooth devices are all networks, so they're all APs.  I guess.
+		commondev->basic_type_set |= 
+			(KIS_DEVICE_BASICTYPE_AP | KIS_DEVICE_BASICTYPE_CLIENT |
+			 KIS_DEVICE_BASICTYPE_PEER);
 		commondev->type_string = "Bluetooth";
 		commondev->name = btbb->bdaddr.Mac2String();
 
