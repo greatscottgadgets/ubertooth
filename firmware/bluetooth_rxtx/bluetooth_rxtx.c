@@ -77,7 +77,8 @@ volatile u32 clkn_low;                       // clkn 3200 Hz counter
 u8 hop_mode = HOP_NONE;
 u8 do_hop = 0;                              // set by timer interrupt
 u8 cs_no_squelch = 0;                       // rx all packets if set
-int8_t cs_threshold = CS_THRESHOLD_DEFAULT; // carrier sense threshold in dBm
+int8_t cs_threshold_req=CS_THRESHOLD_DEFAULT; // requested CS threshold in dBm
+int8_t cs_threshold_cur=CS_THRESHOLD_DEFAULT; // current CS threshold in dBm
 volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
@@ -288,16 +289,30 @@ static void rssi_iir_update(void)
  * global. CC2400 RSSI is determined by 54dBm + level. CS threshold is
  * in 4dBm steps, so the provided level is rounded to the nearest
  * multiple of 4 by adding 56. Useful range is -100 to -20. */
-
-/* TODO - if level > 0, take this as a minimum SNR. Compare per channel IIR
- * average to current RSSI.
- */
-static void cs_trigger_set(int8_t level, u8 samples)
+static void cs_threshold_set(int8_t level, u8 samples)
 {
-	cs_no_squelch = (level <= -120);
 	level = MIN(MAX(level,-120),(-20));
 	cc2400_set(RSSI, (uint8_t)((level + 56) & (0x3f << 2)) | (samples&3));
-	cs_threshold = level;
+	cs_threshold_cur = level;
+	cs_no_squelch = (level <= -120);
+}
+
+static void cs_threshold_calc_and_set(void)
+{
+	int8_t level;
+
+	/* If threshold is max/avg based (>0), reset here while rx is
+	 * off.  TODO - max-to-iir only works in SWEEP mode, where the
+	 * channel is known to be in the BT band, i.e., rssi_iir has a
+	 * value for it. */
+	if ((hop_mode == HOP_SWEEP) && (cs_threshold_req > 0)) {
+		int8_t rssi = (int8_t)((rssi_iir[channel-2402] + 128)/256);
+		level = rssi - 54 + cs_threshold_req;
+	}
+	else {
+		level = cs_threshold_req;
+	}
+	cs_threshold_set(level, CS_SAMPLES_4);
 }
 
 /* CS comes from CC2400 GIO6, which is LPC P2.2, active low. GPIO
@@ -699,6 +714,10 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			channel = MAX(channel, MIN_FREQ);
 			channel = MIN(channel, MAX_FREQ);
 		}
+
+		/* CS threshold is mode-dependent. Update it after
+		 * possible mode change. TODO - kludgy. */
+		cs_threshold_calc_and_set();
 		break;
 
 	case UBERTOOTH_SET_ISP:
@@ -743,11 +762,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_SQUELCH:
-		cs_trigger_set((int8_t)pSetup->wValue,CS_SAMPLES_4);
+		cs_threshold_req = (int8_t)pSetup->wValue;
+		cs_threshold_calc_and_set();
 		break;
 
 	case UBERTOOTH_GET_SQUELCH:
-		pbData[0] = cs_threshold;
+		pbData[0] = cs_threshold_req;
 		*piLen = 1;
 		break;
 
@@ -1013,9 +1033,10 @@ static void cc2400_rx()
 		/* oops */
 		return;
 	}
-        /* RSSI - set carrier sense threshold to -70dBm, use 8-symbol
-	 * averaging. */
-	cs_trigger_set(cs_threshold, CS_SAMPLES_4);
+
+	// Set up CS register
+	cs_threshold_calc_and_set();
+
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -1305,16 +1326,22 @@ void hop(void)
         /* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
-	
+
 	/* Retune */
 	cc2400_set(FSDIV, channel - 1);
 	
+	/* Update CS register if hopping.  */
+	if (hop_mode == HOP_SWEEP) {
+		cs_threshold_calc_and_set();
+	}
+
 	/* Wait for lock */
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
 	
 	/* RX mode */
 	cc2400_strobe(SRX);
+
 }
 
 static void handle_usb(void)
@@ -1383,7 +1410,7 @@ void bt_stream_rx()
 		while ((rx_tc == 0) && (rx_err == 0)) {
 			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
 			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
-				rssi = MAX(rssi,(cs_threshold+54));
+				rssi = MAX(rssi,(cs_threshold_cur+54));
 				rssi_at_trigger = rssi;
 			}
 			rssi_add(rssi);
@@ -1420,7 +1447,7 @@ void bt_stream_rx()
 			cs_trigger = 0;
 		}
 
-		if (rssi_max >= (cs_threshold+54)) {
+		if (rssi_max >= (cs_threshold_cur + 54)) {
 			status |= RSSI_TRIGGER;
 			hold = CS_HOLD_TIME;
 		}
