@@ -256,16 +256,15 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		return;
 
 	clk100ns = le32toh(rx->clk100ns); // wire format is le32
-	//printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min, rx->rssi_max, rx->rssi_avg, rx->rssi_count);
+	//printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
 
 	unpack_symbols(rx->data, symbols[bank]);
 
 	// Shift rssi max history and append current max
 	channel_rssi_history = rssi_history[rx->channel];
-	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
-		int8_t v = channel_rssi_history[i];
-		channel_rssi_history[i - 1] = v;
-	}
+	memmove(channel_rssi_history,
+		channel_rssi_history+1,
+		RSSI_HISTORY_LEN-1);
 	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
 	// Signal starts in oldest bank, but may cross into second oldest bank.
