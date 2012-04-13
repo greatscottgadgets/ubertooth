@@ -31,6 +31,7 @@
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 
 //this stuff should probably be in a struct managed by the calling program
+usb_pkt_rx packets[NUM_BANKS];
 char symbols[NUM_BANKS][BANK_LEN];
 u8 *empty_buf = NULL;
 u8 *full_buf = NULL;
@@ -38,6 +39,8 @@ u8 really_full = 0;
 struct libusb_transfer *rx_xfer = NULL;
 char Quiet= false;
 char Ubertooth_Device= -1;
+FILE *dumpfile = NULL;
+int max_ac_errors = 4;
 
 void show_libusb_error(int error_code)
 {
@@ -255,6 +258,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	if (rx->channel > (NUM_CHANNELS-1))
 		return;
 
+	/* Copy packet (for dump) */
+	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
+
 	clk100ns = le32toh(rx->clk100ns); // wire format is le32
 	//printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
 
@@ -275,15 +281,11 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
-	// RF Squelch before expensive code. Reduces false positives.
-	//if (snr < SNR_SQUELCH_LEVEL)
-	//	return;
-
 	/* Copy 2 banks for analysis */
 	for (i = 0; i < 2; i++)
-		memmove(syms + i * BANK_LEN,
-			symbols[(i + 1 + bank) % NUM_BANKS],
-			BANK_LEN);
+		memcpy(syms + i * BANK_LEN,
+		       symbols[(i + 1 + bank) % NUM_BANKS],
+		       BANK_LEN);
 
 	/* No piconet given, sniff for any LAP */
 	if (pn == NULL) {
@@ -294,7 +296,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		r = find_ac(syms, BANK_LEN, pn->LAP);
 	}
 
-	if (r.offset > -1) {
+	if ((r.offset > -1) && (r.error_count <= max_ac_errors)) {
 
 		/* Native (Ubertooth) clock with period 312.5 uS. */
 		clk0 = (rx->clkn_high << 20)
@@ -314,9 +316,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			/* Determining UAP requires more symbols. Copy
 			 * remaining banks. */
 			for (i = 2; i < NUM_BANKS; i++)
-				memmove(syms + i * BANK_LEN,
-					symbols[(i + 1 + bank) % NUM_BANKS],
-					BANK_LEN);
+				memcpy(syms + i * BANK_LEN,
+				       symbols[(i + 1 + bank) % NUM_BANKS],
+				       BANK_LEN);
 			
 			init_packet(&pkt, &syms[r.offset],
 				    BANK_LEN * NUM_BANKS - r.offset);
@@ -327,6 +329,16 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 				if (UAP_from_header(&pkt, pn))
 					exit(0);
 			}
+		}
+
+		/* If dumpfile is specified, write out all banks to
+		 * the file. There could be duplicate data in the dump
+		 * if more than one LAP is found within the span of
+		 * NUM_BANKS. */
+		if (dumpfile) {
+			for(i = 0; i < NUM_BANKS; i++)
+				fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+				       1, sizeof(usb_pkt_rx), dumpfile);
 		}
 
 	}
@@ -484,9 +496,9 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	/* Copy 2 banks for analysis */
 	for (i = 0; i < 2; i++)
-		memmove(syms + i * BANK_LEN,
-				symbols[(i + 1 + bank) % NUM_BANKS], BANK_LEN);
-
+		memcpy(syms + i * BANK_LEN,
+		       symbols[(i + 1 + bank) % NUM_BANKS], BANK_LEN);
+	
 	for (i = 32; i < (BANK_LEN + 32); i++) {
 		access_address >>= 1;
 		access_address |= (syms[i] << 31);
