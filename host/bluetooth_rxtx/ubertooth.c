@@ -524,8 +524,7 @@ static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	for (i = 0; i < BANK_LEN; i++)
-		printf("%c", symbols[bank][i]);
+	fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
@@ -536,8 +535,7 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t time; /* in 100 nanosecond units */
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	for (i = 0; i < PKT_LEN; i++)
-		printf("%c", buf[i]);
+	fwrite(buf, sizeof(u8), PKT_LEN, stdout);
 }
 
 /* dump received symbols to stdout */
