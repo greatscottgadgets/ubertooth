@@ -307,7 +307,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 
 		systime = time(NULL);
 		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
-		       systime, rx->channel, r.LAP, r.error_count,
+		       (int)systime, rx->channel, r.LAP, r.error_count,
 		       clk100ns, clk1, signal_level, noise_level, snr);
 
 		/* Found a packet with the requested LAP */
@@ -337,7 +337,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		 * NUM_BANKS. */
 		if (dumpfile) {
 			for(i = 0; i < NUM_BANKS; i++)
-				fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+				(void)fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
 				       1, sizeof(usb_pkt_rx), dumpfile);
 		}
 
@@ -505,7 +505,7 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 		if (access_address == 0x8e89bed6) { // advertising access address
 			systime = time(NULL);
 			printf("systime=%u freq=%d addr=%08x clk100ns=%u s=%d n=%d snr=%d\n",
-					systime, rx->channel + 2402, access_address,
+					(int)systime, rx->channel + 2402, access_address,
 					clk100ns, signal_level, noise_level, snr);
 			// hard coded to maximum packet length (46)
 			for (j = 0; j < 46; j++) {
@@ -536,7 +536,7 @@ static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
+	(void)fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
@@ -547,7 +547,7 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t time; /* in 100 nanosecond units */
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	fwrite(buf, sizeof(u8), PKT_LEN, stdout);
+	(void)fwrite(buf, sizeof(u8), PKT_LEN, stdout);
 }
 
 /* dump received symbols to stdout */
