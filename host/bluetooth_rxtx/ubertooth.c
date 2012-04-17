@@ -253,6 +253,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	uint32_t clk0;
 	uint32_t clk1;
 	time_t systime;
+	size_t items_written;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -337,8 +338,10 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		 * NUM_BANKS. */
 		if (dumpfile) {
 			for(i = 0; i < NUM_BANKS; i++)
-				(void)fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
-				       1, sizeof(usb_pkt_rx), dumpfile);
+				items_written = fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+						1, sizeof(usb_pkt_rx), dumpfile);
+				if (items_written == 0)
+					fprintf(stderr, "fwrite() to output failed\n");
 		}
 
 	}
@@ -533,10 +536,13 @@ void rx_btle_file(FILE* fp)
 static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 {
 	int i;
+	size_t items_written;
 
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	(void)fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
+	items_written = fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
+	if (items_written == 0)
+		fprintf(stderr, "fwrite() to output failed\n");
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
@@ -545,9 +551,12 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	int i;
 	int8_t rssi;
 	uint32_t time; /* in 100 nanosecond units */
+	size_t items_written;
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	(void)fwrite(buf, sizeof(u8), PKT_LEN, stdout);
+	items_written = fwrite(buf, sizeof(u8), PKT_LEN, stdout);
+	if (items_written == 0)
+		fprintf(stderr, "fwrite() to output failed\n");
 }
 
 /* dump received symbols to stdout */
