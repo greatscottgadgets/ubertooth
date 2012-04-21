@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
 	int have_lap = 0;
 	int have_uap = 0;
 	char *end;
-	int r = 0;
 	struct libusb_device_handle *devh = NULL;
 	FILE* infile = NULL;
 	piconet pn;

@@ -24,6 +24,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include <endian.h>
+
 #include <bluetooth_packet.h>
 
 #include "ubertooth.h"
@@ -39,8 +41,11 @@ u8 really_full = 0;
 struct libusb_transfer *rx_xfer = NULL;
 char Quiet= false;
 char Ubertooth_Device= -1;
+FILE *infile = NULL;
 FILE *dumpfile = NULL;
+int dumpfile_experimental_format = 0;
 int max_ac_errors = 4;
+uint32_t systime;
 
 void show_libusb_error(int error_code)
 {
@@ -96,7 +101,7 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 			devh= NULL;
 			}
 		else {
-			libusb_open(usb_list[ubertooth_devs[Ubertooth_Device]], &devh);
+			libusb_open(usb_list[ubertooth_devs[(uint8_t)Ubertooth_Device]], &devh);
 			}
 		}
 	return devh;
@@ -137,7 +142,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		uint16_t num_blocks, rx_callback cb, void* cb_args)
 {
 	int r;
-	int i, j, k;
+	int i;
 	int xfer_blocks;
 	int num_xfers;
 	uint8_t bank = 0;
@@ -201,10 +206,22 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 {
 	uint8_t bank = 0;
 	uint8_t buf[BUFFER_SIZE];
+	size_t nitems;
 
 	//fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
 
-	while (fread(buf, sizeof(buf[0]), PKT_LEN, fp)) {
+	while(1) {
+		if (dumpfile_experimental_format) {
+			uint32_t systime_be;
+			nitems = fread(&systime_be, sizeof(systime_be), 1, fp);
+			systime = (time_t)be32toh(systime_be);
+			if (nitems != 1)
+				return 0;
+		}
+
+		nitems = fread(buf, sizeof(buf[0]), PKT_LEN, fp);
+		if (nitems != PKT_LEN)
+			return 0;
 		(*cb)(cb_args, (usb_pkt_rx *)buf, bank);
 		bank = (bank + 1) % NUM_BANKS;
 	}
@@ -231,7 +248,7 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
  * processor load.  TODO: this should be a command line parameter. */
 //#define SNR_SQUELCH_LEVEL 0
 
-static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {INT8_MIN};
+static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 //static float rssi_iir[NUM_CHANNELS] = {0.0};  // Running average
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
@@ -243,7 +260,6 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	access_code r;
-	uint8_t channel;
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	packet pkt;
 	char *channel_rssi_history;
@@ -252,8 +268,6 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	int8_t snr;
 	uint32_t clk0;
 	uint32_t clk1;
-	time_t systime;
-	size_t items_written;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -306,7 +320,11 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
-		systime = time(NULL);
+		/* When reading a file in experimental format, caller
+		 * will read systime before calling this routine, so
+		 * do not overwrite. Otherwise, get current time. */
+		if ( !((infile != NULL) && dumpfile_experimental_format) )
+			systime = time(NULL);
 		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 		       (int)systime, rx->channel, r.LAP, r.error_count,
 		       clk100ns, clk1, signal_level, noise_level, snr);
@@ -335,15 +353,19 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		/* If dumpfile is specified, write out all banks to
 		 * the file. There could be duplicate data in the dump
 		 * if more than one LAP is found within the span of
-		 * NUM_BANKS. */
+		 * NUM_BANKS. If experiment mode is selected, extra
+		 * info is written out. For now, it just prepends
+		 * capture time. */
 		if (dumpfile) {
-			for(i = 0; i < NUM_BANKS; i++)
-				items_written = fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
-						1, sizeof(usb_pkt_rx), dumpfile);
-				if (items_written == 0)
-					fprintf(stderr, "fwrite() to output failed\n");
+			for(i = 0; i < NUM_BANKS; i++) {
+				if (dumpfile_experimental_format) {
+					uint32_t systime_be = htobe32(systime);
+					fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
+				}
+				fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+				       1, sizeof(usb_pkt_rx), dumpfile);
+			}
 		}
-
 	}
 }
 
@@ -379,7 +401,6 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
-	int8_t *rssi;
 	packet pkt;
 	piconet* pn = (piconet *)args;
 	uint8_t uap = pn->UAP;
@@ -459,14 +480,14 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	uint32_t access_address = 0;
-	uint8_t channel;
+	//UNUSED uint8_t channel;
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	char *channel_rssi_history;
 	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
-	uint32_t clk0;
-	uint32_t clk1;
+	//UNUSED uint32_t clk0;
+	//UNUSED uint32_t clk1;
 	time_t systime;
 	uint8_t byte;
 
@@ -535,28 +556,21 @@ void rx_btle_file(FILE* fp)
 
 static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 {
-	int i;
-	size_t items_written;
-
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	items_written = fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
-	if (items_written == 0)
-		fprintf(stderr, "fwrite() to output failed\n");
+	fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 {
 	uint8_t *buf = (uint8_t*)rx;
-	int i;
-	int8_t rssi;
-	uint32_t time; /* in 100 nanosecond units */
-	size_t items_written;
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	items_written = fwrite(buf, sizeof(u8), PKT_LEN, stdout);
-	if (items_written == 0)
-		fprintf(stderr, "fwrite() to output failed\n");
+	if (dumpfile_experimental_format) {
+		uint64_t time_be = htobe64((uint64_t)time(NULL));
+		fwrite(&time_be, 1, sizeof(uint64_t), stdout);
+	}
+	fwrite(buf, sizeof(u8), PKT_LEN, stdout);
 }
 
 /* dump received symbols to stdout */
@@ -623,19 +637,21 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];
-				if (buffer[j + 2] > 150) //FIXME 
+				if (buffer[j + 2] > 150) { //FIXME 
 					if(gnuplot == GNUPLOT_NORMAL)
 						printf("%d %d\n", frequency, buffer[j + 2]);
 					else if(gnuplot == GNUPLOT_3D)
 						printf("%f %d %d\n", ((double)time)/10000000, frequency, buffer[j + 2]);
 					else
 						printf("%f, %d, %d\n", ((double)time)/10000000, frequency, buffer[j + 2]);
+				}
 				if (frequency == high_freq && !gnuplot)
 					printf("\n");
 			}
 		}
 		fflush(stderr);
 	}
+	return 0;
 }
 
 void ubertooth_stop(struct libusb_device_handle *devh)
