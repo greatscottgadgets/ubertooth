@@ -360,10 +360,13 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			for(i = 0; i < NUM_BANKS; i++) {
 				if (dumpfile_experimental_format) {
 					uint32_t systime_be = htobe32(systime);
-					fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
+					(void)fwrite(&systime_be, 
+						     sizeof(systime_be), 1,
+						     dumpfile);
 				}
-				fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
-				       1, sizeof(usb_pkt_rx), dumpfile);
+				(void)fwrite(
+					&packets[(i + 1 + bank) % NUM_BANKS],
+					1, sizeof(usb_pkt_rx), dumpfile);
 			}
 		}
 	}
@@ -558,7 +561,7 @@ static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 {
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
+	(void)fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
@@ -568,9 +571,9 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	if (dumpfile_experimental_format) {
 		uint64_t time_be = htobe64((uint64_t)time(NULL));
-		fwrite(&time_be, 1, sizeof(uint64_t), stdout);
+		(void)fwrite(&time_be, 1, sizeof(uint64_t), stdout);
 	}
-	fwrite(buf, sizeof(u8), PKT_LEN, stdout);
+	(void)fwrite(buf, sizeof(u8), PKT_LEN, stdout);
 }
 
 /* dump received symbols to stdout */
