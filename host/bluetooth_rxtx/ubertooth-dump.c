@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	//FIXME cli mod options
-	//cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
+	/* FIXME cli mod options */
+	/* cmd_set_modulation(devh, MOD_BT_LOW_ENERGY); */
 	rx_dump(devh, full);
 
 	ubertooth_stop(devh);

@@ -72,14 +72,14 @@ int main(int argc, char *argv[])
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
 
-	// set command states to negative as a starter
-	// setting to 0 means 'do it'
-	// setting to positive is value of specified argument
+	/* set command states to negative as a starter
+	 * setting to 0 means 'do it'
+	 * setting to positive is value of specified argument */
 	do_stop= do_flash= do_isp= do_leds= do_part= do_reset= -1;
 	do_serial= do_tx= do_palevel= do_channel= do_led_specan= -1;
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
 	do_range_result= do_all_leds= do_identify= -1;
-	do_set_squelch= -1, do_get_squelch= -1;
+	do_set_squelch= -1, do_get_squelch= -1; squelch_level= 0;
 
 	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::")) != EOF) {
 		switch(opt) {
@@ -99,13 +99,13 @@ int main(int argc, char *argv[])
 			if (optarg)
 				do_leds= atoi(optarg);
 			else
-				do_leds= 2; // can't use 0 as it's a valid option
+				do_leds= 2; /* can't use 0 as it's a valid option */
 			break;
 		case 'd':
 			if (optarg)
 				do_all_leds= atoi(optarg);
 			else
-				do_all_leds= 2; // can't use 0 as it's a valid option
+				do_all_leds= 2; /* can't use 0 as it's a valid option */
 			break;
 		case 'p':
 			do_part= 0;
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// initialise device
+	/* initialise device */
 	devh = ubertooth_start();
 	if (devh == NULL) {
 		usage();
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 		r= cmd_stop(devh);
 	}
 
-	// device configuration actions
+	/* device configuration actions */
 	if(do_all_leds == 0 || do_all_leds == 1) {
 		cmd_set_usrled(devh, do_all_leds);
 		cmd_set_rxled(devh, do_all_leds);
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 	if(do_palevel > 0)
 		r= cmd_set_palevel(devh, do_palevel);
 	
-	// reporting actions
+	/* reporting actions */
 	if(do_all_leds == 2) {
 		printf("USR LED status: %d\n", cmd_get_usrled(devh));
 		printf("RX LED status : %d\n", cmd_get_rxled(devh));
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 		r = (r >= 0) ? 0 : r;
 	}
 
-	// final actions
+	/* final actions */
 	if(do_flash == 0) {
 		printf("Entering flash programming (DFU) mode\n");
 		return cmd_flash(devh);

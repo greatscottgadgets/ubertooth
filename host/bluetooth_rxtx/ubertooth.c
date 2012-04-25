@@ -32,7 +32,7 @@
 
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 
-//this stuff should probably be in a struct managed by the calling program
+/* this stuff should probably be in a struct managed by the calling program */
 usb_pkt_rx packets[NUM_BANKS];
 char symbols[NUM_BANKS][BANK_LEN];
 u8 *empty_buf = NULL;
@@ -163,8 +163,10 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	num_xfers = num_blocks / xfer_blocks;
 	num_blocks = num_xfers * xfer_blocks;
 
-	//fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
-			//num_blocks, xfer_size);
+	/*
+	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
+		num_blocks, xfer_size);
+	*/
 
 	empty_buf = &rx_buf1[0];
 	full_buf = &rx_buf2[0];
@@ -189,7 +191,9 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 				return -1;
 			}
 		}
-		//fprintf(stderr, "transfer completed\n");
+		/*
+		fprintf(stderr, "transfer completed\n");
+		*/
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
@@ -208,7 +212,11 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
 
-	//fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
+	/* unused parameter */ num_blocks = num_blocks;
+
+        /*
+	fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
+	*/
 
 	while(1) {
 		if (dumpfile_experimental_format) {
@@ -242,14 +250,12 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 
 #define NUM_CHANNELS 79
 #define RSSI_HISTORY_LEN NUM_BANKS
-#define RSSI_BASE (-54)       // CC2400 constant ... do not change
+#define RSSI_BASE (-54)       /* CC2400 constant ... do not change */
 
 /* Ignore packets with a SNR lower than this in order to reduce
  * processor load.  TODO: this should be a command line parameter. */
-//#define SNR_SQUELCH_LEVEL 0
 
 static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
-//static float rssi_iir[NUM_CHANNELS] = {0.0};  // Running average
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
@@ -276,23 +282,24 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	/* Copy packet (for dump) */
 	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
 
-	clk100ns = le32toh(rx->clk100ns); // wire format is le32
-	//printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
-
+	clk100ns = le32toh(rx->clk100ns); /* wire format is le32 */
+	/*
+	printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
+	*/
 	unpack_symbols(rx->data, symbols[bank]);
 
-	// Shift rssi max history and append current max
+	/* Shift rssi max history and append current max */
 	channel_rssi_history = rssi_history[rx->channel];
 	memmove(channel_rssi_history,
 		channel_rssi_history+1,
 		RSSI_HISTORY_LEN-1);
 	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
-	// Signal starts in oldest bank, but may cross into second oldest bank.
-	// Take the max or the 2 maxs.
+	/* Signal starts in oldest bank, but may cross into second
+	 * oldest bank.  Take the max or the 2 maxs. */
 	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
 
-	// Noise is an IIR of averages
+	/* Noise is an IIR of averages */
 	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
@@ -360,13 +367,14 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			for(i = 0; i < NUM_BANKS; i++) {
 				if (dumpfile_experimental_format) {
 					uint32_t systime_be = htobe32(systime);
-					(void)fwrite(&systime_be, 
-						     sizeof(systime_be), 1,
-						     dumpfile);
+					if (fwrite(&systime_be, 
+						   sizeof(systime_be), 1,
+						   dumpfile)
+					    != 1) {;}
 				}
-				(void)fwrite(
-					&packets[(i + 1 + bank) % NUM_BANKS],
-					1, sizeof(usb_pkt_rx), dumpfile);
+				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+					   sizeof(usb_pkt_rx), 1, dumpfile)
+				    != 1) {;}
 			}
 		}
 	}
@@ -409,11 +417,12 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 	uint8_t uap = pn->UAP;
 
 	channel = rx->channel;
-	time = le32toh(rx->clk100ns);  // wire format is le32
+	time = le32toh(rx->clk100ns);  /* wire format is le32 */
 	clkn_high = rx->clkn_high;
 	unpack_symbols(rx->data, symbols[bank]);
-	//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-
+	/*
+	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+	*/
 	/* awfully repetitious */
 	k = 0;
 	for (i = 0; i < 2; i++)
@@ -439,7 +448,7 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 				UAP_from_header(&pkt, pn);
 				if (!pn->have_clk6) {
 					printf("CLK1-27 discovery failed\n");
-					exit(1); //FIXME
+					exit(1); /* FIXME */
 					winnow(pn);
 				}
 				if (pn->have_clk27) {
@@ -483,25 +492,24 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
 	uint32_t access_address = 0;
-	//UNUSED uint8_t channel;
 	uint32_t clk100ns; /* in 100 nanosecond units */
 	char *channel_rssi_history;
 	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
-	//UNUSED uint32_t clk0;
-	//UNUSED uint32_t clk1;
 	time_t systime;
 	uint8_t byte;
+
+	/* unused parameter */ args = args;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
 		return;
 
-	clk100ns = le32toh(rx->clk100ns); // wire format is le32
+	clk100ns = le32toh(rx->clk100ns); /* wire format is le32 */
 	unpack_symbols(rx->data, symbols[bank]);
 
-	// Shift rssi max history and append current max
+	/* Shift rssi max history and append current max */
 	channel_rssi_history = rssi_history[rx->channel];
 	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
 		int8_t v = channel_rssi_history[i];
@@ -509,17 +517,13 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	}
 	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
-	// Signal starts in oldest bank, but may cross into second oldest bank.
-	// Take the max or the 2 maxs.
+	/* Signal starts in oldest bank, but may cross into second oldest bank.
+	 * Take the max or the 2 maxs. */
 	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
 
-	// Noise is an IIR of averages
+	/* Noise is an IIR of averages */
 	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
-
-	// RF Squelch before expensive code. Reduces false positives.
-	//if (snr < SNR_SQUELCH_LEVEL)
-	//	return;
 
 	/* Copy 2 banks for analysis */
 	for (i = 0; i < 2; i++)
@@ -529,12 +533,12 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	for (i = 32; i < (BANK_LEN + 32); i++) {
 		access_address >>= 1;
 		access_address |= (syms[i] << 31);
-		if (access_address == 0x8e89bed6) { // advertising access address
+		if (access_address == 0x8e89bed6) { /* advertising access address */
 			systime = time(NULL);
 			printf("systime=%u freq=%d addr=%08x clk100ns=%u s=%d n=%d snr=%d\n",
 					(int)systime, rx->channel + 2402, access_address,
 					clk100ns, signal_level, noise_level, snr);
-			// hard coded to maximum packet length (46)
+			/* hard coded to maximum packet length (46) */
 			for (j = 0; j < 46; j++) {
 				byte = 0;
 				for (k = 0; k < 8; k++) {
@@ -559,6 +563,8 @@ void rx_btle_file(FILE* fp)
 
 static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 {
+	/* unused parameter */ args = args;
+
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	(void)fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
@@ -567,6 +573,8 @@ static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 {
 	uint8_t *buf = (uint8_t*)rx;
+
+	/* unused parameter */ args = args; bank = bank;
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	if (dumpfile_experimental_format) {
@@ -640,7 +648,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];
-				if (buffer[j + 2] > 150) { //FIXME 
+				if (buffer[j + 2] > 150) { /* FIXME  */
 					if(gnuplot == GNUPLOT_NORMAL)
 						printf("%d %d\n", frequency, buffer[j + 2]);
 					else if(gnuplot == GNUPLOT_3D)
@@ -659,7 +667,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
-	//FIXME make sure xfers are not active
+	/* FIXME make sure xfers are not active */
 	libusb_free_transfer(rx_xfer);
 	if (devh != NULL)
 		libusb_release_interface(devh, 0);
@@ -910,7 +918,7 @@ int cmd_get_serial(struct libusb_device_handle* devh)
 		fprintf(stderr, "result not zero: %d\n", result[0]);
 		return 0;
 	}
-	//FIXME shouldn't print to stdout, should return complete serial number
+	/* FIXME shouldn't print to stdout, should return complete serial number */
 	printf("%08x", result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24));
 	printf("%08x", result[5] | (result[6] << 8) | (result[7] << 16) | (result[8] << 24));
 	printf("%08x", result[9] | (result[10] << 8) | (result[11] << 16) | (result[12] << 24));

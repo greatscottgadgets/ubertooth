@@ -18,6 +18,8 @@
 # Boston, MA 02110-1301, USA.
 
 CC = gcc
+OPTFLAGS = -O2
+ANGRYFLAGS = -Wall #-Wextra -pedantic
 OS = $(shell uname)
 ifeq ($(OS), FreeBSD)
 	LIBUSB = usb
@@ -26,6 +28,7 @@ else
 	LIBUSB = usb-1.0
 endif
 LIBBTBB = btbb
+CFLAGS += $(OPTFLAGS) $(ANGRYFLAGS)
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
 all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle

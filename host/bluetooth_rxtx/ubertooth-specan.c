@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
 
 	while (1)
-		//specan(devh, 512, 0xFFFF, 2268, 2794);
+		/* specan(devh, 512, 0xFFFF, 2268, 2794); */
 		if(gnuplot)
 			do_specan(devh, 512, 0xFFFF, lower, upper, gnuplot);
 		else

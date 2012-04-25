@@ -53,8 +53,8 @@
 #define XFER_LEN      (PKT_LEN * PKTS_PER_XFER)
 #define BANK_LEN      (SYM_LEN * PKTS_PER_XFER)
 
-// gnuplot output types
-// see https://github.com/dkogan/feedgnuplot for plotter
+/* gnuplot output types
+ * see https://github.com/dkogan/feedgnuplot for plotter */
 #define GNUPLOT_NORMAL		1
 #define GNUPLOT_3D		2
 
@@ -96,7 +96,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_LED_SPECAN   = 34,
 	UBERTOOTH_GET_BOARD_ID = 35,
 	UBERTOOTH_SET_SQUELCH  = 36,
-	UBERTOOTH_GET_SQUELCH  = 37,
+	UBERTOOTH_GET_SQUELCH  = 37
 };
 
 enum modulations {
