@@ -13,7 +13,7 @@ PLUGINLDFLAGS ?= $(LDFLAGS)
 PLUGINLDFLAGS += -shared -rdynamic
 LIBS	+= -lstdc++ -lusb-1.0 -lpthread -lbtbb
 CFLAGS	?= $(CFLAGS) $(CPPFLAGS)
-CFLAGS	+= -I/usr/include -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
+CFLAGS	+= -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 
 SRVOBJS = packetsource_ubertooth.o packet_btbb_types.o \
 			phy_btbb.o kismet_ubertooth.o \
@@ -27,11 +27,11 @@ $(SRVOUT):	$(SRVOBJS)
 
 install:	$(SRVOUT)
 	mkdir -p $(DESTDIR)$(prefix)/$(LIBDIR)/kismet/
-	install -o $(INSTUSR) -g $(INSTGRP) -m 644 $(SRVOUT) $(DESTDIR)$(prefix)/$(LIBDIR)/kismet/$(SRVOUT)
+	$(INSTALL) -o $(INSTUSR) -g $(INSTGRP) -m 644 $(SRVOUT) $(DESTDIR)$(prefix)/$(LIBDIR)/kismet/$(SRVOUT)
 
 userinstall:	$(SRVOUT)
 	mkdir -p ${HOME}/.kismet/plugins/
-	install -v $(SRVOUT) ${HOME}/.kismet/plugins/$(SRVOUT)
+	$(INSTALL) -v $(SRVOUT) ${HOME}/.kismet/plugins/$(SRVOUT)
 
 clean:
 	@-rm -f *.o
