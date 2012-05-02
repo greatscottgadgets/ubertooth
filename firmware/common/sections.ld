@@ -128,15 +128,18 @@ SECTIONS
 	.bss :
 	{
 		_bss = .;
+		__bss_start__ = .;
 		*(.bss*)
 		*(COMMON)
 		_ebss = .;
+		__bss_end__ = .;
 	} > ram
 
 	/* Where we put the heap with cr_clib */
 	.cr_heap :
 	{
 		end = .;
+		__end__ = .;
 		_pvHeapStart = .;
 	} > ram
 
