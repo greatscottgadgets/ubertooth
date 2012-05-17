@@ -282,6 +282,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	/* Copy packet (for dump) */
 	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
 
+	/* Do analysis based on oldest packet */
+	rx = &packets[ (bank+1) % NUM_BANKS ];
+
 	clk100ns = le32toh(rx->clk100ns); /* wire format is le32 */
 	/*
 	printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
