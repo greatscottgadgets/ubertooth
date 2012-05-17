@@ -570,7 +570,7 @@ static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
 
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	(void)fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout);
+	if (fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
@@ -582,9 +582,9 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	if (dumpfile_experimental_format) {
 		uint64_t time_be = htobe64((uint64_t)time(NULL));
-		(void)fwrite(&time_be, 1, sizeof(uint64_t), stdout);
+		if (fwrite(&time_be, 1, sizeof(uint64_t), stdout) != 1) {;}
 	}
-	(void)fwrite(buf, sizeof(u8), PKT_LEN, stdout);
+	if (fwrite(buf, sizeof(u8), PKT_LEN, stdout) != 1) {;}
 }
 
 /* dump received symbols to stdout */
