@@ -2,5 +2,9 @@ For testing a new board, see: assembly_test/README
 
 The general purpose firmware including Bluetooth functions is bluetooth_rxtx.
 
+This firmware is intended to be compiled with a particular toolchain:
+
+	https://code.launchpad.net/gcc-arm-embedded
+
 The default hardware target is Ubertooth One.  If you are compiling for
 Ubertooth Zero, you must set the environment variable BOARD=UBERTOOTH_ZERO.
