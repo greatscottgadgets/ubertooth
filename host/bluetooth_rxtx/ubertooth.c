@@ -24,7 +24,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
-#include <endian.h>
 
 #include <bluetooth_packet.h>
 

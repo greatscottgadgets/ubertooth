@@ -28,6 +28,17 @@
 #include <libusb-1.0/libusb.h>
 #endif
 
+#if defined __MACH__
+#include <CoreServices/CoreServices.h>
+#define htobe32 EndianU32_NtoB
+#define be32toh EndianU32_BtoN
+#define le32toh EndianU32_LtoN
+#define htobe64 EndianU64_NtoB
+#define be64toh EndianU64_BtoN
+#else
+#include <endian.h>
+#endif
+
 #include <stdio.h>
 #include <bluetooth_piconet.h>
 
