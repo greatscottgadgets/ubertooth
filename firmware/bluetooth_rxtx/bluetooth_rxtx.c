@@ -1390,11 +1390,8 @@ void bt_stream_rx()
 		 * per-channel carrier sense threshold. Set by
 		 * firmware or host. TODO - if hop happened, clear
 		 * hold. */
-		if (do_hop) {
+		if (do_hop)
 			hop();
-			/* give the CC2400 time to acquire RSSI reading */
-			volatile u32 j = 500; while (--j); //FIXME crude delay
-		}
 
 		RXLED_CLR;
 
