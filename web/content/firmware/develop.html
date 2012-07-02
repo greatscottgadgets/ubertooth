@@ -4,14 +4,17 @@ title: Developing Firmware
 <h1>Developing Firmware</h1>
 
 <p>You'll need a toolchain that supports ARM Cortex-M3.  The Makefiles in
-Project Ubertooth are designed for GCC and a Linux-based toolchain, such as the
-free installation provided by <a
-href="http://www.codesourcery.com/">Codesourcery</a>, but it should be possible
-to compile firmware with any development environment for the Cortex-M3.  We've
-had the most luck with the &quot;IA32 GNU/Linux TAR&quot; package on <a
-href="http://www.codesourcery.com/sgpp/lite/arm/portal/release1802">this
-page</a>.  Just unpack the archive and add the arm-2011.03/bin directory to
-your PATH.</p>
+Project Ubertooth are designed for GCC and a Linux-based toolchain,
+specifically the free installation provided at <a
+href="https://launchpad.net/gcc-arm-embedded">https://launchpad.net/gcc-arm-embedded</a>,
+but it should be possible to compile firmware with any development environment
+for the Cortex-M3.  Just unpack the archive and add the bin directory to your
+PATH.</p>
+
+<p>Prior to r518, we used the <a
+href="http://www.codesourcery.com/">Codesourcery</a> toolchain, but it has
+become harder to locate.</p>
+
 
 <p>Although firmware source can be found in the release downloads, you will
 probably want fresh code from <a
