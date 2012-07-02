@@ -1522,7 +1522,7 @@ void specan()
 			while (!(cc2400_status() & FS_LOCK));
 			cc2400_strobe(SRX);
 
-			//u32 j = 100; while (--j); //FIXME crude delay
+			volatile u32 j = 1000; while (--j); //FIXME crude delay
 			buf[3 * i] = (f >> 8) & 0xFF;
 			buf[(3 * i) + 1] = f  & 0xFF;
 			buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
