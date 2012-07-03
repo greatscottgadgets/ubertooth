@@ -43,7 +43,7 @@ char Ubertooth_Device= -1;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int dumpfile_experimental_format = 0;
-int max_ac_errors = 4;
+int max_ac_errors = 1;
 uint32_t systime;
 
 void show_libusb_error(int error_code)
