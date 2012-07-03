@@ -38,7 +38,7 @@ static void usage(void)
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
 	printf("\t-D filename (experimental format)\n");
-	printf("\t-e max_ac_erros\n");
+	printf("\t-e max_ac_errors\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
