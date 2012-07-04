@@ -25,7 +25,8 @@
 #include <getopt.h>
 
 extern char Ubertooth_Device;
-extern int dumpfile_experimental_format;
+extern FILE *dumpfile;
+extern int max_ac_errors;
 
 static void usage()
 {
@@ -35,7 +36,8 @@ static void usage()
 	printf("\t-i filename\n");
 	printf("\t-l<LAP> (in hexadecimal)\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
-	printf("\t-D filename (experimental format)\n");
+	printf("\t-d filename\n");
+	printf("\t-e max_ac_errors\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
@@ -45,12 +47,12 @@ int main(int argc, char *argv[])
 	int have_lap = 0;
 	char *end;
 	struct libusb_device_handle *devh = NULL;
-	FILE* infile = NULL;
+	FILE *infile = NULL;
 	piconet pn;
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hi:l:U:D")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:U:d:e:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -68,8 +70,15 @@ int main(int argc, char *argv[])
 		case 'U':
 			Ubertooth_Device= atoi(optarg);
 			break;
-		case 'D':
-			dumpfile_experimental_format = 1;
+		case 'd':
+			dumpfile = fopen(optarg, "w");
+			if (dumpfile == NULL) {
+				perror(optarg);
+				return 1;
+			}
+			break;
+		case 'e':
+			max_ac_errors = atoi(optarg);
 			break;
 		case 'h':
 		default:

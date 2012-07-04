@@ -27,8 +27,9 @@ static void usage(void)
 	printf("ubertooth-dump - output a continuous stream of received bits\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
-	printf("\t-f dump full USB packets, not just the received bits\n");
+	printf("\t-b only dump received bitstream (GnuRadio style)\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-d filename\n");
 	printf("\nThis program sends binary data to stdout.  You probably don't want to\n");
 	printf("run it from a terminal (especially with -f) without redirecting the output.\n");
 }
@@ -42,20 +43,28 @@ static void usage(void)
  */
 
 extern char Ubertooth_Device;
+extern FILE *dumpfile;
 
 int main(int argc, char *argv[])
 {
 	int opt;
-	int full = 0;
+	int bitstream = 0;
 	struct libusb_device_handle *devh = NULL;
 
-	while ((opt=getopt(argc,argv,"fhU:")) != EOF) {
+	while ((opt=getopt(argc,argv,"bhU:d:")) != EOF) {
 		switch(opt) {
-		case 'f':
-			full = 1;
+		case 'b':
+			bitstream = 1;
 			break;
 		case 'U':
 			Ubertooth_Device= atoi(optarg);
+			break;
+		case 'd':
+			dumpfile = fopen(optarg, "w");
+			if (dumpfile == NULL) {
+				perror(optarg);
+				return 1;
+			}
 			break;
 		case 'h':
 		default:
@@ -73,7 +82,7 @@ int main(int argc, char *argv[])
 
 	/* FIXME cli mod options */
 	/* cmd_set_modulation(devh, MOD_BT_LOW_ENERGY); */
-	rx_dump(devh, full);
+	rx_dump(devh, bitstream);
 
 	ubertooth_stop(devh);
 	return 0;

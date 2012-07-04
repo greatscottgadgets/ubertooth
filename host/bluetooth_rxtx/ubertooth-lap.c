@@ -25,8 +25,6 @@
 
 extern char Ubertooth_Device;
 extern FILE *dumpfile;
-extern FILE *infile;
-extern int dumpfile_experimental_format;
 extern int max_ac_errors;
 
 static void usage(void)
@@ -37,7 +35,6 @@ static void usage(void)
 	printf("\t-i filename\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
-	printf("\t-D filename (experimental format)\n");
 	printf("\t-e max_ac_errors\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
@@ -46,8 +43,9 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	struct libusb_device_handle *devh = NULL;
+	FILE* infile = NULL;
 
-	while ((opt=getopt(argc,argv,"hi:U:d:De:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:U:d:e:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -66,9 +64,6 @@ int main(int argc, char *argv[])
 				perror(optarg);
 				return 1;
 			}
-			break;
-		case 'D':
-			dumpfile_experimental_format = 1;
 			break;
 		case 'e':
 			max_ac_errors = atoi(optarg);

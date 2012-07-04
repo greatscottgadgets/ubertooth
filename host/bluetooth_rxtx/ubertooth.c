@@ -42,7 +42,6 @@ char Quiet= false;
 char Ubertooth_Device= -1;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
-int dumpfile_experimental_format = 0;
 int max_ac_errors = 1;
 uint32_t systime;
 
@@ -218,13 +217,11 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	*/
 
 	while(1) {
-		if (dumpfile_experimental_format) {
-			uint32_t systime_be;
-			nitems = fread(&systime_be, sizeof(systime_be), 1, fp);
-			systime = (time_t)be32toh(systime_be);
-			if (nitems != 1)
-				return 0;
-		}
+		uint32_t systime_be;
+		nitems = fread(&systime_be, sizeof(systime_be), 1, fp);
+		if (nitems != 1)
+			return 0;
+		systime = (time_t)be32toh(systime_be);
 
 		nitems = fread(buf, sizeof(buf[0]), PKT_LEN, fp);
 		if (nitems != PKT_LEN)
@@ -329,10 +326,10 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
-		/* When reading a file in experimental format, caller
-		 * will read systime before calling this routine, so
-		 * do not overwrite. Otherwise, get current time. */
-		if ( !((infile != NULL) && dumpfile_experimental_format) )
+		/* When reading from file , caller will read
+		 * systime before calling this routine, so do
+		 * not overwrite. Otherwise, get current time. */
+		if ( infile == NULL )
 			systime = time(NULL);
 		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 		       (int)systime, rx->channel, r.LAP, r.error_count,
@@ -367,13 +364,11 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		 * capture time. */
 		if (dumpfile) {
 			for(i = 0; i < NUM_BANKS; i++) {
-				if (dumpfile_experimental_format) {
-					uint32_t systime_be = htobe32(systime);
-					if (fwrite(&systime_be, 
-						   sizeof(systime_be), 1,
-						   dumpfile)
-					    != 1) {;}
-				}
+				uint32_t systime_be = htobe32(systime);
+				if (fwrite(&systime_be, 
+					   sizeof(systime_be), 1,
+					   dumpfile)
+				    != 1) {;}
 				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
 					   sizeof(usb_pkt_rx), 1, dumpfile)
 				    != 1) {;}
@@ -563,13 +558,17 @@ void rx_btle_file(FILE* fp)
 	stream_rx_file(fp, 0, cb_btle, NULL);
 }
 
-static void cb_dump(void* args, usb_pkt_rx *rx, int bank)
+static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
 {
 	/* unused parameter */ args = args;
 
 	unpack_symbols(rx->data, symbols[bank]);
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	if (fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
+	if (dumpfile == NULL) {
+		if (fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
+    } else {
+		if (fwrite(symbols[bank], sizeof(u8), BANK_LEN, dumpfile) != 1) {;}
+	}
 }
 
 static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
@@ -579,20 +578,23 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	/* unused parameter */ args = args; bank = bank;
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	if (dumpfile_experimental_format) {
-		uint64_t time_be = htobe64((uint64_t)time(NULL));
+	uint64_t time_be = htobe64((uint64_t)time(NULL));
+	if (dumpfile == NULL) {
 		if (fwrite(&time_be, 1, sizeof(uint64_t), stdout) != 1) {;}
+		if (fwrite(buf, sizeof(u8), PKT_LEN, stdout) != 1) {;}
+	} else {
+		if (fwrite(&time_be, 1, sizeof(uint64_t), dumpfile) != 1) {;}
+		if (fwrite(buf, sizeof(u8), PKT_LEN, dumpfile) != 1) {;}
 	}
-	if (fwrite(buf, sizeof(u8), PKT_LEN, stdout) != 1) {;}
 }
 
 /* dump received symbols to stdout */
-void rx_dump(struct libusb_device_handle* devh, int full)
+void rx_dump(struct libusb_device_handle* devh, int bitstream)
 {
-	if (full)
-		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_full, NULL);
+	if (bitstream)
+		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_bitstream, NULL);
 	else
-		stream_rx_usb(devh, XFER_LEN, 0, cb_dump, NULL);
+		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_full, NULL);
 }
 
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,

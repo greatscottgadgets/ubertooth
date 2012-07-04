@@ -3,7 +3,7 @@ This is host code for use with bluetooth_rxtx firmware.
 
 REQUIRED SOFTWARE
 
-These tools link to libbtbb (http://libbtbb.sourceforge.net/).  Svn trunk
+These tools link to libbtbb > 0.8  (http://libbtbb.sourceforge.net/).  Svn trunk
 should always work the latest git verions of libbtbb.  Libbtbb can be built as
 follows:
 
