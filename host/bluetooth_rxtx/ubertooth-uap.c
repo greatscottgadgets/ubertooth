@@ -26,6 +26,7 @@
 
 extern char Ubertooth_Device;
 extern FILE *dumpfile;
+extern FILE *infile;
 extern int max_ac_errors;
 
 static void usage()
@@ -47,7 +48,6 @@ int main(int argc, char *argv[])
 	int have_lap = 0;
 	char *end;
 	struct libusb_device_handle *devh = NULL;
-	FILE *infile = NULL;
 	piconet pn;
 
 	init_piconet(&pn);

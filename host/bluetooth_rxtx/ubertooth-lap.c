@@ -24,6 +24,7 @@
 #include <getopt.h>
 
 extern char Ubertooth_Device;
+extern FILE *infile;
 extern FILE *dumpfile;
 extern int max_ac_errors;
 
@@ -43,7 +44,6 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	struct libusb_device_handle *devh = NULL;
-	FILE* infile = NULL;
 
 	while ((opt=getopt(argc,argv,"hi:U:d:e:")) != EOF) {
 		switch(opt) {

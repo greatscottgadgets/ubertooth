@@ -326,12 +326,12 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
-		/* When reading from file , caller will read
+		/* When reading from file, caller will read
 		 * systime before calling this routine, so do
 		 * not overwrite. Otherwise, get current time. */
 		if ( infile == NULL )
 			systime = time(NULL);
-		printf("systime=%u ch=%d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
+		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 		       (int)systime, rx->channel, r.LAP, r.error_count,
 		       clk100ns, clk1, signal_level, noise_level, snr);
 
