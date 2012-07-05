@@ -133,11 +133,11 @@ protected:
 
 	void build_pcap_header(uint8_t*, uint32_t);
 	void build_pcap_payload(uint8_t*, packet*);
-	void handle_header(packet*);
+	int handle_header(packet*);
 	void decode_pkt(packet*, piconet*);
 
 
-	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t);
+	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t, uint8_t);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
 };

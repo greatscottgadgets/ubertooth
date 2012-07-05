@@ -125,16 +125,17 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
-void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32_t clkn)
+void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32_t clkn, uint8_t ac_errors)
 {
 	packet *pkt = new packet;
 	init_packet(pkt, syms, MAX_SYMBOLS);
 	pkt->LAP = lap;
 	pkt->clkn = clkn;
 	pkt->channel = ubertooth->channel;
+	pkt->ac_errors = ac_errors;
 
-	printf("GOT PACKET on channel %d, LAP = %06x at clkn = %u\n",
-			ubertooth->channel, pkt->LAP, clkn);
+	//printf("GOT PACKET on channel %d, errs=%d, LAP = %06x at clkn = %u\n",
+	//		ubertooth->channel, pkt->ac_errors, pkt->LAP, clkn);
 	// Lock the packet queue, throw away when there are more than 20 in the queue
 	// that haven't been handled, raise the file descriptor hot if we need to
 	pthread_mutex_lock(&(ubertooth->packet_lock));
@@ -235,13 +236,8 @@ void *ubertooth_cap_thread(void *arg)
 						% NUM_BANKS][k];
 
 			ac = sniff_ac(syms, BANK_LEN);
-			/*
-			 * FIXME: instead of filtering by error_count here, we should pass
-			 * the error_count on and filter in the tracker.  That way we can
-			 * use a lower threshold (0 to 2) for new LAPs than for previously
-			 * seen LAPs (3 or 4).
-			 */
-			if ((ac.offset > -1) && (ac.error_count <= 2)) {
+
+			if (ac.offset > -1) {
 				/*
 				 * Populate syms with the remaining banks.  We don't know how
 				 * long the packet is, so we assume the maximum length.
@@ -255,7 +251,7 @@ void *ubertooth_cap_thread(void *arg)
 								% NUM_BANKS][k];
 
 				clkn = (clkn_high << 19) | ((time + ac.offset * 10) / 6250);
-				enqueue(ubertooth, &syms[ac.offset], ac.LAP, clkn);
+				enqueue(ubertooth, &syms[ac.offset], ac.LAP, clkn, ac.error_count);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
@@ -407,10 +403,14 @@ void PacketSource_Ubertooth::build_pcap_payload(uint8_t* data, packet* pkt) {
 		data[i+23] = (char) air_to_host8(&pkt->payload[i*8], 8);
 }
 
-void PacketSource_Ubertooth::handle_header(packet* pkt) {
+int PacketSource_Ubertooth::handle_header(packet* pkt) {
+	/* Only create new piconets for LAPs we've seen with fewer errors */
 	if (piconets.find(pkt->LAP) == piconets.end()) {
-		init_piconet(&piconets[pkt->LAP]);
-		piconets[pkt->LAP].LAP = pkt->LAP;
+		if (pkt->ac_errors <= 2) {
+			init_piconet(&piconets[pkt->LAP]);
+			piconets[pkt->LAP].LAP = pkt->LAP;
+		} else
+			return 1;
 	}
 	if (piconets[pkt->LAP].have_clk6 && piconets[pkt->LAP].have_UAP)
 		decode_pkt(pkt, &piconets[pkt->LAP]);
@@ -423,6 +423,8 @@ void PacketSource_Ubertooth::handle_header(packet* pkt) {
 	 */
 	if (pkt->LAP == GIAC || pkt->LAP == LIAC)
 		piconets.erase(pkt->LAP);
+
+	return 0;
 }
 
 /* decode packet with header */
@@ -478,32 +480,32 @@ int PacketSource_Ubertooth::Poll() {
 
 		kis_datachunk *rawchunk = new kis_datachunk;
 
-		if (header_present(pkt))
-			handle_header(pkt);
-
-		rawchunk->length = 14;
-		if (pkt->have_payload)
-			rawchunk->length += 9 + pkt->payload_length;
-		rawchunk->data = new uint8_t[rawchunk->length];
-		build_pcap_header(rawchunk->data, pkt->LAP);
-		if (pkt->have_payload)
-			build_pcap_payload(rawchunk->data, pkt);
-
-		rawchunk->source_id = source_id;
-
-		rawchunk->dlt = KDLT_BTBB;
-
-		newpack->insert(_PCM(PACK_COMP_LINKFRAME), rawchunk);
-
-		//printf("debug - Got packet lap %06x chan %d len=%d\n", pkt->LAP, pkt->channel, pkt->length);
-
-		num_packets++;
-
-		kis_ref_capsource *csrc_ref = new kis_ref_capsource;
-		csrc_ref->ref_source = this;
-		newpack->insert(_PCM(PACK_COMP_KISCAPSRC), csrc_ref);
-
-		globalreg->packetchain->ProcessPacket(newpack);
+		/* Only continue processing packet if it has a header and piconet */
+		if ((header_present(pkt)) && (!handle_header(pkt))) {
+			rawchunk->length = 14;
+			if (pkt->have_payload)
+				rawchunk->length += 9 + pkt->payload_length;
+			rawchunk->data = new uint8_t[rawchunk->length];
+			build_pcap_header(rawchunk->data, pkt->LAP);
+			if (pkt->have_payload)
+				build_pcap_payload(rawchunk->data, pkt);
+	
+			rawchunk->source_id = source_id;
+	
+			rawchunk->dlt = KDLT_BTBB;
+	
+			newpack->insert(_PCM(PACK_COMP_LINKFRAME), rawchunk);
+	
+			//printf("debug - Got packet lap %06x chan %d len=%d\n", pkt->LAP, pkt->channel, pkt->length);
+	
+			num_packets++;
+	
+			kis_ref_capsource *csrc_ref = new kis_ref_capsource;
+			csrc_ref->ref_source = this;
+			newpack->insert(_PCM(PACK_COMP_KISCAPSRC), csrc_ref);
+	
+			globalreg->packetchain->ProcessPacket(newpack);
+		}
 
 		// Delete the temp struct
 		delete pkt;
