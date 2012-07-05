@@ -35,11 +35,11 @@ static void usage(void)
 }
 
 /*
- * The normal output format is a stream of bytes, each either 0x00 or 0x01
- * representing the symbol determined by the demodulator.
- *
- * The -f output format is in chunks of 64 bytes in the USB RX packet format.
+ * The normal output format is in chunks of 64 bytes in the USB RX packet format
  * 50 of those 64 bytes contain the received symbols (packed 8 per byte).
+ *
+ * The -b output format is a stream of bytes, each either 0x00 or 0x01
+ * representing the symbol determined by the demodulator (GnuRadio style)
  */
 
 extern char Ubertooth_Device;
