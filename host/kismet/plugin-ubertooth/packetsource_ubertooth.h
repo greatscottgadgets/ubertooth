@@ -29,6 +29,11 @@
 #include <packetsource.h>
 #include <map>
 
+/* BANK_LEN must be >= AC_LEN */
+#define AC_LEN    72
+#define NUM_BANKS 10
+#define BANK_LEN  400
+
 extern "C" {
 	#include <bluetooth_packet.h>
 	#include <bluetooth_piconet.h>
@@ -36,11 +41,6 @@ extern "C" {
 }
 
 #define USE_PACKETSOURCE_UBERTOOTH
-
-/* BANK_LEN must be >= AC_LEN */
-#define AC_LEN    72
-#define NUM_BANKS 10
-#define BANK_LEN  400
 
 class PacketSource_Ubertooth : public KisPacketSource {
 public:
