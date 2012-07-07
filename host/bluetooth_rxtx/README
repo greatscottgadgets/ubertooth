@@ -41,3 +41,13 @@ analyser software. e.g.
 will use feedgnuplot to drive gnuplot to draw a realtime animated 3D plot of the
 frequency spectrum.
 
+
+PRIVLEDGE REDUCTION
+
+If you desire to run any program which accesses the ubertooth hardware as a user
+you may do so by copying 40-ubertooth.rules to whereever your distro keeps udev
+rules, typically /lib/udev/rules.d
+
+This action will allow any user in the "usb" group to access the ubertooth
+hardware. If you want to give access to a different group you can easily edit
+the rules file and change usb to whatever group you prefer.
