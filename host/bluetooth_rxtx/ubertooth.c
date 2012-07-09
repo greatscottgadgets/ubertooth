@@ -88,7 +88,7 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 	if(ubertooths == 1) { 
 		ret = libusb_open(usb_list[ubertooth_devs[0]], &devh);
 		if (ret)
-			fprintf(stderr, "Ubertooth could not be opened: %s\n", libusb_error_name(ret));
+			show_libusb_error(ret);
 	}
 	else if (ubertooths == 0)
 		return NULL;
@@ -98,8 +98,10 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 			for(i = 0 ; i < ubertooths ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
 				ret = libusb_open(usb_list[ubertooth_devs[i]], &devh);
-				if (ret)
-					fprintf(stderr, "  Device %d: could not be opened: %s\n", i, libusb_error_name(ret));
+				if (ret) {
+					fprintf(stderr, "  Device %d: ", i);
+					show_libusb_error(ret);
+				}
 				else {
 					fprintf(stderr, "  Device %d: serial no: ", i);
 					cmd_get_serial(devh);
