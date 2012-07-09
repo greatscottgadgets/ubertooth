@@ -119,7 +119,7 @@ bool DFU::request_detach(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* pbData)
     }
 }
 
-bool DFU::request_dnload(TSetupPacket *pSetup, uint32_t *piLen, uint8_t* pbData) {
+bool DFU::request_dnload(TSetupPacket *pSetup, uint32_t *piLen, uint8_t *pbData) {
     if( pSetup->wLength == 0 ) {
         if( get_state() != DFUDNLOAD_IDLE ) {
             return error(ERRSTALLEDPKT);

@@ -246,14 +246,13 @@ READELF  = arm-none-eabi-readelf
 SIZE = arm-none-eabi-size
 AR = arm-none-eabi-ar -r
 NM = arm-none-eabi-nm
-PYTHON = /usr/bin/env python
 REMOVE = rm -f
 
 # 
 ifeq ($(strip $(`which ubertooth-dfu`)),)
-  DFU_TOOL ?= $(PYTHON) ../../host/usb_dfu/ubertooth-dfu
+  DFU_TOOL ?= ../../host/usb_dfu/ubertooth-dfu
 else
-  DFU_TOOL ?= $(PYTHON) `which ubertooth-dfu`
+  DFU_TOOL ?= `which ubertooth-dfu`
 endif
 
 # Define Messages
@@ -381,7 +380,7 @@ program: $(TARGET).hex
 %.dfu: %.bin
 	@echo
 	@echo $(MSG_DFU) $@
-	$(DFU_TOOL) sign $(TARGET).bin
+	$(DFU_TOOL) --sign $(TARGET).bin
 
 # Create library from object files.
 .SECONDARY : $(TARGET).a

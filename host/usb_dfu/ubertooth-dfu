@@ -19,299 +19,145 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-# http://pyusb.sourceforge.net/docs/1.0/tutorial.html
 
-import struct
-import sys
-import time
-from optparse import OptionParser
-import dfu_suffix
+import sys, os
+import getopt
+import dfu
 
-ubertooth_vendor   = 0xFFFF
-ubertooth_product  = 0x0004
 bootloader_offset  = 0x0
 bootloader_size    = 0x4000
 application_offset = bootloader_offset + bootloader_size
 application_size   = (256 * 1024) - application_offset
 
-class Enumeration(object):
-    def __init__(self, id, name):
-        self._id = id
-        self._name = name
-        setattr(self.__class__, name, self)
-        self.map[id] = self
-
-    def __int__(self):
-        return self.id
-
-    def __repr__(self):
-        return self.name
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def name(self):
-        return self._name
-
-    @classmethod
-    def create_from_map(cls):
-        for id, name in cls.map.iteritems():
-            cls(id, name)
-        
-class Request(Enumeration):
-    map = {
-        0: 'DETACH',
-        1: 'DNLOAD',
-        2: 'UPLOAD',
-        3: 'GETSTATUS',
-        4: 'CLRSTATUS',
-        5: 'GETSTATE',
-        6: 'ABORT',
-    }
-
-Request.create_from_map()
-
-class State(Enumeration):
-    map = {
-         0: 'appIDLE',
-         1: 'appDETACH',
-         2: 'dfuIDLE',
-         3: 'dfuDNLOAD_SYNC',
-         4: 'dfuDNBUSY',
-         5: 'dfuDNLOAD_IDLE',
-         6: 'dfuMANIFEST_SYNC',
-         7: 'dfuMANIFEST',
-         8: 'dfuMANIFEST_WAIT_RESET',
-         9: 'dfuUPLOAD_IDLE',
-        10: 'dfuERROR',
-    }
-
-State.create_from_map()
-
-class Status(Enumeration):
-    map = {
-        0x00: 'OK',
-        0x01: 'errTARGET',
-        0x02: 'errFILE',
-        0x03: 'errWRITE',
-        0x04: 'errERASE',
-        0x05: 'errCHECK_ERASED',
-        0x06: 'errPROG',
-        0x07: 'errVERIFY',
-        0x08: 'errADDRESS',
-        0x09: 'errNOTDONE',
-        0x0A: 'errFIRMWARE',
-        0x0B: 'errVENDOR',
-        0x0C: 'errUSBR',
-        0x0D: 'errPOR',
-        0x0E: 'errUNKNOWN',
-        0x0F: 'errSTALLEDPKT',
-    }
-
-Status.create_from_map()
-
-class DFU(object):
-    def __init__(self, device):
-        self._device = device
-
-    def detach(self):
-        self._device.ctrl_transfer(0x21, Request.DETACH, 0, 0, None)
-
-    def download(self, block_number, data):
-        self._device.ctrl_transfer(0x21, Request.DNLOAD, block_number, 0, data)
-
-    def upload(self, block_number, length):
-        data = self._device.ctrl_transfer(0xA1, Request.UPLOAD, block_number, 0, length)
-        return data
-    
-    def get_status(self):
-        status_packed = self._device.ctrl_transfer(0xA1, Request.GETSTATUS, 0, 0, 6)
-        status = struct.unpack('<BBBBBB', status_packed)
-        return (Status.map[status[0]], (((status[1] << 8) | status[2]) << 8) | status[3],
-                State.map[status[4]], status[5])
-
-    def clear_status(self):
-        self._device.ctrl_transfer(0x21, Request.CLRSTATUS, 0, 0, None)
-
-    def get_state(self):
-        state_packed = self._device.ctrl_transfer(0xA1, Request.GETSTATE, 0, 0, 1)
-        return State.map[struct.unpack('<B', state_packed)[0]]
-
-    def abort(self):
-        self._device.ctrl_transfer(0x21, Request.ABORT, 0, 0, None)
-
-    def enter_dfu_mode(self):
-        action_map = {
-            State.dfuDNLOAD_SYNC: self.abort,
-            State.dfuDNLOAD_IDLE: self.abort,
-            State.dfuMANIFEST_SYNC: self.abort,
-            State.dfuUPLOAD_IDLE: self.abort,
-            State.dfuERROR: self.clear_status,
-            State.appIDLE: self.detach,
-            State.appDETACH: self._wait,
-            State.dfuDNBUSY: self._wait,
-            State.dfuMANIFEST: self.abort,
-            State.dfuMANIFEST_WAIT_RESET: self._wait,
-            State.dfuIDLE: self._wait
-        }
-        
-        while True:
-            state = self.get_state()
-            if state == State.dfuIDLE:
-                break
-            action = action_map[state]
-            action()
-
-    def _wait(self):
-        time.sleep(0.1)
-
-def download(dfu, data, flash_address):
-    block_size = 1 << 8
-    sector_size = 1 << 12
-    if flash_address & (sector_size - 1) != 0:
-        raise Exception('Download must start at flash sector boundary')
-
-    block_number = flash_address / block_size
-    assert block_number * block_size == flash_address
-
-    try:
-        while len(data) > 0:
-            packet, data = data[:block_size], data[block_size:]
-            if len(packet) < block_size:
-                packet += '\xFF' * (block_size - len(packet))
-            dfu.download(block_number, packet)
-            status, timeout, state, discarded = dfu.get_status()
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            block_number += 1
-    finally:
-        print
-
-def upload(dfu, flash_address, length, path):
-    block_size = 1 << 8
-    if flash_address & (block_size - 1) != 0:
-        raise Exception('Upload must start at block boundary')
-
-    block_number = flash_address / block_size
-    assert block_number * block_size == flash_address
-
-    f = open(path, 'wb')
-   
-    try:
-        while length > 0:
-            data = dfu.upload(block_number, block_size)
-            status, timeout, state, discarded = dfu.get_status()
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            if len(data) == block_size:
-                f.write(data)
-            else:
-                raise Exception('Upload failed to read full block')
-            block_number += 1
-            length -= len(data)
-    finally:
-        f.close()
-        print
-
-def detach(dfu):
-    if dfu.get_state() == State.dfuIDLE:
-        dfu.detach()
-        print('Detached')
+def get_ubertooth(vendor=None, product=None):
+    if vendor and product:
+        dev = dfu.init_dfu(vendor, product)
     else:
-        print 'In unexpected state: %s' % dfu.get_state()
-
-def init_dfu(idVendor=ubertooth_vendor, idProduct=ubertooth_product):
-    dev = usb.core.find(idVendor=idVendor, idProduct=idProduct)
-    if dev is None:
-        raise RuntimeError('Device not found')
-
-    dfu = DFU(dev)
-    dev.default_timeout = 3000
-
-    try:
-        dfu.enter_dfu_mode()
-    except usb.core.USBError, e:
-        if len(e.args) > 0 and e.args[0] == 'Pipe error':
-            raise RuntimeError('Failed to enter DFU mode. Is bootloader running?')
+        ids = [
+            (0x1D50, 0x6003), # UBERTOOTH_ONE
+            (0x1D50, 0x6001), # UBERTOOTH_ZERO
+            (0xFFFF, 0x0004)  # TC13BADGE / Ubertooth with older firmware
+        ]
+        for vendor_id, product_id in ids:
+            if (vendor and vendor == vendor_id) or \
+                (product and product_id == product) or \
+                not (vendor or product):
+                try:
+                    dev = dfu.init_dfu(vendor_id, product_id)
+                    break
+                except RuntimeError:
+                    pass
         else:
-            raise e
-
-    return dfu
+            # Found nothing - error
+            raise RuntimeError('Could not initialise Ubertooth')
+    return dev
 
 def usage():
     print("""
 Usage: ubertooth-dfu <command> <arguments>
 
 Write a file to application flash region:
-    ubertooth-dfu write <application firmware filename>
+    ubertooth-dfu --write <application firmware filename>
 
 Read data from application flash region and write to a file:
-    ubertooth-dfu read <filename>
+    ubertooth-dfu --read <filename>
 
 Add DFU signature to firmware file:
-    ubertooth-dfu sign <binary firmware filename>
+    ubertooth-dfu --sign <binary firmware filename>
 
 Detach the bootloader and execute the application firmware:
-    ubertooth-dfu detach
+    ubertooth-dfu --detach
 """)
+    sys.exit(os.EX_USAGE)
+
+def write(filename, bootloader=False):
+    f = open(filename, 'rb')
+    data = f.read()
+    f.close()
+    vendor = product = None
+
+    if sys.argv[2][-4:] == '.dfu':
+        signer = dfu.DfuSuffix()
+        suf_len, vendor, product = signer.check_suffix(data)
+        firmware = data[:-suf_len]
+    else:
+        firmware = data
+    dev = get_ubertooth(vendor, product)
+
+    if bootloader:
+        dfu.download(dev, firmware, bootloader_offset)
+    else:
+        dfu.download(dev, firmware, application_offset)
+    print('Write complete')
+
+def read(filename, bootloader=False):
+    dev = get_ubertooth()
+    if bootloader:
+        dfu.upload(dev, bootloader_offset, bootloader_size, filename)
+    else:
+        dfu.upload(dev, application_offset, application_size, filename)
+    print('Read complete')
+
 
 if __name__ == '__main__':
+    if not sys.argv[1:]:
+        usage()
+
     try:
-        if len(sys.argv) == 3:
-            if sys.argv[1] == 'read':
-                import usb.core
-                dfu = init_dfu()
-                upload(dfu, application_offset, application_size, sys.argv[2])
-                print('Read complete')
+        short_opts = "hw:r:ds:v:p:"
+        long_opts = ["help", "write=", "read=", "detach", "sign=", "vendor=",
+                     "product=", "write-bootloader=", "read-bootloader="]
+        opts, args = getopt.getopt(sys.argv[1:], short_opts, long_opts)
+    except getopt.GetoptError, e:
+        print str(e)
+        usage()
 
-            elif sys.argv[1] == 'write':
-                import usb.core
-                f = open(sys.argv[2], 'rb')
-                data = f.read()
-                f.close()
+    vendorId = productId = None
+    try:
+        for opt, arg in opts:
+            if opt in ("-h", "--help"):
+                usage()
 
-                if sys.argv[2][-4:] == '.dfu':
-                    suf_len, vendor, product = dfu_suffix.check_suffix(data)
-                    dfu = init_dfu(vendor, product)
-                    firmware = data[:-suf_len]
-                else:
-                    dfu = init_dfu()
-                    firmware = data
+            elif opt in ("-w", "--write"):
+                write(arg)
 
-                download(dfu, firmware, application_offset)
-                print('Write complete')
+            elif opt == "--write-bootloader":
+                raise NotImplementedError("Bootloader writing not supported")
+                write(arg, bootloader=True)
 
-            elif sys.argv[1] == 'sign':
-                filename = sys.argv[2]
+            elif opt in ("-r", "--read"):
+                read(arg)
 
-                f = open(filename, 'rb')
+            elif opt == "--read-bootloader":
+                read(arg, bootloader=True)
+
+            elif opt in ("-d", "--detach"):
+                dev = get_ubertooth()
+                dfu.detach(dev)
+
+            elif opt in ("-s", "--sign"):
+                f = open(arg, 'rb')
                 firmware = f.read()
                 f.close()
 
-                data = dfu_suffix.add_suffix(firmware, ubertooth_vendor, ubertooth_product)
+                signer = dfu.DfuSuffix()
+                #FIXME - workout which bootloader we're signing for - default:old
+                data = signer.add_suffix(firmware, 0xFFFF, 0x0004)
 
-                dfu_file = filename[:-4] + '.dfu'
+                dfu_file = arg[:-4] + '.dfu'
                 f = open(dfu_file, 'wb')
                 f.write(data)
                 f.close()
                 print("Signed file written: %s" % dfu_file)
-
             else:
+                print "Unhandled option: %s" % opt
                 usage()
 
-        elif len(sys.argv) == 2:
-            if sys.argv[1] == 'detach':
-                import usb.core
-                dfu = init_dfu()
-                detach(dfu)
-            else:
-                usage()
-        else:
-            usage()
     except RuntimeError, e:
-        print(e.args[0])
+        if getattr(e, 'args'):
+            print(e.args[0])
+        else:
+            print e
         exit(1)
     except Exception, e:
         print e

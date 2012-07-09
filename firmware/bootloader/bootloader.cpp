@@ -81,8 +81,19 @@ extern "C" {
 #define ENTRY_PIN (!(FIO0PIN & (1 << 22)))
 #endif
 
-static const uint16_t usb_vendor_id = 0xFFFF;
-static const uint16_t usb_product_id = 0x0004;
+#ifdef UBERTOOTH_ZERO
+#define ID_VENDOR 0x1D50
+#define ID_PRODUCT 0x6001
+#elif defined UBERTOOTH_ONE
+#define ID_VENDOR 0x1D50
+#define ID_PRODUCT 0x6003
+#elif defined TC13BADGE
+#define ID_VENDOR 0xFFFF
+#define ID_PRODUCT 0x0004
+#else
+#define ID_VENDOR 0xFFFF
+#define ID_PRODUCT 0x0004
+#endif
 
 static const u8 dfu_descriptors[] = {
 
@@ -94,8 +105,8 @@ static const u8 dfu_descriptors[] = {
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
 	MAX_PACKET_SIZE0,  		// bMaxPacketSize
-	LE_WORD(usb_vendor_id),		// idVendor
-	LE_WORD(usb_product_id),	// idProduct
+	LE_WORD(ID_VENDOR),		// idVendor
+	LE_WORD(ID_PRODUCT),	// idProduct
 	LE_WORD(0x0100),		// bcdDevice
 	0x01,              		// iManufacturer
 	0x02,              		// iProduct

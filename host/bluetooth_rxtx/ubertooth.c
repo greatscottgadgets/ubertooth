@@ -69,38 +69,47 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 	struct libusb_device **usb_list = NULL;
 	struct libusb_device_handle *devh = NULL;
 	struct libusb_device_descriptor desc;
-	int usb_devs, i, r, ubertooths= 0;
-	int ubertooth_devs[]= {0,0,0,0,0,0,0,0};
+	int usb_devs, i, r, ret, ubertooths = 0;
+	int ubertooth_devs[] = {0,0,0,0,0,0,0,0};
 
-	usb_devs= libusb_get_device_list(ctx, &usb_list);
-	for(i= 0 ; i < usb_devs ; ++i) {
-		r= libusb_get_device_descriptor(usb_list[i], &desc);
+	usb_devs = libusb_get_device_list(ctx, &usb_list);
+	for(i = 0 ; i < usb_devs ; ++i) {
+		r = libusb_get_device_descriptor(usb_list[i], &desc);
 		if(r < 0)
 			fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
-		if (desc.idVendor == VENDORID && desc.idProduct == PRODUCTID) {
-			ubertooth_devs[ubertooths]= i;
+		if ((desc.idVendor == TC13_VENDORID && desc.idProduct == TC13_PRODUCTID)
+			|| (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
+			|| (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
+		{
+			ubertooth_devs[ubertooths] = i;
 			ubertooths++;
-			}
 		}
-	if(ubertooths == 1)
-		devh = libusb_open_device_with_vid_pid(NULL, VENDORID, PRODUCTID);
+	}
+	if(ubertooths == 1) { 
+		ret = libusb_open(usb_list[ubertooth_devs[0]], &devh);
+		if (ret)
+			fprintf(stderr, "Ubertooth could not be opened: %s\n", libusb_error_name(ret));
+	}
 	else if (ubertooths == 0)
 		return NULL;
 	else {
 		if (Ubertooth_Device < 0) {
 			fprintf(stderr, "multiple Ubertooth devices found! Use '-U' to specify device number\n");
-			for(i= 0 ; i < ubertooths ; ++i) {
+			for(i = 0 ; i < ubertooths ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
-				libusb_open(usb_list[ubertooth_devs[i]], &devh);
-				fprintf(stderr, "  device %d: serial no: ", i);
-				cmd_get_serial(devh);
-				libusb_close(devh);
+				ret = libusb_open(usb_list[ubertooth_devs[i]], &devh);
+				if (ret)
+					fprintf(stderr, "  Device %d: could not be opened: %s\n", i, libusb_error_name(ret));
+				else {
+					fprintf(stderr, "  Device %d: serial no: ", i);
+					cmd_get_serial(devh);
+					libusb_close(devh);
 				}
-			devh= NULL;
 			}
-		else {
+			devh = NULL;
+		}
+		else
 			libusb_open(usb_list[ubertooth_devs[(uint8_t)Ubertooth_Device]], &devh);
-			}
 		}
 	return devh;
 }

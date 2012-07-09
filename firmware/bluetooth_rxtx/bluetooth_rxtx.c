@@ -418,6 +418,22 @@ static int dequeue()
 	return 1;
 }
 
+
+#ifdef UBERTOOTH_ZERO
+#define ID_VENDOR 0x1D50
+#define ID_PRODUCT 0x6000
+#elif defined UBERTOOTH_ONE
+#define ID_VENDOR 0x1D50
+#define ID_PRODUCT 0x6002
+#elif defined TC13BADGE
+#define ID_VENDOR 0xFFFF
+#define ID_PRODUCT 0x0004
+#else
+#define ID_VENDOR 0xFFFF
+#define ID_PRODUCT 0x0004
+#endif
+
+
 static const u8 abDescriptors[] = {
 
 /* Device descriptor */
@@ -428,8 +444,8 @@ static const u8 abDescriptors[] = {
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
 	MAX_PACKET_SIZE0,  		// bMaxPacketSize
-	LE_WORD(0xFFFF),		// idVendor
-	LE_WORD(0x0004),		// idProduct
+	LE_WORD(ID_VENDOR),		// idVendor
+	LE_WORD(ID_PRODUCT),	// idProduct
 	LE_WORD(0x0100),		// bcdDevice
 	0x01,              		// iManufacturer
 	0x02,              		// iProduct

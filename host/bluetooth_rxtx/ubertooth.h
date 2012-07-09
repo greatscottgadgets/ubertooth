@@ -46,8 +46,13 @@
 #define u16 uint16_t
 #define u32 uint32_t
 
-#define VENDORID    0xffff
-#define PRODUCTID   0x0004
+#define U0_VENDORID    0x1d50
+#define U0_PRODUCTID   0x6000
+#define U1_VENDORID    0x1d50
+#define U1_PRODUCTID   0x6002
+#define TC13_VENDORID  0xffff
+#define TC13_PRODUCTID 0x0004
+
 #define DATA_IN     (0x82 | LIBUSB_ENDPOINT_IN)
 #define DATA_OUT    (0x05 | LIBUSB_ENDPOINT_OUT)
 #define CTRL_IN     (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_IN)
