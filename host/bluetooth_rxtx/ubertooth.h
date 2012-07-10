@@ -65,17 +65,9 @@
 #define SYM_LEN       50
 #define SYM_OFFSET    14
 #define PKTS_PER_XFER 8
+#define NUM_BANKS     10
 #define XFER_LEN      (PKT_LEN * PKTS_PER_XFER)
-
-/* Allow NUM_BANKS and BANK_LEN to be defined
- * in application specific locations
- */
-#ifndef NUM_BANKS
-#define NUM_BANKS   10
-#endif
-#ifndef BANK_LEN
 #define BANK_LEN      (SYM_LEN * PKTS_PER_XFER)
-#endif
 
 /* gnuplot output types
  * see https://github.com/dkogan/feedgnuplot for plotter */

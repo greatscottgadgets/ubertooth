@@ -61,6 +61,8 @@ PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, str
 	rx_xfer = NULL;
 
 	btbb_packet_id = globalreg->packetchain->RegisterPacketComponent("UBERTOOTH");
+
+	ParseOptions(in_opts);
 }
 
 PacketSource_Ubertooth::~PacketSource_Ubertooth() {
@@ -69,6 +71,7 @@ PacketSource_Ubertooth::~PacketSource_Ubertooth() {
 	
 
 int PacketSource_Ubertooth::ParseOptions(vector<opt_pair> *in_opts) {
+	// Fixme = allow multiple ubertooth devices, etc
 	//if (FetchOpt("device", in_opts) != "") {
 		//usb_dev = FetchOpt("usbdev", in_opts);
 		//_MSG("Ubertooth Bluetooth using USB device '" + usb_dev + "'", MSGFLAG_INFO);
@@ -122,17 +125,19 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
-void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32_t clkn, uint8_t ac_errors)
+void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap,
+			 uint32_t clkn, uint8_t ac_errors, uint8_t channel)
 {
 	packet *pkt = new packet;
 	init_packet(pkt, syms, MAX_SYMBOLS);
 	pkt->LAP = lap;
 	pkt->clkn = clkn;
-	pkt->channel = ubertooth->channel;
+	pkt->channel = channel;
 	pkt->ac_errors = ac_errors;
 
-	//printf("GOT PACKET on channel %d, errs=%d, LAP = %06x at clkn = %u\n",
-	//	    ubertooth->channel, pkt->ac_errors, pkt->LAP, clkn);
+	if (ac_errors <= 2)
+		printf("GOT PACKET on channel %d, errs=%d, LAP = %06x at clkn = %u\n",
+		    pkt->channel, pkt->ac_errors, pkt->LAP, clkn);
 	// Lock the packet queue, throw away when there are more than 20 in the queue
 	// that haven't been handled, raise the file descriptor hot if we need to
 	pthread_mutex_lock(&(ubertooth->packet_lock));
@@ -154,15 +159,15 @@ void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32
 void *ubertooth_cap_thread(void *arg)
 {
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
-	int r;
 	access_code ac;
-	int i, j, k, m;
+	int i, j, k, m, r;
 	int xfer_size = 512;
 	int xfer_blocks;
 	uint32_t time; /* in 100 nanosecond units */
 	uint32_t clkn; /* native (local) clock in 625 us */
 	uint8_t clkn_high;
 	char syms[BANK_LEN * NUM_BANKS];
+	usb_pkt_rx *rx;
 
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
@@ -204,19 +209,17 @@ void *ubertooth_cap_thread(void *arg)
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			time = ubertooth->full_buf[4 + 64 * i]
-					| (ubertooth->full_buf[5 + 64 * i] << 8)
-					| (ubertooth->full_buf[6 + 64 * i] << 16)
-					| (ubertooth->full_buf[7 + 64 * i] << 24);
-			clkn_high = ubertooth->full_buf[3 + 64 * i];
+			rx = (usb_pkt_rx *)&(ubertooth->full_buf[64 * i]);
+			clkn_high = rx->clkn_high;
+			time = le32toh(rx->clk100ns);
 			//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = 0; j < 50; j++) {
 				/* output one byte for each received symbol (0 or 1) */
 				for (k = 0; k < 8; k++) {
 					//printf("%c", (full_buf[j] & 0x80) >> 7 );
 					ubertooth->symbols[ubertooth->bank][j * 8 + k] =
-							(ubertooth->full_buf[j + 14 + i * 64] & 0x80) >> 7;
-					ubertooth->full_buf[j + 14 + i * 64] <<= 1;
+							(rx->data[j] & 0x80) >> 7;
+					rx->data[j] <<= 1;
 				}
 			}
 
@@ -248,7 +251,8 @@ void *ubertooth_cap_thread(void *arg)
 								% NUM_BANKS][k];
 
 				clkn = (clkn_high << 19) | ((time + ac.offset * 10) / 6250);
-				enqueue(ubertooth, &syms[ac.offset], ac.LAP, clkn, ac.error_count);
+				enqueue(ubertooth, &syms[ac.offset], ac.LAP, clkn,
+						ac.error_count, rx->channel);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
@@ -269,6 +273,9 @@ int PacketSource_Ubertooth::OpenSource() {
 				string(strerror(errno)), MSGFLAG_ERROR);
 		return 0;
 	}
+
+	/* Set sweep mode on startup */
+	cmd_set_channel(devh, 9999);
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
@@ -329,15 +336,23 @@ int PacketSource_Ubertooth::CloseSource() {
 }
 
 int PacketSource_Ubertooth::SetChannel(unsigned int in_ch) {
+	int ret;
 	if (in_ch < 0 || in_ch > 78)
 		return -1;
 
-	//if (thread_active <= 0 || devh == NULL)
-	if (thread_active)
+	if (thread_active <= 0 || devh == NULL)
 		return 0;
 
 	//FIXME actually set the channel
 
+	printf("Switching channel to %d\n", in_ch);
+	ret = 0; //cmd_set_channel(devh, (u16) in_ch);
+	printf("cmd_set_channel got return value: %d\n", ret);
+	if (ret) {
+		_MSG("Packet source '" + name + "' failed to set channel "
+			 + IntToString(in_ch), MSGFLAG_PRINTERROR);
+		return -1;
+	}
 	channel = in_ch;
 
 	return 1;

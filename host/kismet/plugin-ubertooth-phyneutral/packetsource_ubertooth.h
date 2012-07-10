@@ -29,16 +29,23 @@
 #include <packetsource.h>
 #include <map>
 
-/* BANK_LEN must be >= AC_LEN */
-#define AC_LEN    72
-#define NUM_BANKS 20
-#define BANK_LEN  400
-
 extern "C" {
 	#include <bluetooth_packet.h>
 	#include <bluetooth_piconet.h>
 	#include "ubertooth.h"
 }
+
+#ifdef NUM_BANKS
+#undef NUM_BANKS
+#endif
+#ifdef BANK_LEN
+#undef BANK_LEN
+#endif
+
+/* BANK_LEN must be >= AC_LEN */
+#define AC_LEN    72
+#define NUM_BANKS 10
+#define BANK_LEN  400
 
 #define USE_PACKETSOURCE_UBERTOOTH
 
@@ -77,7 +84,7 @@ public:
 	virtual int OpenSource();
 	virtual int CloseSource();
 
-	virtual int FetchChannelCapable() { return 1; }
+	virtual int FetchChannelCapable() { return 0; }
 	virtual int EnableMonitor() { return 1; }
 	virtual int DisableMonitor() { return 1; }
 
@@ -137,7 +144,7 @@ protected:
 	void decode_pkt(packet*, piconet*);
 
 
-	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t, uint8_t);
+	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t, uint8_t, uint8_t);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
 };

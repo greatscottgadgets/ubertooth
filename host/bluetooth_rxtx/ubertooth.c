@@ -38,8 +38,8 @@ u8 *empty_buf = NULL;
 u8 *full_buf = NULL;
 u8 really_full = 0;
 struct libusb_transfer *rx_xfer = NULL;
-char Quiet= false;
-char Ubertooth_Device= -1;
+char Quiet = false;
+char Ubertooth_Device = -1;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 1;
@@ -289,6 +289,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	/* Copy packet (for dump) */
 	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
 
+	// TODO - check we're using the correct clk100ns later on (we change rx, but not clk100ns)
 	clk100ns = le32toh(rx->clk100ns); /* wire format is le32 */
 	/*
 	printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
