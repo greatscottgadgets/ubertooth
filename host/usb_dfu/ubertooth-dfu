@@ -114,6 +114,8 @@ if __name__ == '__main__':
 
     vendorId = productId = None
     try:
+        if not opts:
+            usage()
         for opt, arg in opts:
             if opt in ("-h", "--help"):
                 usage()
