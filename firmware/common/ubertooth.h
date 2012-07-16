@@ -25,6 +25,7 @@
 #include "lpc17.h"
 #include "types.h"
 #include "cc2400.h"
+#include "ubertooth_interface.h"
 
 /* hardware identification number */
 #define BOARD_ID_UBERTOOTH_ZERO 0

@@ -45,6 +45,9 @@
 #define u8 uint8_t
 #define u16 uint16_t
 #define u32 uint32_t
+#define u64 uint64_t
+
+#include "ubertooth_interface.h"
 
 #define U0_VENDORID    0x1d50
 #define U0_PRODUCTID   0x6000
@@ -74,83 +77,11 @@
 #define GNUPLOT_NORMAL		1
 #define GNUPLOT_3D		2
 
-enum ubertooth_usb_commands {
-    UBERTOOTH_PING         = 0,
-    UBERTOOTH_RX_SYMBOLS   = 1,
-    UBERTOOTH_TX_SYMBOLS   = 2,
-    UBERTOOTH_GET_USRLED   = 3,
-    UBERTOOTH_SET_USRLED   = 4,
-    UBERTOOTH_GET_RXLED    = 5,
-    UBERTOOTH_SET_RXLED    = 6,
-    UBERTOOTH_GET_TXLED    = 7,
-    UBERTOOTH_SET_TXLED    = 8,
-    UBERTOOTH_GET_1V8      = 9,
-    UBERTOOTH_SET_1V8      = 10,
-    UBERTOOTH_GET_CHANNEL  = 11,
-    UBERTOOTH_SET_CHANNEL  = 12,
-    UBERTOOTH_RESET        = 13,
-	UBERTOOTH_GET_SERIAL   = 14,
-	UBERTOOTH_GET_PARTNUM  = 15,
-	UBERTOOTH_GET_PAEN     = 16,
-	UBERTOOTH_SET_PAEN     = 17,
-	UBERTOOTH_GET_HGM      = 18,
-	UBERTOOTH_SET_HGM      = 19,
-	UBERTOOTH_TX_TEST      = 20,
-	UBERTOOTH_STOP         = 21,
-	UBERTOOTH_GET_MOD      = 22,
-	UBERTOOTH_SET_MOD      = 23,
-	UBERTOOTH_SET_ISP      = 24,
-	UBERTOOTH_FLASH        = 25,
-	BOOTLOADER_FLASH       = 26,
-	UBERTOOTH_SPECAN       = 27,
-	UBERTOOTH_GET_PALEVEL  = 28,
-	UBERTOOTH_SET_PALEVEL  = 29,
-	UBERTOOTH_REPEATER     = 30,
-	UBERTOOTH_RANGE_TEST   = 31,
-	UBERTOOTH_RANGE_CHECK  = 32,
-	UBERTOOTH_GET_REV_NUM  = 33,
-	UBERTOOTH_LED_SPECAN   = 34,
-	UBERTOOTH_GET_BOARD_ID = 35,
-	UBERTOOTH_SET_SQUELCH  = 36,
-	UBERTOOTH_GET_SQUELCH  = 37
-};
-
-enum modulations {
-	MOD_BT_BASIC_RATE = 0,
-	MOD_BT_LOW_ENERGY = 1,
-	MOD_80211_FHSS    = 2
-};
-
 enum board_ids {
 	BOARD_ID_UBERTOOTH_ZERO = 0,
 	BOARD_ID_UBERTOOTH_ONE  = 1,
 	BOARD_ID_TC13BADGE      = 2
 };
-
-/*
- * USB packet for Bluetooth RX (64 total bytes)
- */
-typedef struct {
-	u8     pkt_type;
-	u8     status;
-	u8     channel;
-	u8     clkn_high;
-	u32    clk100ns;
-	char   rssi_max;
-	char   rssi_min;
-	char   rssi_avg;
-	u8     rssi_count;
-	u8     reserved[2];
-	u8     data[50];
-} usb_pkt_rx;
-
-typedef struct {
-	u8 valid;
-	u8 request_pa;
-	u8 request_num;
-	u8 reply_pa;
-	u8 reply_num;
-} rangetest_result;
 
 typedef void (*rx_callback)(void* args, usb_pkt_rx *rx, int bank);
 
@@ -204,4 +135,6 @@ extern int cmd_get_rev_num(struct libusb_device_handle* devh);
 extern int cmd_get_board_id(struct libusb_device_handle* devh);
 extern int cmd_set_squelch(struct libusb_device_handle* devh, u16 level);
 extern int cmd_get_squelch(struct libusb_device_handle* devh);
+//extern int cmd_set_access_code(struct libusb_device_handle* devh, u32 lap);
+//extern u64 cmd_get_access_code(struct libusb_device_handle* devh);
 #endif
