@@ -83,8 +83,16 @@ class Ubertooth(object):
             self._state = self.STATE_IDLE
     
 if __name__ == '__main__':
-    device = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
-    if device is None:
+    ids = [
+        (0x1D50, 0x6002), # UBERTOOTH_ONE
+        (0x1D50, 0x6000), # UBERTOOTH_ZERO
+        (0xFFFF, 0x0004)  # TC13BADGE / Ubertooth with older firmware
+    ]
+    for vendor, product in ids:
+        device = usb.core.find(idVendor=vendor, idProduct=product)
+        if device:
+            break
+    else:
         raise Exception('Device not found')
 
     ubertooth = Ubertooth(device)

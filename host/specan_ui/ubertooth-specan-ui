@@ -239,10 +239,16 @@ class Window(QtGui.QWidget):
         return QtCore.QSize(480, 160)
     
     def _open_device(self):
-        device = usb.core.find(idVendor=0xFFFF, idProduct=0x0004)
-        if device is None:
-            raise Exception('Device not found')
-        return Ubertooth(device)
+        ids = [
+            (0x1D50, 0x6002), # UBERTOOTH_ONE
+            (0x1D50, 0x6000), # UBERTOOTH_ZERO
+            (0xFFFF, 0x0004)  # TC13BADGE / Ubertooth with older firmware
+        ]
+        for vendor, product in ids:
+            device = usb.core.find(idVendor=vendor, idProduct=product)
+            if device:
+                return Ubertooth(device)
+        raise Exception('Device not found')
     
     def closeEvent(self, event):
         self.render_area.stop_thread()
