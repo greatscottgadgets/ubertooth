@@ -45,7 +45,8 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int have_lap = 0;
-	char *end, ubertooth_device;
+	char *end;
+	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 	piconet pn;
 
