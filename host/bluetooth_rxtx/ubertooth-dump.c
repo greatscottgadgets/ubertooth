@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <ubertooth.h>
+#include "ubertooth.h"
 #include <getopt.h>
 
 static void usage(void)
