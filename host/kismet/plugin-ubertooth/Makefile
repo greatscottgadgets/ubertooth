@@ -11,7 +11,7 @@ top_builddir = $(BLDHOME)
 
 PLUGINLDFLAGS ?= $(LDFLAGS)
 PLUGINLDFLAGS += -shared -rdynamic
-LIBS	+= -lstdc++ -lusb-1.0 -lpthread -lbtbb
+LIBS	+= -lstdc++ -lusb-1.0 -lpthread -lbtbb -lubertooth
 CFLAGS	?= $(CFLAGS) $(CPPFLAGS)
 CFLAGS	+= -I/usr/include -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 

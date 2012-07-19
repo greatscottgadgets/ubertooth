@@ -63,7 +63,7 @@ void show_libusb_error(int error_code)
 	}
 }
 
-static struct libusb_device_handle* find_ubertooth_device(void)
+static struct libusb_device_handle* find_ubertooth_device(u8 ubertooth_device)
 {
 	struct libusb_context *ctx = NULL;
 	struct libusb_device **usb_list = NULL;
@@ -93,7 +93,7 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 	else if (ubertooths == 0)
 		return NULL;
 	else {
-		if (Ubertooth_Device < 0) {
+		if (ubertooth_device < 0) {
 			fprintf(stderr, "multiple Ubertooth devices found! Use '-U' to specify device number\n");
 			for(i = 0 ; i < ubertooths ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
@@ -111,7 +111,7 @@ static struct libusb_device_handle* find_ubertooth_device(void)
 			devh = NULL;
 		}
 		else
-			libusb_open(usb_list[ubertooth_devs[(uint8_t)Ubertooth_Device]], &devh);
+			libusb_open(usb_list[ubertooth_devs[ubertooth_device]], &devh);
 		}
 	return devh;
 }
@@ -691,7 +691,7 @@ void ubertooth_stop(struct libusb_device_handle *devh)
 	libusb_exit(NULL);
 }
 
-struct libusb_device_handle* ubertooth_start()
+struct libusb_device_handle* ubertooth_start(u8 ubertooth_device)
 {
 	int r;
 	struct libusb_device_handle *devh = NULL;
@@ -702,7 +702,7 @@ struct libusb_device_handle* ubertooth_start()
 		return NULL;
 	}
 
-	devh = find_ubertooth_device();
+	devh = find_ubertooth_device(ubertooth_device);
 	if (devh == NULL) {
 		fprintf(stderr, "could not open Ubertooth device\n");
 		ubertooth_stop(devh);
@@ -1219,3 +1219,37 @@ int cmd_get_squelch(struct libusb_device_handle* devh)
 	return level;
 }
 
+int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr)
+{
+	int r;
+	u8 data[6];
+	for(r=0; r<6;r++)
+		data[r] = (bdaddr >> (8*r)) & 0xff;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_BDADDR, 0, 0,
+		data, 6, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
+int cmd_next_hop(struct libusb_device_handle* devh, u16 clk)
+{
+	u8 frequency[2];
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_NEXT_HOP, clk, 0,
+			frequency, 2, 3000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	r = frequency[0] | (frequency[1] << 8);
+	return r;
+}

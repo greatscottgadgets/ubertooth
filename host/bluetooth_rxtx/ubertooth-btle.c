@@ -23,8 +23,6 @@
 #include <bluetooth_packet.h>
 #include <getopt.h>
 
-extern char Ubertooth_Device;
-
 static void usage(void)
 {
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
@@ -38,6 +36,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	int opt;
+	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 	FILE* infile = NULL;
 
@@ -52,7 +51,7 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'U':
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -62,7 +61,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		devh = ubertooth_start();
+		devh = ubertooth_start(ubertooth_device);
 		if (devh == NULL) {
 			usage();
 			return 1;

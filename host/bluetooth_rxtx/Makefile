@@ -17,9 +17,19 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-CC ?= gcc
-OPTFLAGS = -O2
+CC      ?= gcc
+AR      ?= ar
+INSTALL  = /usr/bin/install
+LDCONFIG = /sbin/ldconfig
+
+OPTFLAGS   = -O2
 ANGRYFLAGS = -Wall #-Wextra -pedantic
+CFLAGS    += $(OPTFLAGS) $(ANGRYFLAGS)
+
+LIB_DIR ?= /usr/lib
+INCLUDE_DIR ?= /usr/include
+INSTALL_DIR ?= /usr/bin
+
 OS = $(shell uname)
 ifeq ($(OS), FreeBSD)
 	LIBUSB = usb
@@ -27,32 +37,51 @@ ifeq ($(OS), FreeBSD)
 else
 	LIBUSB = usb-1.0
 endif
-LIBBTBB = btbb
-CFLAGS += $(OPTFLAGS) $(ANGRYFLAGS)
+LIBBTBB  = btbb
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
-all: ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
+LIB_NAME   = libubertooth.so
+SONAME     = $(LIB_NAME).0
+LIB_FILE   = $(SONAME).svn-$(shell svnversion -n .)
+STATIC_LIB_FILE = libubertooth.a
+LIB_CFLAGS = $(CFLAGS) -shared -Wl,-soname,$(SONAME) -fPIC
 
-ubertooth-dump: ubertooth-dump.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-dump.c ubertooth.c -o ubertooth-dump $(LDFLAGS)
+LIB_SOURCE_FILES = ubertooth.c
+LIB_OBJECT_FILES = $(LIB_SOURCE_FILES:%.c=%.o)
+LIB_HEADER_FILES = $(LIB_SOURCE_FILES:%.c=%.h) ubertooth_interface.h
 
-ubertooth-lap: ubertooth-lap.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-lap.c ubertooth.c -o ubertooth-lap $(LDFLAGS)
+TOOLS = ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
+TOOLS_SOURCE = $(TOOLS:%=%.c)
 
-ubertooth-specan: ubertooth-specan.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-specan.c ubertooth.c -o ubertooth-specan $(LDFLAGS)
+all: $(LIB_FILE) $(TOOLS)
 
-ubertooth-util: ubertooth-util.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-util.c ubertooth.c -o ubertooth-util $(LDFLAGS)
+$(LIB_FILE): $(LIB_SOURCE_FILES) $(LIB_HEADER_FILES)
+	$(CC) $(CFLAGS) -fPIC -c $(LIB_SOURCE_FILES)
+	$(CC) $(LIB_CFLAGS) -o $(LIB_FILE) $(LIB_OBJECT_FILES) $(LDFLAGS)
 
-ubertooth-uap: ubertooth-uap.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-uap.c ubertooth.c -o ubertooth-uap $(LDFLAGS)
+$(TOOLS): $(LIB_FILE) $(TOOLS_SOURCE)
+		$(CC) $(CFLAGS) -o $@ $@.c $(LIB_FILE) $(LDFLAGS)
 
-ubertooth-hop: ubertooth-hop.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-hop.c ubertooth.c -o ubertooth-hop $(LDFLAGS)
+$(STATIC_LIB_FILE): $(LIB_FILE)
+	$(AR) rcs $(STATIC_LIB_FILE) $(LIB_OBJECT_FILES)
 
-ubertooth-btle: ubertooth-btle.c ubertooth.c ubertooth.h
-	$(CC) $(CFLAGS) ubertooth-btle.c ubertooth.c -o ubertooth-btle $(LDFLAGS)
+install: $(LIB_FILE) $(TOOLS)
+	$(INSTALL) -m 0644 $(LIB_HEADER_FILES) $(INCLUDE_DIR)
+	$(INSTALL) -m 0644 $(LIB_FILE) $(LIB_DIR)
+	$(LDCONFIG)
+	ln -fs $(LIB_FILE) $(LIB_DIR)/$(LIB_NAME)
+	ln -fs $(LIB_FILE) $(LIB_DIR)/$(SONAME)
+	$(INSTALL) -m 0644 $(LIB_HEADER_FILES) $(INCLUDE_DIR)
+	$(INSTALL) -m 0755 $(TOOLS) $(INSTALL_DIR)
+
+cygwin-install: $(LIB_FILE) $(STATIC_LIB_FILE)
+	$(INSTALL) -m 0644 $(LIB_FILE) $(INSTALL_DIR)
+	$(INSTALL) -m 0644 $(HEADER_FILES) $(INCLUDE_DIR)
+	$(INSTALL) -m 0644 $(STATIC_LIB_FILE) $(INSTALL_DIR)
+	ln -fs $(LIB_FILE) $(INSTALL_DIR)/$(LIB_NAME)
+	ln -fs $(LIB_FILE) $(INSTALL_DIR)/$(SONAME)
 
 clean:
-	rm -f ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle *.o
+	rm -f $(LIB_NAME).* $(STATIC_LIB_FILE) $(TOOLS) $(LIB_OBJECT_FILES)
+
+.PHONY: all clean install cygwin-install

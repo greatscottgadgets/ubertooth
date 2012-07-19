@@ -24,7 +24,6 @@
 #include <bluetooth_piconet.h>
 #include <getopt.h>
 
-extern char Ubertooth_Device;
 extern FILE *dumpfile;
 extern FILE *infile;
 extern int max_ac_errors;
@@ -46,7 +45,7 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int have_lap = 0;
-	char *end;
+	char *end, ubertooth_device;
 	struct libusb_device_handle *devh = NULL;
 	piconet pn;
 
@@ -68,7 +67,7 @@ int main(int argc, char *argv[])
 				++have_lap;
 			break;
 		case 'U':
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
 			break;
 		case 'd':
 			dumpfile = fopen(optarg, "w");
@@ -92,7 +91,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		devh = ubertooth_start();
+		devh = ubertooth_start(ubertooth_device);
 		if (devh == NULL) {
 			usage();
 			return 1;

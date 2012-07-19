@@ -24,8 +24,6 @@
 #include <bluetooth_piconet.h>
 #include <getopt.h>
 
-extern char Ubertooth_Device;
-
 static void usage()
 {
 	printf("ubertooth-hop - passive CLK discovery for a particular UAP/LAP\n");
@@ -44,7 +42,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int have_lap = 0;
 	int have_uap = 0;
-	char *end;
+	char *end, ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 	FILE* infile = NULL;
 	piconet pn;
@@ -72,7 +70,7 @@ int main(int argc, char *argv[])
 				++have_uap;
 			break;
 		case 'U':
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -86,7 +84,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		devh = ubertooth_start();
+		devh = ubertooth_start(ubertooth_device);
 		if (devh == NULL) {
 			usage();
 			return 1;

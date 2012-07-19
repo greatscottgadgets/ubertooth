@@ -24,7 +24,6 @@
 #include "ubertooth.h"
 
 extern char Quiet;
-extern char Ubertooth_Device;
 
 static void usage(void)
 {
@@ -44,6 +43,7 @@ int main(int argc, char *argv[])
 {
 	int opt, gnuplot= false;
 	int lower= 2402, upper= 2480;
+	char ubertooth_device = -1;
 
 	struct libusb_device_handle *devh = NULL;
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 				printf("upper: %d\n", upper);
 			break;
 		case 'U':
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
 			break;
 		case 'h':
 		default:
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	devh = ubertooth_start();
+	devh = ubertooth_start(ubertooth_device);
 
 	if (devh == NULL) {
 		usage();

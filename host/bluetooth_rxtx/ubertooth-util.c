@@ -30,8 +30,6 @@ const char* board_names[] = {
 	"ToorCon 13 Badge"
 };
 
-extern char Ubertooth_Device;
-
 static void usage()
 {
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
@@ -71,6 +69,7 @@ int main(int argc, char *argv[])
 	int do_range_test, do_repeater, do_firmware, do_board_id;
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
+	char ubertooth_device = -1;
 
 	/* set command states to negative as a starter
 	 * setting to 0 means 'do it'
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
 	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::")) != EOF) {
 		switch(opt) {
 		case 'U': 
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
                         break;
 		case 'f':
 			do_flash= 0;
@@ -179,19 +178,19 @@ int main(int argc, char *argv[])
 	}
 
 	/* initialise device */
-	devh = ubertooth_start();
+	devh = ubertooth_start(ubertooth_device);
 	if (devh == NULL) {
 		usage();
 		return 1;
 	}
 	if(do_reset == 0) {
-		printf("Resetting ubertooth device number %d\n", (Ubertooth_Device >= 0) ? Ubertooth_Device : 0);
-		r= cmd_reset(devh);
+		printf("Resetting ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
+		r = cmd_reset(devh);
 		sleep(2);
-		devh = ubertooth_start();
+		devh = ubertooth_start(ubertooth_device);
 	}
 	if(do_stop == 0) {
-		printf("Stopping ubertooth device number %d\n", (Ubertooth_Device >= 0) ? Ubertooth_Device : 0);
+		printf("Stopping ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		r= cmd_stop(devh);
 	}
 
@@ -259,7 +258,7 @@ int main(int argc, char *argv[])
 		return cmd_flash(devh);
 	}
 	if(do_identify == 0) {
-		printf("Flashing LEDs on ubertooth device number %d\n", (Ubertooth_Device >= 0) ? Ubertooth_Device : 0);
+		printf("Flashing LEDs on ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		while(42) {
 			do_identify= !do_identify;
 			cmd_set_usrled(devh, do_identify);

@@ -23,7 +23,6 @@
 #include <bluetooth_packet.h>
 #include <getopt.h>
 
-extern char Ubertooth_Device;
 extern FILE *infile;
 extern FILE *dumpfile;
 extern int max_ac_errors;
@@ -43,6 +42,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	int opt;
+	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
 	while ((opt=getopt(argc,argv,"hi:U:d:e:")) != EOF) {
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'U':
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
 			break;
 		case 'd':
 			dumpfile = fopen(optarg, "w");
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		devh = ubertooth_start();
+		devh = ubertooth_start(ubertooth_device);
 		if (devh == NULL) {
 			usage();
 			return 1;

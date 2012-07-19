@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ubertooth.h"
+#include <ubertooth.h>
 #include <getopt.h>
 
 static void usage(void)
@@ -42,13 +42,13 @@ static void usage(void)
  * representing the symbol determined by the demodulator (GnuRadio style)
  */
 
-extern char Ubertooth_Device;
 extern FILE *dumpfile;
 
 int main(int argc, char *argv[])
 {
 	int opt;
 	int bitstream = 0;
+	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
 	while ((opt=getopt(argc,argv,"bhU:d:")) != EOF) {
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 			bitstream = 1;
 			break;
 		case 'U':
-			Ubertooth_Device= atoi(optarg);
+			ubertooth_device = atoi(optarg);
 			break;
 		case 'd':
 			dumpfile = fopen(optarg, "w");
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	devh = ubertooth_start();
+	devh = ubertooth_start(ubertooth_device);
 
 	if (devh == NULL) {
 		usage();

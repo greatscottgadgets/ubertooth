@@ -267,7 +267,7 @@ out:
 }
 
 int PacketSource_Ubertooth::OpenSource() {
-	if ((devh = ubertooth_start()) == NULL) {
+	if ((devh = ubertooth_start(-1)) == NULL) {
 		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev + "': " +
 				string(strerror(errno)), MSGFLAG_ERROR);
 		return 0;
