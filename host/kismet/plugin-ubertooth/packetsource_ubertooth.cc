@@ -89,6 +89,8 @@ int PacketSource_Ubertooth::AutotypeProbe(string in_device) {
 		type = "ubertooth";
 		return 1;
 	}
+
+	return 0;
 }
 
 /* bulk transfer callback for libusb */
