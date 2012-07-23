@@ -16,8 +16,7 @@ CFLAGS	+= -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 CXXFLAGS += -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 
 SRVOBJS = packetsource_ubertooth.o packet_btbb_types.o \
-			phy_btbb.o kismet_ubertooth.o \
-			$(RXTX_SRC_DIR)/ubertooth.o
+			phy_btbb.o kismet_ubertooth.o
 SRVOUT	= ubertooth.so
 
 all:	$(SRVOUT)
