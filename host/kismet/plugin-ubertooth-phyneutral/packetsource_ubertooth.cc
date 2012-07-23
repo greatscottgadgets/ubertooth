@@ -130,6 +130,7 @@ void cb_xfer(struct libusb_transfer *xfer)
 void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap,
 			 uint32_t clkn, uint8_t ac_errors, uint8_t channel)
 {
+	int write_size;
 	packet *pkt = new packet;
 	init_packet(pkt, syms, MAX_SYMBOLS);
 	pkt->LAP = lap;
@@ -151,7 +152,9 @@ void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap,
 		if (ubertooth->pending_packet == 0) {
 			// printf("debug - writing to fakefd\n");
 			ubertooth->pending_packet = 1;
-			write(ubertooth->fake_fd[1], "bogus", 1);
+			write_size = write(ubertooth->fake_fd[1], "bogus", 1);
+			if (write_size <= 0)
+				printf("Error writing to fakefd\n");
 		}
 	}
 	pthread_mutex_unlock(&(ubertooth->packet_lock));
@@ -473,9 +476,12 @@ void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
 
 int PacketSource_Ubertooth::Poll() {
 	char rx;
+	int read_size;
 
 	// Consume the junk byte we used to raise the FD high
-	read(fake_fd[0], &rx, 1);
+	read_size = read(fake_fd[0], &rx, 1);
+	if (read_size <= 0)
+		printf("Error reading from fakefd\n");
 
 	pthread_mutex_lock(&packet_lock);
 

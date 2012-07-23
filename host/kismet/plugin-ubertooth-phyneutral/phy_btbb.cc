@@ -149,8 +149,6 @@ Btbb_Phy::~Btbb_Phy() {
 }
 
 int Btbb_Phy::DissectorBtbb(kis_packet *in_pack) {
-	int offset = 0;
-
 	// printf("debug - btbb dissector\n");
 
 	btbb_packinfo *pi = NULL;
