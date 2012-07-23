@@ -12,8 +12,8 @@ top_builddir = $(BLDHOME)
 PLUGINLDFLAGS ?= $(LDFLAGS)
 PLUGINLDFLAGS += -shared -rdynamic
 LIBS	+= -lstdc++ -lusb-1.0 -lpthread -lbtbb -lubertooth
-CFLAGS	?= $(CFLAGS) $(CPPFLAGS)
 CFLAGS	+= -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
+CXXFLAGS += -I$(KIS_INC_DIR) -I$(RXTX_INC_DIR) -g -fPIC
 
 SRVOBJS = packetsource_ubertooth.o packet_btbb_types.o \
 			phy_btbb.o kismet_ubertooth.o \
@@ -38,9 +38,9 @@ clean:
 	@-rm -f *.so
 
 .c.o:
-	$(CC) $(CFLAGS) -c $*.c -o $@ 
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $*.c -o $@ 
 
 .cc.o:
-	$(CXX) $(CFLAGS) -c $*.cc -o $@ 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $*.cc -o $@ 
 
 .SUFFIXES: .c .cc .o
