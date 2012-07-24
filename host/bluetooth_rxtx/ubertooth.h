@@ -85,7 +85,7 @@ enum board_ids {
 
 typedef void (*rx_callback)(void* args, usb_pkt_rx *rx, int bank);
 
-struct libusb_device_handle* ubertooth_start(u8 ubertooth_device);
+struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	u16 low_freq, u16 high_freq);
@@ -137,5 +137,6 @@ int cmd_set_squelch(struct libusb_device_handle* devh, u16 level);
 int cmd_get_squelch(struct libusb_device_handle* devh);
 int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr);
 int cmd_next_hop(struct libusb_device_handle* devh, u16 clk);
+int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset);
 
 #endif /* __UBERTOOTH_H__ */

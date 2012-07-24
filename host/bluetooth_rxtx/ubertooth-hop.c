@@ -24,6 +24,8 @@
 #include <bluetooth_piconet.h>
 #include <getopt.h>
 
+extern int max_ac_errors;
+
 static void usage()
 {
 	printf("ubertooth-hop - passive CLK discovery for a particular UAP/LAP\n");
@@ -33,6 +35,7 @@ static void usage()
 	printf("\t-l<LAP> (in hexadecimal)\n");
 	printf("\t-u<UAP> (in hexadecimal)\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-e max_ac_errors\n");
 	printf("\nLAP and UAP are both required.\n");
 	printf("If an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
@@ -49,7 +52,7 @@ int main(int argc, char *argv[])
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hi:l:u:U:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:u:U:e:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -66,11 +69,16 @@ int main(int argc, char *argv[])
 			break;
 		case 'u':
 			pn.UAP = strtol(optarg, &end, 16);
-			if (end != optarg)
+			if (end != optarg) {
 				++have_uap;
+				pn.have_UAP = 1;
+			}
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			break;
+		case 'e':
+			max_ac_errors = atoi(optarg);
 			break;
 		case 'h':
 		default:

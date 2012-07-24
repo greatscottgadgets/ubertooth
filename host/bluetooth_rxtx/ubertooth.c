@@ -39,7 +39,6 @@ u8 *full_buf = NULL;
 u8 really_full = 0;
 struct libusb_transfer *rx_xfer = NULL;
 char Quiet = false;
-char Ubertooth_Device = -1;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 1;
@@ -63,7 +62,7 @@ void show_libusb_error(int error_code)
 	}
 }
 
-static struct libusb_device_handle* find_ubertooth_device(u8 ubertooth_device)
+static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
 	struct libusb_context *ctx = NULL;
 	struct libusb_device **usb_list = NULL;
@@ -330,6 +329,24 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	}
 
 	if ((r.offset > -1) && (r.error_count <= max_ac_errors)) {
+		/* If dumpfile is specified, write out all banks to
+		 * the file. There could be duplicate data in the dump
+		 * if more than one LAP is found within the span of
+		 * NUM_BANKS. If experiment mode is selected, extra
+		 * info is written out. For now, it just prepends
+		 * capture time. */
+		if (dumpfile) {
+			for(i = 0; i < NUM_BANKS; i++) {
+				uint32_t systime_be = htobe32(systime);
+				if (fwrite(&systime_be, 
+					   sizeof(systime_be), 1,
+					   dumpfile)
+				    != 1) {;}
+				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+					   sizeof(usb_pkt_rx), 1, dumpfile)
+				    != 1) {;}
+			}
+		}
 
 		/* Native (Ubertooth) clock with period 312.5 uS. */
 		clk0 = (rx->clkn_high << 20)
@@ -365,25 +382,6 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			if (header_present(&pkt)) {
 				if (UAP_from_header(&pkt, pn))
 					exit(0);
-			}
-		}
-
-		/* If dumpfile is specified, write out all banks to
-		 * the file. There could be duplicate data in the dump
-		 * if more than one LAP is found within the span of
-		 * NUM_BANKS. If experiment mode is selected, extra
-		 * info is written out. For now, it just prepends
-		 * capture time. */
-		if (dumpfile) {
-			for(i = 0; i < NUM_BANKS; i++) {
-				uint32_t systime_be = htobe32(systime);
-				if (fwrite(&systime_be, 
-					   sizeof(systime_be), 1,
-					   dumpfile)
-				    != 1) {;}
-				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
-					   sizeof(usb_pkt_rx), 1, dumpfile)
-				    != 1) {;}
 			}
 		}
 	}
@@ -453,28 +451,48 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 			       channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
-			if (pn->have_clk6) {
-				UAP_from_header(&pkt, pn);
-				if (!pn->have_clk6) {
-					printf("CLK1-27 discovery failed\n");
-					exit(1); /* FIXME */
-					winnow(pn);
-				}
+
+			if (pn->hop_reversal_inited) {
+				//pn->winnowed = 0;
+				pn->pattern_indices[pn->packets_observed] = pkt.clkn - pn->first_pkt_time;
+				pn->pattern_channels[pn->packets_observed] = pkt.channel;
+				pn->packets_observed++;
+				pn->total_packets_observed++;
+				winnow(pn);
 				if (pn->have_clk27) {
 					printf("got CLK1-27\n");
+					printf("clock offset = %d\n", pn->clk_offset);
 					exit(0);
 				}
 			} else {
-				if (UAP_from_header(&pkt, pn)) {
-					if (uap == pn->UAP) {
-						printf("got CLK1-6\n");
-						init_hop_reversal(0, pn);
-						winnow(pn);
-					} else {
-						printf("failed to confirm UAP\n");
-						exit(1);
+				if (pn->have_clk6) {
+					UAP_from_header(&pkt, pn);
+					if (!pn->have_clk6) {
+						printf("CLK1-27 discovery failed\n");
+						//exit(1); /* FIXME */
+						//winnow(pn);
+					}
+					if (pn->have_clk27) {
+						printf("got CLK1-27\n");
+						printf("clock offset = %d\n", pn->clk_offset);
+						exit(0);
+					}
+				} else {
+					if (UAP_from_header(&pkt, pn)) {
+						if (uap == pn->UAP) {
+							printf("got CLK1-6\n");
+							init_hop_reversal(0, pn);
+							winnow(pn);
+						} else {
+							printf("failed to confirm UAP\n");
+							exit(1);
+						}
 					}
 				}
+			}
+			if(!pn->have_UAP) {
+				pn->have_UAP = 1;
+				pn->UAP = uap;
 			}
 		}
 	}
@@ -691,7 +709,7 @@ void ubertooth_stop(struct libusb_device_handle *devh)
 	libusb_exit(NULL);
 }
 
-struct libusb_device_handle* ubertooth_start(u8 ubertooth_device)
+struct libusb_device_handle* ubertooth_start(int ubertooth_device)
 {
 	int r;
 	struct libusb_device_handle *devh = NULL;
@@ -1252,4 +1270,24 @@ int cmd_next_hop(struct libusb_device_handle* devh, u16 clk)
 	}
 	r = frequency[0] | (frequency[1] << 8);
 	return r;
+}
+
+int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset)
+{
+	int r;
+	u8 data[4];
+	for(r=0; r < 4; r++)
+		data[r] = (clock_offset >> (8*r)) & 0xff;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_START_HOPPING, 0, 0,
+		data, 4, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
 }

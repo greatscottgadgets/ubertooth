@@ -50,6 +50,7 @@
 #include "usbapi.h"
 #include "usbhw_lpc.h"
 #include "ubertooth_interface.h"
+#include "bluetooth.h"
 
 #define IAP_LOCATION 0x1FFF1FF1
 typedef void (*IAP)(u32[], u32[]);
@@ -122,6 +123,8 @@ volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
+u8 bdaddr[6];
+int clock_offset = 0;
 
 /* DMA linked list items */
 typedef struct {
@@ -183,7 +186,7 @@ static void rssi_iir_update(void)
 
 	/* Use array to track 79 Bluetooth channels, or just first
 	 * slot of array if not sweeping. */
-	if (hop_mode == HOP_SWEEP)
+	if (hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH)
 		i = channel - 2402;
 	else
 		i = 0;
@@ -222,7 +225,7 @@ static void cs_threshold_calc_and_set(void)
 	 * off.  TODO - max-to-iir only works in SWEEP mode, where the
 	 * channel is known to be in the BT band, i.e., rssi_iir has a
 	 * value for it. */
-	if ((hop_mode == HOP_SWEEP) && (cs_threshold_req > 0)) {
+	if ((hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH) && (cs_threshold_req > 0)) {
 		int8_t rssi = (int8_t)((rssi_iir[channel-2402] + 128)/256);
 		level = rssi - 54 + cs_threshold_req;
 	}
@@ -286,7 +289,7 @@ static int enqueue(u8 *buf)
 	f->channel = channel-2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
-	if (hop_mode == HOP_SWEEP)
+	if (hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH)
 		f->rssi_avg = (int8_t)((rssi_iir[channel-2402] + 128)/256);
 	else
 		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
@@ -704,6 +707,29 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_GET_SQUELCH:
 		pbData[0] = cs_threshold_req;
 		*piLen = 1;
+		break;
+
+	case UBERTOOTH_SET_BDADDR:
+		for(i=0; i < 6; i++)
+			bdaddr[i] = pbData[i];
+		precalc(bdaddr);
+		break;
+
+	case UBERTOOTH_NEXT_HOP:
+		i = next_hop(pSetup->wValue);
+		pbData[0] = i & 0xFF;
+		pbData[1] = (i >> 8) & 0xFF;
+		*piLen = 2;
+		break;
+
+	case UBERTOOTH_START_HOPPING:
+		clock_offset = 0;
+		for(i=0; i < 4; i++) {
+			clock_offset << 8;
+			clock_offset |= pbData[i];
+		}
+		hop_mode = HOP_BLUETOOTH;
+		cs_threshold_calc_and_set();
 		break;
 
 	default:
@@ -1254,8 +1280,8 @@ void hop(void)
 	}
 
 	else if (hop_mode == HOP_BLUETOOTH) {
-		// Check if hop time, or copy channel from wherever, or whatever.
-		return;
+		TXLED_SET;
+		channel = next_hop(CLKN + clock_offset);
 	}
 
         /* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
@@ -1266,7 +1292,7 @@ void hop(void)
 	cc2400_set(FSDIV, channel - 1);
 	
 	/* Update CS register if hopping.  */
-	if (hop_mode == HOP_SWEEP) {
+	if (hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH) {
 		cs_threshold_calc_and_set();
 	}
 
