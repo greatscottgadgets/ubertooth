@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <bluetooth_packet.h>
 
@@ -44,6 +45,7 @@ FILE *dumpfile = NULL;
 int max_ac_errors = 1;
 uint32_t systime;
 int clk_offset = -1;
+u8 hopping = 0;
 
 void show_libusb_error(int error_code)
 {
@@ -208,10 +210,8 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		for (i = 0; i < xfer_blocks; i++) {
 			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
 			bank = (bank + 1) % NUM_BANKS;
-			if(clk_offset != -1) {
-				cmd_start_hopping(devh, clk_offset);
+			if((clk_offset != -1) && !hopping)
 				return 1;
-			}
 		}
 		really_full = 0;
 		fflush(stderr);
@@ -513,8 +513,12 @@ void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
 	cmd_set_bdaddr(devh, address);
 	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
-	if (ret == 1)
+	if (ret == 1) {
+		sleep(1);
+		hopping = 1;
+		cmd_start_hopping(devh, clk_offset);
 		stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
+	}
 }
 
 /* sniff one target LAP until the UAP is determined */
