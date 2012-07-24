@@ -43,6 +43,7 @@ FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 1;
 uint32_t systime;
+int clk_offset = -1;
 
 void show_libusb_error(int error_code)
 {
@@ -207,6 +208,10 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		for (i = 0; i < xfer_blocks; i++) {
 			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
 			bank = (bank + 1) % NUM_BANKS;
+			if(clk_offset != -1) {
+				cmd_start_hopping(devh, clk_offset);
+				return 1;
+			}
 		}
 		really_full = 0;
 		fflush(stderr);
@@ -461,8 +466,9 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 				winnow(pn);
 				if (pn->have_clk27) {
 					printf("got CLK1-27\n");
-					printf("clock offset = %d\n", pn->clk_offset);
-					exit(0);
+					printf("clock offset = %d. Attempting to hop.\n", pn->clk_offset);
+					clk_offset = pn->clk_offset;
+					return;
 				}
 			} else {
 				if (pn->have_clk6) {
@@ -474,8 +480,9 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 					}
 					if (pn->have_clk27) {
 						printf("got CLK1-27\n");
-						printf("clock offset = %d\n", pn->clk_offset);
-						exit(0);
+						printf("clock offset = %d. Attempting to hop.\n", pn->clk_offset);
+						clk_offset = pn->clk_offset;
+						return;
 					}
 				} else {
 					if (UAP_from_header(&pkt, pn)) {
@@ -501,7 +508,13 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 /* sniff one target address until CLK is determined */
 void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 {
-	stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
+	int ret;
+	u64 address = 0;
+	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
+	cmd_set_bdaddr(devh, address);
+	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
+	if (ret == 1)
+		stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
 }
 
 /* sniff one target LAP until the UAP is determined */
