@@ -46,6 +46,7 @@ int max_ac_errors = 1;
 uint32_t systime;
 int clk_offset = -1;
 u8 hopping = 0;
+u8 usb_retry = 1;
 
 void show_libusb_error(int error_code)
 {
@@ -140,7 +141,7 @@ static void cb_xfer(struct libusb_transfer *xfer)
 
 	rx_xfer->buffer = empty_buf;
 
-	while (1) {
+	while (usb_retry) {
 		r = libusb_submit_transfer(rx_xfer);
 		if (r < 0)
 			fprintf(stderr, "rx_xfer submission from callback: %d\n", r);
@@ -210,8 +211,17 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		for (i = 0; i < xfer_blocks; i++) {
 			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
 			bank = (bank + 1) % NUM_BANKS;
-			if((clk_offset != -1) && !hopping)
+			if((clk_offset != -1) && !hopping) {
+				really_full = 0;
+				usb_retry = 0;
+				r = libusb_handle_events(NULL);
+				if (r < 0) {
+					fprintf(stderr, "libusb_handle_events: %d\n", r);
+					return -1;
+				}
+				usb_retry = 1;
 				return 1;
+			}
 		}
 		really_full = 0;
 		fflush(stderr);
