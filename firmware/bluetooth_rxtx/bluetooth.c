@@ -126,43 +126,43 @@ u16 next_hop(u32 clock)
 
 }
 
-int find_access_code()
-{
-        /* Looks for an AC in the stream */
-        u16 count;
-        u8 barker, bit_errors, curr_buf;
-        int max_distance = 1; // maximum number of bit errors to tolerate in barker
-        u64 corrected_syncword;
-        int i = 0;
-
-        if (syncword == 0) {
-            for (; i<8; i++) {
-                access_code <<= 8;
-                access_code |= idle_rxbuf[i];
-            }
-        }
-
-        // Search until we're 64 symbols from the end of the buffer
-        for(count = 0; count < ((8 * DMA_SIZE) - 64); count++)
-        {
-            barker = syncword & 0x7f;
-            if(BARKER_DISTANCE[barker] <= max_distance)
-            {
-                /* correct the barker code with a simple comparison */
-                corrected_syncword = (syncword & 0xffffffffffffff80) | barker_correct[barker];
-
-                bit_errors = count_bits(access_code ^ corrected_syncword);
-
-                if (bit_errors < 2)
-                        return count;
-
-                if (count%8 == 0)
-                        curr_buf = idle_rxbuf[++i];
-
-                syncword <<= 1;
-                syncword = (syncword & 0xfffffffffffffffe) | ((curr_buf & 0x80) >> 8);
-                curr_buf <<= 1;
-            }
-        }
-        return -1;
-}
+//int find_access_code()
+//{
+//        /* Looks for an AC in the stream */
+//        u16 count;
+//        u8 barker, bit_errors, curr_buf;
+//        int max_distance = 1; // maximum number of bit errors to tolerate in barker
+//        u64 corrected_syncword;
+//        int i = 0;
+//
+//        if (syncword == 0) {
+//            for (; i<8; i++) {
+//                access_code <<= 8;
+//                access_code |= idle_rxbuf[i];
+//            }
+//        }
+//
+//        // Search until we're 64 symbols from the end of the buffer
+//        for(count = 0; count < ((8 * DMA_SIZE) - 64); count++)
+//        {
+//            barker = syncword & 0x7f;
+//            if(BARKER_DISTANCE[barker] <= max_distance)
+//            {
+//                /* correct the barker code with a simple comparison */
+//                corrected_syncword = (syncword & 0xffffffffffffff80) | barker_correct[barker];
+//
+//                bit_errors = count_bits(access_code ^ corrected_syncword);
+//
+//                if (bit_errors < 2)
+//                        return count;
+//
+//                if (count%8 == 0)
+//                        curr_buf = idle_rxbuf[++i];
+//
+//                syncword <<= 1;
+//                syncword = (syncword & 0xfffffffffffffffe) | ((curr_buf & 0x80) >> 8);
+//                curr_buf <<= 1;
+//            }
+//        }
+//        return -1;
+//}

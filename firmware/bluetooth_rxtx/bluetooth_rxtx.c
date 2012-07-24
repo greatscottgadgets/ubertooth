@@ -824,7 +824,7 @@ void TIMER0_IRQHandler()
 		/* BLUETOOTH -> 1600 Hz */
 		else if (hop_mode == HOP_BLUETOOTH) {
 			if ((next & 0x1) == 0)
-				do_hop == 1;
+				do_hop = 1;
 		}
 
 		/* Keepalive trigger fires at 3200/2^9 = 6.25 Hz */
