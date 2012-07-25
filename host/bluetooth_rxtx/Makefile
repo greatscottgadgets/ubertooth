@@ -19,8 +19,8 @@
 
 CC      ?= gcc
 AR      ?= ar
-INSTALL  = /usr/bin/install
-LDCONFIG = /sbin/ldconfig
+INSTALL ?= /usr/bin/install
+LDCONFIG ?= /sbin/ldconfig
 
 OPTFLAGS   = -O2
 ANGRYFLAGS = -Wall #-Wextra -pedantic
@@ -42,7 +42,8 @@ LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
 LIB_NAME   = libubertooth.so
 SONAME     = $(LIB_NAME).0
-LIB_FILE   = $(SONAME).svn-$(shell svnversion -n .)
+#LIB_FILE   = $(SONAME).svn-$(shell svnversion -n .)
+LIB_FILE   = $(SONAME).1
 STATIC_LIB_FILE = libubertooth.a
 LIB_CFLAGS = $(CFLAGS) -shared -Wl,-soname,$(SONAME) -fPIC
 
