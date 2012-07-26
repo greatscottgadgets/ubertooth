@@ -419,11 +419,11 @@ void PacketSource_Ubertooth::build_pcap_payload(uint8_t* data, packet* pkt) {
 int PacketSource_Ubertooth::handle_header(packet* pkt) {
 	/* Only create new piconets for LAPs we've seen with fewer errors */
 	if (piconets.find(pkt->LAP) == piconets.end()) {
-		if (pkt->ac_errors <= 2) {
+		if (pkt->ac_errors <= 1) {
 			init_piconet(&piconets[pkt->LAP]);
 			piconets[pkt->LAP].LAP = pkt->LAP;
 		} else
-			return 1;
+			return 0;
 	}
 	if (piconets[pkt->LAP].have_clk6 && piconets[pkt->LAP].have_UAP)
 		decode_pkt(pkt, &piconets[pkt->LAP]);
@@ -437,7 +437,7 @@ int PacketSource_Ubertooth::handle_header(packet* pkt) {
 	if (pkt->LAP == GIAC || pkt->LAP == LIAC)
 		piconets.erase(pkt->LAP);
 
-	return 0;
+	return 1;
 }
 
 /* decode packet with header */
@@ -477,6 +477,7 @@ void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
 int PacketSource_Ubertooth::Poll() {
 	char rx;
 	int read_size;
+	int process_packet;
 
 	// Consume the junk byte we used to raise the FD high
 	read_size = read(fake_fd[0], &rx, 1);
@@ -496,8 +497,17 @@ int PacketSource_Ubertooth::Poll() {
 
 		kis_datachunk *rawchunk = new kis_datachunk;
 
-		/* Only continue processing packet if it has a header and piconet */
-		if ((header_present(pkt)) && (!handle_header(pkt))) {
+		process_packet = 1;
+		if (header_present(pkt))
+			process_packet = handle_header(pkt);
+		else if (pkt->ac_errors > 1)
+			process_packet = 0;
+
+		/*
+		 * Only continue processing packet if it has a header and piconet or if
+		 * it is an ID packet (without header).
+		 */
+		if (process_packet) {
 			rawchunk->length = 14;
 			if (pkt->have_payload)
 				rawchunk->length += 9 + pkt->payload_length;
