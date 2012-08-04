@@ -22,7 +22,7 @@
 
 import sys, os
 import getopt
-import dfu
+from dfu import dfu
 
 bootloader_offset  = 0x0
 bootloader_size    = 0x4000
