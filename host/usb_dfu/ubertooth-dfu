@@ -28,15 +28,72 @@ bootloader_offset  = 0x0
 bootloader_size    = 0x4000
 application_offset = bootloader_offset + bootloader_size
 application_size   = (256 * 1024) - application_offset
+UBERTOOTH_FLASH    = 25
 
-def get_ubertooth(vendor=None, product=None):
+def set_flash_mode(vendor=None, product=None):
+    '''
+    A function to find Ubertooth devices in firmware mode and allow the user to
+    change them in to bootloader mode (without calling ubertooth-util -f)
+    '''
+    import usb.core, time
+    print "No DFU devices found - attempting to find Ubertooth devices\n"
+    ids = [
+        (0x1D50, 0x6002, "Ubertooth One"),
+        (0x1D50, 0x6000, "Ubertooth Zero"),
+        (0xFFFF, 0x0004, "Possible Ubertooth"),
+    ]
+    devices = []
+    for vendor_id, product_id, device in ids:
+        dev = usb.core.find(idVendor=vendor_id, idProduct=product_id)
+        if dev:
+            devices.append(dev)
+            print "%d) Found '%s' with address 0x%04x 0x%04x" % (len(devices), device, vendor_id, product_id)
+    if len(devices):
+        value = 0
+        while not value:
+            value = raw_input("\nSelect a device to flash (default:1, exit:0):")
+            try:
+                if value == '':
+                    value = 1
+                else:
+                    value = int(value)
+                if value and value <= len(devices):
+                    # Switch to DFU mode
+                    dev = devices[value - 1]
+                    try:
+                        dev.ctrl_transfer(0x40, UBERTOOTH_FLASH, 0, 0, None)
+                    except usb.core.USBError, e:
+                        # Expected disconnect
+                        msg = getattr(e, 'message')
+                        if msg and not msg.startswith('No such device'):
+                            raise
+                    # Wait for firmware to restart in bootloader mode
+                    time.sleep(2)
+                    # Try to get device again
+                    # Don't fallback to firmware mode this time
+                    return get_ubertooth(vendor, product, False)
+                elif value == 0:
+                    sys.exit(0)
+            except ValueError:
+                pass
+            print "Not a valid option"
+            value = 0
+
+def get_ubertooth(vendor=None, product=None, check_firmware_mode=True):
     if vendor and product:
-        dev = dfu.init_dfu(vendor, product)
+        try:
+            dev = dfu.init_dfu(vendor, product)
+        except RuntimeError:
+            # Found nothing - look for Ubertooth devices in firmware mode
+            if check_firmware_mode:
+                dev = set_flash_mode(vendor, product)
+            else:
+                raise RuntimeError('Could not initialise Ubertooth - is the device connected and in DFU mode?')
     else:
         ids = [
-            (0x1D50, 0x6003), # UBERTOOTH_ONE
             (0x1D50, 0x6001), # UBERTOOTH_ZERO
-            (0xFFFF, 0x0004)  # TC13BADGE / Ubertooth with older firmware
+            (0x1D50, 0x6003), # UBERTOOTH_ONE
+            (0xFFFF, 0x0004), # TC13BADGE / Ubertooth with older firmware
         ]
         for vendor_id, product_id in ids:
             if (vendor and vendor == vendor_id) or \
@@ -48,8 +105,11 @@ def get_ubertooth(vendor=None, product=None):
                 except RuntimeError:
                     pass
         else:
-            # Found nothing - error
-            raise RuntimeError('Could not initialise Ubertooth')
+            # Found nothing - look for Ubertooth devices in firmware mode
+            if check_firmware_mode:
+                dev = set_flash_mode()
+            else:
+                raise RuntimeError('Could not initialise Ubertooth - is the device connected and in DFU mode?')
     return dev
 
 def usage():

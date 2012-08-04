@@ -109,7 +109,13 @@ class DFU(object):
         self._device = device
 
     def detach(self):
-        self._device.ctrl_transfer(0x21, Request.DETACH, 0, 0, None)
+        try:
+            self._device.ctrl_transfer(0x21, Request.DETACH, 0, 0, None)
+        except Exception, e:
+            # Expected disconnect
+            msg = getattr(e, 'message')
+            if msg and not msg.startswith('No such device'):
+                raise
 
     def download(self, block_number, data):
         self._device.ctrl_transfer(0x21, Request.DNLOAD, block_number, 0, data)
