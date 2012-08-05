@@ -146,6 +146,8 @@ Btbb_Phy::~Btbb_Phy() {
 										  CHAINPOS_CLASSIFIER);
 	globalreg->packetchain->RemoveHandler(&phybtbb_packethook_btbbtracker,
 										  CHAINPOS_TRACKER);
+
+	globalreg->kisnetserver->RemoveProtocol(proto_ref_btbbdev);
 }
 
 int Btbb_Phy::DissectorBtbb(kis_packet *in_pack) {
