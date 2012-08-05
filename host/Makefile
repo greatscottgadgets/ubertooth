@@ -1,6 +1,6 @@
 #-*- makefile -*-
 #
-# Copyright 2010 Michael Ossmann
+# Copyright 2012 Dominic Spill
 #
 # This file is part of Project Ubertooth.
 #
@@ -19,11 +19,13 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-DIRS = blinky bluetooth_rxtx cc2400_test clock_test usb_test bootloader assembly_test
+DIRS = bluetooth_rxtx usb_dfu
 
 all: $(DIRS)
 
 clean: $(DIRS:%=%_clean)
+
+install: $(DIRS:%=%_install)
 
 $(DIRS):
 	$(MAKE) -C $@
@@ -31,4 +33,7 @@ $(DIRS):
 $(DIRS:%=%_clean):
 	$(MAKE) -C $(@:%_clean=%) clean
 
-.PHONY : clean all $(DIRS)
+$(DIRS:%=%_install):
+	$(MAKE) -C $(@:%_install=%) install
+
+.PHONY : clean all install $(DIRS)

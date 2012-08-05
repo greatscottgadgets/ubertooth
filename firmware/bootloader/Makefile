@@ -115,7 +115,7 @@ LINKER_SCRIPT = LPC17xx_Linker_Script_bootloader.ld
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH)
+EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH) ../../host/bluetooth_rxtx/
 
 # Compiler flag to set the C Standard level.
 #     c89   = "ANSI" C

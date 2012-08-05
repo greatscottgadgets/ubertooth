@@ -86,67 +86,6 @@ u8 rxbuf2[DMA_SIZE];
 u8 *active_rxbuf = &rxbuf1[0];
 u8 *idle_rxbuf = &rxbuf2[0];
 
-enum ubertooth_usb_commands {
-	UBERTOOTH_PING        = 0,
-	UBERTOOTH_RX_SYMBOLS  = 1,
-	UBERTOOTH_TX_SYMBOLS  = 2, /* not implemented */
-	UBERTOOTH_GET_USRLED  = 3,
-	UBERTOOTH_SET_USRLED  = 4,
-	UBERTOOTH_GET_RXLED   = 5,
-	UBERTOOTH_SET_RXLED   = 6,
-	UBERTOOTH_GET_TXLED   = 7,
-	UBERTOOTH_SET_TXLED   = 8,
-	UBERTOOTH_GET_1V8     = 9,
-	UBERTOOTH_SET_1V8     = 10,
-	UBERTOOTH_GET_CHANNEL = 11, 
-	UBERTOOTH_SET_CHANNEL = 12, 
-	UBERTOOTH_RESET       = 13,
-	UBERTOOTH_GET_SERIAL  = 14,
-	UBERTOOTH_GET_PARTNUM = 15,
-	UBERTOOTH_GET_PAEN    = 16,
-	UBERTOOTH_SET_PAEN    = 17,
-	UBERTOOTH_GET_HGM     = 18,
-	UBERTOOTH_SET_HGM     = 19,
-	UBERTOOTH_TX_TEST     = 20,
-	UBERTOOTH_STOP        = 21,
-	UBERTOOTH_GET_MOD     = 22,
-	UBERTOOTH_SET_MOD     = 23,
-	UBERTOOTH_SET_ISP     = 24,
-	UBERTOOTH_FLASH       = 25,
-	BOOTLOADER_FLASH      = 26, /* do not implement */
-	UBERTOOTH_SPECAN      = 27,
-	UBERTOOTH_GET_PALEVEL = 28,
-	UBERTOOTH_SET_PALEVEL = 29,
-	UBERTOOTH_REPEATER    = 30,
-	UBERTOOTH_RANGE_TEST  = 31,
-	UBERTOOTH_RANGE_CHECK = 32,
-	UBERTOOTH_GET_REV_NUM = 33
-};
-
-enum operating_modes {
-	MODE_IDLE       = 0,
-	MODE_RX_SYMBOLS = 1,
-	MODE_TX_SYMBOLS = 2,
-	MODE_TX_TEST    = 3,
-	MODE_SPECAN     = 4,
-	MODE_RANGE_TEST = 5,
-	MODE_REPEATER   = 6
-};
-
-enum modulations {
-	MOD_BT_BASIC_RATE = 0,
-	MOD_BT_LOW_ENERGY = 1,
-	MOD_80211_FHSS    = 2
-};
-
-typedef struct {
-	u8 valid;
-	u8 request_pa;
-	u8 request_num;
-	u8 reply_pa;
-	u8 reply_num;
-} rangetest_result;
-
 rangetest_result rr;
 
 volatile u32 mode = MODE_IDLE;
@@ -180,19 +119,6 @@ volatile u8 status = 0;
 #define DMA_OVERFLOW  0x01
 #define DMA_ERROR     0x02
 #define FIFO_OVERFLOW 0x04
-
-/*
- * USB packet for Bluetooth RX (64 total bytes)
- */
-typedef struct {
-	u8     pkt_type;
-	u8     status;
-	u8     channel;
-	u8     clkn_high;
-	u32    clk100ns;
-	u8     reserved[6];
-	u8     data[DMA_SIZE];
-} usb_pkt_rx;
 
 /*
  * This is supposed to be a lock-free ring buffer, but I haven't verified
