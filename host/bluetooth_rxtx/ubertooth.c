@@ -1267,12 +1267,13 @@ int cmd_get_squelch(struct libusb_device_handle* devh)
 int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr)
 {
 	int r;
-	u8 data[6];
-	for(r=0; r<6;r++)
+	u8 data_len = 6;
+	u8 data[data_len];
+	for(r=0; r<data_len;r++)
 		data[r] = (bdaddr >> (8*r)) & 0xff;
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_BDADDR, 0, 0,
-		data, 6, 1000);
+		data, data_len, 1000);
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {
 			fprintf(stderr, "control message unsupported\n");
@@ -1280,6 +1281,33 @@ int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr)
 			show_libusb_error(r);
 		}
 		return r;
+	} else if (r < data_len) {
+		fprintf(stderr, "Only %d of %d bytes transferred\n", r, data_len);
+		return 1;
+	}
+	return 0;
+}
+
+int cmd_set_syncword(struct libusb_device_handle* devh, u64 syncword)
+{
+	int r;
+	u8 data_len = 8;
+	u8 data[data_len];
+	for(r=0; r<data_len;r++)
+		data[r] = (syncword >> (8*r)) & 0xff;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_BDADDR, 0, 0,
+		data, data_len, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	} else if (r < data_len) {
+		fprintf(stderr, "Only %d of %d bytes transferred\n", r, data_len);
+		return 1;
 	}
 	return 0;
 }

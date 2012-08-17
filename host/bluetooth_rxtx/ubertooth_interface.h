@@ -64,8 +64,9 @@ enum ubertooth_usb_commands {
     UBERTOOTH_SET_SQUELCH     = 36,
     UBERTOOTH_GET_SQUELCH     = 37,
     UBERTOOTH_SET_BDADDR      = 38,
-    UBERTOOTH_NEXT_HOP        = 39,
-    UBERTOOTH_START_HOPPING   = 40
+	UBERTOOTH_SET_SYNCWORD    = 39,
+    UBERTOOTH_NEXT_HOP        = 40,
+    UBERTOOTH_START_HOPPING   = 41
 };
 
 enum modulations {

@@ -60,7 +60,7 @@
 #define DATA_OUT    (0x05 | LIBUSB_ENDPOINT_OUT)
 #define CTRL_IN     (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_IN)
 #define CTRL_OUT    (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT)
-#define TIMEOUT     5000
+#define TIMEOUT     20000
 #define BUFFER_SIZE 102400
 
 /* RX USB packet parameters */
@@ -136,6 +136,7 @@ int cmd_get_board_id(struct libusb_device_handle* devh);
 int cmd_set_squelch(struct libusb_device_handle* devh, u16 level);
 int cmd_get_squelch(struct libusb_device_handle* devh);
 int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr);
+int cmd_set_syncword(struct libusb_device_handle* devh, u64 syncword);
 int cmd_next_hop(struct libusb_device_handle* devh, u16 clk);
 int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset);
 

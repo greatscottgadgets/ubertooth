@@ -29,7 +29,7 @@ import usb.core
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt, QPointF, QLineF
 
-from specan import Ubertooth
+from specan.Ubertooth import Ubertooth
 
 class SpecanThread(threading.Thread):
     def __init__(self, device, low_frequency, high_frequency, new_frame_callback):

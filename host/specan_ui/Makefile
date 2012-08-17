@@ -1,6 +1,4 @@
-#-*- makefile -*-
-#
-# Copyright 2012 Dominic Spill
+# Copyright 2012 Michael Ossmann, Dominic Spill
 #
 # This file is part of Project Ubertooth.
 #
@@ -19,21 +17,23 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-DIRS = bluetooth_rxtx usb_dfu specan_ui
+INSTALL ?= /usr/bin/install
+PYTHON ?= /usr/bin/env python
 
-all: $(DIRS)
+INSTALL_DIR ?= /usr/bin
 
-clean: $(DIRS:%=%_clean)
+EXECUTABLE_FILES = ubertooth-specan-ui
 
-install: $(DIRS:%=%_install)
+all: specan
 
-$(DIRS):
-	$(MAKE) -C $@
+specan:
+	$(PYTHON) setup.py build
 
-$(DIRS:%=%_clean):
-	$(MAKE) -C $(@:%_clean=%) clean
+clean:
+	rm -rf build
 
-$(DIRS:%=%_install):
-	$(MAKE) -C $(@:%_install=%) install
+install: specan
+	$(PYTHON) setup.py install
+	$(INSTALL) -m 0755 $(EXECUTABLE_FILES) $(INSTALL_DIR)
 
-.PHONY : clean all install $(DIRS)
+.PHONY: all clean install specan
