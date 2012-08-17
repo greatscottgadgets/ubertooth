@@ -18,7 +18,8 @@ title: Getting Started
 	<li>host code: This is software running on a general purpose computer
 	connected to the Ubertooth One via USB. The sample host code for Project
 	Ubertooth is in active development and will likely change a great deal in
-	the coming months.</li>
+	the coming months. If you have not yet built the host code, please follow
+	the <a href=../build>build guide</a>.</li>
 </ul>
 
 <p>Ubertooth One is a development platform. The true power of the device is
@@ -63,6 +64,12 @@ a new udev rule such as:</p>
 SYSFS{idProduct}==&quot;0004&quot; GROUP:=&quot;plugdev&quot; MODE:=&quot;0660&quot;' &gt;
 /etc/udev/rules.d/99-ubertooth.rules</code>
 
+<p>A udev rules file is available in host/bluetooth_rxtx directory in both svn
+and the release packages.  Copy it to /etc/udev/rules.d and run the
+following as root:</p>
+
+<code>udevadm control --reload-rules</code>
+
 <p>Make sure you are a member of the &quot;plugdev&quot; group or change the
 rule to refer to the group of your choice.  After adding the udev rule, unplug
 the Ubertooth One, reboot or restart udevd, and plug in the Ubertooth One
@@ -104,9 +111,10 @@ Ubertooth One is plugged in and execute:</p>
 
 <p>You should see various random LAPs detected. Due to uncertainties in
 identifying Bluetooth packets without prior knowledge of an address, it is
-normal for this process to identify false positives at a rate of roughly 20 per
-minute. When you see the same LAP detected more than once, that is very likely
-an actual Bluetooth transmission.</p>
+normal for this process to identify false positives. error correction should
+mitigate this problem, but a small number of false positives may still be seen.
+When you see the same LAP detected more than once, that is very likely an actual
+Bluetooth transmission.</p>
 
 <p>Generate some Bluetooth traffic and enjoy the show. I like to use a mobile
 phone or other Bluetooth device to perform an inquiry (usually called
