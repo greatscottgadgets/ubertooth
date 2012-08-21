@@ -5,7 +5,8 @@ title: Build Guide
 <h1>Build Guide</h1>
 <p>The Ubertooth has been used with the following platforms:
 <ul>
-    <li><a href="#ubuntu">Ubuntu</a></li>
+    <li><a href="#ubuntu">Ubuntu (Debian/BackTrack 5 - untested)</a></li>
+    <li><a href="#fedora">Fedora (RedHat/CentOS - untested)</a></li>
     <li><a href="#windows">Windows</a> (experimental - unsupported)</li>
     <li>Mac OS X (Coming soon)</li>
 </ul>
@@ -13,12 +14,13 @@ title: Build Guide
 of the host code that it operates with, instructions for obtaining firmware
 images and flashing them to the Ubertooth can be found <a href="#firmware">here.</a></p>
 
-<h2 id="#ubuntu">Ubuntu</h2>
+<h2 id="#ubuntu">Ubuntu 12.04+ (Debian/BackTrack 5 - untested)</h2>
+<br />
 <h3>Prerequisites</h3>
 <p>There are some prerequisites that can be installed from the apt repositories
 on Debian/Ubuntu systems:</p>
 <pre>
-    sudo apt-get install libusb-1.0-dev automake autoconf gcc pyside-tools
+    sudo apt-get install libusb-1.0-dev make gcc pyside-tools
 </pre>
 
 <p>PyUSB is not yet available from the apt repositories, so it must be
@@ -39,6 +41,7 @@ Ubertooth tools to decode Bluetooth packets:</p>
     make
     sudo make install
 </pre>
+<br />
 
 <h3>Ubertooth tools</h3>
 <p>There are three sets of tools that use the Ubertooth - spectrum analyzer,
@@ -49,8 +52,8 @@ by default using the following method:</p>
     tar xf ubertooth-r534.tar.gz
     cd ubertooth-r534/host
     make
-    sudo make install
 </pre>
+<br />
 
 <h3>Kismet</h3>
 <p>The version if kismet provided by Debian/Ubuntu is 2008-05-R1, which is too 
@@ -69,16 +72,77 @@ is nessecary to compile Kismet from source:</p>
 <p>Next the Ubertooth plugin can be built from the downloaded source code</p>
 <pre>
     cd ubertooth-r534/host/kismet/plugin-ubertooth
-    KIS_SRC_DIR=/path/to/kismet/src make
+    KIS_SRC_DIR=<i>/path/to/kismet/src</i> make
     sudo make install
 </pre>
 <p>This completes the install of the Ubertooth tools, the next step is to
 look at the <a href="../start">getting started</a> guide.  It may also be
 useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
 
+
+
+<h2 id="#fedora">Fedora 17+ (RedHat/CentOS - untested)</h2>
+<br />
+<h3>Prerequisites</h3>
+<p>There are some prerequisites that can be installed from the yum repositories
+on RedHat based systems:</p>
+<pre>
+    su -c "yum install libusb1-devel make gcc pyside-tools pyusb wget tar"
+</pre>
+
+<p>Next the Bluetooth baseband library (libbtbb) needs to be built for the
+Ubertooth tools to decode Bluetooth packets:</p>
+<pre>
+    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-0.8.tar.gz/download -O libbtbb-0.8.tar.gz
+    tar xf libbtbb-0.8.tar.gz
+    cd libbtbb-0.8
+    make
+    su -c "make install"
+</pre>
+<br />
+
+<h3>Ubertooth tools</h3>
+<p>There are three sets of tools that use the Ubertooth - spectrum analyzer,
+Bluetooth sniffing tools and firmware update.  All three are built and installed
+by default using the following method:</p>
+<pre>
+    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-r534.tar.gz/download -O ubertooth-r534.tar.gz
+    tar xf ubertooth-r534.tar.gz
+    cd ubertooth-r534/host
+    make
+</pre>
+<br />
+
+<h3>Kismet</h3>
+<p>The version if kismet provided by Fedora does not have a corresponding
+development package, so in order to build the Ubertooth plugin it is nessecary
+to compile Kismet from source:</p>
+<pre>
+    su -c "yum install libpcap-devel libcap-devel libnl-devel libstdc++-devel gcc-c++ ncurses-devel"
+    wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
+    tar xf kismet-2011-03-R2.tar.gz
+    cd kismet-2011-03-R2
+    ./configure
+    make dep && make
+    su -c "make suidinstall"
+</pre>
+
+<p>Next the Ubertooth plugin can be built from the downloaded source code</p>
+<pre>
+    cd ubertooth-r534/host/kismet/plugin-ubertooth
+    KIS_SRC_DIR=<i>/path/to/kismet/src</i> make
+    su -c "KIS_SRC_DIR=<i>/path/to/kismet/src</i> make install"
+</pre>
+<p>This completes the install of the Ubertooth tools, the next step is to
+look at the <a href="../start">getting started</a> guide.  It may also be
+useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
+
+
+
 <h2 id="windows">Windows</h2>
 <p>Experimental Windows support is available under Cygwin.  Although this is
-unsupported</p>
+unsupported.</p>
+<br />
 
 <h3>Prerequisites</h3>
 <p>The first step is to download Cygwin from <a href="http://cygwin.com/setup.exe">
@@ -101,6 +165,7 @@ SourceForge as follows:</p>
     make
     make cygwin-install
 </pre>
+<br />
 
 <h3>Ubertooth tools</h3>
 <p>There are three sets of tools that use the Ubertooth - spectrum analyzer,
@@ -113,6 +178,7 @@ by default using the following method:</p>
     make
     make install
 </pre>
+<br />
 
 <h3>Kismet</h3>
 <p>It is not possible to build Kismet with pcap support on Windows.
@@ -134,3 +200,4 @@ using the ubertooth-dfu tool:</p>
     ubertooth-util -f
     ubertooth-dfu --write bluetooth_rxtx.dfu --detach
 </pre>
+<br />
