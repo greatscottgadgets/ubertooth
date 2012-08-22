@@ -27,7 +27,6 @@ u16 d1;
 /* frequency register bank */
 u8 bank[CHANNELS];
 
-
 /* do all of the one time precalculation */
 void precalc(u8 *bdaddr)
 {
@@ -126,43 +125,55 @@ u16 next_hop(u32 clock)
 
 }
 
-//int find_access_code()
-//{
-//        /* Looks for an AC in the stream */
-//        u16 count;
-//        u8 barker, bit_errors, curr_buf;
-//        int max_distance = 1; // maximum number of bit errors to tolerate in barker
-//        u64 corrected_syncword;
-//        int i = 0;
-//
-//        if (syncword == 0) {
-//            for (; i<8; i++) {
-//                access_code <<= 8;
-//                access_code |= idle_rxbuf[i];
-//            }
-//        }
-//
-//        // Search until we're 64 symbols from the end of the buffer
-//        for(count = 0; count < ((8 * DMA_SIZE) - 64); count++)
-//        {
-//            barker = syncword & 0x7f;
-//            if(BARKER_DISTANCE[barker] <= max_distance)
-//            {
-//                /* correct the barker code with a simple comparison */
-//                corrected_syncword = (syncword & 0xffffffffffffff80) | barker_correct[barker];
-//
-//                bit_errors = count_bits(access_code ^ corrected_syncword);
-//
-//                if (bit_errors < 2)
-//                        return count;
-//
-//                if (count%8 == 0)
-//                        curr_buf = idle_rxbuf[++i];
-//
-//                syncword <<= 1;
-//                syncword = (syncword & 0xfffffffffffffffe) | ((curr_buf & 0x80) >> 8);
-//                curr_buf <<= 1;
-//            }
-//        }
-//        return -1;
-//}
+/* count the number of 1 bits in a uint64_t */
+uint8_t count_bits(uint64_t n)
+{
+	uint8_t i = 0;
+	for (i = 0; n != 0; i++)
+		n &= n - 1;
+	return i;
+}
+
+u64 syncword = 0;
+
+int find_access_code(u8 *idle_rxbuf)
+{
+        /* Looks for an AC in the stream */
+        u16 count;
+        u8 barker, bit_errors, curr_buf;
+        int max_distance = 1; // maximum number of bit errors to tolerate in barker
+        u64 corrected_syncword, syncword;
+        int i = 0;
+
+        if (syncword == 0) {
+            for (; i<8; i++) {
+                access_code <<= 8;
+                access_code |= idle_rxbuf[i];
+            }
+        }
+		curr_buf = idle_rxbuf[i];
+
+        // Search until we're 64 symbols from the end of the buffer
+        for(count = 0; count < ((8 * DMA_SIZE) - 64); count++)
+        {
+            barker = syncword & 0x7f;
+            if(BARKER_DISTANCE[barker] <= max_distance)
+            {
+                /* correct the barker code with a simple comparison */
+                corrected_syncword = (syncword & 0xffffffffffffff80) | barker_correct[barker];
+
+                bit_errors = count_bits(access_code ^ corrected_syncword);
+
+                if (bit_errors < 2)
+                        return count;
+
+                if (count%8 == 0)
+                        curr_buf = idle_rxbuf[++i];
+
+                syncword <<= 1;
+                syncword = (syncword & 0xfffffffffffffffe) | ((curr_buf & 0x80) >> 8);
+                curr_buf <<= 1;
+            }
+        }
+        return -1;
+}

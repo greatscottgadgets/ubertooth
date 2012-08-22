@@ -51,6 +51,7 @@
 #include "usbhw_lpc.h"
 #include "ubertooth_interface.h"
 #include "bluetooth.h"
+#include "bluetooth_le.h"
 
 #define IAP_LOCATION 0x1FFF1FF1
 typedef void (*IAP)(u32[], u32[]);

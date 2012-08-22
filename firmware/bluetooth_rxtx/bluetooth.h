@@ -23,6 +23,9 @@
 
 #define CHANNELS 79
 
+u8 bdaddr[6];
+u64 access_code;
+
 static const uint8_t BARKER_DISTANCE[] = {
 	3,2,3,3,2,1,3,2,2,1,3,2,1,0,2,1,3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,
 	3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3,
@@ -45,5 +48,5 @@ static const uint8_t barker_correct[] = {
 
 
 void precalc(u8 *bdaddr);
-u8 perm5(u8 z, u8 p_high, u16 p_low);
 u16 next_hop(u32 clkn);
+int find_access_code(u8 *idle_rxbuf);
