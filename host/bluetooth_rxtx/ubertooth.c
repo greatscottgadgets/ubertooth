@@ -1010,7 +1010,8 @@ int cmd_set_isp(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_ISP, 0, 0,
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
+	if (r && (r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER) &&
+		(r != LIBUSB_ERROR_NO_DEVICE)) {
 		show_libusb_error(r);
 		return r;
 	}
@@ -1024,7 +1025,8 @@ int cmd_reset(struct libusb_device_handle* devh)
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RESET, 0, 0,
 			NULL, 0, 1000);
 	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
+	if (r && (r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER) &&
+		(r != LIBUSB_ERROR_NO_DEVICE)) {
 		show_libusb_error(r);
 		return r;
 	}
@@ -1264,16 +1266,26 @@ int cmd_get_squelch(struct libusb_device_handle* devh)
 	return level;
 }
 
-int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr)
+int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 address)
 {
-	int r;
-	u8 data_len = 6;
-	u8 data[data_len];
-	for(r=0; r<data_len;r++)
-		data[r] = (bdaddr >> (8*r)) & 0xff;
+	int r, data_len;
+	u64 syncword;
+	bdaddr data;
+
+	data.address = address;
+	syncword = gen_syncword(address & 0xffffff);
+	//printf("syncword=%#llx\n", syncword);
+	data.access_code = 0;
+	for(r=0;r<8;r++) {
+		data.access_code <<= 8;
+		data.access_code |= reverse(syncword & 0xff);
+		syncword >>= 8;
+	}
+	//printf("data.access_code=%#llx\n", data.access_code);
+	data_len = sizeof(bdaddr);
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_BDADDR, 0, 0,
-		data, data_len, 1000);
+		(unsigned char *) &data, data_len, 1000);
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {
 			fprintf(stderr, "control message unsupported\n");
@@ -1286,45 +1298,6 @@ int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr)
 		return 1;
 	}
 	return 0;
-}
-
-int cmd_set_syncword(struct libusb_device_handle* devh, u64 syncword)
-{
-	int r;
-	u8 data_len = 8;
-	u8 data[data_len];
-	for(r=0; r<data_len;r++)
-		data[r] = (syncword >> (8*r)) & 0xff;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_BDADDR, 0, 0,
-		data, data_len, 1000);
-	if (r < 0) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	} else if (r < data_len) {
-		fprintf(stderr, "Only %d of %d bytes transferred\n", r, data_len);
-		return 1;
-	}
-	return 0;
-}
-
-int cmd_next_hop(struct libusb_device_handle* devh, u16 clk)
-{
-	u8 frequency[2];
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_NEXT_HOP, clk, 0,
-			frequency, 2, 3000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	r = frequency[0] | (frequency[1] << 8);
-	return r;
 }
 
 int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset)

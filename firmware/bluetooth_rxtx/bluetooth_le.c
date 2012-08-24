@@ -23,7 +23,7 @@
 
 u16 btle_next_hop()
 {
-	u8 channel, i;
+	u16 channel, i;
 	btle_channel = (btle_channel + hop_increment) % BTLE_CHANNELS;
 	channel = btle_channel;
 	for(i=0; i<ADVERTISING_CHANNELS; i++)

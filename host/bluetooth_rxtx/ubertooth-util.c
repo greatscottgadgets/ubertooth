@@ -37,7 +37,7 @@ static void usage()
 	printf("\t-a[0-7] get/set power amplifier level\n");
 	printf("\t-b get hardware board id number\n");
 	printf("\t-c[2400-2483] get/set channel in MHz\n");
-        printf("\t-C[0-78] get/set channel\n");
+	printf("\t-C[0-78] get/set channel\n");
 	printf("\t-d[0-1] get/set all LEDs\n");
 	printf("\t-e start repeater mode\n");
 	printf("\t-f activate flash programming (DFU) mode\n");
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 		switch(opt) {
 		case 'U': 
 			ubertooth_device = atoi(optarg);
-                        break;
+			break;
 		case 'f':
 			do_flash= 0;
 			break;
@@ -128,12 +128,11 @@ int main(int argc, char *argv[])
 				do_palevel= 0;
 			break;
 		case 'C':
-                        if (optarg)
+			if (optarg)
 				do_channel= atoi(optarg) +2402;
-                        else
+			else
 				do_channel= 0;
-                        break;
-	
+			break;	
 		case 'c':
 			if (optarg)
 				do_channel= atoi(optarg);

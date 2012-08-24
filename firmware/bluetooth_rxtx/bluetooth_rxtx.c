@@ -74,7 +74,9 @@ volatile u32 clkn_low;                       // clkn 3200 Hz counter
 
 #define HOP_NONE      0
 #define HOP_SWEEP     1
-#define HOP_BLUETOOTH 2                     // placeholder
+#define HOP_BLUETOOTH 2
+#define HOP_BTLE      3
+
 #define CS_THRESHOLD_DEFAULT (uint8_t)(-120)
 #define CS_HOLD_TIME  2                     // min pkts to send on trig (>=1)
 u8 hop_mode = HOP_NONE;
@@ -124,7 +126,6 @@ volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
-u8 bdaddr[6];
 int clock_offset = 0;
 
 /* DMA linked list items */
@@ -187,7 +188,7 @@ static void rssi_iir_update(void)
 
 	/* Use array to track 79 Bluetooth channels, or just first
 	 * slot of array if not sweeping. */
-	if (hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH)
+	if (hop_mode > 0)
 		i = channel - 2402;
 	else
 		i = 0;
@@ -226,7 +227,7 @@ static void cs_threshold_calc_and_set(void)
 	 * off.  TODO - max-to-iir only works in SWEEP mode, where the
 	 * channel is known to be in the BT band, i.e., rssi_iir has a
 	 * value for it. */
-	if ((hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH) && (cs_threshold_req > 0)) {
+	if ((hop_mode > 0) && (cs_threshold_req > 0)) {
 		int8_t rssi = (int8_t)((rssi_iir[channel-2402] + 128)/256);
 		level = rssi - 54 + cs_threshold_req;
 	}
@@ -282,15 +283,17 @@ static int enqueue(u8 *buf)
 	usb_pkt_rx *f = &fifo[t];
 
 	/* fail if queue is full */
-	if (h == n)
+	if (h == n) {
+		status |= FIFO_OVERFLOW;
 		return 0;
+	}
 
 	f->clkn_high = clkn_high;
 	f->clk100ns = CLK100NS;
 	f->channel = channel-2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
-	if (hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH)
+	if (hop_mode > 0)
 		f->rssi_avg = (int8_t)((rssi_iir[channel-2402] + 128)/256);
 	else
 		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
@@ -711,16 +714,9 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_BDADDR:
-		for(i=0; i < 6; i++)
-			bdaddr[i] = pbData[i];
-		precalc(bdaddr);
-		break;
-
-	case UBERTOOTH_NEXT_HOP:
-		i = next_hop(pSetup->wValue);
-		pbData[0] = i & 0xFF;
-		pbData[1] = (i >> 8) & 0xFF;
-		*piLen = 2;
+		target.address = ((bdaddr *) pbData)->address;
+		target.access_code = ((bdaddr *) pbData)->access_code;
+		precalc();
 		break;
 
 	case UBERTOOTH_START_HOPPING:
@@ -730,6 +726,11 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			clock_offset |= pbData[i];
 		}
 		hop_mode = HOP_BLUETOOTH;
+		cs_threshold_calc_and_set();
+		break;
+
+	case UBERTOOTH_BTLE_SNIFFING:
+		hop_mode = HOP_BTLE;
 		cs_threshold_calc_and_set();
 		break;
 
@@ -824,6 +825,11 @@ void TIMER0_IRQHandler()
 		}
 		/* BLUETOOTH -> 1600 Hz */
 		else if (hop_mode == HOP_BLUETOOTH) {
+			if ((next & 0x1) == 0)
+				do_hop = 1;
+		}
+		/* BLUETOOTH Low Energy -> 7.5ms - 4.0s */
+		else if (hop_mode == HOP_BTLE) {
 			if ((next & 0x1) == 0)
 				do_hop = 1;
 		}
@@ -1285,6 +1291,11 @@ void hop(void)
 		channel = next_hop(CLKN + clock_offset);
 	}
 
+	else if (hop_mode == HOP_BTLE) {
+		TXLED_SET;
+		channel = btle_next_hop();
+	}
+
         /* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
@@ -1293,7 +1304,7 @@ void hop(void)
 	cc2400_set(FSDIV, channel - 1);
 	
 	/* Update CS register if hopping.  */
-	if (hop_mode == HOP_SWEEP || hop_mode == HOP_BLUETOOTH) {
+	if (hop_mode > 0) {
 		cs_threshold_calc_and_set();
 	}
 
@@ -1430,12 +1441,29 @@ void bt_stream_rx()
 		hold--;
 
 		/* Queue data from DMA buffer. */
-		if (enqueue(idle_rxbuf)) {
-		    	RXLED_SET;
-		    	--rx_pkts;
+		switch (hop_mode) {
+			case HOP_BLUETOOTH:
+				if (find_access_code(idle_rxbuf) >= 0)
+						if (enqueue(idle_rxbuf)) {
+								RXLED_SET;
+								--rx_pkts;
+						}
+				break;
+
+			case HOP_BTLE:
+				if (btle_find_access_address(idle_rxbuf))
+						if (enqueue(idle_rxbuf)) {
+								RXLED_SET;
+								--rx_pkts;
+						}
+				break;
+
+			default:
+				if (enqueue(idle_rxbuf)) {
+						RXLED_SET;
+						--rx_pkts;
+				}
 		}
-		else
-			status |= FIFO_OVERFLOW;
 
 	rx_continue:
 		handle_usb();

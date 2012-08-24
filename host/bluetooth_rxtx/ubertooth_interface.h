@@ -64,9 +64,8 @@ enum ubertooth_usb_commands {
     UBERTOOTH_SET_SQUELCH     = 36,
     UBERTOOTH_GET_SQUELCH     = 37,
     UBERTOOTH_SET_BDADDR      = 38,
-	UBERTOOTH_SET_SYNCWORD    = 39,
-    UBERTOOTH_NEXT_HOP        = 40,
-    UBERTOOTH_START_HOPPING   = 41
+    UBERTOOTH_START_HOPPING   = 39,
+    UBERTOOTH_BTLE_SNIFFING   = 40
 };
 
 enum modulations {
@@ -102,6 +101,27 @@ typedef struct {
 	u8     reserved[2];
 	u8     data[DMA_SIZE];
 } usb_pkt_rx;
+
+typedef struct {
+	u64    address;
+	u64    access_code;
+} bdaddr;
+
+/*
+ * USB packet for Bluetooth Low Energy RX
+ */
+#define MAX_BTLE_PDU 42
+
+typedef struct {
+	u32    access_address;
+	u8     channel;
+	char   rssi_max;   // Max RSSI seen while collecting symbols in this packet
+	char   rssi_min;   // Min ...
+	char   rssi_avg;   // Average ...
+	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
+	u8     reserved[2];
+	u8     data[MAX_BTLE_PDU];
+} btle_pkt_rx;
 
 typedef struct {
 	u8 valid;

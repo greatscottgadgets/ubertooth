@@ -22,17 +22,19 @@
 #include "ubertooth.h"
 
 #define CHANNELS 79
+#define MAX_SYNCWORD_ERRS 5
 
-u8 bdaddr[6];
-u64 access_code;
+bdaddr target;
+u64 syncword;
 
-static const uint8_t BARKER_DISTANCE[] = {
-	3,2,3,3,2,1,3,2,2,1,3,2,1,0,2,1,3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,
-	3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3,
-	3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3,
-	2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3,1,2,0,1,2,3,1,2,2,3,1,2,3,3,2,3};
+/* Barker distance/correct gains us very little when sniffing a known AC
+static const u8 ao_barker_distance[] = {
+	3,2,3,3,2,1,3,2,2,1,3,2,1,0,2,1,3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2, //0x00-0x1f
+	3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3, //0x20-0x3f
+	3,3,2,3,3,2,3,3,3,2,3,3,2,1,3,2,2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3, //0x40-0x5f
+	2,3,1,2,3,3,2,3,3,3,2,3,3,2,3,3,1,2,0,1,2,3,1,2,2,3,1,2,3,3,2,3};//0x60-0x7f
 
-static const uint8_t barker_correct[] = {
+static const u8 ao_barker_correct[] = {
 	0x0d, 0x0d, 0x72, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d,
 	0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x72, 0x0d, 0x72, 0x72, 0x0d, 0x0d,
 	0x72, 0x0d, 0x0d, 0x0d, 0x72, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x72,
@@ -45,8 +47,8 @@ static const uint8_t barker_correct[] = {
 	0x72, 0x72, 0x0d, 0x72, 0x72, 0x72, 0x0d, 0x72, 0x72, 0x0d, 0x0d,
 	0x72, 0x0d, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72,
 	0x72, 0x72, 0x72, 0x72, 0x0d, 0x72, 0x72};
+*/
 
-
-void precalc(u8 *bdaddr);
+void precalc();
 u16 next_hop(u32 clkn);
 int find_access_code(u8 *idle_rxbuf);

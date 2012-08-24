@@ -28,11 +28,12 @@ u16 d1;
 u8 bank[CHANNELS];
 
 /* do all of the one time precalculation */
-void precalc(u8 *bdaddr)
+void precalc()
 {
 	u8 i;
 	u32 address;
-	address = bdaddr[0] | bdaddr[1] << 8 | bdaddr[2] << 16 | bdaddr[3] << 24;
+	address = target.address & 0xffffffff;
+	syncword = 0;
 
 	/* populate frequency register bank*/
 	for (i = 0; i < CHANNELS; i++)
@@ -134,46 +135,35 @@ uint8_t count_bits(uint64_t n)
 	return i;
 }
 
-u64 syncword = 0;
-
 int find_access_code(u8 *idle_rxbuf)
 {
-        /* Looks for an AC in the stream */
-        u16 count;
-        u8 barker, bit_errors, curr_buf;
-        int max_distance = 1; // maximum number of bit errors to tolerate in barker
-        u64 corrected_syncword, syncword;
-        int i = 0;
+	/* Looks for an AC in the stream */
+	u8 bit_errors, curr_buf;
+	int i = 0, count = 0;
 
-        if (syncword == 0) {
-            for (; i<8; i++) {
-                access_code <<= 8;
-                access_code |= idle_rxbuf[i];
-            }
-        }
-		curr_buf = idle_rxbuf[i];
+	if (syncword == 0) {
+		for (; i<8; i++) {
+			syncword <<= 8;
+			syncword = (syncword & 0xffffffffffffff00) | idle_rxbuf[i];
+		}
+		count = 64;
+	}
+	curr_buf = idle_rxbuf[i];
 
-        // Search until we're 64 symbols from the end of the buffer
-        for(count = 0; count < ((8 * DMA_SIZE) - 64); count++)
-        {
-            barker = syncword & 0x7f;
-            if(BARKER_DISTANCE[barker] <= max_distance)
-            {
-                /* correct the barker code with a simple comparison */
-                corrected_syncword = (syncword & 0xffffffffffffff80) | barker_correct[barker];
+	// Search until we're 64 symbols from the end of the buffer
+	for(; count < ((8 * DMA_SIZE) - 64); count++)
+	{
+		bit_errors = count_bits(syncword ^ target.access_code);
 
-                bit_errors = count_bits(access_code ^ corrected_syncword);
+		if (bit_errors < MAX_SYNCWORD_ERRS)
+			return count;
 
-                if (bit_errors < 2)
-                        return count;
+		if (count%8 == 0)
+			curr_buf = idle_rxbuf[++i];
 
-                if (count%8 == 0)
-                        curr_buf = idle_rxbuf[++i];
-
-                syncword <<= 1;
-                syncword = (syncword & 0xfffffffffffffffe) | ((curr_buf & 0x80) >> 8);
-                curr_buf <<= 1;
-            }
-        }
-        return -1;
+		syncword <<= 1;
+		syncword = (syncword & 0xfffffffffffffffe) | ((curr_buf & 0x80) >> 7);
+		curr_buf <<= 1;
+	}
+	return -1;
 }
