@@ -51,12 +51,15 @@ UBERTOOTH_OPTS = -D$(BOARD)
 UBERTOOTH_OPTS += -DTX_ENABLE
 
 # set these to hard code a revision number
-#SVN_REV = -D'SVN_REV="9999foo"'
-#SVN_REV_NUM = -D'SVN_REV_NUM=9999'
+SVN_REV = -D'SVN_REV="0foo"'
+SVN_REV_NUM = -D'SVN_REV_NUM=0'
 
 # automatic revision number when working out of svn
-SVN_REV ?= -D'SVN_REV="$(shell svnversion -n .)"'
-SVN_REV_NUM ?= -D'SVN_REV_NUM=$(shell svnversion -n . | sed 's/[^0-9].*$$//')'
+#SVN_REV ?= -D'SVN_REV="$(shell svnversion -n .)"'
+#SVN_REV_NUM ?= -D'SVN_REV_NUM=$(shell svnversion -n . | sed 's/[^0-9].*$$//')'
+
+# automatic git version when working out of git
+GIT_DESCRIBE ?= -D'GIT_DESCRIBE="$(shell git describe --tags --abbrev=4)"'
 
 # CPU architecture
 CPU = cortex-m3
@@ -167,6 +170,7 @@ CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
 CFLAGS += $(SVN_REV)
 CFLAGS += $(SVN_REV_NUM)
+CFLAGS += $(GIT_DESCRIBE)
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information

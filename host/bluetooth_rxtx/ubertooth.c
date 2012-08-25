@@ -31,6 +31,7 @@
 #include "ubertooth.h"
 
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
+#define MIN(a,b) ((a)<(b) ? (a) : (b))
 
 /* this stuff should probably be in a struct managed by the calling program */
 usb_pkt_rx packets[NUM_BANKS];
@@ -1202,21 +1203,33 @@ int cmd_repeater(struct libusb_device_handle* devh)
 	return 0;
 }
 
-int cmd_get_rev_num(struct libusb_device_handle* devh)
+void cmd_get_rev_num(struct libusb_device_handle* devh, char *version, u8 len)
 {
-	u8 result[2];
+	u8 result[2 + 1 + 255];
+	u16 result_ver;
 	int r;
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_REV_NUM, 0, 0,
-			result, 2, 1000);
+			result, sizeof(result), 1000);
 	if (r == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "control message unsupported\n");
-		return r;
+		snprintf(version, len - 1, "error: %d", r);
+		version[len-1] = '\0';
+		return;
 	} else if (r < 0) {
 		show_libusb_error(r);
-		return r;
+		snprintf(version, len - 1, "error: %d", r);
+		version[len-1] = '\0';
+		return;
 	}
 
-	return result[0] | (result[1] << 8);
+	result_ver = result[0] | (result[1] << 8);
+	if (r == 2) { // old-style SVN rev
+		sprintf(version, "%u", result_ver);
+	} else {
+		len = MIN(r - 3, MIN(len - 1, result[2]));
+		memcpy(version, &result[3], len);
+		version[len] = '\0';
+	}
 }
 
 int cmd_get_board_id(struct libusb_device_handle* devh)

@@ -131,7 +131,7 @@ int cmd_set_channel(struct libusb_device_handle* devh, u16 channel);
 int cmd_get_rangeresult(struct libusb_device_handle* devh, rangetest_result *rr);
 int cmd_range_test(struct libusb_device_handle* devh);
 int cmd_repeater(struct libusb_device_handle* devh);
-int cmd_get_rev_num(struct libusb_device_handle* devh);
+void cmd_get_rev_num(struct libusb_device_handle* devh, char *version, u8 len);
 int cmd_get_board_id(struct libusb_device_handle* devh);
 int cmd_set_squelch(struct libusb_device_handle* devh, u16 level);
 int cmd_get_squelch(struct libusb_device_handle* devh);

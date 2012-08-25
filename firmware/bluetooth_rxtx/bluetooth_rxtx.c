@@ -46,6 +46,8 @@
 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <string.h>
+
 #include "ubertooth.h"
 #include "usbapi.h"
 #include "usbhw_lpc.h"
@@ -442,7 +444,7 @@ static const u8 abDescriptors[] = {
 	0
 };
 
-static u8 abVendorReqData[17];
+static u8 abVendorReqData[258];
 
 static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
 {
@@ -461,6 +463,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	u32 result[5];
 	u64 ac_copy;
 	int i; // loop counter
+	u8 length; // string length
 
 	switch (pSetup->bRequest) {
 
@@ -693,9 +696,15 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_GET_REV_NUM:
-		pbData[0] = SVN_REV_NUM & 0xFF;
-		pbData[1] = (SVN_REV_NUM >> 8) & 0xFF;
-		*piLen = 2;
+		pbData[0] = 0x00;
+		pbData[1] = 0x00;
+
+		length = (u8)strlen(GIT_DESCRIBE);
+		pbData[2] = length;
+
+		memcpy(&pbData[3], GIT_DESCRIBE, length);
+
+		*piLen = 2 + 1 + length;
 		break;
 
 	case UBERTOOTH_GET_BOARD_ID:

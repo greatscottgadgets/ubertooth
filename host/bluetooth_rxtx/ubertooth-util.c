@@ -222,8 +222,11 @@ int main(int argc, char *argv[])
 		r= cmd_get_channel(devh);
 		printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 		}
-	if(do_firmware == 0)
-		printf("Firmare revision: %d\n", r= cmd_get_rev_num(devh));
+	if(do_firmware == 0) {
+		char version[255];
+		cmd_get_rev_num(devh, version, (u8)sizeof(version));
+		printf("Firmare revision: %s\n", version);
+        }
 	if(do_leds == 2)
 		printf("USR LED status: %d\n", r= cmd_get_usrled(devh));
 	if(do_palevel == 0)
