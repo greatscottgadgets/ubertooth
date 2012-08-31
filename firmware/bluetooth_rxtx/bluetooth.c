@@ -106,7 +106,7 @@ u16 next_hop(u32 clock)
 	u16 d, y2;
 	u32 f;
 
-	/* following variable names used in section 2.6 of the spec */
+	/* Variable names used in Vol 2, Part B, Section 2.6 of the spec */
 	x = (clock >> 2) & 0x1f;
 	y1 = (clock >> 1) & 0x01;
 	y2 = y1 << 5;

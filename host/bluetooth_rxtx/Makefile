@@ -40,18 +40,28 @@ endif
 LIBBTBB  = btbb
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
+ifeq ($(clock_debug), true)
+	# Debug using locak clock
+	CFLAGS += -DREAD_HCI_CLOCK
+	LDFLAGS += -lbluetooth
+endif
+
 LIB_NAME   = libubertooth.so
 SONAME     = $(LIB_NAME).0
-#LIB_FILE   = $(SONAME).svn-$(shell svnversion -n .)
+
 LIB_FILE   = $(SONAME).1
 STATIC_LIB_FILE = libubertooth.a
 LIB_CFLAGS = $(CFLAGS) -shared -Wl,-soname,$(SONAME) -fPIC
 
-LIB_SOURCE_FILES = ubertooth.c
+LIB_SOURCE_FILES = ubertooth.c ubertooth_control.c
 LIB_OBJECT_FILES = $(LIB_SOURCE_FILES:%.c=%.o)
 LIB_HEADER_FILES = $(LIB_SOURCE_FILES:%.c=%.h) ubertooth_interface.h
 
 TOOLS = ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
+ifeq ($(clock_debug), true)
+	TOOLS+= ubertooth-follow
+endif
+
 TOOLS_SOURCE = $(TOOLS:%=%.c)
 
 all: $(LIB_FILE) $(TOOLS)
@@ -84,6 +94,6 @@ cygwin-install: $(LIB_FILE) $(STATIC_LIB_FILE)
 	$(INSTALL) -m 0755 $(TOOLS) $(INSTALL_DIR)
 
 clean:
-	rm -f $(LIB_NAME).* $(STATIC_LIB_FILE) $(TOOLS) $(LIB_OBJECT_FILES)
+	rm -f $(LIB_NAME).* $(STATIC_LIB_FILE) $(TOOLS) $(LIB_OBJECT_FILES) ubertooth-follow
 
 .PHONY: all clean install cygwin-install

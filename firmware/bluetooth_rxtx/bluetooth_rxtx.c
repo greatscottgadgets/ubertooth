@@ -61,18 +61,15 @@ IAP iap_entry = (IAP)IAP_LOCATION;
 
 /*
  * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
- * 2^15 * 10^5 cycles (about 5.5 minutes) and is used to compute CLKN.
+ * 2^15 * 10^5 cycles (about 5.5 minutes) - computed from clkn and timer0 (T0TC)
  *
- * CLKN is the native (local) clock as defined in the Bluetooth specification.
- * It advances 3200 times per second.  Two CLKN periods make a Bluetooth time
+ * clkn is the native (local) clock as defined in the Bluetooth specification.
+ * It advances 3200 times per second.  Two clkn periods make a Bluetooth time
  * slot.
  */
 
-volatile u8 clkn_high;                       // clkn overflow count
-volatile u32 clkn_low;                       // clkn 3200 Hz counter
-#define CLKN ((clkn_high << 20) + clkn_low)
-#define CLKN_WRAP (1<<20)                    // wrap at clkn period
-#define CLK100NS (3125*clkn_low + T0TC)
+volatile u32 clkn;                       // clkn 3200 Hz counter
+#define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
 
 #define HOP_NONE      0
 #define HOP_SWEEP     1
@@ -128,7 +125,6 @@ volatile u16 channel = 2441;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
-int clock_offset = 0;
 
 /* DMA linked list items */
 typedef struct {
@@ -290,12 +286,12 @@ static int enqueue(u8 *buf)
 		return 0;
 	}
 
-	f->clkn_high = clkn_high;
+	f->clkn_high = (clkn >> 20) & 0xff;
 	f->clk100ns = CLK100NS;
 	f->channel = channel-2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
-	if (hop_mode > 0)
+	if (hop_mode != HOP_NONE)
 		f->rssi_avg = (int8_t)((rssi_iir[channel-2402] + 128)/256);
 	else
 		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
@@ -463,6 +459,8 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	u32 result[5];
 	u64 ac_copy;
 	int i; // loop counter
+	u32 clock;
+	int clock_offset;
 	u8 length; // string length
 
 	switch (pSetup->bRequest) {
@@ -723,8 +721,14 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_BDADDR:
-		target.address = ((bdaddr *) pbData)->address;
-		target.access_code = ((bdaddr *) pbData)->access_code;
+		target.address = 0;
+		target.access_code = 0;
+		for(i=0; i < 8; i++) {
+			target.address |= pbData[i] << 8*i;
+		}
+		for(0; i < 8; i++) {
+			target.access_code |= pbData[i+8] << 8*i;
+		}
 		precalc();
 		break;
 
@@ -734,8 +738,22 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			clock_offset << 8;
 			clock_offset |= pbData[i];
 		}
+		clkn += clock_offset;
 		hop_mode = HOP_BLUETOOTH;
+		break;
+
+	case UBERTOOTH_SET_CLOCK:
+		clock = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
+		clkn = clock;
 		cs_threshold_calc_and_set();
+		break;
+
+	case UBERTOOTH_GET_CLOCK:
+		clock = clkn;
+		for(i=0; i < 4; i++) {
+			pbData[i] = (clock >> (8*i)) & 0xff;
+		}
+		*piLen = 4;
 		break;
 
 	case UBERTOOTH_BTLE_SNIFFING:
@@ -783,8 +801,7 @@ static void clkn_init()
 
 	/* stop and reset the timer to zero */
 	T0TCR = TCR_Counter_Reset;
-	clkn_high = 0;
-	clkn_low = 0;
+	clkn = 0;
 
 #ifdef TC13BADGE
 	/*
@@ -812,18 +829,12 @@ static void clkn_init()
 void TIMER0_IRQHandler()
 {
 	// Use non-volatile working register to shave off a couple instructions
-	uint32_t next;
+	u32 next;
 
 	if (T0IR & TIR_MR0_Interrupt) {
 
-		/* Incr clkn, wrap clkn_low at CLKN_WRAP. Ovrflw to clkn_high */
-		next = clkn_low + 1;
-		if (next == CLKN_WRAP) {
-			clkn_low = 0;
-			++clkn_high;
-		}
-		else
-			clkn_low = next;
+		clkn++;
+		next = clkn;
 
 		/* Trigger hop based on mode */
 
@@ -869,8 +880,8 @@ void EINT3_IRQHandler()
  * be used while the board is running at 100MHz. */
 static void msleep(uint32_t millis)
 {
-	uint32_t stop_at = CLKN + millis * 3125 / 1000;  // millis -> clkn ticks
-	do { } while (CLKN < stop_at);                   // TODO: handle wrapping
+	uint32_t stop_at = clkn + millis * 3125 / 1000;  // millis -> clkn ticks
+	do { } while (clkn < stop_at);                   // TODO: handle wrapping
 }
 
 static void dma_init()
@@ -1297,7 +1308,7 @@ void hop(void)
 
 	else if (hop_mode == HOP_BLUETOOTH) {
 		TXLED_SET;
-		channel = next_hop(CLKN + clock_offset);
+		channel = next_hop(clkn);
 	}
 
 	else if (hop_mode == HOP_BTLE) {
@@ -1452,7 +1463,7 @@ void bt_stream_rx()
 		/* Queue data from DMA buffer. */
 		switch (hop_mode) {
 			case HOP_BLUETOOTH:
-				if (find_access_code(idle_rxbuf) >= 0)
+				//if (find_access_code(idle_rxbuf) >= 0)
 						if (enqueue(idle_rxbuf)) {
 								RXLED_SET;
 								--rx_pkts;

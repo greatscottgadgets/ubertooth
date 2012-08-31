@@ -65,7 +65,9 @@ enum ubertooth_usb_commands {
     UBERTOOTH_GET_SQUELCH     = 37,
     UBERTOOTH_SET_BDADDR      = 38,
     UBERTOOTH_START_HOPPING   = 39,
-    UBERTOOTH_BTLE_SNIFFING   = 40
+    UBERTOOTH_SET_CLOCK       = 40,
+    UBERTOOTH_GET_CLOCK       = 41,
+    UBERTOOTH_BTLE_SNIFFING   = 42
 };
 
 enum modulations {
@@ -119,7 +121,6 @@ typedef struct {
 	char   rssi_min;   // Min ...
 	char   rssi_avg;   // Average ...
 	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
-	u8     reserved[2];
 	u8     data[MAX_BTLE_PDU];
 } btle_pkt_rx;
 

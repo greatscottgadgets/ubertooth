@@ -26,12 +26,17 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifdef READ_HCI_CLOCK
+/* Some experimentation */
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
+#endif
+
 #include <bluetooth_packet.h>
 
 #include "ubertooth.h"
-
-#define MAX(a,b) ((a)>(b) ? (a) : (b))
-#define MIN(a,b) ((a)<(b) ? (a) : (b))
+#include "ubertooth_control.h"
 
 /* this stuff should probably be in a struct managed by the calling program */
 usb_pkt_rx packets[NUM_BANKS];
@@ -48,24 +53,6 @@ uint32_t systime;
 int clk_offset = -1;
 u8 hopping = 0;
 u8 usb_retry = 1;
-
-void show_libusb_error(int error_code)
-{
-    switch (error_code) {
-	    case LIBUSB_ERROR_TIMEOUT:
-	        fprintf(stderr, "libUSB Error: Timeout (%d)\n", error_code);
-	        break;
-	    case LIBUSB_ERROR_NO_DEVICE:
-	        fprintf(stderr, "libUSB Error: No Device, did you disconnect the ubertooth? (%d)\n", error_code);
-	        break;
-	    case LIBUSB_ERROR_ACCESS:
-	        fprintf(stderr, "libUSB Error: Insufficient Permissions (%d)\n", error_code);
-	        break;
-	    default:
-	        fprintf(stderr, "command error %d\n", error_code);
-	        break;
-	}
-}
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -288,14 +275,12 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	access_code r;
-	uint32_t clk100ns; /* in 100 nanosecond units */
 	packet pkt;
 	char *channel_rssi_history;
 	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
-	uint32_t clk0;
-	uint32_t clk1;
+	uint32_t clk0, clk1;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -304,11 +289,6 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	/* Copy packet (for dump) */
 	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
 
-	// TODO - check we're using the correct clk100ns later on (we change rx, but not clk100ns)
-	clk100ns = le32toh(rx->clk100ns); /* wire format is le32 */
-	/*
-	printf("%10u %02x %02d %3.02d %3d %3d %3d\n", rx->clk100ns, rx->status, rx->channel, rx->rssi_min-54, rx->rssi_max-54, rx->rssi_avg-54, rx->rssi_count);
-	*/
 	unpack_symbols(rx->data, symbols[bank]);
 
 	/* Do analysis based on oldest packet */
@@ -366,8 +346,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 
 		/* Native (Ubertooth) clock with period 312.5 uS. */
 		clk0 = (rx->clkn_high << 20)
-			+ (rx->clk100ns + r.offset * 10) / 3125;
-
+			+ (le32toh(rx->clk100ns) + r.offset * 10) / 3125;
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
@@ -376,9 +355,10 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		 * not overwrite. Otherwise, get current time. */
 		if ( infile == NULL )
 			systime = time(NULL);
+
 		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 		       (int)systime, rx->channel, r.LAP, r.error_count,
-		       clk100ns, clk1, signal_level, noise_level, snr);
+		       rx->clk100ns, clk1, signal_level, noise_level, snr);
 
 		/* Found a packet with the requested LAP */
 		if (pn != NULL && r.LAP == pn->LAP) {
@@ -516,6 +496,117 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 	}
 }
 
+/* Follow a given piconet. */
+static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
+{
+	piconet* pn = (piconet *)args;
+	char syms[BANK_LEN * NUM_BANKS];
+	int i;
+	access_code r;
+	//uint32_t clk100ns; /* in 100 nanosecond units */
+	packet pkt;
+	char *channel_rssi_history;
+	int8_t signal_level;
+	int8_t noise_level;
+	int8_t snr;
+	uint32_t clkn, clk1;
+
+	/* Sanity check */
+	if (rx->channel > (NUM_CHANNELS-1))
+		return;
+
+	/* Copy packet (for dump) */
+	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
+
+	unpack_symbols(rx->data, symbols[bank]);
+
+	/* Do analysis based on oldest packet */
+	rx = &packets[ (bank+1) % NUM_BANKS ];
+
+	/* Shift rssi max history and append current max */
+	channel_rssi_history = rssi_history[rx->channel];
+	memmove(channel_rssi_history,
+		channel_rssi_history+1,
+		RSSI_HISTORY_LEN-1);
+	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+
+	/* Signal starts in oldest bank, but may cross into second
+	 * oldest bank.  Take the max or the 2 maxs. */
+	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
+
+	/* Noise is an IIR of averages */
+	noise_level = rx->rssi_avg + RSSI_BASE;
+	snr = signal_level - noise_level;
+
+	/* Copy 2 banks for analysis */
+	for (i = 0; i < 2; i++)
+		memcpy(syms + i * BANK_LEN,
+		       symbols[(i + 1 + bank) % NUM_BANKS],
+		       BANK_LEN);
+
+	/* Find packets for specified LAP.  */
+	r = find_ac(syms, BANK_LEN, pn->LAP);
+
+	if ((r.offset > -1) && (r.error_count <= max_ac_errors)) {
+		/* If dumpfile is specified, write out all banks to
+		 * the file. There could be duplicate data in the dump
+		 * if more than one LAP is found within the span of
+		 * NUM_BANKS. If experiment mode is selected, extra
+		 * info is written out. For now, it just prepends
+		 * capture time. */
+		if (dumpfile) {
+			for(i = 0; i < NUM_BANKS; i++) {
+				uint32_t systime_be = htobe32(systime);
+				if (fwrite(&systime_be, 
+					   sizeof(systime_be), 1,
+					   dumpfile)
+				    != 1) {;}
+				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+					   sizeof(usb_pkt_rx), 1, dumpfile)
+				    != 1) {;}
+			}
+		}
+
+		/* Native (Ubertooth) clock with period 312.5 uS. */
+		clkn = (rx->clkn_high << 20)
+			+ (le32toh(rx->clk100ns) + r.offset * 10) / 3125;
+
+		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
+		clk1 = clkn / 2;
+
+		/* When reading from file, caller will read
+		 * systime before calling this routine, so do
+		 * not overwrite. Otherwise, get current time. */
+		if ( infile == NULL )
+			systime = time(NULL);
+
+		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk0=%u s=%d n=%d snr=%d\n",
+		       (int)systime, rx->channel, r.LAP, r.error_count,
+		       le32toh(rx->clk100ns), clkn, signal_level, noise_level, snr);
+
+		/* Found a packet with the requested LAP */
+		if (0 == 1 && pn != NULL && r.LAP == pn->LAP) {
+
+			/* Determining UAP requires more symbols. Copy
+			 * remaining banks. */
+			for (i = 2; i < NUM_BANKS; i++)
+				memcpy(syms + i * BANK_LEN,
+				       symbols[(i + 1 + bank) % NUM_BANKS],
+				       BANK_LEN);
+			
+			init_packet(&pkt, &syms[r.offset],
+				    BANK_LEN * NUM_BANKS - r.offset);
+			pkt.LAP = r.LAP;
+			pkt.clkn = clk1;
+			pkt.channel = rx->channel;
+			if (header_present(&pkt)) {
+				if (UAP_from_header(&pkt, pn))
+					{;}
+			}
+		}
+	}
+}
+
 /* sniff one target address until CLK is determined */
 void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 {
@@ -523,12 +614,13 @@ void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 	u64 address = 0;
 	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
 	cmd_set_bdaddr(devh, address);
+
 	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
 	if (ret == 1) {
 		sleep(1);
 		hopping = 1;
-		cmd_start_hopping(devh, clk_offset);
-		stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
+		cmd_start_hopping(devh, pn->clk_offset);
+		stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
 	}
 }
 
@@ -537,6 +629,28 @@ void rx_hop_file(FILE* fp, piconet* pn)
 {
 	stream_rx_file(fp, 0, cb_hop, pn);
 }
+
+#ifdef READ_HCI_CLOCK
+int bt_dev;
+
+/* sniff one target address until CLK is determined */
+void rx_follow(struct libusb_device_handle* devh, piconet* pn)
+{
+	u64 address = 0;
+	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
+	cmd_set_bdaddr(devh, address);
+	uint32_t clock;
+	uint16_t accuracy;
+
+	bt_dev = hci_open_dev(hci_devid("hci0"));
+	hci_read_clock(bt_dev, 0, 0, &clock, &accuracy, 0);
+	printf("Setting CLKN = 0x%x\n", clock);
+	cmd_set_clock(devh, clock);
+	// This value shlould be varied based on the delay in reading the clock
+	cmd_start_hopping(devh, 5);
+	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
+}
+#endif
 
 /*
  * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept
@@ -763,572 +877,4 @@ struct libusb_device_handle* ubertooth_start(int ubertooth_device)
 	}
 
 	return devh;
-}
-
-int cmd_ping(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_PING, 0, 0,
-			NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, num, 0,
-			NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SPECAN,
-			low_freq, high_freq, NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_LED_SPECAN,
-			rssi_threshold, 0, NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_set_usrled(struct libusb_device_handle* devh, u16 state)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_USRLED, state, 0,
-			NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_usrled(struct libusb_device_handle* devh)
-{
-	u8 state;
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_USRLED, 0, 0,
-			&state, 1, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return state;
-}
-
-int cmd_set_rxled(struct libusb_device_handle* devh, u16 state)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_RXLED, state, 0,
-			NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_rxled(struct libusb_device_handle* devh)
-{
-	u8 state;
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_RXLED, 0, 0,
-			&state, 1, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return state;
-}
-
-int cmd_set_txled(struct libusb_device_handle* devh, u16 state)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_TXLED, state, 0,
-			NULL, 0, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_txled(struct libusb_device_handle* devh)
-{
-	u8 state;
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_TXLED, 0, 0,
-			&state, 1, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return state;
-}
-
-int cmd_get_modulation(struct libusb_device_handle* devh)
-{
-	u8 modulation;
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_MOD, 0, 0,
-			&modulation, 1, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-
-	return modulation;
-}
-
-int cmd_get_channel(struct libusb_device_handle* devh)
-{
-	u8 result[2];
-	int r;
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_CHANNEL, 0, 0,
-			result, 2, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-
-	return result[0] | (result[1] << 8);
-}
-
-
-int cmd_set_channel(struct libusb_device_handle* devh, u16 channel)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_CHANNEL, channel, 0,
-			NULL, 0, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_partnum(struct libusb_device_handle* devh)
-{
-	u8 result[5];
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_PARTNUM, 0, 0,
-			result, 5, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	if (result[0] != 0) {
-		fprintf(stderr, "result not zero: %d\n", result[0]);
-		return 0;
-	}
-	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
-}
-
-int cmd_get_serial(struct libusb_device_handle* devh)
-{
-	u8 result[17];
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_SERIAL, 0, 0,
-			result, 17, 1000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	if (result[0] != 0) {
-		fprintf(stderr, "result not zero: %d\n", result[0]);
-		return 0;
-	}
-	/* FIXME shouldn't print to stdout, should return complete serial number */
-	printf("%08x", result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24));
-	printf("%08x", result[5] | (result[6] << 8) | (result[7] << 16) | (result[8] << 24));
-	printf("%08x", result[9] | (result[10] << 8) | (result[11] << 16) | (result[12] << 24));
-	printf("%08x\n", result[13] | (result[14] << 8) | (result[15] << 16) | (result[16] << 24));
-	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
-}
-
-int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_MOD, mod, 0,
-			NULL, 0, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_set_isp(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_ISP, 0, 0,
-			NULL, 0, 1000);
-	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if (r && (r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER) &&
-		(r != LIBUSB_ERROR_NO_DEVICE)) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_reset(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RESET, 0, 0,
-			NULL, 0, 1000);
-	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if (r && (r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER) &&
-		(r != LIBUSB_ERROR_NO_DEVICE)) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_stop(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_STOP, 0, 0,
-			NULL, 0, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_set_paen(struct libusb_device_handle* devh, u16 state)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_PAEN, state, 0,
-			NULL, 0, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_set_hgm(struct libusb_device_handle* devh, u16 state)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_HGM, state, 0,
-			NULL, 0, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_tx_test(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_TX_TEST, 0, 0,
-			NULL, 0, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_flash(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_FLASH, 0, 0,
-			NULL, 0, 1000);
-	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
-	    show_libusb_error(r);
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_palevel(struct libusb_device_handle* devh)
-{
-	u8 level;
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_PALEVEL, 0, 0,
-			&level, 1, 3000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return level;
-}
-
-int cmd_set_palevel(struct libusb_device_handle* devh, u16 level)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_PALEVEL, level, 0,
-			NULL, 0, 3000);
-	if (r != LIBUSB_SUCCESS) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_rangeresult(struct libusb_device_handle* devh,
-		rangetest_result *rr)
-{
-	u8 result[5];
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_RANGE_CHECK, 0, 0,
-			result, sizeof(result), 3000);
-	if (r < LIBUSB_SUCCESS) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
-
-	rr->valid       = result[0];
-	rr->request_pa  = result[1];
-	rr->request_num = result[2];
-	rr->reply_pa    = result[3];
-	rr->reply_num   = result[4];
-
-	return 0;
-}
-
-int cmd_range_test(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RANGE_TEST, 0, 0,
-			NULL, 0, 1000);
-	if (r != LIBUSB_SUCCESS) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
-	return 0;
-}
-
-int cmd_repeater(struct libusb_device_handle* devh)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_REPEATER, 0, 0,
-			NULL, 0, 1000);
-	if (r != LIBUSB_SUCCESS) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
-	return 0;
-}
-
-void cmd_get_rev_num(struct libusb_device_handle* devh, char *version, u8 len)
-{
-	u8 result[2 + 1 + 255];
-	u16 result_ver;
-	int r;
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_REV_NUM, 0, 0,
-			result, sizeof(result), 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		snprintf(version, len - 1, "error: %d", r);
-		version[len-1] = '\0';
-		return;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		snprintf(version, len - 1, "error: %d", r);
-		version[len-1] = '\0';
-		return;
-	}
-
-	result_ver = result[0] | (result[1] << 8);
-	if (r == 2) { // old-style SVN rev
-		sprintf(version, "%u", result_ver);
-	} else {
-		len = MIN(r - 3, MIN(len - 1, result[2]));
-		memcpy(version, &result[3], len);
-		version[len] = '\0';
-	}
-}
-
-int cmd_get_board_id(struct libusb_device_handle* devh)
-{
-	u8 board_id;
-	int r;
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_BOARD_ID, 0, 0,
-			&board_id, 1, 1000);
-	if (r == LIBUSB_ERROR_PIPE) {
-		fprintf(stderr, "control message unsupported\n");
-		return r;
-	} else if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-
-	return board_id;
-}
-
-int cmd_set_squelch(struct libusb_device_handle* devh, u16 level)
-{
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_SQUELCH, level, 0, NULL, 0, 3000);
-	if (r != LIBUSB_SUCCESS) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
-	return 0;
-}
-
-int cmd_get_squelch(struct libusb_device_handle* devh)
-{
-	u8 level;
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_SQUELCH, 0, 0,
-			&level, 1, 3000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return level;
-}
-
-int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 address)
-{
-	int r, data_len;
-	u64 syncword;
-	bdaddr data;
-
-	data.address = address;
-	syncword = gen_syncword(address & 0xffffff);
-	//printf("syncword=%#llx\n", syncword);
-	data.access_code = 0;
-	for(r=0;r<8;r++) {
-		data.access_code <<= 8;
-		data.access_code |= reverse(syncword & 0xff);
-		syncword >>= 8;
-	}
-	//printf("data.access_code=%#llx\n", data.access_code);
-	data_len = sizeof(bdaddr);
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_BDADDR, 0, 0,
-		(unsigned char *) &data, data_len, 1000);
-	if (r < 0) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	} else if (r < data_len) {
-		fprintf(stderr, "Only %d of %d bytes transferred\n", r, data_len);
-		return 1;
-	}
-	return 0;
-}
-
-int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset)
-{
-	int r;
-	u8 data[4];
-	for(r=0; r < 4; r++)
-		data[r] = (clock_offset >> (8*r)) & 0xff;
-
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_START_HOPPING, 0, 0,
-		data, 4, 1000);
-	if (r < 0) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
-	return 0;
 }

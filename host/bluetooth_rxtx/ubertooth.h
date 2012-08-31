@@ -22,55 +22,7 @@
 #ifndef __UBERTOOTH_H__
 #define __UBERTOOTH_H__
 
-#ifdef FREEBSD
-#include <libusb.h>
-#else
-#include <libusb-1.0/libusb.h>
-#endif
-
-#if defined __MACH__
-#include <CoreServices/CoreServices.h>
-#define htobe32 EndianU32_NtoB
-#define be32toh EndianU32_BtoN
-#define le32toh EndianU32_LtoN
-#define htobe64 EndianU64_NtoB
-#define be64toh EndianU64_BtoN
-#else
-#include <endian.h>
-#endif
-
-#include <stdio.h>
-#include <bluetooth_piconet.h>
-
-#define u8 uint8_t
-#define u16 uint16_t
-#define u32 uint32_t
-#define u64 uint64_t
-
-#include "ubertooth_interface.h"
-
-#define U0_VENDORID    0x1d50
-#define U0_PRODUCTID   0x6000
-#define U1_VENDORID    0x1d50
-#define U1_PRODUCTID   0x6002
-#define TC13_VENDORID  0xffff
-#define TC13_PRODUCTID 0x0004
-
-#define DATA_IN     (0x82 | LIBUSB_ENDPOINT_IN)
-#define DATA_OUT    (0x05 | LIBUSB_ENDPOINT_OUT)
-#define CTRL_IN     (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_IN)
-#define CTRL_OUT    (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT)
-#define TIMEOUT     20000
-#define BUFFER_SIZE 102400
-
-/* RX USB packet parameters */
-#define PKT_LEN       64
-#define SYM_LEN       50
-#define SYM_OFFSET    14
-#define PKTS_PER_XFER 8
-#define NUM_BANKS     10
-#define XFER_LEN      (PKT_LEN * PKTS_PER_XFER)
-#define BANK_LEN      (SYM_LEN * PKTS_PER_XFER)
+#include "ubertooth_control.h"
 
 /* gnuplot output types
  * see https://github.com/dkogan/feedgnuplot for plotter */
@@ -101,43 +53,9 @@ void rx_uap(struct libusb_device_handle* devh, piconet* pn);
 void rx_uap_file(FILE* fp, piconet* pn);
 void rx_hop(struct libusb_device_handle* devh, piconet* pn);
 void rx_hop_file(FILE* fp, piconet* pn);
+void rx_follow(struct libusb_device_handle* devh, piconet* pn);
 void rx_dump(struct libusb_device_handle* devh, int full);
 void rx_btle(struct libusb_device_handle* devh);
 void rx_btle_file(FILE* fp);
-int cmd_rx_syms(struct libusb_device_handle* devh, u16 num);
-int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
-int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold);
-int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
-int cmd_get_usrled(struct libusb_device_handle* devh);
-int cmd_set_rxled(struct libusb_device_handle* devh, u16 state);
-int cmd_get_rxled(struct libusb_device_handle* devh);
-int cmd_set_txled(struct libusb_device_handle* devh, u16 state);
-int cmd_get_txled(struct libusb_device_handle* devh);
-int cmd_get_partnum(struct libusb_device_handle* devh);
-int cmd_get_serial(struct libusb_device_handle* devh);
-int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod);
-int cmd_get_modulation(struct libusb_device_handle* devh);
-int cmd_set_isp(struct libusb_device_handle* devh);
-int cmd_reset(struct libusb_device_handle* devh);
-int cmd_stop(struct libusb_device_handle* devh);
-int cmd_set_paen(struct libusb_device_handle* devh, u16 state);
-int cmd_set_hgm(struct libusb_device_handle* devh, u16 state);
-int cmd_tx_test(struct libusb_device_handle* devh);
-int cmd_flash(struct libusb_device_handle* devh);
-int cmd_get_palevel(struct libusb_device_handle* devh);
-int cmd_set_palevel(struct libusb_device_handle* devh, u16 level);
-int cmd_get_channel(struct libusb_device_handle* devh);
-int cmd_set_channel(struct libusb_device_handle* devh, u16 channel);
-int cmd_get_rangeresult(struct libusb_device_handle* devh, rangetest_result *rr);
-int cmd_range_test(struct libusb_device_handle* devh);
-int cmd_repeater(struct libusb_device_handle* devh);
-void cmd_get_rev_num(struct libusb_device_handle* devh, char *version, u8 len);
-int cmd_get_board_id(struct libusb_device_handle* devh);
-int cmd_set_squelch(struct libusb_device_handle* devh, u16 level);
-int cmd_get_squelch(struct libusb_device_handle* devh);
-int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr);
-int cmd_set_syncword(struct libusb_device_handle* devh, u64 syncword);
-int cmd_next_hop(struct libusb_device_handle* devh, u16 clk);
-int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset);
 
 #endif /* __UBERTOOTH_H__ */
