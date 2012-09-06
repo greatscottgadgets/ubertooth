@@ -303,7 +303,16 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 
 	/* Signal starts in oldest bank, but may cross into second
 	 * oldest bank.  Take the max or the 2 maxs. */
-	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
+/*
+	signal_level = MAX(channel_rssi_history[0],
+			   channel_rssi_history[1]) + RSSI_BASE;
+*/
+
+	/* Alternatively, use all banks in history. */
+	signal_level = channel_rssi_history[0];
+	for (i = 1; i < RSSI_HISTORY_LEN; i++)
+		signal_level = MAX(signal_level, channel_rssi_history[i]);
+	signal_level += RSSI_BASE;
 
 	/* Noise is an IIR of averages */
 	noise_level = rx->rssi_avg + RSSI_BASE;
