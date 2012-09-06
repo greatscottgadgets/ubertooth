@@ -26,13 +26,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#ifdef READ_HCI_CLOCK
-/* Some experimentation */
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-#include <bluetooth/hci_lib.h>
-#endif
-
 #include <bluetooth_packet.h>
 
 #include "ubertooth.h"
@@ -548,6 +541,12 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 	r = find_ac(syms, BANK_LEN, pn->LAP);
 
 	if ((r.offset > -1) && (r.error_count <= max_ac_errors)) {
+		/* When reading from file, caller will read
+		 * systime before calling this routine, so do
+		 * not overwrite. Otherwise, get current time. */
+		if ( infile == NULL )
+			systime = time(NULL);
+
 		/* If dumpfile is specified, write out all banks to
 		 * the file. There could be duplicate data in the dump
 		 * if more than one LAP is found within the span of
@@ -573,12 +572,6 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clkn / 2;
-
-		/* When reading from file, caller will read
-		 * systime before calling this routine, so do
-		 * not overwrite. Otherwise, get current time. */
-		if ( infile == NULL )
-			systime = time(NULL);
 
 		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk0=%u s=%d n=%d snr=%d\n",
 		       (int)systime, rx->channel, r.LAP, r.error_count,
@@ -618,9 +611,7 @@ void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
 	if (ret == 1) {
 		sleep(1);
-		hopping = 1;
-		cmd_start_hopping(devh, pn->clk_offset);
-		stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
+		rx_follow_offset(devh, pn);
 	}
 }
 
@@ -630,27 +621,32 @@ void rx_hop_file(FILE* fp, piconet* pn)
 	stream_rx_file(fp, 0, cb_hop, pn);
 }
 
-#ifdef READ_HCI_CLOCK
-int bt_dev;
-
 /* sniff one target address until CLK is determined */
-void rx_follow(struct libusb_device_handle* devh, piconet* pn)
+void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, uint32_t delay)
 {
 	u64 address = 0;
 	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
 	cmd_set_bdaddr(devh, address);
-	uint32_t clock;
-	uint16_t accuracy;
 
-	bt_dev = hci_open_dev(hci_devid("hci0"));
-	hci_read_clock(bt_dev, 0, 0, &clock, &accuracy, 0);
 	printf("Setting CLKN = 0x%x\n", clock);
 	cmd_set_clock(devh, clock);
 	// This value shlould be varied based on the delay in reading the clock
-	cmd_start_hopping(devh, 5);
+	cmd_start_hopping(devh, delay);
+	hopping = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
 }
-#endif
+
+/* sniff one target address until CLK is determined */
+void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
+{
+	u64 address = 0;
+	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
+	cmd_set_bdaddr(devh, address);
+
+	cmd_start_hopping(devh, pn->clk_offset);
+	hopping = 1;
+	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
+}
 
 /*
  * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept

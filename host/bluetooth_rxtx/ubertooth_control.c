@@ -585,7 +585,7 @@ int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 address)
 	return 0;
 }
 
-int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset)
+int cmd_start_hopping(struct libusb_device_handle* devh, int clock_offset)
 {
 	int r;
 	u8 data[4];

@@ -110,7 +110,7 @@ int cmd_get_squelch(struct libusb_device_handle* devh);
 int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 bdaddr);
 int cmd_set_syncword(struct libusb_device_handle* devh, u64 syncword);
 int cmd_next_hop(struct libusb_device_handle* devh, u16 clk);
-int cmd_start_hopping(struct libusb_device_handle* devh, u32 clock_offset);
+int cmd_start_hopping(struct libusb_device_handle* devh, int clock_offset);
 int cmd_set_clock(struct libusb_device_handle* devh, u32 clkn);
 uint32_t cmd_get_clock(struct libusb_device_handle* devh);
 

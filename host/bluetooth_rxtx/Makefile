@@ -42,7 +42,6 @@ LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
 ifeq ($(clock_debug), true)
 	# Debug using locak clock
-	CFLAGS += -DREAD_HCI_CLOCK
 	LDFLAGS += -lbluetooth
 endif
 
