@@ -586,26 +586,25 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		       (int)systime, rx->channel, r.LAP, r.error_count,
 		       le32toh(rx->clk100ns), clkn, signal_level, noise_level, snr);
 
-		/* Found a packet with the requested LAP */
-		if (0 == 1 && pn != NULL && r.LAP == pn->LAP) {
-
-			/* Determining UAP requires more symbols. Copy
-			 * remaining banks. */
-			for (i = 2; i < NUM_BANKS; i++)
-				memcpy(syms + i * BANK_LEN,
-				       symbols[(i + 1 + bank) % NUM_BANKS],
-				       BANK_LEN);
-			
-			init_packet(&pkt, &syms[r.offset],
-				    BANK_LEN * NUM_BANKS - r.offset);
-			pkt.LAP = r.LAP;
-			pkt.clkn = clk1;
-			pkt.channel = rx->channel;
-			if (header_present(&pkt)) {
-				if (UAP_from_header(&pkt, pn))
-					{;}
-			}
-		}
+		/* Determining UAP requires more symbols. Copy
+		 * remaining banks. */
+		for (i = 2; i < NUM_BANKS; i++)
+			memcpy(syms + i * BANK_LEN,
+			       symbols[(i + 1 + bank) % NUM_BANKS],
+			       BANK_LEN);
+		
+		init_packet(&pkt, &syms[r.offset],
+			    BANK_LEN * NUM_BANKS - r.offset);
+		pkt.LAP = r.LAP;
+		pkt.UAP = pn->UAP;
+		pkt.whitened = 1;
+		pkt.clkn = clkn;
+		pkt.clock = clk1;
+		pkt.have_clk6 = 1;
+		pkt.have_clk27 = 1;
+		pkt.channel = rx->channel;
+		decode(&pkt);
+		print(&pkt);
 	}
 }
 
