@@ -754,12 +754,12 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	/* unused parameter */ args = args; bank = bank;
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
-	uint64_t time_be = htobe64((uint64_t)time(NULL));
+	uint32_t time_be = htobe32((uint32_t)time(NULL));
 	if (dumpfile == NULL) {
-		if (fwrite(&time_be, 1, sizeof(uint64_t), stdout) != 1) {;}
+		if (fwrite(&time_be, 1, sizeof(time_be), stdout) != 1) {;}
 		if (fwrite(buf, sizeof(u8), PKT_LEN, stdout) != 1) {;}
 	} else {
-		if (fwrite(&time_be, 1, sizeof(uint64_t), dumpfile) != 1) {;}
+		if (fwrite(&time_be, 1, sizeof(time_be), dumpfile) != 1) {;}
 		if (fwrite(buf, sizeof(u8), PKT_LEN, dumpfile) != 1) {;}
 	}
 }
