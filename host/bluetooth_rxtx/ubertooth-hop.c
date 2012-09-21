@@ -36,6 +36,7 @@ static void usage()
 	printf("\t-u<UAP> (in hexadecimal)\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-e max_ac_errors\n");
+	printf("\t-f follow piconet once clock is known\n");
 	printf("\nLAP and UAP are both required.\n");
 	printf("If an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int have_lap = 0;
 	int have_uap = 0;
+	int follow = 0;
 	char *end, ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 	FILE* infile = NULL;
@@ -52,7 +54,7 @@ int main(int argc, char *argv[])
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hi:l:u:U:e:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:u:U:e:f")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -80,6 +82,9 @@ int main(int argc, char *argv[])
 		case 'e':
 			max_ac_errors = atoi(optarg);
 			break;
+		case 'f':
+			follow = 1;
+			break;
 		case 'h':
 		default:
 			usage();
@@ -97,7 +102,7 @@ int main(int argc, char *argv[])
 			usage();
 			return 1;
 		}
-		rx_hop(devh, &pn);
+		rx_hop(devh, &pn, follow);
 		ubertooth_stop(devh);
 	} else {
 		rx_hop_file(infile, &pn);
