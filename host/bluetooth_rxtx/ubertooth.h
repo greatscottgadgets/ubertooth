@@ -51,7 +51,7 @@ void rx_lap(struct libusb_device_handle* devh);
 void rx_lap_file(FILE* fp);
 void rx_uap(struct libusb_device_handle* devh, piconet* pn);
 void rx_uap_file(FILE* fp, piconet* pn);
-void rx_hop(struct libusb_device_handle* devh, piconet* pn);
+void rx_hop(struct libusb_device_handle* devh, piconet* pn, int follow);
 void rx_hop_file(FILE* fp, piconet* pn);
 void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, uint32_t delay);
 void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn);

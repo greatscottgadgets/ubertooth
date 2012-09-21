@@ -453,7 +453,7 @@ void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
 	pkt->UAP = pn->UAP;
 	pkt->have_UAP = 1;
 
-	decode(pkt);
+	decode(pkt, pn);
 
 	if (pkt->have_payload) {
 		print(pkt);

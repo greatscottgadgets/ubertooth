@@ -84,7 +84,8 @@ enum operating_modes {
 	MODE_SPECAN     = 4,
 	MODE_RANGE_TEST = 5,
 	MODE_REPEATER   = 6,
-	MODE_LED_SPECAN = 7
+	MODE_LED_SPECAN = 7,
+	MODE_BT_FOLLOW  = 8
 };
 
 /*

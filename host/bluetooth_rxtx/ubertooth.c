@@ -450,6 +450,9 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
 			       channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
 
+			/* Decode packet - fixing clock drift in the process */
+			decode(&pkt, pn);
+
 			if (pn->hop_reversal_inited) {
 				//pn->winnowed = 0;
 				pn->pattern_indices[pn->packets_observed] = pkt.clkn - pn->first_pkt_time;
@@ -459,21 +462,16 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 				winnow(pn);
 				if (pn->have_clk27) {
 					printf("got CLK1-27\n");
-					printf("clock offset = %d. Attempting to hop.\n", pn->clk_offset);
+					printf("clock offset = %d.\n", pn->clk_offset);
 					clk_offset = pn->clk_offset;
 					return;
 				}
 			} else {
 				if (pn->have_clk6) {
 					UAP_from_header(&pkt, pn);
-					if (!pn->have_clk6) {
-						printf("CLK1-27 discovery failed\n");
-						//exit(1); /* FIXME */
-						//winnow(pn);
-					}
 					if (pn->have_clk27) {
 						printf("got CLK1-27\n");
-						printf("clock offset = %d. Attempting to hop.\n", pn->clk_offset);
+						printf("clock offset = %d.\n", pn->clk_offset);
 						clk_offset = pn->clk_offset;
 						return;
 					}
@@ -505,7 +503,6 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	access_code r;
-	//uint32_t clk100ns; /* in 100 nanosecond units */
 	packet pkt;
 	char *channel_rssi_history;
 	int8_t signal_level;
@@ -541,7 +538,7 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 	snr = signal_level - noise_level;
 
 	/* Copy 2 banks for analysis */
-	for (i = 0; i < 2; i++)
+	for (i = 0; i < NUM_BANKS; i++)
 		memcpy(syms + i * BANK_LEN,
 		       symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
@@ -576,22 +573,21 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		}
 
 		/* Native (Ubertooth) clock with period 312.5 uS. */
-		clkn = (rx->clkn_high << 20)
-			+ (le32toh(rx->clk100ns) + r.offset * 10) / 3125;
+		clkn = le32toh(rx->clk100ns);
 
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
-		clk1 = clkn / 2;
+		clk1 = clkn >> 1;
 
-		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk0=%u s=%d n=%d snr=%d\n",
-		       (int)systime, rx->channel, r.LAP, r.error_count,
-		       le32toh(rx->clk100ns), clkn, signal_level, noise_level, snr);
+		printf("systime=%u ch=%2d LAP=%06x err=%u clk1=0x%07x s=%d n=%d snr=%d\n",
+		       (int)systime, rx->channel, r.LAP, r.error_count, clk1,
+			   signal_level, noise_level, snr);
 
 		/* Determining UAP requires more symbols. Copy
 		 * remaining banks. */
-		for (i = 2; i < NUM_BANKS; i++)
-			memcpy(syms + i * BANK_LEN,
-			       symbols[(i + 1 + bank) % NUM_BANKS],
-			       BANK_LEN);
+		//for (i = 2; i < NUM_BANKS; i++)
+		//	memcpy(syms + i * BANK_LEN,
+		//	       symbols[(i + 1 + bank) % NUM_BANKS],
+		//	       BANK_LEN);
 		
 		init_packet(&pkt, &syms[r.offset],
 			    BANK_LEN * NUM_BANKS - r.offset);
@@ -603,13 +599,16 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		pkt.have_clk6 = 1;
 		pkt.have_clk27 = 1;
 		pkt.channel = rx->channel;
-		decode(&pkt);
-		print(&pkt);
+
+		if(decode(&pkt, pn))
+			print(&pkt);
+		else
+			printf("Failed to decode packet\n");
 	}
 }
 
 /* sniff one target address until CLK is determined */
-void rx_hop(struct libusb_device_handle* devh, piconet* pn)
+void rx_hop(struct libusb_device_handle* devh, piconet* pn, int follow)
 {
 	int ret;
 	u64 address = 0;
@@ -617,7 +616,8 @@ void rx_hop(struct libusb_device_handle* devh, piconet* pn)
 	cmd_set_bdaddr(devh, address);
 
 	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
-	if (ret == 1) {
+	if (follow == 1 && ret == 1) {
+		/* Allow previous transfers to be cleared out before starting again */
 		sleep(1);
 		rx_follow_offset(devh, pn);
 	}
@@ -638,8 +638,11 @@ void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, u
 
 	printf("Setting CLKN = 0x%x\n", clock);
 	cmd_set_clock(devh, clock);
-	// This value shlould be varied based on the delay in reading the clock
+	/* delay value shlould be varied based on the delay in reading the clock */
 	cmd_start_hopping(devh, delay);
+	init_hop_reversal(0, pn);
+	pn->have_clk27 = 1;
+
 	hopping = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
 }
@@ -647,9 +650,9 @@ void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, u
 /* sniff one target address until CLK is determined */
 void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
 {
-	u64 address = 0;
-	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
-	cmd_set_bdaddr(devh, address);
+	//u64 address = 0;
+	//address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
+	//cmd_set_bdaddr(devh, address);
 
 	cmd_start_hopping(devh, pn->clk_offset);
 	hopping = 1;
