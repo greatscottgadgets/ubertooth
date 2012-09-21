@@ -31,7 +31,7 @@ static void usage(void)
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
 	printf("\nThis program sends binary data to stdout.  You probably don't want to\n");
-	printf("run it from a terminal (especially with -f) without redirecting the output.\n");
+	printf("run it from a terminal without redirecting the output.\n");
 }
 
 /*
