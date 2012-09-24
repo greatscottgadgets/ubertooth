@@ -453,9 +453,8 @@ void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
 	pkt->UAP = pn->UAP;
 	pkt->have_UAP = 1;
 
-	decode(pkt, pn);
-
-	if (pkt->have_payload) {
+	if (decode(pkt, pn)) {
+		//DEBUG: probably don't want to print packets in production output
 		print(pkt);
 		if (pn->have_NAP) {
 			pkt->NAP = pn->NAP;
@@ -465,7 +464,7 @@ void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
 		//if (pkt->packet_type == 2)
 			//fhs(pkt);
 	} else {
-		printf("lost clock!\n");
+		printf("Failed to decode packet, lost clock?\n");
 		reset(pn);
 
 		/* start rediscovery with this packet */
