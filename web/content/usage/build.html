@@ -203,7 +203,7 @@ using the ubertooth-dfu tool:</p>
 </pre>
 <br />
 <h3>Building firmware</h3>
-<p>Firmware images are built using the Arm Cortex M3 version of gvv, which is
+<p>Firmware images are built using the Arm Cortex M3 version of gcc, which is
 available <a href="https://launchpad.net/gcc-arm-embedded">here</a>.</p>
 <pre>
     wget https://launchpad.net/gcc-arm-embedded/4.6/4.6-2012-q2-update/+download/gcc-arm-none-eabi-4_6-2012q2-20120614.tar.bz2
@@ -211,7 +211,9 @@ available <a href="https://launchpad.net/gcc-arm-embedded">here</a>.</p>
     sudo cp -R gcc-arm-none-eabi-4_6-2012q2 /opt/
 </pre>
 <p>You will probably need to add the compiler to your path as follows:</p>
-<pre>export PATH=$PATH:/opt/gcc-arm-none-eabi-4_6-2012q2/bin</pre>
+<pre>
+    export PATH=$PATH:/opt/gcc-arm-none-eabi-4_6-2012q2/bin
+</pre>
 <p>To add this permanently to your path, run the following:</p>
 <pre>
     echo "export PATH=$PATH:/opt/gcc-arm-none-eabi-4_6-2012q2/bin" >> ~/.bashrc
