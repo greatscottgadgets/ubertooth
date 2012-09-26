@@ -641,3 +641,21 @@ uint32_t cmd_get_clock(struct libusb_device_handle* devh)
 	printf("Read clock = 0x%x\n", clock);
 	return clock;
 }
+
+int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SNIFFING, num, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+

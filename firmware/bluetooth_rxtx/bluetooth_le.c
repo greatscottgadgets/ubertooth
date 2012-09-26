@@ -65,3 +65,19 @@ int btle_find_access_address(u8 *idle_rxbuf)
 	}
 	return -1;
 }
+
+u8 btle_channel_index(u8 channel) {
+	u8 idx;
+	channel /= 2;
+	if (channel == 0)
+		idx = 37;
+	else if (channel < 12)
+		idx = channel - 1;
+	else if (channel == 12)
+		idx = 38;
+	else if (channel < 39)
+		idx = channel - 2;
+	else
+		idx = 39;
+	return idx;
+}

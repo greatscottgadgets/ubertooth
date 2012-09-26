@@ -237,6 +237,84 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	}
 }
 
+int stream_le_usb(struct libusb_device_handle* devh, int xfer_size,
+		uint16_t num_blocks, rx_callback cb, void* cb_args)
+{
+	int r;
+	int i;
+	int xfer_blocks;
+	int num_xfers;
+	uint8_t bank = 0;
+	uint8_t rx_buf1[BUFFER_SIZE];
+	uint8_t rx_buf2[BUFFER_SIZE];
+
+	/*
+	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
+	 * payload).  A transfer consists of one or more blocks.  Consecutive
+	 * blocks should be approximately 400 microseconds apart (timestamps about
+	 * 4000 apart in units of 100 nanoseconds).
+	 */
+
+	if (xfer_size > BUFFER_SIZE)
+		xfer_size = BUFFER_SIZE;
+	xfer_blocks = xfer_size / PKT_LEN;
+	xfer_size = xfer_blocks * PKT_LEN;
+	num_xfers = num_blocks / xfer_blocks;
+	num_blocks = num_xfers * xfer_blocks;
+
+	/*
+	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
+		num_blocks, xfer_size);
+	*/
+
+	empty_buf = &rx_buf1[0];
+	full_buf = &rx_buf2[0];
+	really_full = 0;
+	rx_xfer = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(rx_xfer, devh, DATA_IN, empty_buf,
+			xfer_size, cb_xfer, NULL, TIMEOUT);
+
+	cmd_btle_sniffing(devh, num_blocks);
+
+	r = libusb_submit_transfer(rx_xfer);
+	if (r < 0) {
+		fprintf(stderr, "rx_xfer submission: %d\n", r);
+		return -1;
+	}
+
+	while (1) {
+		while (!really_full) {
+			r = libusb_handle_events(NULL);
+			if (r < 0) {
+				fprintf(stderr, "libusb_handle_events: %d\n", r);
+				return -1;
+			}
+		}
+		/*
+		fprintf(stderr, "transfer completed\n");
+		*/
+
+		/* process each received block */
+		for (i = 0; i < xfer_blocks; i++) {
+			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
+			bank = (bank + 1) % NUM_BANKS;
+			if((clk_offset != -1) && !hopping) {
+				really_full = 0;
+				usb_retry = 0;
+				r = libusb_handle_events(NULL);
+				if (r < 0) {
+					fprintf(stderr, "libusb_handle_events: %d\n", r);
+					return -1;
+				}
+				usb_retry = 1;
+				return 1;
+			}
+		}
+		really_full = 0;
+		fflush(stderr);
+	}
+}
+
 static void unpack_symbols(uint8_t* buf, char* unpacked)
 {
 	int i, j;
@@ -665,16 +743,9 @@ void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
  */
 static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 {
-	char syms[BANK_LEN * NUM_BANKS];
-	int i, j, k;
-	uint32_t access_address = 0;
-	uint32_t clk100ns; /* in 100 nanosecond units */
-	char *channel_rssi_history;
-	int8_t signal_level;
-	int8_t noise_level;
-	int8_t snr;
-	time_t systime;
-	uint8_t byte;
+	int i;
+	struct timeval tv;
+	u32 access_address = 0;
 
 	/* unused parameter */ args = args;
 
@@ -682,59 +753,35 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	if (rx->channel > (NUM_CHANNELS-1))
 		return;
 
-	clk100ns = le32toh(rx->clk100ns); /* wire format is le32 */
-	unpack_symbols(rx->data, symbols[bank]);
+	gettimeofday(&tv, NULL);
 
-	/* Shift rssi max history and append current max */
-	channel_rssi_history = rssi_history[rx->channel];
-	for(i = 1; i < RSSI_HISTORY_LEN; i++) {
-		int8_t v = channel_rssi_history[i];
-		channel_rssi_history[i - 1] = v;
-	}
-	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+	for (i = 0; i < 4; ++i)
+		access_address |= rx->data[i] << (i * 8);
 
-	/* Signal starts in oldest bank, but may cross into second oldest bank.
-	 * Take the max or the 2 maxs. */
-	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
+	printf("systime=%u.%06u freq=%d addr=%08x\n",
+		   (unsigned)tv.tv_sec, (unsigned)tv.tv_usec,
+		   rx->channel + 2402, access_address);
 
-	/* Noise is an IIR of averages */
-	noise_level = rx->rssi_avg + RSSI_BASE;
-	snr = signal_level - noise_level;
 
-	/* Copy 2 banks for analysis */
-	for (i = 0; i < 2; i++)
-		memcpy(syms + i * BANK_LEN,
-		       symbols[(i + 1 + bank) % NUM_BANKS], BANK_LEN);
-	
-	for (i = 32; i < (BANK_LEN + 32); i++) {
-		access_address >>= 1;
-		access_address |= (syms[i] << 31);
-		if (access_address == 0x8e89bed6) { /* advertising access address */
-			systime = time(NULL);
-			printf("systime=%u freq=%d addr=%08x clk100ns=%u s=%d n=%d snr=%d\n",
-					(int)systime, rx->channel + 2402, access_address,
-					clk100ns, signal_level, noise_level, snr);
-			/* hard coded to maximum packet length (46) */
-			for (j = 0; j < 46; j++) {
-				byte = 0;
-				for (k = 0; k < 8; k++) {
-					byte |= syms[k + (j * 8) + i - 31] << k;
-				}
-				printf("%02x", byte);
-			}
-			printf("\n\n");
-		}
-	}
+	int len = (rx->data[5] & 0x1f) + 6;
+	if (len > 50) len = 50;
+
+	for (i = 4; i < len; ++i)
+		printf("%02x ", rx->data[i]);
+	printf("\n\n");
+
+	fflush(stdout);
 }
 
 void rx_btle(struct libusb_device_handle* devh)
 {
-	stream_rx_usb(devh, XFER_LEN, 0, cb_btle, NULL);
+	stream_le_usb(devh, XFER_LEN, 0, cb_btle, NULL);
 }
 
 void rx_btle_file(FILE* fp)
 {
-	stream_rx_file(fp, 0, cb_btle, NULL);
+	// stream_rx_file(fp, 0, cb_btle, NULL);
+	abort();
 }
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)

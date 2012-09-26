@@ -116,6 +116,9 @@ u8 rxbuf2[DMA_SIZE];
 u8 *active_rxbuf = &rxbuf1[0];
 u8 *idle_rxbuf = &rxbuf2[0];
 
+/* Unpacked symbol buffers (two rxbufs) */
+char unpacked[DMA_SIZE*8*2];
+
 rangetest_result rr;
 
 volatile u8 mode = MODE_IDLE;
@@ -761,7 +764,14 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_BTLE_SNIFFING:
-		hop_mode = HOP_BTLE;
+		rx_pkts += pSetup->wValue;
+		if (rx_pkts == 0)
+			rx_pkts = 0xFFFFFFFF;
+		*piLen = 0;
+
+		hop_mode = HOP_NONE;
+		requested_mode = MODE_BT_FOLLOW_LE;
+
 		cs_threshold_calc_and_set();
 		break;
 
@@ -1635,6 +1645,141 @@ void bt_follow()
 	cs_trigger_disable();
 }
 
+/* low energy connection following */
+void bt_follow_le()
+{
+	u8 *tmp = NULL;
+	u8 hold;
+	int i, j, k;
+
+	mode = MODE_BT_FOLLOW_LE;
+
+	RXLED_CLR;
+
+	queue_init();
+	dio_ssp_init();
+	dma_init();
+	dio_ssp_start();
+	cc2400_rx();
+
+	cs_trigger_enable();
+
+	hold = 0;
+
+	while (requested_mode == MODE_BT_FOLLOW_LE) {
+
+		/* If timer says time to hop, do it. TODO - set
+		 * per-channel carrier sense threshold. Set by
+		 * firmware or host. TODO - if hop happened, clear
+		 * hold. */
+		if (do_hop)
+			hop();
+
+		RXLED_CLR;
+
+		/* Wait for DMA transfer. */
+		while ((rx_tc == 0) && (rx_err == 0))
+			;
+
+		/* Keep buffer swapping in sync with DMA. */
+		if (rx_tc % 2) {
+			tmp = active_rxbuf;
+			active_rxbuf = idle_rxbuf;
+			idle_rxbuf = tmp;
+		}
+
+		if (rx_err) {
+			status |= DMA_ERROR;
+		}
+
+		/* No DMA transfer? */
+		if (!rx_tc)
+			goto rx_continue;
+
+		/* Missed a DMA trasfer? */
+		if (rx_tc > 1)
+			status |= DMA_OVERFLOW;
+
+		/* Set squelch hold if there was either a CS trigger, squelch
+		 * is disabled, or if the current rssi_max is above the same
+		 * threshold. Currently, this is redundant, but allows for
+		 * per-channel or other rssi triggers in the future. */
+		if (cs_trigger || cs_no_squelch) {
+			status |= CS_TRIGGER;
+			hold = CS_HOLD_TIME;
+			cs_trigger = 0;
+		}
+
+		if (rssi_max >= (cs_threshold_cur + 54)) {
+			status |= RSSI_TRIGGER;
+			hold = CS_HOLD_TIME;
+		}
+
+		/* Send a packet once in a while (6.25 Hz) to keep
+		 * host USB reads from timing out. */
+		if (keepalive_trigger) {
+			if (hold == 0)
+				hold = 1;
+			keepalive_trigger = 0;
+		}
+
+		/* Hold expired? Ignore data. */
+		if (hold == 0) {
+			goto rx_continue;
+		}
+		hold--;
+
+		// copy the previously unpacked symbols to the front of the buffer
+		memcpy(unpacked, unpacked + DMA_SIZE*8, DMA_SIZE*8);
+
+		// unpack the new packet to the end of the buffer
+		for (i = 0; i < DMA_SIZE; ++i) {
+			/* output one byte for each received symbol (0x00 or 0x01) */
+			for (j = 0; j < 8; ++j) {
+				unpacked[DMA_SIZE*8 + i * 8 + j] = (idle_rxbuf[i] & 0x80) >> 7;
+				idle_rxbuf[i] <<= 1;
+			}
+		}
+
+		int idx = whitening_index[btle_channel_index(channel-2402)];
+
+		u32 access_address = 0;
+		for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
+			access_address >>= 1;
+			access_address |= (unpacked[i] << 31);
+			if (access_address == 0x8e89bed6) { /* advertising access address */
+				idle_rxbuf[0] = 0xd6;
+				idle_rxbuf[1] = 0xbe;
+				idle_rxbuf[2] = 0x89;
+				idle_rxbuf[3] = 0x8e;
+				for (j = 4; j < 46; ++j) {
+					u8 byte = 0;
+					for (k = 0; k < 8; k++) {
+						int offset = k + (j * 8) + i - 31;
+						if (offset >= DMA_SIZE*8*2) break;
+						byte |= (unpacked[offset] ^ whitening[idx]) << k;
+						idx = (idx + 1) % sizeof(whitening);
+					}
+					idle_rxbuf[j] = byte;
+				}
+				enqueue(idle_rxbuf);
+				RXLED_SET;
+				--rx_pkts;
+				break;
+			}
+		}
+
+	rx_continue:
+		handle_usb();
+		rx_tc = 0;
+		rx_err = 0;
+	}
+
+	dio_ssp_stop();
+	cs_trigger_disable();
+	rx_pkts = 0; // Already 0, or requested mode changed
+}
+
 /* spectrum analysis */
 void specan()
 {
@@ -1772,6 +1917,8 @@ int main()
 			bt_stream_rx();
 		else if (requested_mode == MODE_BT_FOLLOW && mode != MODE_BT_FOLLOW)
 			bt_follow();
+		else if (requested_mode == MODE_BT_FOLLOW_LE && mode != MODE_BT_FOLLOW_LE)
+			bt_follow_le();
 		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
 			cc2400_txtest();
 		else if (requested_mode == MODE_RANGE_TEST && mode != MODE_RANGE_TEST)
