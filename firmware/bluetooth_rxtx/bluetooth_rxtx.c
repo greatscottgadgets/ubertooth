@@ -1748,17 +1748,17 @@ void bt_follow_le()
 			access_address >>= 1;
 			access_address |= (unpacked[i] << 31);
 			if (access_address == 0x8e89bed6) { /* advertising access address */
-				idle_rxbuf[0] = 0xd6;
-				idle_rxbuf[1] = 0xbe;
-				idle_rxbuf[2] = 0x89;
-				idle_rxbuf[3] = 0x8e;
-				for (j = 4; j < 46; ++j) {
+				for (j = 0; j < 46; ++j) {
 					u8 byte = 0;
 					for (k = 0; k < 8; k++) {
 						int offset = k + (j * 8) + i - 31;
 						if (offset >= DMA_SIZE*8*2) break;
-						byte |= (unpacked[offset] ^ whitening[idx]) << k;
-						idx = (idx + 1) % sizeof(whitening);
+						int bit = unpacked[offset];
+						if (j >= 4) { // unwhiten data bytes
+							bit ^= whitening[idx];
+							idx = (idx + 1) % sizeof(whitening);
+						}
+						byte |= bit << k;
 					}
 					idle_rxbuf[j] = byte;
 				}
