@@ -763,7 +763,7 @@ static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 		   rx->channel + 2402, access_address);
 
 
-	int len = (rx->data[5] & 0x1f) + 6 + 3;
+	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
 
 	for (i = 4; i < len; ++i)
