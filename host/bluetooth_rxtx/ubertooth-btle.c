@@ -30,7 +30,10 @@ static void usage(void)
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
+
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
+	printf("If get/set access address is specified, no capture occurs.\n");
 }
 
 int main(int argc, char *argv[])
@@ -40,8 +43,20 @@ int main(int argc, char *argv[])
 	struct libusb_device_handle *devh = NULL;
 	FILE* infile = NULL;
 
-	while ((opt=getopt(argc,argv,"hi:U:")) != EOF) {
+	int get_aa = 0;
+	int set_aa = 0;
+	u32 access_address;
+
+	while ((opt=getopt(argc,argv,"a::hi:U:")) != EOF) {
 		switch(opt) {
+		case 'a':
+			if (optarg == NULL) {
+				get_aa = 1;
+			} else {
+				set_aa = 1;
+				sscanf(optarg, "%08x", &access_address);
+			}
+			break;
 		case 'i':
 			infile = fopen(optarg, "r");
 			if (infile == NULL) {
@@ -58,6 +73,32 @@ int main(int argc, char *argv[])
 			usage();
 			return 1;
 		}
+	}
+
+	if (get_aa) {
+		devh = ubertooth_start(ubertooth_device);
+		if (devh == NULL) {
+			usage();
+			return 1;
+		}
+
+		access_address = cmd_get_access_address(devh);
+		printf("Access address: %08x\n", access_address);
+
+		return 0;
+	}
+
+	if (set_aa) {
+		devh = ubertooth_start(ubertooth_device);
+		if (devh == NULL) {
+			usage();
+			return 1;
+		}
+
+		cmd_set_access_address(devh, access_address);
+		printf("Access address set to: %08x\n", access_address);
+
+		return 0;
 	}
 
 	if (infile == NULL) {

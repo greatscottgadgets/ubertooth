@@ -114,5 +114,7 @@ int cmd_start_hopping(struct libusb_device_handle* devh, int clock_offset);
 int cmd_set_clock(struct libusb_device_handle* devh, u32 clkn);
 uint32_t cmd_get_clock(struct libusb_device_handle* devh);
 int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num);
+u32 cmd_get_access_address(struct libusb_device_handle* devh);
+int cmd_set_access_address(struct libusb_device_handle* devh, u32 access_address);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */

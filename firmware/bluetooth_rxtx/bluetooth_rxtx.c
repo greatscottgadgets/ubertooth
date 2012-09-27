@@ -86,6 +86,7 @@ int8_t cs_threshold_cur=CS_THRESHOLD_DEFAULT; // current CS threshold in dBm
 volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
+u32 desired_address = 0x8e89bed6;
 
 /* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
 int16_t rssi_iir[79] = {0};
@@ -774,6 +775,18 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 		cs_threshold_calc_and_set();
 		break;
+
+	case UBERTOOTH_GET_ACCESS_ADDRESS:
+		for(i=0; i < 4; i++) {
+			pbData[i] = (desired_address >> (8*i)) & 0xff;
+		}
+		*piLen = 4;
+		break;
+
+	case UBERTOOTH_SET_ACCESS_ADDRESS:
+		desired_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
+		break;
+
 
 	default:
 		return FALSE;
@@ -1747,7 +1760,7 @@ void bt_follow_le()
 		for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
 			access_address >>= 1;
 			access_address |= (unpacked[i] << 31);
-			if (access_address == 0x8e89bed6) { /* advertising access address */
+			if (access_address == desired_address) {
 				for (j = 0; j < 46; ++j) {
 					u8 byte = 0;
 					for (k = 0; k < 8; k++) {

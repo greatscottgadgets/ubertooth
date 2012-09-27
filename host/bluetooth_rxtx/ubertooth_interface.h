@@ -67,7 +67,9 @@ enum ubertooth_usb_commands {
     UBERTOOTH_START_HOPPING   = 39,
     UBERTOOTH_SET_CLOCK       = 40,
     UBERTOOTH_GET_CLOCK       = 41,
-    UBERTOOTH_BTLE_SNIFFING   = 42
+    UBERTOOTH_BTLE_SNIFFING   = 42,
+    UBERTOOTH_GET_ACCESS_ADDRESS = 43,
+    UBERTOOTH_SET_ACCESS_ADDRESS = 44,
 };
 
 enum modulations {
