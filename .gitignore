@@ -1,0 +1,28 @@
+# host and firmware
+*.o
+*.so.*
+*.pyc
+
+# firmware build output
+*.d
+*.bin
+*.elf
+*.hex
+*.lss
+*.lst
+*.map
+*.srec
+*.sym
+
+# host utilities
+ubertooth-btle
+ubertooth-dump
+ubertooth-hop
+ubertooth-lap
+ubertooth-specan
+ubertooth-uap
+ubertooth-util
+
+# r8c stuff
+r8c2l.h
+r8c2l.inc
