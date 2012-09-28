@@ -724,3 +724,30 @@ int cmd_do_something_reply(struct libusb_device_handle* devh, unsigned char *dat
 	}
 	return r;
 }
+
+int cmd_get_crc_verify(struct libusb_device_handle* devh)
+{
+	u8 verify;
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_CRC_VERIFY, 0, 0,
+			&verify, 1, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return verify;
+}
+
+int cmd_set_crc_verify(struct libusb_device_handle* devh, int verify)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_CRC_VERIFY, verify, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return 0;
+}

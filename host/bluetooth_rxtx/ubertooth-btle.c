@@ -32,6 +32,7 @@ static void usage(void)
 	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
+	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("If get/set access address is specified, no capture occurs.\n");
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int do_sniff, do_file;
 	int do_get_aa, do_set_aa;
+	int do_crc;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
@@ -50,8 +52,9 @@ int main(int argc, char *argv[])
 
 	do_sniff = do_file = 0;
 	do_get_aa = do_set_aa = 0;
+	do_crc = -1; // 0 and 1 mean set, 2 means get
 
-	while ((opt=getopt(argc,argv,"a::hsi:U:")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::hsi:U:v::")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -63,7 +66,7 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			do_sniff = 1;
-                        break;
+			break;
 		case 'i':
 			do_file = 1;
 			infile = fopen(optarg, "r");
@@ -75,6 +78,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			break;
+		case 'v':
+			if (optarg)
+				do_crc = atoi(optarg) ? 1 : 0;
+			else
+				do_crc = 2; // get
 			break;
 		case 'h':
 		default:
@@ -110,6 +119,17 @@ int main(int argc, char *argv[])
 	if (do_set_aa) {
 		cmd_set_access_address(devh, access_address);
 		printf("access address set to: %08x\n", access_address);
+	}
+
+	if (do_crc >= 0) {
+		int r;
+		if (do_crc == 2) {
+			r = cmd_get_crc_verify(devh);
+		} else {
+			cmd_set_crc_verify(devh, do_crc);
+			r = do_crc;
+		}
+		printf("CRC: %sverify\n", r ? "" : "DO NOT ");
 	}
 
 	return 0;
