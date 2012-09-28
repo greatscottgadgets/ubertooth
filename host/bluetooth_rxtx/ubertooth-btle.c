@@ -28,7 +28,8 @@ static void usage(void)
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
-	printf("\t-i filename\n");
+	printf("\t-s sniff packets\n");
+	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
 
@@ -39,25 +40,32 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	int opt;
+	int do_sniff, do_file;
+	int do_get_aa, do_set_aa;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
-	FILE* infile = NULL;
 
-	int get_aa = 0;
-	int set_aa = 0;
+	FILE* infile = NULL;
 	u32 access_address;
 
-	while ((opt=getopt(argc,argv,"a::hi:U:")) != EOF) {
+	do_sniff = do_file = 0;
+	do_get_aa = do_set_aa = 0;
+
+	while ((opt=getopt(argc,argv,"a::hsi:U:")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
-				get_aa = 1;
+				do_get_aa = 1;
 			} else {
-				set_aa = 1;
+				do_set_aa = 1;
 				sscanf(optarg, "%08x", &access_address);
 			}
 			break;
+		case 's':
+			do_sniff = 1;
+                        break;
 		case 'i':
+			do_file = 1;
 			infile = fopen(optarg, "r");
 			if (infile == NULL) {
 				printf("Could not open file %s\n", optarg);
@@ -75,44 +83,33 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (get_aa) {
-		devh = ubertooth_start(ubertooth_device);
-		if (devh == NULL) {
-			usage();
-			return 1;
-		}
-
-		access_address = cmd_get_access_address(devh);
-		printf("Access address: %08x\n", access_address);
-
-		return 0;
+	if (do_file) {
+		rx_btle_file(infile);
+		fclose(infile);
+		return 0; // do file is the only command that doesn't open ubertooth
 	}
 
-	if (set_aa) {
-		devh = ubertooth_start(ubertooth_device);
-		if (devh == NULL) {
-			usage();
-			return 1;
-		}
-
-		cmd_set_access_address(devh, access_address);
-		printf("Access address set to: %08x\n", access_address);
-
-		return 0;
+	devh = ubertooth_start(ubertooth_device);
+	if (devh == NULL) {
+		usage();
+		return 1;
 	}
 
-	if (infile == NULL) {
-		devh = ubertooth_start(ubertooth_device);
-		if (devh == NULL) {
-			usage();
-			return 1;
-		}
+	if (do_sniff) {
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 		rx_btle(devh);
 		ubertooth_stop(devh);
-	} else {
-		rx_btle_file(infile);
-		fclose(infile);
+	}
+
+	if (do_get_aa) {
+		access_address = cmd_get_access_address(devh);
+		printf("Access address: %08x\n", access_address);
+		return 0;
+	}
+
+	if (do_set_aa) {
+		cmd_set_access_address(devh, access_address);
+		printf("access address set to: %08x\n", access_address);
 	}
 
 	return 0;
