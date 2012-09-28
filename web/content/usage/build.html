@@ -64,18 +64,14 @@ is nessecary to compile Kismet from source:</p>
     sudo apt-get install libpcap0.8-dev libcap-dev build-essential pkg-config libnl-dev libncurses-dev libpcre3-dev libpcap-dev libcap-dev
     wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
     tar xf kismet-2011-03-R2.tar.gz
+    ln -s ubertooth-r534/host/kismet/plugin-ubertooth kismet-2011-03-R2/
     cd kismet-2011-03-R2
     ./configure
-    make
+    make && make plugins
     sudo make suidinstall
+    sudo make plugins-install
 </pre>
 
-<p>Next the Ubertooth plugin can be built from the downloaded source code</p>
-<pre>
-    cd ubertooth-r534/host/kismet/plugin-ubertooth
-    KIS_SRC_DIR=<i>/path/to/kismet/src</i> make
-    sudo make install
-</pre>
 <p>This completes the install of the Ubertooth tools, the next step is to
 look at the <a href="../start">getting started</a> guide.  It may also be
 useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
@@ -123,18 +119,14 @@ to compile Kismet from source:</p>
     su -c "yum install libpcap-devel libcap-devel libnl-devel libstdc++-devel gcc-c++ ncurses-devel"
     wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
     tar xf kismet-2011-03-R2.tar.gz
+    ln -s ubertooth-r534/host/kismet/plugin-ubertooth kismet-2011-03-R2/
     cd kismet-2011-03-R2
     ./configure
-    make
+    make && make plugins
     su -c "make suidinstall"
+    su -c "make plugins-install"
 </pre>
 
-<p>Next the Ubertooth plugin can be built from the downloaded source code</p>
-<pre>
-    cd ubertooth-r534/host/kismet/plugin-ubertooth
-    KIS_SRC_DIR=<i>/path/to/kismet/src</i> make
-    su -c "KIS_SRC_DIR=<i>/path/to/kismet/src</i> make install"
-</pre>
 <p>This completes the install of the Ubertooth tools, the next step is to
 look at the <a href="../start">getting started</a> guide.  It may also be
 useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
