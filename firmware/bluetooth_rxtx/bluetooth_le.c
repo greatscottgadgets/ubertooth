@@ -81,3 +81,34 @@ u8 btle_channel_index(u8 channel) {
 		idx = 39;
 	return idx;
 }
+
+// calculate CRC
+//	note 1: crc_init's bits should be in reverse order
+//	note 2: output bytes are in reverse order compared to wire
+//
+//		example output:
+//			0x6ff46e
+//
+//		bytes in packet will be:
+//		  { 0x6e, 0xf4, 0x6f }
+//
+u32 btle_calc_crc(u32 crc_init, u8 *data, int len) {
+	u32 state = crc_init;
+	u32 lfsr_mask = 0x5a6000; // 010110100110000000000000
+	int i, j;
+
+	for (i = 0; i < len; ++i) {
+		u8 cur = data[i];
+		for (j = 0; j < 8; ++j) {
+			int next_bit = (state ^ cur) & 1;
+			cur >>= 1;
+			state >>= 1;
+			if (next_bit) {
+				state |= 1 << 23;
+				state ^= lfsr_mask;
+			}
+		}
+	}
+
+	return state;
+}

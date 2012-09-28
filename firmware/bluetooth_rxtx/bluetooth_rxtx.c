@@ -87,6 +87,8 @@ volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
 u32 desired_address = 0x8e89bed6;
+u32 crc_init = 0x555555;					// advertising channel CRCInit
+u32 crc_init_reversed = 0xAAAAAA;
 
 /* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
 int16_t rssi_iir[79] = {0};
@@ -1786,6 +1788,15 @@ void bt_follow_le()
 					}
 					idle_rxbuf[j] = byte;
 				}
+
+				int len		 = (idle_rxbuf[5] & 0x3f) + 2;
+				u32 calc_crc = btle_calc_crc(crc_init_reversed, idle_rxbuf + 4, len);
+				u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
+							 | (idle_rxbuf[4+len+1] << 8)
+							 |  idle_rxbuf[4+len+0];
+				if (calc_crc != wire_crc) // skip packets with a bad CRC
+					break;
+
 				enqueue(idle_rxbuf);
 				RXLED_SET;
 				--rx_pkts;
