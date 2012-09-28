@@ -787,6 +787,17 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		desired_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
 		break;
 
+	case UBERTOOTH_DO_SOMETHING:
+		// do something! just don't commit anything here
+		break;
+
+	case UBERTOOTH_DO_SOMETHING_REPLY:
+		// after you do something, tell me what you did!
+		// don't commit here please
+		pbData[0] = 0x13;
+		pbData[1] = 0x37;
+		*piLen = 2;
+		break;
 
 	default:
 		return FALSE;

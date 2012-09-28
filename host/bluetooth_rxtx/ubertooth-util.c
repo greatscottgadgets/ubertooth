@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 	int do_range_test, do_repeater, do_firmware, do_board_id;
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
+	int do_something;
 	char ubertooth_device = -1;
 
 	/* set command states to negative as a starter
@@ -79,8 +80,9 @@ int main(int argc, char *argv[])
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
 	do_range_result= do_all_leds= do_identify= -1;
 	do_set_squelch= -1, do_get_squelch= -1; squelch_level= 0;
+	do_something= 0;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9")) != EOF) {
 		switch(opt) {
 		case 'U': 
 			ubertooth_device = atoi(optarg);
@@ -168,6 +170,9 @@ int main(int argc, char *argv[])
 			else {
 				do_get_squelch = 1;
 			}
+			break;
+		case '9':
+			do_something= 1;
 			break;
 		case 'h':
 		default:
@@ -297,6 +302,13 @@ int main(int argc, char *argv[])
 	if(do_get_squelch > 0) {
 		r = cmd_get_squelch(devh);
 		printf("Squelch set to %d\n", (int8_t)r);
+	}
+	if(do_something) {
+		unsigned char buf[4] = { 0x55, 0x55, 0x55, 0x55 };
+		cmd_do_something(devh, NULL, 0);
+		cmd_do_something_reply(devh, buf, 4);
+		printf("%02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3]);
+		return 0;
 	}
 
 	return r;

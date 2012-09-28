@@ -116,5 +116,7 @@ uint32_t cmd_get_clock(struct libusb_device_handle* devh);
 int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num);
 u32 cmd_get_access_address(struct libusb_device_handle* devh);
 int cmd_set_access_address(struct libusb_device_handle* devh, u32 access_address);
+int cmd_do_something(struct libusb_device_handle *devh, unsigned char *data, int len);
+int cmd_do_something_reply(struct libusb_device_handle* devh, unsigned char *data, int len);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */

@@ -694,3 +694,33 @@ int cmd_set_access_address(struct libusb_device_handle* devh, u32 access_address
 	}
 	return 0;
 }
+
+int cmd_do_something(struct libusb_device_handle *devh, unsigned char *data, int len)
+{
+	int r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_DO_SOMETHING, 0, 0,
+				data, len, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
+int cmd_do_something_reply(struct libusb_device_handle* devh, unsigned char *data, int len)
+{
+	int r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_DO_SOMETHING_REPLY, 0, 0,
+				data, len, 3000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return r;
+}

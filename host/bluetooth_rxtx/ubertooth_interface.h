@@ -70,6 +70,8 @@ enum ubertooth_usb_commands {
     UBERTOOTH_BTLE_SNIFFING   = 42,
     UBERTOOTH_GET_ACCESS_ADDRESS = 43,
     UBERTOOTH_SET_ACCESS_ADDRESS = 44,
+    UBERTOOTH_DO_SOMETHING    = 45,
+    UBERTOOTH_DO_SOMETHING_REPLY = 46,
 };
 
 enum modulations {
