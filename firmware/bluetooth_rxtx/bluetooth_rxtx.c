@@ -1833,6 +1833,24 @@ void bt_follow_le()
 						break;
 				}
 
+				// connect packet
+				if (idle_rxbuf[4] == 0x05) {
+					desired_address = 0;
+					for (j = 0; j < 4; ++j)
+						desired_address |= idle_rxbuf[18+j] << (j*8);
+
+#define CRC_INIT (2+4+6+6+4)
+					crc_init = (idle_rxbuf[CRC_INIT+2] << 16)
+							 | (idle_rxbuf[CRC_INIT+1] << 8)
+							 |  idle_rxbuf[CRC_INIT+0];
+					crc_init_reversed = 0;
+					for (j = 0; j < 24; ++j)
+						crc_init_reversed |= ((crc_init >> j) & 1) << (23 - j);
+
+					channel = 2404; // FIXME jump to the right channel!
+					cs_threshold_calc_and_set();
+				}
+
 				enqueue(idle_rxbuf);
 				RXLED_SET;
 				--rx_pkts;
