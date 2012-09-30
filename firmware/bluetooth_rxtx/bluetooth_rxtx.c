@@ -344,7 +344,6 @@ static usb_pkt_rx *dequeue()
 		return NULL;
 	}
 
-	USBHwEPWrite(BULK_IN_EP, (u8 *)&fifo[h], sizeof(usb_pkt_rx));
 	++head;
 
 	return &fifo[h];
