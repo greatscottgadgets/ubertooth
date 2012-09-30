@@ -333,7 +333,7 @@ static int enqueue(u8 *buf)
 	return 1;
 }
 
-static int dequeue()
+static usb_pkt_rx *dequeue()
 {
 	u8 h = head & 0x7F;
 	u8 t = tail & 0x7F;
@@ -341,13 +341,24 @@ static int dequeue()
 	/* fail if queue is empty */
 	if (h == t) {
 		USRLED_CLR;
-		return 0;
+		return NULL;
 	}
 
 	USBHwEPWrite(BULK_IN_EP, (u8 *)&fifo[h], sizeof(usb_pkt_rx));
 	++head;
 
-	return 1;
+	return &fifo[h];
+}
+
+static int dequeue_send()
+{
+	usb_pkt_rx *pkt = dequeue(&pkt);
+	if (pkt != NULL) {
+		USBHwEPWrite(BULK_IN_EP, (u8 *)pkt, sizeof(usb_pkt_rx));
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 
@@ -455,7 +466,7 @@ static u8 abVendorReqData[258];
 static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
 {
 	if (!(bEPStatus & EP_STATUS_DATA))
-		dequeue();
+		dequeue_send();
 }
 
 static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
@@ -472,6 +483,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	u32 clock;
 	int clock_offset;
 	u8 length; // string length
+	usb_pkt_rx *p = NULL;
 
 	switch (pSetup->bRequest) {
 
@@ -809,6 +821,17 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 	case UBERTOOTH_SET_CRC_VERIFY:
 		crc_verify = pSetup->wValue ? 1 : 0;
+		break;
+
+	case UBERTOOTH_POLL:
+		p = dequeue();
+		if (p != NULL) {
+			memcpy(pbData, (void *)p, sizeof(usb_pkt_rx));
+			*piLen = sizeof(usb_pkt_rx);
+		} else {
+			pbData[0] = 0;
+			*piLen = 1;
+		}
 		break;
 
 	default:
@@ -1396,10 +1419,10 @@ static void handle_usb(void)
 	/* write queued packets to USB if possible */
 	epstat = USBHwEPGetStatus(BULK_IN_EP);
 	if (!(epstat & EPSTAT_B1FULL)) {
-		dequeue();
+		dequeue_send();
 	}
 	if (!(epstat & EPSTAT_B2FULL)) {
-		dequeue();
+		dequeue_send();
 	}
 
 	/* polled "interrupt" */

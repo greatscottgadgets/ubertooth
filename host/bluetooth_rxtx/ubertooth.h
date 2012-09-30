@@ -58,5 +58,6 @@ void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn);
 void rx_dump(struct libusb_device_handle* devh, int full);
 void rx_btle(struct libusb_device_handle* devh);
 void rx_btle_file(FILE* fp);
+void cb_btle(void* args, usb_pkt_rx *rx, int bank);
 
 #endif /* __UBERTOOTH_H__ */

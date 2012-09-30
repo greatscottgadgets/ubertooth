@@ -22,6 +22,7 @@
 #include "ubertooth.h"
 #include <bluetooth_packet.h>
 #include <getopt.h>
+#include <unistd.h>
 
 static void usage(void)
 {
@@ -105,8 +106,21 @@ int main(int argc, char *argv[])
 	}
 
 	if (do_sniff) {
+		usb_pkt_rx pkt;
+
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
-		rx_btle(devh);
+		cmd_btle_sniffing(devh, 2);
+
+		while (1) {
+			int r = cmd_poll(devh, &pkt);
+			if (r < 0) {
+				printf("USB error\n");
+				break;
+			}
+			if (r == sizeof(usb_pkt_rx))
+				cb_btle(NULL, &pkt, 0);
+			usleep(500);
+		}
 		ubertooth_stop(devh);
 	}
 

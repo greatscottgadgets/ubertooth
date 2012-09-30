@@ -741,7 +741,7 @@ void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
  * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept
  * that only captures advertising packets.
  */
-static void cb_btle(void* args, usb_pkt_rx *rx, int bank)
+void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 {
 	int i;
 	struct timeval tv;

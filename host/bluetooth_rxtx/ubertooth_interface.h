@@ -74,6 +74,7 @@ enum ubertooth_usb_commands {
     UBERTOOTH_DO_SOMETHING_REPLY = 46,
     UBERTOOTH_GET_CRC_VERIFY  = 47,
     UBERTOOTH_SET_CRC_VERIFY  = 48,
+    UBERTOOTH_POLL            = 49,
 };
 
 enum modulations {
