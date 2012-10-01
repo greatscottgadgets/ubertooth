@@ -90,6 +90,9 @@ u32 desired_address = 0x8e89bed6;
 u32 crc_init = 0x555555;					// advertising channel CRCInit
 u32 crc_init_reversed = 0xAAAAAA;
 int crc_verify = 1;							// reject packets with bad CRC
+int le_connected = 0;                       // true if LE is connected
+u8 le_hop_amount = 0;                       // amount to hop in LE
+u8 le_channel_idx = 0;                      // current channel index in LE
 
 /* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
 int16_t rssi_iir[79] = {0};
@@ -1837,8 +1840,17 @@ void bt_follow_le()
 				RXLED_SET;
 				--rx_pkts;
 
+				if (le_connected) {
+					// hop to the next channel
+					le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
+					channel = btle_channel_index_to_phys(le_channel_idx);
+					cs_threshold_calc_and_set();
+				}
+
 				// connect packet
-				if (idle_rxbuf[4] == 0x05) {
+				if (!le_connected && idle_rxbuf[4] == 0x05) {
+					le_connected = 1;
+
 					desired_address = 0;
 					for (j = 0; j < 4; ++j)
 						desired_address |= idle_rxbuf[18+j] << (j*8);
@@ -1851,7 +1863,12 @@ void bt_follow_le()
 					for (j = 0; j < 24; ++j)
 						crc_init_reversed |= ((crc_init >> j) & 1) << (23 - j);
 
-					channel = 2404; // FIXME jump to the right channel!
+#define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
+					le_hop_amount = idle_rxbuf[HOP] & 0x1f;
+					le_channel_idx = le_hop_amount;
+
+					// hop to the next channel
+					channel = btle_channel_index_to_phys(le_channel_idx);
 					cs_threshold_calc_and_set();
 				}
 				break;

@@ -54,4 +54,5 @@ u8 hop_increment;
 u16 btle_next_hop();
 int btle_find_access_address(u8 *idle_rxbuf);
 u8 btle_channel_index(u8 channel);
+int btle_channel_index_to_phys(u8 idx);
 u32 btle_calc_crc(u32 crc_init, u8 *data, int len);

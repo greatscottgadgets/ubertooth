@@ -82,6 +82,21 @@ u8 btle_channel_index(u8 channel) {
 	return idx;
 }
 
+int btle_channel_index_to_phys(u8 idx) {
+	int phys;
+	if (idx < 11)
+		phys = 2404 + 2 * idx;
+	else if (idx < 37)
+		phys = 2428 + 2 * (idx - 11);
+	else if (idx == 37)
+		phys = 2402;
+	else if (idx == 38)
+		phys = 2426;
+	else
+		phys = 2480;
+	return phys;
+}
+
 // calculate CRC
 //	note 1: crc_init's bits should be in reverse order
 //	note 2: output bytes are in reverse order compared to wire
