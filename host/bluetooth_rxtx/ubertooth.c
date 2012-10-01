@@ -345,7 +345,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	piconet* pn = (piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
-	access_code r;
+	access_code ac;
 	packet pkt;
 	char *channel_rssi_history;
 	int8_t signal_level;
@@ -397,14 +397,16 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 
 	/* No piconet given, sniff for any LAP */
 	if (pn == NULL) {
-		r = sniff_ac(syms, BANK_LEN);
+		if(!sniff_ac(syms, BANK_LEN, &ac))
+			return;
 	}
 	/* Find packets for specified LAP.  */
 	else {
-		r = find_ac(syms, BANK_LEN, pn->LAP);
+		if(!find_ac(syms, BANK_LEN, pn->LAP, &ac))
+			return;
 	}
 
-	if ((r.offset > -1) && (r.error_count <= max_ac_errors)) {
+	if ((ac.offset > -1) && (ac.error_count <= max_ac_errors)) {
 		/* If dumpfile is specified, write out all banks to
 		 * the file. There could be duplicate data in the dump
 		 * if more than one LAP is found within the span of
@@ -426,7 +428,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 
 		/* Native (Ubertooth) clock with period 312.5 uS. */
 		clk0 = (rx->clkn_high << 20)
-			+ (le32toh(rx->clk100ns) + r.offset * 10) / 3125;
+			+ (le32toh(rx->clk100ns) + ac.offset * 10) / 3125;
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
@@ -437,11 +439,11 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			systime = time(NULL);
 
 		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
-		       (int)systime, rx->channel, r.LAP, r.error_count,
+		       (int)systime, rx->channel, ac.LAP, ac.error_count,
 		       rx->clk100ns, clk1, signal_level, noise_level, snr);
 
 		/* Found a packet with the requested LAP */
-		if (pn != NULL && r.LAP == pn->LAP) {
+		if (pn != NULL && ac.LAP == pn->LAP) {
 
 			/* Determining UAP requires more symbols. Copy
 			 * remaining banks. */
@@ -450,9 +452,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 				       symbols[(i + 1 + bank) % NUM_BANKS],
 				       BANK_LEN);
 			
-			init_packet(&pkt, &syms[r.offset],
-				    BANK_LEN * NUM_BANKS - r.offset);
-			pkt.LAP = r.LAP;
+			init_packet(&pkt, &syms[ac.offset],
+				    BANK_LEN * NUM_BANKS - ac.offset);
+			pkt.LAP = ac.LAP;
 			pkt.clkn = clk1;
 			pkt.channel = rx->channel;
 			if (header_present(&pkt)) {
@@ -491,7 +493,7 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 {
 	char syms[BANK_LEN * NUM_BANKS];
 	int i, j, k;
-	access_code r;
+	access_code ac;
 	uint8_t channel;
 	uint32_t time; /* in 100 nanosecond units */
 	uint8_t clkn_high;
@@ -512,21 +514,19 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 		for (j = 0; j < BANK_LEN; j++)
 			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-	r = find_ac(syms, BANK_LEN, pn->LAP);
-
-	if (r.offset > -1) {
+	if (find_ac(syms, BANK_LEN, pn->LAP, &ac)) {
 		for (i = 2; i < NUM_BANKS; i++)
 			for (j = 0; j < BANK_LEN; j++)
 				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
 
-		init_packet(&pkt, &syms[r.offset], BANK_LEN * NUM_BANKS - r.offset);
-		pkt.LAP = r.LAP;
-		pkt.clkn = (clkn_high << 19) | ((time + r.offset * 10) / 6250);
+		init_packet(&pkt, &syms[ac.offset], BANK_LEN * NUM_BANKS - ac.offset);
+		pkt.LAP = ac.LAP;
+		pkt.clkn = (clkn_high << 19) | ((time + ac.offset * 10) / 6250);
 		pkt.channel = channel;
 
 		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
 			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-			       channel, pkt.LAP, time + r.offset * 10, pkt.clkn);
+			       channel, pkt.LAP, time + ac.offset * 10, pkt.clkn);
 
 			/* Decode packet - fixing clock drift in the process */
 			decode(&pkt, pn);
@@ -580,7 +580,7 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 	piconet* pn = (piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
-	access_code r;
+	access_code ac;
 	packet pkt;
 	char *channel_rssi_history;
 	int8_t signal_level;
@@ -621,10 +621,8 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		       symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
 
-	/* Find packets for specified LAP.  */
-	r = find_ac(syms, BANK_LEN, pn->LAP);
-
-	if ((r.offset > -1) && (r.error_count <= max_ac_errors)) {
+	if ((find_ac(syms, BANK_LEN, pn->LAP, &ac))
+		&& (ac.error_count <= max_ac_errors)) {
 		/* When reading from file, caller will read
 		 * systime before calling this routine, so do
 		 * not overwrite. Otherwise, get current time. */
@@ -657,7 +655,7 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		clk1 = clkn >> 1;
 
 		printf("systime=%u ch=%2d LAP=%06x err=%u clk1=0x%07x s=%d n=%d snr=%d\n",
-		       (int)systime, rx->channel, r.LAP, r.error_count, clk1,
+		       (int)systime, rx->channel, ac.LAP, ac.error_count, clk1,
 			   signal_level, noise_level, snr);
 
 		/* Determining UAP requires more symbols. Copy
@@ -667,9 +665,9 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		//	       symbols[(i + 1 + bank) % NUM_BANKS],
 		//	       BANK_LEN);
 		
-		init_packet(&pkt, &syms[r.offset],
-			    BANK_LEN * NUM_BANKS - r.offset);
-		pkt.LAP = r.LAP;
+		init_packet(&pkt, &syms[ac.offset],
+			    BANK_LEN * NUM_BANKS - ac.offset);
+		pkt.LAP = ac.LAP;
 		pkt.UAP = pn->UAP;
 		pkt.whitened = 1;
 		pkt.clkn = clkn;
