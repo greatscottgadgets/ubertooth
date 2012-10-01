@@ -1832,6 +1832,11 @@ void bt_follow_le()
 						break;
 				}
 
+				// send to PC
+				enqueue(idle_rxbuf);
+				RXLED_SET;
+				--rx_pkts;
+
 				// connect packet
 				if (idle_rxbuf[4] == 0x05) {
 					desired_address = 0;
@@ -1849,10 +1854,6 @@ void bt_follow_le()
 					channel = 2404; // FIXME jump to the right channel!
 					cs_threshold_calc_and_set();
 				}
-
-				enqueue(idle_rxbuf);
-				RXLED_SET;
-				--rx_pkts;
 				break;
 			}
 		}
