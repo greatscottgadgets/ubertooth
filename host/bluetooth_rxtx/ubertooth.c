@@ -658,13 +658,6 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		       (int)systime, rx->channel, ac.LAP, ac.error_count, clk1,
 			   signal_level, noise_level, snr);
 
-		/* Determining UAP requires more symbols. Copy
-		 * remaining banks. */
-		//for (i = 2; i < NUM_BANKS; i++)
-		//	memcpy(syms + i * BANK_LEN,
-		//	       symbols[(i + 1 + bank) % NUM_BANKS],
-		//	       BANK_LEN);
-		
 		init_packet(&pkt, &syms[ac.offset],
 			    BANK_LEN * NUM_BANKS - ac.offset);
 		pkt.LAP = ac.LAP;
@@ -714,12 +707,12 @@ void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, u
 
 	printf("Setting CLKN = 0x%x\n", clock);
 	cmd_set_clock(devh, clock);
-	/* delay value shlould be varied based on the delay in reading the clock */
-	cmd_start_hopping(devh, delay);
 	init_hop_reversal(0, pn);
 	pn->have_clk27 = 1;
-
 	hopping = 1;
+
+	/* delay value shlould be varied based on the delay in reading the clock */
+	cmd_start_hopping(devh, delay);
 	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
 }
 
@@ -746,6 +739,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	u32 access_address = 0;
 
 	/* unused parameter */ args = args;
+	/* unused parameter */ bank = bank;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
