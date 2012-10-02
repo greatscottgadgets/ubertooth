@@ -46,6 +46,7 @@ uint32_t systime;
 int clk_offset = -1;
 u8 hopping = 0;
 u8 usb_retry = 1;
+struct timeval tv;
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -735,7 +736,6 @@ void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
 void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 {
 	int i;
-	struct timeval tv;
 	u32 access_address = 0;
 
 	/* unused parameter */ args = args;
@@ -745,7 +745,27 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	if (rx->channel > (NUM_CHANNELS-1))
 		return;
 
-	gettimeofday(&tv, NULL);
+	if (infile == NULL)
+		gettimeofday(&tv, NULL);
+
+	/* If dumpfile is specified, write out all banks to
+	 * the file. There could be duplicate data in the dump
+	 * if more than one LAP is found within the span of
+	 * NUM_BANKS. If experiment mode is selected, extra
+	 * info is written out. For now, it just prepends
+	 * capture time. */
+	if (dumpfile) {
+		time_t tv_sec = htobe32(tv.tv_sec);
+		suseconds_t tv_usec = htobe32(tv.tv_usec);
+		if (fwrite(&tv_sec,  sizeof(tv_sec), 1, dumpfile) != 1)
+			{;}
+		if (fwrite(&tv_usec, sizeof(tv_usec), 1, dumpfile) != 1)
+			{;}
+		for(i = 0; i < MAX_BTLE_PDU; i++) {
+			if (fwrite(&rx->data[i],  sizeof(uint8_t), 1, dumpfile) != 1)
+				{;}
+		}
+	}
 
 	for (i = 0; i < 4; ++i)
 		access_address |= rx->data[i] << (i * 8);
@@ -772,8 +792,22 @@ void rx_btle(struct libusb_device_handle* devh)
 
 void rx_btle_file(FILE* fp)
 {
-	// stream_rx_file(fp, 0, cb_btle, NULL);
-	abort();
+	time_t tv_sec;
+	suseconds_t tv_usec;
+	uint8_t buf[MAX_BTLE_PDU];
+
+	while(1) {
+		if (fread(&tv_sec, sizeof(tv_sec), 1, fp) != 1)
+			break;
+		if (fread(&tv_usec, sizeof(tv_usec), 1, fp) != 1)
+			break;
+		tv.tv_sec = (time_t)be32toh(tv_sec);
+		tv.tv_usec = (suseconds_t)be32toh(tv_usec);
+
+		if (fread(buf, sizeof(buf[0]), MAX_BTLE_PDU, fp) != MAX_BTLE_PDU)
+			break;
+		cb_btle(NULL, (usb_pkt_rx *)buf, 0);
+	}
 }
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)

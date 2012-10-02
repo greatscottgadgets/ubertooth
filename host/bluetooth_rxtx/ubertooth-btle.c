@@ -24,6 +24,9 @@
 #include <getopt.h>
 #include <unistd.h>
 
+extern FILE *infile;
+extern FILE *dumpfile;
+
 static void usage(void)
 {
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
@@ -32,6 +35,7 @@ static void usage(void)
 	printf("\t-s sniff packets\n");
 	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-d filename\n");
 	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 
@@ -55,7 +59,7 @@ int main(int argc, char *argv[])
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 
-	while ((opt=getopt(argc,argv,"a::hsi:U:v::")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::d:hsi:U:v::")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -79,6 +83,13 @@ int main(int argc, char *argv[])
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			break;
+		case 'd':
+			dumpfile = fopen(optarg, "w");
+			if (dumpfile == NULL) {
+				perror(optarg);
+				return 1;
+			}
 			break;
 		case 'v':
 			if (optarg)
