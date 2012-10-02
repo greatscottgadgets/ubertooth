@@ -1715,6 +1715,9 @@ void bt_follow_le()
 
 	mode = MODE_BT_FOLLOW_LE;
 
+	// enable USB interrupts
+	ISER0 |= ISER0_ISE_USB;
+
 	RXLED_CLR;
 
 	queue_init();
@@ -1876,7 +1879,6 @@ void bt_follow_le()
 		}
 
 	rx_continue:
-		handle_usb();
 		rx_tc = 0;
 		rx_err = 0;
 	}
