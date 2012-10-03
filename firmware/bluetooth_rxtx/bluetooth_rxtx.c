@@ -94,6 +94,9 @@ int le_connected = 0;                       // true if LE is connected
 u8 le_hop_amount = 0;                       // amount to hop in LE
 u8 le_channel_idx = 0;                      // current channel index in LE
 
+typedef void (*data_cb_t)(char *);
+data_cb_t data_cb = NULL;
+
 /* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
 int16_t rssi_iir[79] = {0};
 #define RSSI_IIR_ALPHA 3       // 3/256 = .012
@@ -1715,14 +1718,14 @@ void bt_follow()
 	cs_trigger_disable();
 }
 
-/* low energy connection following */
-void bt_follow_le()
+/* generic le mode */
+void bt_generic_le(u8 active_mode)
 {
 	u8 *tmp = NULL;
 	u8 hold;
-	int i, j, k;
+	int i, j;
 
-	mode = MODE_BT_FOLLOW_LE;
+	mode = active_mode;
 
 	// enable USB interrupts
 	ISER0 |= ISER0_ISE_USB;
@@ -1739,12 +1742,8 @@ void bt_follow_le()
 
 	hold = 0;
 
-	while (requested_mode == MODE_BT_FOLLOW_LE) {
+	while (requested_mode == active_mode) {
 
-		/* If timer says time to hop, do it. TODO - set
-		 * per-channel carrier sense threshold. Set by
-		 * firmware or host. TODO - if hop happened, clear
-		 * hold. */
 		if (do_hop)
 			hop();
 
@@ -1814,78 +1813,7 @@ void bt_follow_le()
 			}
 		}
 
-		int idx = whitening_index[btle_channel_index(channel-2402)];
-
-		u32 access_address = 0;
-		for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
-			access_address >>= 1;
-			access_address |= (unpacked[i] << 31);
-			if (access_address == desired_address) {
-				for (j = 0; j < 46; ++j) {
-					u8 byte = 0;
-					for (k = 0; k < 8; k++) {
-						int offset = k + (j * 8) + i - 31;
-						if (offset >= DMA_SIZE*8*2) break;
-						int bit = unpacked[offset];
-						if (j >= 4) { // unwhiten data bytes
-							bit ^= whitening[idx];
-							idx = (idx + 1) % sizeof(whitening);
-						}
-						byte |= bit << k;
-					}
-					idle_rxbuf[j] = byte;
-				}
-
-				// verify CRC
-				if (crc_verify) {
-					int len		 = (idle_rxbuf[5] & 0x3f) + 2;
-					u32 calc_crc = btle_calc_crc(crc_init_reversed, idle_rxbuf + 4, len);
-					u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
-								 | (idle_rxbuf[4+len+1] << 8)
-								 |  idle_rxbuf[4+len+0];
-					if (calc_crc != wire_crc) // skip packets with a bad CRC
-						break;
-				}
-
-				// send to PC
-				enqueue(idle_rxbuf);
-				RXLED_SET;
-				--rx_pkts;
-
-				if (le_connected) {
-					// hop to the next channel
-					le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
-					channel = btle_channel_index_to_phys(le_channel_idx);
-					cs_threshold_calc_and_set();
-				}
-
-				// connect packet
-				if (!le_connected && idle_rxbuf[4] == 0x05) {
-					le_connected = 1;
-
-					desired_address = 0;
-					for (j = 0; j < 4; ++j)
-						desired_address |= idle_rxbuf[18+j] << (j*8);
-
-#define CRC_INIT (2+4+6+6+4)
-					crc_init = (idle_rxbuf[CRC_INIT+2] << 16)
-							 | (idle_rxbuf[CRC_INIT+1] << 8)
-							 |  idle_rxbuf[CRC_INIT+0];
-					crc_init_reversed = 0;
-					for (j = 0; j < 24; ++j)
-						crc_init_reversed |= ((crc_init >> j) & 1) << (23 - j);
-
-#define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
-					le_hop_amount = idle_rxbuf[HOP] & 0x1f;
-					le_channel_idx = le_hop_amount;
-
-					// hop to the next channel
-					channel = btle_channel_index_to_phys(le_channel_idx);
-					cs_threshold_calc_and_set();
-				}
-				break;
-			}
-		}
+		data_cb(unpacked);
 
 	rx_continue:
 		rx_tc = 0;
@@ -1894,134 +1822,22 @@ void bt_follow_le()
 
 	dio_ssp_stop();
 	cs_trigger_disable();
-	rx_pkts = 0; // Already 0, or requested mode changed
 }
 
-/* low energy promiscuous mode */
-void bt_promisc_le()
-{
-	u8 *tmp = NULL;
-	u8 hold;
+/* low energy connection following */
+void cb_follow_le() {
 	int i, j, k;
+	int idx = whitening_index[btle_channel_index(channel-2402)];
 
-	mode = MODE_BT_PROMISC_LE;
-
-	// enable USB interrupts
-	ISER0 |= ISER0_ISE_USB;
-
-	RXLED_CLR;
-
-	queue_init();
-	dio_ssp_init();
-	dma_init();
-	dio_ssp_start();
-	cc2400_rx();
-
-	cs_trigger_enable();
-
-	hold = 0;
-
-	while (requested_mode == MODE_BT_PROMISC_LE) {
-
-		if (do_hop)
-			hop();
-
-		RXLED_CLR;
-
-		/* Wait for DMA transfer. */
-		while ((rx_tc == 0) && (rx_err == 0))
-			;
-
-		/* Keep buffer swapping in sync with DMA. */
-		if (rx_tc % 2) {
-			tmp = active_rxbuf;
-			active_rxbuf = idle_rxbuf;
-			idle_rxbuf = tmp;
-		}
-
-		if (rx_err) {
-			status |= DMA_ERROR;
-		}
-
-		/* No DMA transfer? */
-		if (!rx_tc)
-			goto rx_continue;
-
-		/* Missed a DMA trasfer? */
-		if (rx_tc > 1)
-			status |= DMA_OVERFLOW;
-
-		/* Set squelch hold if there was either a CS trigger, squelch
-		 * is disabled, or if the current rssi_max is above the same
-		 * threshold. Currently, this is redundant, but allows for
-		 * per-channel or other rssi triggers in the future. */
-		if (cs_trigger || cs_no_squelch) {
-			status |= CS_TRIGGER;
-			hold = CS_HOLD_TIME;
-			cs_trigger = 0;
-		}
-
-		if (rssi_max >= (cs_threshold_cur + 54)) {
-			status |= RSSI_TRIGGER;
-			hold = CS_HOLD_TIME;
-		}
-
-		/* Send a packet once in a while (6.25 Hz) to keep
-		 * host USB reads from timing out. */
-		if (keepalive_trigger) {
-			if (hold == 0)
-				hold = 1;
-			keepalive_trigger = 0;
-		}
-
-		/* Hold expired? Ignore data. */
-		if (hold == 0) {
-			goto rx_continue;
-		}
-		hold--;
-
-		// copy the previously unpacked symbols to the front of the buffer
-		memcpy(unpacked, unpacked + DMA_SIZE*8, DMA_SIZE*8);
-
-		// unpack the new packet to the end of the buffer
-		for (i = 0; i < DMA_SIZE; ++i) {
-			/* output one byte for each received symbol (0x00 or 0x01) */
-			for (j = 0; j < 8; ++j) {
-				unpacked[DMA_SIZE*8 + i * 8 + j] = (idle_rxbuf[i] & 0x80) >> 7;
-				idle_rxbuf[i] <<= 1;
-			}
-		}
-
-		// empty data PDU: 01 00
-		char desired[] = { 1, 0, 0, 0, 0, 0, 0, 0,
-						   0, 0, 0, 0, 0, 0, 0, 0, };
-		int idx = whitening_index[btle_channel_index(channel-2402)];
-
-		// whiten the desired data
-		for (i = 0; i < (int)sizeof(desired); ++i) {
-			desired[i] ^= whitening[idx];
-			idx = (idx + 1) % sizeof(whitening);
-		}
-
-		// then look for that bitsream in our receive buffer
-		for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
-			int ok = 1;
-			for (j = 0; j < (int)sizeof(desired); ++j) {
-				if (unpacked[i+j] != desired[j]) {
-					ok = 0;
-					break;
-				}
-			}
-
-			// no match, move along
-			if (!ok) continue;
-
-			// found a match! unwhiten it and send it home
-			idx = whitening_index[btle_channel_index(channel-2402)];
-			for (j = 0; j < 4+3+3; ++j) {
+	u32 access_address = 0;
+	for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
+		access_address >>= 1;
+		access_address |= (unpacked[i] << 31);
+		if (access_address == desired_address) {
+			for (j = 0; j < 46; ++j) {
 				u8 byte = 0;
 				for (k = 0; k < 8; k++) {
-					int offset = k + (j * 8) + i - 32;
+					int offset = k + (j * 8) + i - 31;
 					if (offset >= DMA_SIZE*8*2) break;
 					int bit = unpacked[offset];
 					if (j >= 4) { // unwhiten data bytes
@@ -2032,16 +1848,115 @@ void bt_promisc_le()
 				}
 				idle_rxbuf[j] = byte;
 			}
-			enqueue(idle_rxbuf);
-		}
 
-	rx_continue:
-		rx_tc = 0;
-		rx_err = 0;
+			// verify CRC
+			if (crc_verify) {
+				int len		 = (idle_rxbuf[5] & 0x3f) + 2;
+				u32 calc_crc = btle_calc_crc(crc_init_reversed, idle_rxbuf + 4, len);
+				u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
+							 | (idle_rxbuf[4+len+1] << 8)
+							 |  idle_rxbuf[4+len+0];
+				if (calc_crc != wire_crc) // skip packets with a bad CRC
+					break;
+			}
+
+			// send to PC
+			enqueue(idle_rxbuf);
+			RXLED_SET;
+			--rx_pkts;
+
+			if (le_connected) {
+				// hop to the next channel
+				le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
+				channel = btle_channel_index_to_phys(le_channel_idx);
+				cs_threshold_calc_and_set();
+			}
+
+			// connect packet
+			if (!le_connected && idle_rxbuf[4] == 0x05) {
+				le_connected = 1;
+
+				desired_address = 0;
+				for (j = 0; j < 4; ++j)
+					desired_address |= idle_rxbuf[18+j] << (j*8);
+
+#define CRC_INIT (2+4+6+6+4)
+				crc_init = (idle_rxbuf[CRC_INIT+2] << 16)
+						 | (idle_rxbuf[CRC_INIT+1] << 8)
+						 |  idle_rxbuf[CRC_INIT+0];
+				crc_init_reversed = 0;
+				for (j = 0; j < 24; ++j)
+					crc_init_reversed |= ((crc_init >> j) & 1) << (23 - j);
+
+#define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
+				le_hop_amount = idle_rxbuf[HOP] & 0x1f;
+				le_channel_idx = le_hop_amount;
+
+				// hop to the next channel
+				channel = btle_channel_index_to_phys(le_channel_idx);
+				cs_threshold_calc_and_set();
+			}
+			break;
+		}
+	}
+}
+
+void bt_follow_le() {
+	data_cb = cb_follow_le;
+	bt_generic_le(MODE_BT_FOLLOW_LE);
+}
+
+/* le promiscuous mode */
+void cb_le_promisc(char *unpacked) {
+	int i, j, k;
+
+	// empty data PDU: 01 00
+	char desired[] = { 1, 0, 0, 0, 0, 0, 0, 0,
+					   0, 0, 0, 0, 0, 0, 0, 0, };
+	int idx = whitening_index[btle_channel_index(channel-2402)];
+
+	// whiten the desired data
+	for (i = 0; i < (int)sizeof(desired); ++i) {
+		desired[i] ^= whitening[idx];
+		idx = (idx + 1) % sizeof(whitening);
 	}
 
-	dio_ssp_stop();
-	cs_trigger_disable();
+	// then look for that bitsream in our receive buffer
+	for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
+		int ok = 1;
+		for (j = 0; j < (int)sizeof(desired); ++j) {
+			if (unpacked[i+j] != desired[j]) {
+				ok = 0;
+				break;
+			}
+		}
+
+		// no match, move along
+		if (!ok) continue;
+
+		// found a match! unwhiten it and send it home
+		idx = whitening_index[btle_channel_index(channel-2402)];
+		for (j = 0; j < 4+3+3; ++j) {
+			u8 byte = 0;
+			for (k = 0; k < 8; k++) {
+				int offset = k + (j * 8) + i - 32;
+				if (offset >= DMA_SIZE*8*2) break;
+				int bit = unpacked[offset];
+				if (j >= 4) { // unwhiten data bytes
+					bit ^= whitening[idx];
+					idx = (idx + 1) % sizeof(whitening);
+				}
+				byte |= bit << k;
+			}
+			idle_rxbuf[j] = byte;
+		}
+		enqueue(idle_rxbuf);
+	}
+}
+
+void bt_promisc_le() {
+	data_cb = cb_le_promisc;
+	bt_generic_le(MODE_BT_PROMISC_LE);
 }
 
 /* spectrum analysis */
