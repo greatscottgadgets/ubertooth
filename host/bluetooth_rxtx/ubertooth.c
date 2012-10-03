@@ -46,7 +46,6 @@ uint32_t systime;
 int clk_offset = -1;
 u8 hopping = 0;
 u8 usb_retry = 1;
-struct timeval tv;
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -235,84 +234,6 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 			return 0;
 		(*cb)(cb_args, (usb_pkt_rx *)buf, bank);
 		bank = (bank + 1) % NUM_BANKS;
-	}
-}
-
-int stream_le_usb(struct libusb_device_handle* devh, int xfer_size,
-		uint16_t num_blocks, rx_callback cb, void* cb_args)
-{
-	int r;
-	int i;
-	int xfer_blocks;
-	int num_xfers;
-	uint8_t bank = 0;
-	uint8_t rx_buf1[BUFFER_SIZE];
-	uint8_t rx_buf2[BUFFER_SIZE];
-
-	/*
-	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
-	 * payload).  A transfer consists of one or more blocks.  Consecutive
-	 * blocks should be approximately 400 microseconds apart (timestamps about
-	 * 4000 apart in units of 100 nanoseconds).
-	 */
-
-	if (xfer_size > BUFFER_SIZE)
-		xfer_size = BUFFER_SIZE;
-	xfer_blocks = xfer_size / PKT_LEN;
-	xfer_size = xfer_blocks * PKT_LEN;
-	num_xfers = num_blocks / xfer_blocks;
-	num_blocks = num_xfers * xfer_blocks;
-
-	/*
-	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
-		num_blocks, xfer_size);
-	*/
-
-	empty_buf = &rx_buf1[0];
-	full_buf = &rx_buf2[0];
-	really_full = 0;
-	rx_xfer = libusb_alloc_transfer(0);
-	libusb_fill_bulk_transfer(rx_xfer, devh, DATA_IN, empty_buf,
-			xfer_size, cb_xfer, NULL, TIMEOUT);
-
-	cmd_btle_sniffing(devh, num_blocks);
-
-	r = libusb_submit_transfer(rx_xfer);
-	if (r < 0) {
-		fprintf(stderr, "rx_xfer submission: %d\n", r);
-		return -1;
-	}
-
-	while (1) {
-		while (!really_full) {
-			r = libusb_handle_events(NULL);
-			if (r < 0) {
-				fprintf(stderr, "libusb_handle_events: %d\n", r);
-				return -1;
-			}
-		}
-		/*
-		fprintf(stderr, "transfer completed\n");
-		*/
-
-		/* process each received block */
-		for (i = 0; i < xfer_blocks; i++) {
-			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
-			bank = (bank + 1) % NUM_BANKS;
-			if((clk_offset != -1) && !hopping) {
-				really_full = 0;
-				usb_retry = 0;
-				r = libusb_handle_events(NULL);
-				if (r < 0) {
-					fprintf(stderr, "libusb_handle_events: %d\n", r);
-					return -1;
-				}
-				usb_retry = 1;
-				return 1;
-			}
-		}
-		really_full = 0;
-		fflush(stderr);
 	}
 }
 
@@ -616,7 +537,7 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
-	/* Copy 2 banks for analysis */
+	/* Copy all banks for analysis */
 	for (i = 0; i < NUM_BANKS; i++)
 		memcpy(syms + i * BANK_LEN,
 		       symbols[(i + 1 + bank) % NUM_BANKS],
@@ -748,35 +669,29 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 		return;
 
 	if (infile == NULL)
-		gettimeofday(&tv, NULL);
+		systime = time(NULL);
 
-	/* If dumpfile is specified, write out all banks to
-	 * the file. There could be duplicate data in the dump
-	 * if more than one LAP is found within the span of
-	 * NUM_BANKS. If experiment mode is selected, extra
-	 * info is written out. For now, it just prepends
-	 * capture time. */
-	if (dumpfile) {
-		time_t tv_sec = htobe32(tv.tv_sec);
-		suseconds_t tv_usec = htobe32(tv.tv_usec);
-		if (fwrite(&tv_sec,  sizeof(tv_sec), 1, dumpfile) != 1)
-			{;}
-		if (fwrite(&tv_usec, sizeof(tv_usec), 1, dumpfile) != 1)
-			{;}
-		for(i = 0; i < MAX_BTLE_PDU; i++) {
-			if (fwrite(&rx->data[i],  sizeof(uint8_t), 1, dumpfile) != 1)
-				{;}
+		/* Dump to sumpfile if specified */
+		if (dumpfile) {
+			for(i = 0; i < NUM_BANKS; i++) {
+				uint32_t systime_be = htobe32(systime);
+				if (fwrite(&systime_be, 
+					   sizeof(systime_be), 1,
+					   dumpfile)
+				    != 1) {;}
+				if (fwrite(&rx,
+					   sizeof(usb_pkt_rx), 1, dumpfile)
+				    != 1) {;}
+			}
 		}
-	}
 
 	for (i = 0; i < 4; ++i)
 		access_address |= rx->data[i] << (i * 8);
 
 	u32 ts_diff = rx->clk100ns - prev_ts;
 	prev_ts = rx->clk100ns;
-	printf("systime=%u.%06u freq=%d addr=%08x delta_t=%.03f ms\n",
-		   (unsigned)tv.tv_sec, (unsigned)tv.tv_usec,
-		   rx->channel + 2402, access_address, ts_diff / 10000.0);
+	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms\n",
+		   systime, rx->channel + 2402, access_address, ts_diff / 10000.0);
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
@@ -788,29 +703,9 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	fflush(stdout);
 }
 
-void rx_btle(struct libusb_device_handle* devh)
-{
-	stream_le_usb(devh, XFER_LEN, 0, cb_btle, NULL);
-}
-
 void rx_btle_file(FILE* fp)
 {
-	time_t tv_sec;
-	suseconds_t tv_usec;
-	uint8_t buf[MAX_BTLE_PDU];
-
-	while(1) {
-		if (fread(&tv_sec, sizeof(tv_sec), 1, fp) != 1)
-			break;
-		if (fread(&tv_usec, sizeof(tv_usec), 1, fp) != 1)
-			break;
-		tv.tv_sec = (time_t)be32toh(tv_sec);
-		tv.tv_usec = (suseconds_t)be32toh(tv_usec);
-
-		if (fread(buf, sizeof(buf[0]), MAX_BTLE_PDU, fp) != MAX_BTLE_PDU)
-			break;
-		cb_btle(NULL, (usb_pkt_rx *)buf, 0);
-	}
+	stream_rx_file(fp, 0, cb_btle, NULL);
 }
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)

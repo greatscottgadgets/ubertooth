@@ -120,21 +120,6 @@ typedef struct {
 	u64    access_code;
 } bdaddr;
 
-/*
- * USB packet for Bluetooth Low Energy RX
- */
-#define MAX_BTLE_PDU 42
-
-typedef struct {
-	u32    access_address;
-	u8     channel;
-	char   rssi_max;   // Max RSSI seen while collecting symbols in this packet
-	char   rssi_min;   // Min ...
-	char   rssi_avg;   // Average ...
-	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
-	u8     data[MAX_BTLE_PDU];
-} btle_pkt_rx;
-
 typedef struct {
 	u8 valid;
 	u8 request_pa;
