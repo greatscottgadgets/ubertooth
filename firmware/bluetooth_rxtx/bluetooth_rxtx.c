@@ -1906,6 +1906,33 @@ void bt_follow_le() {
 	bt_generic_le(MODE_BT_FOLLOW_LE);
 }
 
+// LFU cache of recently seen AA's
+struct active_aa {
+	u32 aa;
+	int freq;
+} active_aa_list[10] = { { 0, 0, }, };
+#define AA_LIST_SIZE (int)(sizeof(active_aa_list) / sizeof(struct active_aa))
+
+// called when we see an AA, add it to the list
+void see_aa(u32 aa) {
+	int i, max = -1, killme = -1;
+	for (i = 0; i < AA_LIST_SIZE; ++i)
+		if (active_aa_list[i].aa == aa) {
+			++active_aa_list[i].freq;
+			return;
+		}
+
+	// evict someone
+	for (i = 0; i < AA_LIST_SIZE; ++i)
+		if (active_aa_list[i].freq < max || max < 0) {
+			killme = i;
+			max = active_aa_list[i].freq;
+		}
+
+	active_aa_list[killme].aa = aa;
+	active_aa_list[killme].freq = 1;
+}
+
 /* le promiscuous mode */
 void cb_le_promisc(char *unpacked) {
 	int i, j, k;
@@ -1950,7 +1977,23 @@ void cb_le_promisc(char *unpacked) {
 			}
 			idle_rxbuf[j] = byte;
 		}
+
+		u32 aa = (idle_rxbuf[3] << 24) |
+				 (idle_rxbuf[2] << 16) |
+				 (idle_rxbuf[1] <<  8) |
+				 (idle_rxbuf[0]);
+		see_aa(aa);
+
 		enqueue(idle_rxbuf);
+
+	}
+
+	// once we see an AA 5 times, start following it
+	for (i = 0; i < AA_LIST_SIZE; ++i) {
+		if (active_aa_list[i].freq > 5) {
+			desired_address = active_aa_list[i].aa;
+			data_cb = cb_follow_le;
+		}
 	}
 }
 
