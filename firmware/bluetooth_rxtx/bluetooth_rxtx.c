@@ -97,6 +97,9 @@ u8 le_channel_idx = 0;                      // current channel index in LE
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
 
+typedef void (*packet_cb_t)(u8 *);
+packet_cb_t packet_cb = NULL;
+
 /* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
 int16_t rssi_iir[79] = {0};
 #define RSSI_IIR_ALPHA 3       // 3/256 = .012
@@ -1824,7 +1827,8 @@ void bt_generic_le(u8 active_mode)
 	cs_trigger_disable();
 }
 
-/* low energy connection following */
+/* low energy connection following
+ * follows a known AA around */
 void cb_follow_le() {
 	int i, j, k;
 	int idx = whitening_index[btle_channel_index(channel-2402)];
@@ -1865,44 +1869,55 @@ void cb_follow_le() {
 			RXLED_SET;
 			--rx_pkts;
 
-			if (le_connected) {
-				// hop to the next channel
-				le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
-				channel = btle_channel_index_to_phys(le_channel_idx);
-				cs_threshold_calc_and_set();
-			}
+			packet_cb(idle_rxbuf);
 
-			// connect packet
-			if (!le_connected && idle_rxbuf[4] == 0x05) {
-				le_connected = 1;
-
-				desired_address = 0;
-				for (j = 0; j < 4; ++j)
-					desired_address |= idle_rxbuf[18+j] << (j*8);
-
-#define CRC_INIT (2+4+6+6+4)
-				crc_init = (idle_rxbuf[CRC_INIT+2] << 16)
-						 | (idle_rxbuf[CRC_INIT+1] << 8)
-						 |  idle_rxbuf[CRC_INIT+0];
-				crc_init_reversed = 0;
-				for (j = 0; j < 24; ++j)
-					crc_init_reversed |= ((crc_init >> j) & 1) << (23 - j);
-
-#define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
-				le_hop_amount = idle_rxbuf[HOP] & 0x1f;
-				le_channel_idx = le_hop_amount;
-
-				// hop to the next channel
-				channel = btle_channel_index_to_phys(le_channel_idx);
-				cs_threshold_calc_and_set();
-			}
 			break;
 		}
 	}
 }
 
+/**
+ * Called when we recieve a packet in connection following mode.
+ */
+void connection_follow_cb(u8 *packet) {
+	int i;
+
+	if (le_connected) {
+		// hop to the next channel
+		le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
+		channel = btle_channel_index_to_phys(le_channel_idx);
+		cs_threshold_calc_and_set();
+	}
+
+	// connect packet
+	if (!le_connected && packet[4] == 0x05) {
+		le_connected = 1;
+
+		desired_address = 0;
+		for (i = 0; i < 4; ++i)
+			desired_address |= packet[18+i] << (i*8);
+
+#define CRC_INIT (2+4+6+6+4)
+		crc_init = (packet[CRC_INIT+2] << 16)
+				 | (packet[CRC_INIT+1] << 8)
+				 |  packet[CRC_INIT+0];
+		crc_init_reversed = 0;
+		for (i = 0; i < 24; ++i)
+			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+
+#define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
+		le_hop_amount = packet[HOP] & 0x1f;
+		le_channel_idx = le_hop_amount;
+
+		// hop to the next channel
+		channel = btle_channel_index_to_phys(le_channel_idx);
+		cs_threshold_calc_and_set();
+	}
+}
+
 void bt_follow_le() {
 	data_cb = cb_follow_le;
+	packet_cb = connection_follow_cb;
 	bt_generic_le(MODE_BT_FOLLOW_LE);
 }
 
@@ -1993,6 +2008,7 @@ void cb_le_promisc(char *unpacked) {
 		if (active_aa_list[i].freq > 5) {
 			desired_address = active_aa_list[i].aa;
 			data_cb = cb_follow_le;
+			packet_cb = connection_follow_cb;
 		}
 	}
 }
