@@ -738,6 +738,8 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	int i;
 	u32 access_address = 0;
 
+	static u32 prev_ts = 0;
+
 	/* unused parameter */ args = args;
 	/* unused parameter */ bank = bank;
 
@@ -770,10 +772,11 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	for (i = 0; i < 4; ++i)
 		access_address |= rx->data[i] << (i * 8);
 
-	printf("systime=%u.%06u freq=%d addr=%08x\n",
+	u32 ts_diff = rx->clk100ns - prev_ts;
+	prev_ts = rx->clk100ns;
+	printf("systime=%u.%06u freq=%d addr=%08x delta_t=%.03f ms\n",
 		   (unsigned)tv.tv_sec, (unsigned)tv.tv_usec,
-		   rx->channel + 2402, access_address);
-
+		   rx->channel + 2402, access_address, ts_diff / 10000.0);
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
