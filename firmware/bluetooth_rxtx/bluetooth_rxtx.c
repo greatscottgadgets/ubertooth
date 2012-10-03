@@ -836,6 +836,15 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		}
 		break;
 
+	case UBERTOOTH_BTLE_PROMISC:
+		*piLen = 0;
+
+		hop_mode = HOP_NONE;
+		requested_mode = MODE_BT_PROMISC_LE;
+
+		cs_threshold_calc_and_set();
+		break;
+
 	default:
 		return FALSE;
 	}
@@ -1888,6 +1897,153 @@ void bt_follow_le()
 	rx_pkts = 0; // Already 0, or requested mode changed
 }
 
+/* low energy promiscuous mode */
+void bt_promisc_le()
+{
+	u8 *tmp = NULL;
+	u8 hold;
+	int i, j, k;
+
+	mode = MODE_BT_PROMISC_LE;
+
+	// enable USB interrupts
+	ISER0 |= ISER0_ISE_USB;
+
+	RXLED_CLR;
+
+	queue_init();
+	dio_ssp_init();
+	dma_init();
+	dio_ssp_start();
+	cc2400_rx();
+
+	cs_trigger_enable();
+
+	hold = 0;
+
+	while (requested_mode == MODE_BT_PROMISC_LE) {
+
+		if (do_hop)
+			hop();
+
+		RXLED_CLR;
+
+		/* Wait for DMA transfer. */
+		while ((rx_tc == 0) && (rx_err == 0))
+			;
+
+		/* Keep buffer swapping in sync with DMA. */
+		if (rx_tc % 2) {
+			tmp = active_rxbuf;
+			active_rxbuf = idle_rxbuf;
+			idle_rxbuf = tmp;
+		}
+
+		if (rx_err) {
+			status |= DMA_ERROR;
+		}
+
+		/* No DMA transfer? */
+		if (!rx_tc)
+			goto rx_continue;
+
+		/* Missed a DMA trasfer? */
+		if (rx_tc > 1)
+			status |= DMA_OVERFLOW;
+
+		/* Set squelch hold if there was either a CS trigger, squelch
+		 * is disabled, or if the current rssi_max is above the same
+		 * threshold. Currently, this is redundant, but allows for
+		 * per-channel or other rssi triggers in the future. */
+		if (cs_trigger || cs_no_squelch) {
+			status |= CS_TRIGGER;
+			hold = CS_HOLD_TIME;
+			cs_trigger = 0;
+		}
+
+		if (rssi_max >= (cs_threshold_cur + 54)) {
+			status |= RSSI_TRIGGER;
+			hold = CS_HOLD_TIME;
+		}
+
+		/* Send a packet once in a while (6.25 Hz) to keep
+		 * host USB reads from timing out. */
+		if (keepalive_trigger) {
+			if (hold == 0)
+				hold = 1;
+			keepalive_trigger = 0;
+		}
+
+		/* Hold expired? Ignore data. */
+		if (hold == 0) {
+			goto rx_continue;
+		}
+		hold--;
+
+		// copy the previously unpacked symbols to the front of the buffer
+		memcpy(unpacked, unpacked + DMA_SIZE*8, DMA_SIZE*8);
+
+		// unpack the new packet to the end of the buffer
+		for (i = 0; i < DMA_SIZE; ++i) {
+			/* output one byte for each received symbol (0x00 or 0x01) */
+			for (j = 0; j < 8; ++j) {
+				unpacked[DMA_SIZE*8 + i * 8 + j] = (idle_rxbuf[i] & 0x80) >> 7;
+				idle_rxbuf[i] <<= 1;
+			}
+		}
+
+		// empty data PDU: 01 00
+		char desired[] = { 1, 0, 0, 0, 0, 0, 0, 0,
+						   0, 0, 0, 0, 0, 0, 0, 0, };
+		int idx = whitening_index[btle_channel_index(channel-2402)];
+
+		// whiten the desired data
+		for (i = 0; i < (int)sizeof(desired); ++i) {
+			desired[i] ^= whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+		}
+
+		// then look for that bitsream in our receive buffer
+		for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
+			int ok = 1;
+			for (j = 0; j < (int)sizeof(desired); ++j) {
+				if (unpacked[i+j] != desired[j]) {
+					ok = 0;
+					break;
+				}
+			}
+
+			// no match, move along
+			if (!ok) continue;
+
+			// found a match! unwhiten it and send it home
+			idx = whitening_index[btle_channel_index(channel-2402)];
+			for (j = 0; j < 4+3+3; ++j) {
+				u8 byte = 0;
+				for (k = 0; k < 8; k++) {
+					int offset = k + (j * 8) + i - 32;
+					if (offset >= DMA_SIZE*8*2) break;
+					int bit = unpacked[offset];
+					if (j >= 4) { // unwhiten data bytes
+						bit ^= whitening[idx];
+						idx = (idx + 1) % sizeof(whitening);
+					}
+					byte |= bit << k;
+				}
+				idle_rxbuf[j] = byte;
+			}
+			enqueue(idle_rxbuf);
+		}
+
+	rx_continue:
+		rx_tc = 0;
+		rx_err = 0;
+	}
+
+	dio_ssp_stop();
+	cs_trigger_disable();
+}
+
 /* spectrum analysis */
 void specan()
 {
@@ -2027,6 +2183,8 @@ int main()
 			bt_follow();
 		else if (requested_mode == MODE_BT_FOLLOW_LE && mode != MODE_BT_FOLLOW_LE)
 			bt_follow_le();
+		else if (requested_mode == MODE_BT_PROMISC_LE && mode != MODE_BT_PROMISC_LE)
+			bt_promisc_le();
 		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
 			cc2400_txtest();
 		else if (requested_mode == MODE_RANGE_TEST && mode != MODE_RANGE_TEST)

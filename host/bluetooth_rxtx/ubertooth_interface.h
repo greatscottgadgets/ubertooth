@@ -75,6 +75,7 @@ enum ubertooth_usb_commands {
     UBERTOOTH_GET_CRC_VERIFY  = 47,
     UBERTOOTH_SET_CRC_VERIFY  = 48,
     UBERTOOTH_POLL            = 49,
+    UBERTOOTH_BTLE_PROMISC    = 50,
 };
 
 enum modulations {
@@ -94,6 +95,7 @@ enum operating_modes {
 	MODE_LED_SPECAN = 7,
 	MODE_BT_FOLLOW  = 8,
 	MODE_BT_FOLLOW_LE = 9,
+	MODE_BT_PROMISC_LE = 10,
 };
 
 /*
