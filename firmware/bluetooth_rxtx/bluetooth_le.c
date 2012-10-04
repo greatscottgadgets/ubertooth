@@ -127,3 +127,32 @@ u32 btle_calc_crc(u32 crc_init, u8 *data, int len) {
 
 	return state;
 }
+
+// runs the CRC in reverse to generate a CRCInit
+//
+//	crc should be big endian
+//	the return will be big endian
+//
+u32 btle_reverse_crc(u32 crc, u8 *data, int len) {
+	u32 state = crc;
+	u32 lfsr_mask = 0xb4c000; // 101101001100000000000000
+	u32 ret;
+	int i, j;
+
+	for (i = len - 1; i >= 0; --i) {
+		u8 cur = data[i];
+		for (j = 0; j < 8; ++j) {
+			int top_bit = state >> 23;
+			state = (state << 1) & 0xffffff;
+			state |= top_bit ^ ((cur >> (7 - j)) & 1);
+			if (top_bit)
+				state ^= lfsr_mask;
+		}
+	}
+
+	ret = 0;
+	for (i = 0; i < 24; ++i)
+		ret |= ((state >> i) & 1) << (23 - i);
+
+	return ret;
+}
