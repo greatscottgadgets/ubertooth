@@ -679,7 +679,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 					   sizeof(systime_be), 1,
 					   dumpfile)
 				    != 1) {;}
-				if (fwrite(&rx,
+				if (fwrite(rx,
 					   sizeof(usb_pkt_rx), 1, dumpfile)
 				    != 1) {;}
 			}

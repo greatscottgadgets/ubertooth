@@ -53,7 +53,6 @@ int main(int argc, char *argv[])
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
-	FILE* infile = NULL;
 	u32 access_address;
 
 	do_sniff = do_file = 0, do_promisc = 0;
