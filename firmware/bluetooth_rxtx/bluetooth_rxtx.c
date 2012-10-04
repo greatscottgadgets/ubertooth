@@ -1921,6 +1921,22 @@ void bt_follow_le() {
 	bt_generic_le(MODE_BT_FOLLOW_LE);
 }
 
+void promisc_follow_cb(u8 *packet) {
+	int i;
+
+	// get the CRCInit
+	if (!crc_verify && packet[4] == 0x01 && packet[5] == 0x00) {
+		u32 crc = (packet[8] << 16) | (packet[7] << 8) | packet[6];
+
+		crc_init = btle_reverse_crc(crc, packet + 4, 2);
+		crc_init_reversed = 0;
+		for (i = 0; i < 24; ++i)
+			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+
+		crc_verify = 1;
+	}
+}
+
 // LFU cache of recently seen AA's
 struct active_aa {
 	u32 aa;
@@ -2008,7 +2024,8 @@ void cb_le_promisc(char *unpacked) {
 		if (active_aa_list[i].freq > 5) {
 			desired_address = active_aa_list[i].aa;
 			data_cb = cb_follow_le;
-			packet_cb = connection_follow_cb;
+			packet_cb = promisc_follow_cb;
+			crc_verify = 0;
 		}
 	}
 }
