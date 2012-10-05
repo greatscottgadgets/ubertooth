@@ -181,8 +181,6 @@ their success.
 BUGS
 ====
 
-Connection following doesn't work worth a crap.
-
 The code always assumes all data channels are in use. I have never
 observed otherwise, but it's within spec to use fewer.
 

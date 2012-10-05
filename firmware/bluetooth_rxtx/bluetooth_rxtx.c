@@ -94,6 +94,7 @@ int crc_verify = 1;							// reject packets with bad CRC
 int le_connected = 0;                       // true if LE is connected
 u8 le_hop_amount = 0;                       // amount to hop in LE
 u8 le_channel_idx = 0;                      // current channel index in LE
+u8 le_hop_interval = 0;                     // connection-specific hop interval
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -943,8 +944,10 @@ void TIMER0_IRQHandler()
 		/* BLUETOOTH Low Energy -> 7.5ms - 4.0s in multiples of 1.25 ms */
 		else if (hop_mode == HOP_BTLE) {
 			if ((next & 0x3) == 0) {
-				if (le_hop_after > 0 && --le_hop_after == 0)
+				if (le_hop_after > 0 && --le_hop_after == 0) {
 					do_hop = 1;
+					le_hop_after = le_hop_interval;
+				}
 			}
 		}
 
@@ -1892,7 +1895,7 @@ void connection_follow_cb(u8 *packet) {
 	if (le_connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
 		if (le_hop_after == 0)
-			le_hop_after = 8;
+			le_hop_after = le_hop_interval;
 	}
 
 	// connect packet
@@ -1910,6 +1913,13 @@ void connection_follow_cb(u8 *packet) {
 		crc_init_reversed = 0;
 		for (i = 0; i < 24; ++i)
 			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+
+#define WIN_OFFSET (2+4+6+6+4+3+1)
+		// le_hop_after = idle_rxbuf[WIN_OFFSET]-2;
+		do_hop = 1;
+
+#define HOP_INTERVAL (2+4+6+6+4+3+1+2)
+		le_hop_interval = idle_rxbuf[HOP_INTERVAL];
 
 #define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
 		le_hop_amount = packet[HOP] & 0x1f;
