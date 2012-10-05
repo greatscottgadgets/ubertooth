@@ -124,10 +124,12 @@ int main(int argc, char *argv[])
 
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 
-		if (do_sniff)
+		if (do_sniff) {
+			cmd_set_channel(devh, 2402);
 			cmd_btle_sniffing(devh, 2);
-		else
+		} else {
 			cmd_btle_promisc(devh);
+		}
 
 		while (1) {
 			int r = cmd_poll(devh, &pkt);
