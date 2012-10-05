@@ -1,0 +1,38 @@
+release procedure:
+
+manual procedure from git HEAD:
+- make ubertooth one gerbers
+- make ubertooth one assembly diagram (print svg with frame ref)
+	open in inkscape, save as ubertooth-one-assembly.pdf
+- make ubertooth one schematic pdf (ubertooth-one-schematic.pdf)
+	plot to svg, open in inkscape, save as pdf
+- make ubertooth one bom (ubertooth-one.csv)
+
+- make pogoprog gerbers
+- make pogoprog assembly diagram
+	print svg, silkscreen, with frame ref, b/w, selected
+	open in inkscape, save as pogoprog-assembly.pdf
+- make pogoprog schematic pdf (pogoprog-schematic.pdf)
+- make pogoprog bom (pogoprog.csv)
+
+- make tc13badge gerbers
+- make tc13badge assembly diagram (print svg with frame ref)
+	no render hidden text, print svg, silkscreen, with frame ref, b/w, selected
+	open in inkscape, save as tc13badge-assembly.pdf
+- make tc13badge schematic pdf (tc13badge-schematic.pdf)
+- make tc13badge bom (tc13badge.csv)
+
+The above stuff should all end up under ${originaldir} for release.sh to copy.
+
+scripted (release.sh):
+- svn export
+- nanoc compile
+- make ubertooth one binaries
+- make ubertooth zero binaries
+- copy hardware files
+- copy component placement sheets
+
+manual:
+- write RELEASENOTES.txt
+- tar -czvf
+- upload to sourceforge

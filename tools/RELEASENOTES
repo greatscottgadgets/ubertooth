@@ -1,0 +1,40 @@
+Project Ubertooth 2012-10-R1 Release Notes
+
+The Ubertooth host utilities in this release require libbtbb 2012-10-R1 or
+greater, it can be found at https://sourceforge.net/projects/libbtbb/files/
+
+These are just the highlights.  For a complete list of changes since a prior
+release, see the git log.
+
+ - libubertooth
+
+   The core Ubertooth functions are now packaged as a library, which allows us
+   to have some independancy between the core ubertooth functions and the tools
+   that use them, such as ubertooth-* and the kismet plugin.  This should also
+   help with future binary packaging.
+
+ - Firmware flashing
+ 
+   DFU - faster, stronger, better (only the last of these)
+
+ - Ubertooth-follow
+
+   Ubertooth-follow has been added to the set of commandline tools that are
+
+ - Bluetooth Low Energy (Experimental)
+
+   Bluetooth Low Energy (Bluetooth Smart) sniffing is experimentally supported
+   by the ubertooth-btle tool.  Credit for this excellent achievement goes to
+   Mike Ryan.
+
+ - Git
+ 
+   Since the last release we have moved the source repository from SVN to Git.
+   This should not affect the released code, but makes life easier for those of
+   us working on the code.
+
+ - Compiling Firmware
+
+   The firmware code now compiles with GCC Arm toolchain which is available for
+   download from https://launchpad.net/gcc-arm-embedded toolchain.
+   The Code Sourcery compiler is no longer required or supported.
