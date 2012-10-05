@@ -32,7 +32,7 @@ static void usage(void)
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
-	printf("\t-s sniff packets\n");
+	printf("\t-f follow connections\n");
 	printf("\t-p promiscuous: sniff active connections\n");
 	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
@@ -47,7 +47,7 @@ static void usage(void)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int do_sniff, do_file, do_promisc;
+	int do_follow, do_file, do_promisc;
 	int do_get_aa, do_set_aa;
 	int do_crc;
 	char ubertooth_device = -1;
@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
 
 	u32 access_address;
 
-	do_sniff = do_file = 0, do_promisc = 0;
+	do_follow = do_file = 0, do_promisc = 0;
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 
-	while ((opt=getopt(argc,argv,"a::d:hspi:U:v::")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::d:hfpi:U:v::")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
 				sscanf(optarg, "%08x", &access_address);
 			}
 			break;
-		case 's':
-			do_sniff = 1;
+		case 'f':
+			do_follow = 1;
 			break;
 		case 'p':
 			do_promisc = 1;
@@ -119,12 +119,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (do_sniff || do_promisc) {
+	if (do_follow || do_promisc) {
 		usb_pkt_rx pkt;
 
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 
-		if (do_sniff) {
+		if (do_follow) {
 			cmd_set_channel(devh, 2402);
 			cmd_btle_sniffing(devh, 2);
 		} else {
