@@ -80,6 +80,7 @@ volatile u32 clkn;                       // clkn 3200 Hz counter
 #define CS_HOLD_TIME  2                     // min pkts to send on trig (>=1)
 u8 hop_mode = HOP_NONE;
 u8 do_hop = 0;                              // set by timer interrupt
+u8 le_hop_after = 0;                        // hop after this many 1.25 ms cycles
 u8 cs_no_squelch = 0;                       // rx all packets if set
 int8_t cs_threshold_req=CS_THRESHOLD_DEFAULT; // requested CS threshold in dBm
 int8_t cs_threshold_cur=CS_THRESHOLD_DEFAULT; // current CS threshold in dBm
@@ -793,7 +794,8 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			rx_pkts = 0xFFFFFFFF;
 		*piLen = 0;
 
-		hop_mode = HOP_NONE;
+		do_hop = 0;
+		hop_mode = HOP_BTLE;
 		requested_mode = MODE_BT_FOLLOW_LE;
 
 		cs_threshold_calc_and_set();
@@ -938,10 +940,12 @@ void TIMER0_IRQHandler()
 			if ((next & 0x1) == 0)
 				do_hop = 1;
 		}
-		/* BLUETOOTH Low Energy -> 7.5ms - 4.0s */
+		/* BLUETOOTH Low Energy -> 7.5ms - 4.0s in multiples of 1.25 ms */
 		else if (hop_mode == HOP_BTLE) {
-			if ((next & 0x1) == 0)
-				do_hop = 1;
+			if ((next & 0x3) == 0) {
+				if (le_hop_after > 0 && --le_hop_after == 0)
+					do_hop = 1;
+			}
 		}
 
 		/* Keepalive trigger fires at 3200/2^9 = 6.25 Hz */
@@ -1747,8 +1751,11 @@ void bt_generic_le(u8 active_mode)
 
 	while (requested_mode == active_mode) {
 
-		if (do_hop)
+		if (do_hop) {
 			hop();
+		} else {
+			TXLED_CLR;
+		}
 
 		RXLED_CLR;
 
@@ -1883,10 +1890,9 @@ void connection_follow_cb(u8 *packet) {
 	int i;
 
 	if (le_connected) {
-		// hop to the next channel
-		le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
-		channel = btle_channel_index_to_phys(le_channel_idx);
-		cs_threshold_calc_and_set();
+		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
+		if (le_hop_after == 0)
+			le_hop_after = 8;
 	}
 
 	// connect packet
@@ -1908,10 +1914,6 @@ void connection_follow_cb(u8 *packet) {
 #define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
 		le_hop_amount = packet[HOP] & 0x1f;
 		le_channel_idx = le_hop_amount;
-
-		// hop to the next channel
-		channel = btle_channel_index_to_phys(le_channel_idx);
-		cs_threshold_calc_and_set();
 	}
 }
 

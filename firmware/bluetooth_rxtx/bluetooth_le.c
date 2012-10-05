@@ -21,17 +21,13 @@
 
 #include "bluetooth_le.h"
 
+extern u8 le_channel_idx;
+extern u8 le_hop_amount;
+
 u16 btle_next_hop()
 {
-	u16 channel, i;
-	btle_channel = (btle_channel + hop_increment) % BTLE_CHANNELS;
-	channel = btle_channel;
-	for(i=0; i<ADVERTISING_CHANNELS; i++)
-		if (channel == advertising_channels[i]) {
-			channel = (channel + 1) % BTLE_CHANNELS;
-			break;
-		}
-	return 2042 + 2*channel;
+	le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
+	return btle_channel_index_to_phys(le_channel_idx);
 }
 
 u32 received_data = 0;
@@ -82,8 +78,8 @@ u8 btle_channel_index(u8 channel) {
 	return idx;
 }
 
-int btle_channel_index_to_phys(u8 idx) {
-	int phys;
+u16 btle_channel_index_to_phys(u8 idx) {
+	u16 phys;
 	if (idx < 11)
 		phys = 2404 + 2 * idx;
 	else if (idx < 37)
