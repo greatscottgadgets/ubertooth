@@ -8,3 +8,6 @@ compile:
 #     User <SF username>,ubertooth
 upload: compile
 	rsync --delete --exclude .svn -ave ssh output/* web.sourceforge.net:htdocs/
+
+clean:
+	rm -rf output tmp
