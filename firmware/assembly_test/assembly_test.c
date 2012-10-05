@@ -45,6 +45,8 @@
 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+/* For git version strings */
+#include <string.h>
 
 #include "ubertooth.h"
 #include "usbapi.h"
@@ -279,6 +281,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	u8 *pbData = *ppbData;
 	u32 command[5];
 	u32 result[5];
+	u8 length; // string length
 
 	switch (pSetup->bRequest) {
 
@@ -489,9 +492,15 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_GET_REV_NUM:
-		pbData[0] = SVN_REV_NUM & 0xFF;
-		pbData[1] = (SVN_REV_NUM >> 8) & 0xFF;
-		*piLen = 2;
+		pbData[0] = 0x00;
+		pbData[1] = 0x00;
+
+		length = (u8)strlen(GIT_DESCRIBE);
+		pbData[2] = length;
+
+		memcpy(&pbData[3], GIT_DESCRIBE, length);
+
+		*piLen = 2 + 1 + length;
 		break;
 
 	default:
