@@ -799,6 +799,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		hop_mode = HOP_BTLE;
 		requested_mode = MODE_BT_FOLLOW_LE;
 
+		queue_init();
 		cs_threshold_calc_and_set();
 		break;
 
@@ -851,6 +852,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		hop_mode = HOP_NONE;
 		requested_mode = MODE_BT_PROMISC_LE;
 
+		queue_init();
 		cs_threshold_calc_and_set();
 		break;
 
