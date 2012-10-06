@@ -70,11 +70,13 @@ IAP iap_entry = (IAP)IAP_LOCATION;
 
 volatile u32 clkn;                       // clkn 3200 Hz counter
 #define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
+#define LE_BASECLK (12500)               // 1.25 ms in units of 100ns
 
 #define HOP_NONE      0
 #define HOP_SWEEP     1
 #define HOP_BLUETOOTH 2
 #define HOP_BTLE      3
+#define HOP_DIRECT    4
 
 #define CS_THRESHOLD_DEFAULT (uint8_t)(-120)
 #define CS_HOLD_TIME  2                     // min pkts to send on trig (>=1)
@@ -95,6 +97,7 @@ int le_connected = 0;                       // true if LE is connected
 u8 le_hop_amount = 0;                       // amount to hop in LE
 u8 le_channel_idx = 0;                      // current channel index in LE
 u8 le_hop_interval = 0;                     // connection-specific hop interval
+u16 hop_direct_channel = 0;                 // for hopping directly to a channel
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -1417,6 +1420,11 @@ void hop(void)
 		channel = btle_next_hop();
 	}
 
+	else if (hop_mode == HOP_DIRECT) {
+		TXLED_SET;
+		channel = hop_direct_channel;
+	}
+
         /* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
@@ -1935,6 +1943,78 @@ void bt_follow_le() {
 	bt_generic_le(MODE_BT_FOLLOW_LE);
 }
 
+// divide, rounding to the nearest integer: round up at 0.5.
+#define DIVIDE_ROUND(N, D) ((N) + (D)/2) / (D)
+
+void promisc_recover_hop_amount(u8 *packet) {
+	static u32 first_ts = 0;
+	if (channel == 2404) {
+		first_ts = CLK100NS;
+		hop_direct_channel = 2406;
+		do_hop = 1;
+	} else if (channel == 2406) {
+		u32 second_ts = CLK100NS;
+		// number of channels hopped between previous and current
+		u32 channels_hopped = DIVIDE_ROUND(second_ts - first_ts,
+										   le_hop_interval * LE_BASECLK);
+		if (channels_hopped < 37) {
+			// get the hop amount based on the number of channels hopped
+			le_hop_amount = hop_interval_lut[channels_hopped];
+			le_channel_idx = 1;
+			le_hop_after = 0;
+			le_connected = 1;
+
+			// move on to regular connection following!
+			hop_mode = HOP_BTLE;
+			do_hop = 0;
+			packet_cb = connection_follow_cb;
+
+			return;
+		}
+		hop_direct_channel = 2404;
+		do_hop = 1;
+	}
+	else {
+		hop_direct_channel = 2404;
+		do_hop = 1;
+	}
+}
+
+void promisc_recover_hop_interval(u8 *packet) {
+	static u32 prev_clk = 0;
+	static u32 smallest_interval = 0xffffffff;
+	static int consec = 0;
+
+	u32 cur_clk = CLK100NS;
+	u32 clk_diff = cur_clk - prev_clk;
+	u32 obsv_hop_interval; // observed hop interval
+
+	// probably consecutive data packets on the same channel
+	if (clk_diff < 2 * LE_BASECLK)
+		return;
+
+	if (clk_diff < smallest_interval)
+		smallest_interval = clk_diff;
+
+	obsv_hop_interval = DIVIDE_ROUND(smallest_interval, 37 * LE_BASECLK);
+
+	if (le_hop_interval == obsv_hop_interval) {
+		// 5 consecutive hop intervals: consider it legit and move on
+		++consec;
+		if (consec == 5) {
+			packet_cb = promisc_recover_hop_amount;
+			hop_direct_channel = 2404;
+			hop_mode = HOP_DIRECT;
+			do_hop = 1;
+		}
+	} else {
+		le_hop_interval = obsv_hop_interval;
+		consec = 0;
+	}
+
+	prev_clk = cur_clk;
+}
+
 void promisc_follow_cb(u8 *packet) {
 	int i;
 
@@ -1948,6 +2028,7 @@ void promisc_follow_cb(u8 *packet) {
 			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
 
 		crc_verify = 1;
+		packet_cb = promisc_recover_hop_interval;
 	}
 }
 

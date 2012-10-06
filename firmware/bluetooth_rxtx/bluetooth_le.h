@@ -46,6 +46,12 @@ static const u8 whitening_index[] = {
     94, 86, 49, 52, 20, 40, 27, 84, 90, 63, 112, 47, 102
 };
 
+static const u8 hop_interval_lut[] = {
+    0, 1, 19, 25, 28, 15, 31, 16, 14, 33, 26, 27, 34, 20, 8,
+    5, 7, 24, 35, 2, 13, 30, 32, 29, 17, 3, 10, 11, 4, 23, 21,
+    6, 22, 9, 12, 18, 36,
+};
+
 static const u32 advertising_address = 0x8e89bed6;
 u32 access_address;
 u8 btle_channel;
