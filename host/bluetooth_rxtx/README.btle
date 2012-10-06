@@ -131,6 +131,10 @@ data packets with contents other than 01 00:
     systime=1349414683 freq=2404 addr=506545d9 delta_t=693.326 ms
     0d 00 55 5d 86
 
+The Ubertooth then recovers the hop interval and hop amount, finally
+entering connection following mode (as though a connect were observed).
+Packets should stream quickly at this point.
+
 Miscellaneous Usage
 -------------------
 
@@ -173,9 +177,28 @@ XOR'd with the packet data and fed back into the front, a process which
 is fully reversible. We extract the CRC init by considering data packets
 and running the LFSR in reverse.
 
-We have hypothesized methods to recover the hop interval and hop amount.
-These have not yet been implemented, but will be done so shortly pending
-their success.
+The hop interval is recovered by observing that the hop sequence
+completes a full cycle once every 37 * 1.25 * hop_interval milliseconds.
+We sit on a data channel and calculate the time between two consecutive
+packets. We directly calculate the hop interval using this formula:
+
+    hop_interval = delta_t / (37 * 1.25)
+
+Finally the hop amount is recovered by measuring the interarrival time
+of packets on two data channels (index 0 and 1). We wait for a packet on
+channel index 0, then jump to channel index 1 and measure the time it
+takes for a second packet to arrive.
+
+From the interarrival time, we can calculate the number of channels
+hopped between the first and second packet:
+
+    channels_hopped = delta_t / (1.25 * hop_interval)
+
+We use a lookup table to map this value to the hop amount.
+
+At this point, we have all four values needed to follow a connection,
+and we enter connection following mode as though we observed the initial
+connect packet.
 
 
 BUGS
