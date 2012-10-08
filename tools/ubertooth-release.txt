@@ -1,6 +1,7 @@
 release procedure:
 
-manual procedure from git HEAD:
+manual procedure from git HEAD (can be copied from previous release if there
+have been no hardware changes):
 - make ubertooth one gerbers
 - make ubertooth one assembly diagram (print svg with frame ref)
 	open in inkscape, save as ubertooth-one-assembly.pdf
@@ -22,10 +23,9 @@ manual procedure from git HEAD:
 - make tc13badge schematic pdf (tc13badge-schematic.pdf)
 - make tc13badge bom (tc13badge.csv)
 
-The above stuff should all end up under ${originaldir} for release.sh to copy.
 
 scripted (release.sh):
-- svn export
+- git archive
 - nanoc compile
 - make ubertooth one binaries
 - make ubertooth zero binaries
