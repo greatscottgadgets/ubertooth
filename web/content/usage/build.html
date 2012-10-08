@@ -8,7 +8,7 @@ title: Build Guide
     <li><a href="#ubuntu">Ubuntu</a> (Debian/BackTrack 5 - untested)</li>
     <li><a href="#fedora">Fedora</a> (RedHat/CentOS - untested)</li>
     <li><a href="#windows">Windows</a> (experimental - unsupported)</li>
-    <li>Mac OS X (Coming soon)</li>
+    <li><a href="#osx">Mac OS X</a> (experimental)</li>
 </ul>
 <p>The firmware image on the Ubertooth is normally tied to the release version
 of the host code that it operates with, instructions for obtaining firmware
@@ -36,9 +36,9 @@ downloaded and built from sourece as follows:</p>
 <p>Next the Bluetooth baseband library (libbtbb) needs to be built for the
 Ubertooth tools to decode Bluetooth packets:</p>
 <pre>
-    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-0.8.tar.gz/download -O libbtbb-0.8.tar.gz
-    tar xf libbtbb-0.8.tar.gz
-    cd libbtbb-0.8
+    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-2012-10-R1.tar.xz/download -O libbtbb-2012-10-R1.tar.xz
+    tar xf libbtbb-2012-10-R1.tar.xz
+    cd libbtbb-2012-10-R1
     make
     sudo make install
 </pre>
@@ -49,10 +49,19 @@ Ubertooth tools to decode Bluetooth packets:</p>
 Bluetooth sniffing tools and firmware update.  All three are built and installed
 by default using the following method:</p>
 <pre>
-    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-r534.tar.gz/download -O ubertooth-r534.tar.gz
-    tar xf ubertooth-r534.tar.gz
-    cd ubertooth-r534/host/bluetooth_rxtx
+    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-2012-10-R1.tar.xz/download -O ubertooth-2012-10-R1.tar.xz
+    tar xf ubertooth-2012-10-R1.tar.xz
+    cd ubertooth-2012-10-R1/host
     make
+    sudo make install
+</pre>
+<p>If using the ubertooth-follow tool, the Bluetooth library headers are
+required and the tools need to be built with the "clock_debug" flag set:</p>
+<pre>
+    sudo apt-get install libbluetooth-dev
+    cd ubertooth-2012-10-R1/host
+    make clock_debug=true
+    sudo make clock_debug=true install
 </pre>
 <br />
 
@@ -64,7 +73,7 @@ is nessecary to compile Kismet from source:</p>
     sudo apt-get install libpcap0.8-dev libcap-dev build-essential pkg-config libnl-dev libncurses-dev libpcre3-dev libpcap-dev libcap-dev
     wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
     tar xf kismet-2011-03-R2.tar.gz
-    ln -s ubertooth-r534/host/kismet/plugin-ubertooth kismet-2011-03-R2/
+    ln -s ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
     cd kismet-2011-03-R2
     ./configure
     make && make plugins
@@ -72,10 +81,22 @@ is nessecary to compile Kismet from source:</p>
     sudo make plugins-install
 </pre>
 
+<h3>Wireshark</h3>
+<p>The Wireshark plugin allows Bluetooth baseband traffic that has been captured
+using Kismet to be analysed and disected within the Wireshark GUI.  It is built
+separately from the rest of the Ubertooth and libbtbb software:</p>
+<pre>
+    sudo apt-get install wireshark wireshark-dev libwireshark1 libwireshark-dev
+    cd libbtbb-2012-10-R1/wireshark/plugins/btbb
+    cmake -DCMAKE_INSTALL_LIBDIR=/usr/lib/wireshark/libwireshark1/plugins .
+    make
+    sudo make install
+    Add "pcapbtbb" to the "logtypes=..." line in kismet.conf
+</pre>
+
 <p>This completes the install of the Ubertooth tools, the next step is to
 look at the <a href="../start">getting started</a> guide.  It may also be
 useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
-
 
 
 <h2 id="fedora">Fedora 17+</h2>
@@ -91,11 +112,20 @@ on RedHat based systems:</p>
 <p>Next the Bluetooth baseband library (libbtbb) needs to be built for the
 Ubertooth tools to decode Bluetooth packets:</p>
 <pre>
-    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-0.8.tar.gz/download -O libbtbb-0.8.tar.gz
-    tar xf libbtbb-0.8.tar.gz
-    cd libbtbb-0.8
+    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-2012-10-R1.tar.xz/download -O libbtbb-2012-10-R1.tar.xz
+    tar xf libbtbb-2012-10-R1.tar.xz
+    cd libbtbb-2012-10-R1
     make
     su -c "make install"
+</pre>
+</pre>
+<p>If using the ubertooth-follow tool, the Bluetooth library headers are
+required and the tools need to be built with the "clock_debug" flag set:</p>
+<pre>
+    su -c "yum install libbluetooth-dev"
+    cd ubertooth-2012-10-R1/host
+    make clock_debug=true
+    sudo make clock_debug=true install
 </pre>
 <br />
 
@@ -104,9 +134,9 @@ Ubertooth tools to decode Bluetooth packets:</p>
 Bluetooth sniffing tools and firmware update.  All three are built and installed
 by default using the following method:</p>
 <pre>
-    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-r534.tar.gz/download -O ubertooth-r534.tar.gz
-    tar xf ubertooth-r534.tar.gz
-    cd ubertooth-r534/host/bluetooth_rxtx
+    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-2012-10-R1.tar.xz/download -O ubertooth-2012-10-R1.tar.xz
+    tar xf ubertooth-2012-10-R1.tar.xz
+    cd ubertooth-2012-10-R1/host/bluetooth_rxtx
     make
 </pre>
 <br />
@@ -119,18 +149,31 @@ to compile Kismet from source:</p>
     su -c "yum install libpcap-devel libcap-devel libnl-devel libstdc++-devel gcc-c++ ncurses-devel"
     wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
     tar xf kismet-2011-03-R2.tar.gz
-    ln -s ubertooth-r534/host/kismet/plugin-ubertooth kismet-2011-03-R2/
+    ln -s ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
     cd kismet-2011-03-R2
     ./configure
     make && make plugins
     su -c "make suidinstall"
     su -c "make plugins-install"
+    Add "pcapbtbb" to the "logtypes=..." line in kismet.conf
 </pre>
+
+<h3>Wireshark</h3>
+<p>The Wireshark plugin allows Bluetooth baseband traffic that has been captured
+using Kismet to be analysed and disected within the Wireshark GUI.  It is built
+separately from the rest of the Ubertooth and libbtbb software:</p>
+<pre>
+    su -c "yum install wireshark wireshark-devel"
+    cd libbtbb-2012-10-R1/wireshark/plugins/btbb
+    cmake .
+    make
+    su -c "make install"
+</pre>
+
 
 <p>This completes the install of the Ubertooth tools, the next step is to
 look at the <a href="../start">getting started</a> guide.  It may also be
 useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
-
 
 
 <h2 id="windows">Windows</h2>
@@ -153,9 +196,9 @@ following tools are required:</p>
 <p>Libbtbb needs to be built before the Ubertooth tools, it is available from
 SourceForge as follows:</p>
 <pre>
-    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-0.8.tar.gz/download -O libbtbb-0.8.tar.gz
-    tar xf libbtbb-0.8.tar.gz
-    cd libbtbb-0.8
+    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-2012-10-R1.tar.xz/download -O libbtbb-2012-10-R1.tar.xz
+    tar xf libbtbb-2012-10-R1.tar.xz
+    cd libbtbb-2012-10-R1
     make
     make cygwin-install
 </pre>
@@ -166,9 +209,9 @@ SourceForge as follows:</p>
 Bluetooth sniffing tools and firmware upload.  All three are built and installed
 by default using the following method:</p>
 <pre>
-    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-r534.tar.gz/download -O ubertooth-r534.tar.gz
-    tar xf ubertooth-r534.tar.gz
-    cd ubertooth-r534/host/bluetooth_rxtx
+    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-2012-10-R1.tar.xz/download -O ubertooth-2012-10-R1.tar.xz
+    tar xf ubertooth-2012-10-R1.tar.xz
+    cd ubertooth-2012-10-R1/host/bluetooth_rxtx
     make
 </pre>
 <br />
@@ -181,6 +224,91 @@ cannot currently be built on Windows.</p>
 <p>This completes the install of the Ubertooth tools, the next step is to
 look at the <a href="../start">getting started</a> guide.  It may also be
 useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
+
+
+<h2 id="osx">Mac OSX</h2>
+<br /><br />
+<h3>Prerequisites</h3>
+<p>There are some prerequisites that can be installed from the
+<a href="http://www.macports.org/">MacPorts</a> systems:</p>
+<pre>
+    sudo apt-get install libusb-1.0-0-dev make gcc pyside-tools
+</pre>
+
+<p>PyUSB is not yet available from the apt repositories, so it must be
+downloaded and built from sourece as follows:</p>
+<pre>
+    wget http://sourceforge.net/projects/pyusb/files/PyUSB%201.0/1.0.0-alpha-2/pyusb-1.0.0a2.tar.gz/download -O pyusb-1.0.0a2.tar.gz
+    tar xvf pyusb-1.0.0a2.tar.gz
+    cd pyusb-1.0.0a2
+    sudo python setup.py install
+</pre>
+
+<p>Next the Bluetooth baseband library (libbtbb) needs to be built for the
+Ubertooth tools to decode Bluetooth packets:</p>
+<pre>
+    wget http://sourceforge.net/projects/libbtbb/files/libbtbb-2012-10-R1.tar.xz/download -O libbtbb-2012-10-R1.tar.xz
+    tar xf libbtbb-2012-10-R1.tar.xz
+    cd libbtbb-2012-10-R1
+    make osx
+    sudo make osx-install
+</pre>
+<br />
+
+<h3>Ubertooth tools</h3>
+<p>There are three sets of tools that use the Ubertooth - spectrum analyzer,
+Bluetooth sniffing tools and firmware update.  All three are built and installed
+by default using the following method:</p>
+<pre>
+    wget http://sourceforge.net/projects/ubertooth/files/ubertooth-2012-10-R1.tar.xz/download -O ubertooth-2012-10-R1.tar.xz
+    tar xf ubertooth-2012-10-R1.tar.xz
+    cd ubertooth-2012-10-R1/host
+    make
+    sudo make install
+</pre>
+<p>If using the ubertooth-follow tool, the Bluetooth library headers are
+required and the tools need to be built with the "clock_debug" flag set:</p>
+<pre>
+    sudo apt-get install libbluetooth-dev
+    cd ubertooth-2012-10-R1/host
+    make clock_debug=true
+    sudo make clock_debug=true install
+</pre>
+<br />
+
+<h3>Kismet</h3>
+<p>The version if kismet provided by Debian/Ubuntu is 2008-05-R1, which is too 
+old to support the Ubertooth plugin.  In order to use Ubertooth with Kismet it 
+is nessecary to compile Kismet from source:</p>
+<pre>
+    First, create a kismet user group
+    wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
+    tar xf kismet-2011-03-R2.tar.gz
+    ln -s ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
+    cd kismet-2011-03-R2
+    ./configure --prefix=/opt/local --with-suidgroup=kismet
+    make && make plugins
+    sudo make suidinstall
+    sudo make plugins-install
+    Add "pcapbtbb" to the "logtypes=..." line in kismet.conf
+</pre>
+
+<h3>Wireshark</h3>
+<p>The Wireshark plugin allows Bluetooth baseband traffic that has been captured
+using Kismet to be analysed and disected within the Wireshark GUI.  It is built
+separately from the rest of the Ubertooth and libbtbb software:</p>
+<pre>
+    sudo apt-get install wireshark wireshark-dev libwireshark1 libwireshark-dev
+    cd libbtbb-2012-10-R1/wireshark/plugins/btbb
+    cmake -DCMAKE_INSTALL_LIBDIR=/usr/lib/wireshark/libwireshark1/plugins .
+    make
+    sudo make install
+</pre>
+
+<p>This completes the install of the Ubertooth tools, the next step is to
+look at the <a href="../start">getting started</a> guide.  It may also be
+useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
+
 
 <div id="firmware"></div>
 <h2>Firmware</h2>
@@ -209,5 +337,20 @@ available <a href="https://launchpad.net/gcc-arm-embedded">here</a>.</p>
 <p>To add this permanently to your path, run the following:</p>
 <pre>
     echo "export PATH=$PATH:/opt/gcc-arm-none-eabi-4_6-2012q2/bin" >> ~/.bashrc
+</pre>
+<br />
+<p>In order to flash a firmware image to the Ubertooth the ubertooth-dfu tool
+can be used; it should have been installed along with the Ubertooth tools
+earlier.  It is used as follows:</p>
+<pre>
+    ubertooth-dfu --write bluetooth_rxtx --detach
+</pre>
+<br />
+<p>If for some reason the image flashed to the Ubertooth makes the device
+unresponsive the inbuilt bootloader allows the device to be reflashed.  To
+trigger bootloader (flashing) mode, use the following steps:</p>
+<pre>
+    Disconnect the Ubertooth from the host system
+    Using a paperclip, short pins 1 and 3 on the expansion header (<a href="../../hardware/one/#pins">shown here</a>)
 </pre>
 <br />
