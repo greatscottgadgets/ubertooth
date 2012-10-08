@@ -37,11 +37,14 @@ ifeq ($(OS), FreeBSD)
 else
 	LIBUSB = usb-1.0
 endif
+
 LIBBTBB  = btbb
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 
+TOOLS = ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
 ifeq ($(clock_debug), true)
 	# Debug using locak clock
+	TOOLS+= ubertooth-follow
 	LDFLAGS += -lbluetooth
 endif
 
@@ -50,16 +53,18 @@ SONAME     = $(LIB_NAME).0
 
 LIB_FILE   = $(SONAME).1
 STATIC_LIB_FILE = libubertooth.a
-LIB_CFLAGS = $(CFLAGS) -shared -Wl,-soname,$(SONAME) -fPIC
+
+ifeq ($(OS), Darwin)
+	CFLAGS += -I/opt/local/include/
+	LDFLAGS += -L/opt/local/lib/ -rpath,/opt/local/lib
+	LIB_CFLAGS = $(CFLAGS) -shared -Wl -install_name $(INSTALL_DIR)/$(SONAME)
+else
+	LIB_CFLAGS = $(CFLAGS) -shared -Wl,-soname,$(SONAME)
+endif
 
 LIB_SOURCE_FILES = ubertooth.c ubertooth_control.c
 LIB_OBJECT_FILES = $(LIB_SOURCE_FILES:%.c=%.o)
 LIB_HEADER_FILES = $(LIB_SOURCE_FILES:%.c=%.h) ubertooth_interface.h
-
-TOOLS = ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
-ifeq ($(clock_debug), true)
-	TOOLS+= ubertooth-follow
-endif
 
 TOOLS_SOURCE = $(TOOLS:%=%.c)
 
@@ -92,7 +97,15 @@ cygwin-install: $(LIB_FILE) $(STATIC_LIB_FILE)
 	ln -fs $(LIB_FILE) $(INSTALL_DIR)/$(SONAME)
 	$(INSTALL) -m 0755 $(TOOLS) $(INSTALL_DIR)
 
+osx-install: $(LIB_FILE) $(TOOLS)
+	$(INSTALL) -m 0644 $(LIB_HEADER_FILES) $(INCLUDE_DIR)
+	$(INSTALL) -m 0644 $(LIB_FILE) $(LIB_DIR)
+	ln -fs $(LIB_FILE) $(LIB_DIR)/$(LIB_NAME)
+	ln -fs $(LIB_FILE) $(LIB_DIR)/$(SONAME)
+	$(INSTALL) -m 0644 $(LIB_HEADER_FILES) $(INCLUDE_DIR)
+	$(INSTALL) -m 0755 $(TOOLS) $(INSTALL_DIR)
+
 clean:
 	rm -f $(LIB_NAME).* $(STATIC_LIB_FILE) $(TOOLS) $(LIB_OBJECT_FILES) ubertooth-follow
 
-.PHONY: all clean install cygwin-install
+.PHONY: all clean install cygwin-install osx-install
