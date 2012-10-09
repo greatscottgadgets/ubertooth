@@ -114,3 +114,11 @@ a[name]:hover {
 
   line-height: 20px;
 }
+
+pre {
+  /*margin: 1em 1em 1em 1.6em;*/
+  font-family: monospace;
+  padding: 2px 2px 2px 0;
+  background-color: #FAFAFA;
+  border: 1px solid #DADADA;
+}

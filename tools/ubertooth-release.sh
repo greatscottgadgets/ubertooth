@@ -10,7 +10,9 @@ if test $# -lt 2 ; then
 	branch=`git rev-parse --abbrev-ref HEAD`
 else
 	branch=${2}
-	git checkout ${2}
+	# Not sure this is really a good idea, better to make
+	# sure that you're on the branch in the first place
+	#git checkout ${2}
 fi
 
 # FIXME you'll need to update these:
@@ -99,4 +101,4 @@ rm ${targetdir}/.gitignore
 # Archive
 ############################
 cd ${top}
-tar -zcf ${releasename}.tar.gz ${releasename}/
+tar -cJf ${releasename}.tar.xz ${releasename}/
