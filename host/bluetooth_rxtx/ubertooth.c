@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include <bluetooth_packet.h>
+#include <bluetooth_le_packet.h>
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
@@ -698,7 +699,12 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	for (i = 4; i < len; ++i)
 		printf("%02x ", rx->data[i]);
-	printf("\n\n");
+	printf("\n");
+
+	le_packet_t p;
+	decode_le(rx->data, rx->channel + 2402, rx->clk100ns, &p);
+	le_print(&p);
+	printf("\n");
 
 	fflush(stdout);
 }
