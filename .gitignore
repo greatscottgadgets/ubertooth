@@ -32,3 +32,7 @@ ubertooth_ui.so
 # r8c stuff
 r8c2l.h
 r8c2l.inc
+
+# web output
+web/output/*
+web/tmp/*
