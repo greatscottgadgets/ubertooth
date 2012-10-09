@@ -453,7 +453,7 @@ void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
 
 	if (decode(pkt, pn)) {
 		//DEBUG: probably don't want to print packets in production output
-		print(pkt);
+		btbb_print_packet(pkt);
 		if (pn->have_NAP) {
 			pkt->NAP = pn->NAP;
 			pkt->have_NAP = 1;

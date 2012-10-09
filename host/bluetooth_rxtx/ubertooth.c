@@ -592,7 +592,7 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		pkt.channel = rx->channel;
 
 		if(decode(&pkt, pn))
-			print(&pkt);
+			btbb_print_packet(&pkt);
 		else
 			printf("Failed to decode packet\n");
 	}
