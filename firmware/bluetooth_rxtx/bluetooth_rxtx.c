@@ -96,7 +96,7 @@ int crc_verify = 1;							// reject packets with bad CRC
 int le_connected = 0;                       // true if LE is connected
 u8 le_hop_amount = 0;                       // amount to hop in LE
 u8 le_channel_idx = 0;                      // current channel index in LE
-u8 le_hop_interval = 0;                     // connection-specific hop interval
+u16 le_hop_interval = 0;                    // connection-specific hop interval
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
 
 typedef void (*data_cb_t)(char *);
