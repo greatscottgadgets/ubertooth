@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include <bluetooth_packet.h>
+#include <bluetooth_le_packet.h>
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
@@ -138,6 +139,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	int i;
 	int xfer_blocks;
 	int num_xfers;
+	usb_pkt_rx* rx;
 	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
@@ -190,7 +192,9 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			(*cb)(cb_args, (usb_pkt_rx *)(full_buf + PKT_LEN * i), bank);
+			rx = (usb_pkt_rx *)(full_buf + PKT_LEN * i);
+			if(rx->pkt_type != KEEP_ALIVE)
+				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
 			if((clk_offset != -1) && !hopping) {
 				really_full = 0;
@@ -698,7 +702,12 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	for (i = 4; i < len; ++i)
 		printf("%02x ", rx->data[i]);
-	printf("\n\n");
+	printf("\n");
+
+	le_packet_t p;
+	decode_le(rx->data, rx->channel + 2402, rx->clk100ns, &p);
+	le_print(&p);
+	printf("\n");
 
 	fflush(stdout);
 }

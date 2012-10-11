@@ -98,6 +98,13 @@ enum operating_modes {
 	MODE_BT_PROMISC_LE = 10,
 };
 
+enum usb_pkt_types {
+	BR_PACKET  = 0,
+	LE_PACKET  = 1,
+	MESSAGE    = 2,
+	KEEP_ALIVE = 3,
+};
+
 /*
  * USB packet for Bluetooth RX (64 total bytes)
  */

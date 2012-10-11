@@ -96,8 +96,9 @@ int crc_verify = 1;							// reject packets with bad CRC
 int le_connected = 0;                       // true if LE is connected
 u8 le_hop_amount = 0;                       // amount to hop in LE
 u8 le_channel_idx = 0;                      // current channel index in LE
-u8 le_hop_interval = 0;                     // connection-specific hop interval
+u16 le_hop_interval = 0;                    // connection-specific hop interval
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
+u32 last_usb_pkt = 0;
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -307,6 +308,7 @@ static int enqueue(u8 *buf)
 		return 0;
 	}
 
+    f->pkt_type = BR_PACKET;
 	f->clkn_high = (clkn >> 20) & 0xff;
 	if (hop_mode == HOP_BLUETOOTH)
 		f->clk100ns = clkn;
@@ -367,9 +369,15 @@ static int dequeue_send()
 {
 	usb_pkt_rx *pkt = dequeue(&pkt);
 	if (pkt != NULL) {
+		last_usb_pkt = clkn;
 		USBHwEPWrite(BULK_IN_EP, (u8 *)pkt, sizeof(usb_pkt_rx));
 		return 1;
 	} else {
+		if (clkn - last_usb_pkt > 200) {
+			u8 pkt_type = KEEP_ALIVE;
+			last_usb_pkt = clkn;
+			USBHwEPWrite(BULK_IN_EP, &pkt_type, 1);
+		}
 		return 0;
 	}
 }
@@ -1062,8 +1070,6 @@ void DMA_IRQHandler()
 			++rx_err;
 		}
 	}
-	//if (do_hop && hop_mode == HOP_BLUETOOTH)
-	//	hop();
 }
 
 static void dio_ssp_start()
@@ -1654,18 +1660,17 @@ void bt_follow()
 		 * at multiple trigger points there. The MAX() below
 		 * helps with statistics in the case that cs_trigger
 		 * happened before the loop started. */
-		//rssi_reset();
-		//rssi_at_trigger = INT8_MIN;
+		rssi_reset();
+		rssi_at_trigger = INT8_MIN;
 		while ((rx_tc == 0) && (rx_err == 0))
-				;
-		//{
-		//	rssi = (int8_t)(cc2400_get(RSSI) >> 8);
-		//	if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
-		//		rssi = MAX(rssi,(cs_threshold_cur+54));
-		//		rssi_at_trigger = rssi;
-		//	}
-		//	rssi_add(rssi);
-		//}
+		{
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi_at_trigger = rssi;
+			}
+			rssi_add(rssi);
+		}
 
 		/* Keep buffer swapping in sync with DMA. */
 		if (rx_tc % 2) {
@@ -1686,7 +1691,7 @@ void bt_follow()
 		if (rx_tc > 1)
 			status |= DMA_OVERFLOW;
 
-		//rssi_iir_update();
+		rssi_iir_update();
 
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same
@@ -1718,7 +1723,7 @@ void bt_follow()
 		hold--;
 
 		/* Queue data from DMA buffer. */
-		//if (find_access_code(idle_rxbuf) >= 0)
+		if (find_access_code(idle_rxbuf) >= 0)
 			if (enqueue(idle_rxbuf)) {
 				RXLED_SET;
 				--rx_pkts;

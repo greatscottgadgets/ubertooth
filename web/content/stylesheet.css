@@ -115,10 +115,12 @@ a[name]:hover {
   line-height: 20px;
 }
 
-pre {
+pre,
+pre a {
   /*margin: 1em 1em 1em 1.6em;*/
-  font-family: monospace;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: small;
   padding: 2px 2px 2px 0;
-  background-color: #FAFAFA;
-  border: 1px solid #DADADA;
+  /*background-color: #FAFAFA;*/
+  /*border: 1px solid #DADADA;*/
 }
