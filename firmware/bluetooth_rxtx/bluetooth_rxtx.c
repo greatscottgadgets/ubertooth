@@ -102,6 +102,8 @@ u32 last_usb_pkt = 0;                       // for keep alive packets
 int clock_trim = 0;                         // to counteract clock drift
 u32 idle_buf_clkn = 0;
 u32 active_buf_clkn = 0;
+u32 idle_buf_channel = 0;
+u32 active_buf_channel = 0;
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -317,7 +319,7 @@ static int enqueue(u8 *buf)
 		f->clk100ns = idle_buf_clkn;
 	else
 		f->clk100ns = CLK100NS;
-	f->channel = channel-2402;
+	f->channel = idle_buf_channel - 2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
 	if (hop_mode != HOP_NONE)
@@ -1068,6 +1070,10 @@ void DMA_IRQHandler()
 {
 	idle_buf_clkn = active_buf_clkn;
 	active_buf_clkn = clkn;
+
+	idle_buf_channel = active_buf_channel;
+	active_buf_channel = channel;
+
 	/* interrupt on channel 0 */
 	if (DMACIntStat & (1 << 0)) {
 		if (DMACIntTCStat & (1 << 0)) {
