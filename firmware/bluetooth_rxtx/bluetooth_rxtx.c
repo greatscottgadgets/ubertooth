@@ -98,7 +98,10 @@ u8 le_hop_amount = 0;                       // amount to hop in LE
 u8 le_channel_idx = 0;                      // current channel index in LE
 u16 le_hop_interval = 0;                    // connection-specific hop interval
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
-u32 last_usb_pkt = 0;
+u32 last_usb_pkt = 0;                       // for keep alive packets
+int clock_trim = 0;                         // to counteract clock drift
+u32 idle_buf_clkn = 0;
+u32 active_buf_clkn = 0;
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -311,7 +314,7 @@ static int enqueue(u8 *buf)
     f->pkt_type = BR_PACKET;
 	f->clkn_high = (clkn >> 20) & 0xff;
 	if (hop_mode == HOP_BLUETOOTH)
-		f->clk100ns = clkn;
+		f->clk100ns = idle_buf_clkn;
 	else
 		f->clk100ns = CLK100NS;
 	f->channel = channel-2402;
@@ -373,6 +376,7 @@ static int dequeue_send()
 		USBHwEPWrite(BULK_IN_EP, (u8 *)pkt, sizeof(usb_pkt_rx));
 		return 1;
 	} else {
+		// Magic number, TODO: work out a sensible value and set it as a #define
 		if (clkn - last_usb_pkt > 200) {
 			u8 pkt_type = KEEP_ALIVE;
 			last_usb_pkt = clkn;
@@ -969,6 +973,8 @@ void TIMER0_IRQHandler()
 			keepalive_trigger = 1;
 
 		/* Ack interrupt */
+		T0MR0 = 3124 - clock_trim;
+		clock_trim = 0;
 		T0IR = TIR_MR0_Interrupt;
 	}
 }
@@ -1052,6 +1058,7 @@ static void dma_init()
 			DMACCxConfig_IE |       /* allow error interrupts */
 			DMACCxConfig_ITC;       /* allow terminal count interrupts */
 
+	active_buf_clkn = clkn;
 	/* reset interrupt counters */
 	rx_tc = 0;
 	rx_err = 0;
@@ -1059,6 +1066,8 @@ static void dma_init()
 
 void DMA_IRQHandler()
 {
+	idle_buf_clkn = active_buf_clkn;
+	active_buf_clkn = clkn;
 	/* interrupt on channel 0 */
 	if (DMACIntStat & (1 << 0)) {
 		if (DMACIntTCStat & (1 << 0)) {
@@ -1623,6 +1632,7 @@ void bt_follow()
 	u8 hold;
 	int8_t rssi;
 	int i;
+	int16_t packet_offset;
 	int8_t rssi_at_trigger;
 
 	mode = MODE_BT_FOLLOW;
@@ -1723,11 +1733,13 @@ void bt_follow()
 		hold--;
 
 		/* Queue data from DMA buffer. */
-		if (find_access_code(idle_rxbuf) >= 0)
+		if ((packet_offset = find_access_code(idle_rxbuf)) >= 0) {
+			clock_trim = 20 - packet_offset;
 			if (enqueue(idle_rxbuf)) {
 				RXLED_SET;
 				--rx_pkts;
 			}
+		}
 
 	rx_continue:
 		handle_usb();
