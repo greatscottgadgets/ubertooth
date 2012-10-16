@@ -250,9 +250,12 @@ useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
 <br /><br />
 <h3>Prerequisites</h3>
 <p>There are some prerequisites that can be installed from the
-<a href="http://www.macports.org/">MacPorts</a> systems:</p>
+<a href="http://www.macports.org/">MacPorts</a> systems.  The python 2.6 USB and
+pyside libraries have a number of large dependencies and may take a long time to
+build; they (and pyusb) are only required if using the spectrum analyser,
+otherwise they can safely be skipped.</p>
 <pre>
-  sudo port install libusb py26-pyside-tools py26-pyusb-devel
+  sudo port install libusb wget py26-pyside-tools py26-pyusb-devel
 </pre>
 
 <p>PyUSB is not yet available from the apt repositories, so it must be
@@ -282,7 +285,7 @@ by default using the following method:</p>
 <pre>
   wget http://sourceforge.net/projects/ubertooth/files/ubertooth-2012-10-R1.tar.xz/download -O ubertooth-2012-10-R1.tar.xz
   tar xf ubertooth-2012-10-R1.tar.xz
-  cd ubertooth-2012-10-R1/host
+  cd ubertooth-2012-10-R1/host/bluetooth_rxtx
   make
   sudo make osx-install
 </pre>

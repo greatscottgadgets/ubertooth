@@ -44,7 +44,7 @@ LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
 TOOLS = ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
 ifeq ($(clock_debug), true)
 	# Debug using locak clock
-	TOOLS+= ubertooth-follow
+	TOOLS+= ubertooth-follow ubertooth-scan
 	LDFLAGS += -lbluetooth
 endif
 
