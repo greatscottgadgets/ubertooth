@@ -678,19 +678,12 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	if (infile == NULL)
 		systime = time(NULL);
 
-		/* Dump to sumpfile if specified */
-		if (dumpfile) {
-			for(i = 0; i < NUM_BANKS; i++) {
-				uint32_t systime_be = htobe32(systime);
-				if (fwrite(&systime_be, 
-					   sizeof(systime_be), 1,
-					   dumpfile)
-				    != 1) {;}
-				if (fwrite(rx,
-					   sizeof(usb_pkt_rx), 1, dumpfile)
-				    != 1) {;}
-			}
-		}
+	/* Dump to sumpfile if specified */
+	if (dumpfile) {
+		uint32_t systime_be = htobe32(systime);
+		if (fwrite(&systime_be, sizeof(systime_be), 1, dumpfile) != 1) {;}
+		if (fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile) != 1) {;}
+	}
 
 	for (i = 0; i < 4; ++i)
 		access_address |= rx->data[i] << (i * 8);
