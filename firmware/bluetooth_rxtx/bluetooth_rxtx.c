@@ -370,6 +370,7 @@ static usb_pkt_rx *dequeue()
 	return &fifo[h];
 }
 
+#define USB_KEEP_ALIVE 400000
 static int dequeue_send()
 {
 	usb_pkt_rx *pkt = dequeue(&pkt);
@@ -378,8 +379,7 @@ static int dequeue_send()
 		USBHwEPWrite(BULK_IN_EP, (u8 *)pkt, sizeof(usb_pkt_rx));
 		return 1;
 	} else {
-		// Magic number, TODO: work out a sensible value and set it as a #define
-		if (clkn - last_usb_pkt > 200) {
+		if (clkn - last_usb_pkt > USB_KEEP_ALIVE) {
 			u8 pkt_type = KEEP_ALIVE;
 			last_usb_pkt = clkn;
 			USBHwEPWrite(BULK_IN_EP, &pkt_type, 1);
