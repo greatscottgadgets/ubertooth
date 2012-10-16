@@ -47,6 +47,9 @@ uint32_t systime;
 int clk_offset = -1;
 u8 hopping = 0;
 u8 usb_retry = 1;
+u8 stop_ubertooth = 0;
+time_t end_time;
+pnet_list_item* pnet_list_head;
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -196,7 +199,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 			if(rx->pkt_type != KEEP_ALIVE)
 				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
-			if((clk_offset != -1) && !hopping) {
+			if(((clk_offset != -1) && !hopping) || stop_ubertooth) {
 				really_full = 0;
 				usb_retry = 0;
 				r = libusb_handle_events(NULL);
@@ -596,7 +599,7 @@ static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
 		pkt.channel = rx->channel;
 
 		if(decode(&pkt, pn))
-			print(&pkt);
+			; //print(&pkt);
 		else
 			printf("Failed to decode packet\n");
 	}
@@ -826,6 +829,100 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		fflush(stderr);
 	}
 	return 0;
+}
+
+/* Sniff for LAPs. and attempt to determine matching UAPs */
+void cb_scan(void* args, usb_pkt_rx *rx, int bank)
+{
+	piconet* pn = (piconet *)args;
+	char syms[BANK_LEN * NUM_BANKS];
+	int i;
+	access_code ac;
+	packet pkt;
+	char *channel_rssi_history;
+	uint32_t clk0, clk1;
+	pnet_list_item* pnet_holder;
+
+	/* Sanity check */
+	if (rx->channel > (NUM_CHANNELS-1))
+		return;
+
+	/* Copy packet (for dump) */
+	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
+
+	unpack_symbols(rx->data, symbols[bank]);
+
+	/* Do analysis based on oldest packet */
+	rx = &packets[ (bank+1) % NUM_BANKS ];
+
+	/* Shift rssi max history and append current max */
+	channel_rssi_history = rssi_history[rx->channel];
+	memmove(channel_rssi_history,
+		channel_rssi_history+1,
+		RSSI_HISTORY_LEN-1);
+	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
+
+	/* Copy all banks for analysis */
+	for (i = 0; i < NUM_BANKS; i++)
+		memcpy(syms + i * BANK_LEN,
+		       symbols[(i + 1 + bank) % NUM_BANKS],
+		       BANK_LEN);
+			
+	if(!sniff_ac(syms, BANK_LEN, &ac))
+		return;
+
+	if (ac.error_count <= max_ac_errors) {
+		/* Native (Ubertooth) clock with period 312.5 uS. */
+		clk0 = (rx->clkn_high << 20)
+			+ (le32toh(rx->clk100ns) + ac.offset * 10) / 3125;
+		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
+		clk1 = clk0 / 2;
+
+		//printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u\n",
+		//       (int)systime, rx->channel, ac.LAP, ac.error_count,
+		//       rx->clk100ns, clk1);
+
+		pnet_holder = pnet_list_head;
+		while(pnet_holder != NULL) {
+			if(pnet_holder->pnet->LAP == ac.LAP) {
+				//printf("Piconet found\n");
+				break;
+			}
+			pnet_holder = pnet_holder->next;
+		}
+		if (pnet_holder == NULL) {
+			//printf("Piconet not found\n");
+			pnet_holder = (pnet_list_item*) malloc(sizeof(pnet_list_item));
+			pn = (piconet*) malloc(sizeof(piconet));
+			init_piconet(pn);
+			pn->LAP = ac.LAP;
+			pnet_holder->pnet = pn;
+			pnet_holder->next = pnet_list_head;
+			pnet_list_head = pnet_holder;
+		} else
+			pn = pnet_holder->pnet;
+
+		init_packet(&pkt, &syms[ac.offset],
+			    BANK_LEN * NUM_BANKS - ac.offset);
+		pkt.LAP = ac.LAP;
+		pkt.clkn = clk1;
+		pkt.channel = rx->channel;
+		if (!pn->have_UAP && header_present(&pkt)) {
+			UAP_from_header(&pkt, pn);
+		}
+	}
+	
+	if (time(NULL) >= end_time) {
+		printf("Timeout reached\n");
+		stop_ubertooth = 1;
+	}
+}
+
+pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
+{
+	end_time = time(NULL) + timeout;
+	stream_rx_usb(devh, XFER_LEN, 0, cb_scan, NULL);
+	return pnet_list_head;
 }
 
 void ubertooth_stop(struct libusb_device_handle *devh)
