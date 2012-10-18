@@ -903,12 +903,12 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		if (!pn->have_UAP && header_present(&pkt)) {
 			UAP_from_header(&pkt, pn);
 		}
+		else
+			pn->afh_map[pkt.channel/8] |= pkt.channel % 8;
 	}
 	
-	if (time(NULL) >= end_time) {
-		printf("Timeout reached\n");
+	if (time(NULL) >= end_time)
 		stop_ubertooth = 1;
-	}
 }
 
 pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
