@@ -52,7 +52,7 @@ static void usage()
 
 void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 {
-	uint16_t handle;
+	uint16_t handle, offset;
 	uint8_t features[8], max_page = 0;
 	char name[249], *tmp;
 	char addr[19] = { 0 };
@@ -135,6 +135,15 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 			features[4], features[5], features[6], features[7]);
 	}
 
+	if (hci_read_clock_offset(dd, handle, &offset, 1000) < 0) {
+		perror("Reading clock offset failed");
+		exit(1);
+	}
+
+	printf("\tClock offset: 0x%4.4x\n", btohs(offset));
+
+	free(cr);
+	
 	if (cc) {
 		usleep(10000);
 		hci_disconnect(dd, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
