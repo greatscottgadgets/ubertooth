@@ -1,5 +1,7 @@
 /*
  * Copyright 2010, 2011 Michael Ossmann
+ * Extra info scan:
+ * Copyright (C) 2002-2010  Marcel Holtmann <marcel@holtmann.org>
  *
  * This file is part of Project Ubertooth.
  *
@@ -19,14 +21,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*
- * PLAN
- *
- * Scan with hci device
- * Find LAP/UAP combinations not in the list (using ubertooth)
- * inquiry scan everything in the combined list
- * 
- */
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -43,7 +37,6 @@
 #include <getopt.h>
 
 extern int max_ac_errors;
-extern FILE *dumpfile;
 
 static void usage()
 {
@@ -67,17 +60,6 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 	struct hci_dev_info di;
 	struct hci_conn_info_req *cr;
 	int i, cc = 0;
-
-	//if (dev_id < 0)
-	//	dev_id = hci_for_each_dev(HCI_UP, find_conn, (long) &bdaddr);
-	//
-	//if (dev_id < 0)
-	//	dev_id = hci_get_route(&bdaddr);
-	//
-	//if (dev_id < 0) {
-	//	fprintf(stderr, "Device is not available or not connected.\n");
-	//	exit(1);
-	//}
 	
 	if (hci_devinfo(dev_id, &di) < 0) {
 		perror("Can't get device info");
@@ -241,12 +223,7 @@ int main(int argc, char *argv[])
 
 	while(pnet_list != NULL) {
 		if (pnet_list->pnet->have_UAP) {
-			//printf("00:00:%02x:%02x:%02x:%02x\n",
-			//	pnet_list->pnet->UAP,
-			//	(pnet_list->pnet->LAP >> 16) & 0xFF,
-			//	(pnet_list->pnet->LAP >> 8) & 0xFF,
-			//	pnet_list->pnet->LAP & 0xFF);
-			sprintf(addr, "00:00:%02x:%02x:%02x:%02x",
+			sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
 				pnet_list->pnet->UAP,
 				(pnet_list->pnet->LAP >> 16) & 0xFF,
 				(pnet_list->pnet->LAP >> 8) & 0xFF,
