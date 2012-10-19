@@ -871,9 +871,9 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
-		//printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u\n",
-		//       (int)systime, rx->channel, ac.LAP, ac.error_count,
-		//       rx->clk100ns, clk1);
+		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u\n",
+		       (int)systime, rx->channel, ac.LAP, ac.error_count,
+		       rx->clk100ns, clk1);
 
 		pnet_holder = pnet_list_head;
 		while(pnet_holder != NULL) {
@@ -903,8 +903,7 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		if (!pn->have_UAP && header_present(&pkt)) {
 			UAP_from_header(&pkt, pn);
 		}
-		else
-			pn->afh_map[pkt.channel/8] |= pkt.channel % 8;
+		pn->afh_map[rx->channel/8] |= 0x1 << (rx->channel % 8);
 	}
 	
 	if (time(NULL) >= end_time)

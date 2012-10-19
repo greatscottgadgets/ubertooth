@@ -245,6 +245,12 @@ int main(int argc, char *argv[])
 			printf("%s  %s\n", addr, name);
 			if (extended)
 				extra_info(sock, dev_id, &bdaddr);
+
+			// Print AFH map from piconet
+			printf("\tAFH Map: 0x");
+			for(i=0; i<10; i++)
+				printf("%02x", pnet_list->pnet->afh_map[i]);
+			printf("\n");
 		}
 		pnet_list = pnet_list->next;
 	}

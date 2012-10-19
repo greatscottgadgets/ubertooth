@@ -319,7 +319,7 @@ static int enqueue(u8 *buf)
 		f->clk100ns = idle_buf_clkn;
 	else
 		f->clk100ns = CLK100NS;
-	f->channel = idle_buf_channel - 2402;
+	f->channel = channel - 2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
 	if (hop_mode != HOP_NONE)
@@ -1061,6 +1061,7 @@ static void dma_init()
 			DMACCxConfig_ITC;       /* allow terminal count interrupts */
 
 	active_buf_clkn = clkn;
+	active_buf_channel = channel;
 	/* reset interrupt counters */
 	rx_tc = 0;
 	rx_err = 0;
