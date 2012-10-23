@@ -91,7 +91,7 @@ using Kismet to be analysed and disected within the Wireshark GUI.  It is built
 separately from the rest of the Ubertooth and libbtbb software:</p>
 <pre>
   sudo apt-get install wireshark wireshark-dev \
-  libwireshark1 libwireshark-dev
+  libwireshark1 libwireshark-dev cmake
   cd libbtbb-2012-10-R1/wireshark/plugins/btbb
   cmake -DCMAKE_INSTALL_LIBDIR=/usr/lib/wireshark/libwireshark1/plugins .
   make
@@ -169,7 +169,7 @@ to compile Kismet from source:</p>
 using Kismet to be analysed and disected within the Wireshark GUI.  It is built
 separately from the rest of the Ubertooth and libbtbb software:</p>
 <pre>
-  su -c "yum install wireshark wireshark-devel"
+  su -c "yum install wireshark wireshark-devel cmake"
   cd libbtbb-2012-10-R1/wireshark/plugins/btbb
   cmake .
   make
@@ -313,7 +313,7 @@ source, with the plugin linked to the source tree:</p>
 using Kismet to be analysed and disected within the Wireshark GUI.  It is built
 separately from the rest of the Ubertooth and libbtbb software:</p>
 <pre>
-  sudo port install wireshark wireshark-devel
+  sudo port install wireshark wireshark-devel cmake
   cd libbtbb-2012-10-R1/wireshark/plugins/btbb
   cmake -DCMAKE_INSTALL_LIBDIR=/usr/lib/wireshark/libwireshark1/plugins .
   make

@@ -22,6 +22,9 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include <sys/ioctl.h>
+
+#include <unistd.h>
 
 #include "ubertooth.h"
 #include <bluetooth_packet.h>
@@ -49,16 +52,20 @@ static void usage()
 
 int main(int argc, char *argv[])
 {
-	int opt, bt_dev_id, delay = 5;
+	int opt, sock, dev_id, delay = 5;
 	int have_lap = 0;
 	int have_uap = 0;
 	char *end, ubertooth_device = -1;
 	char *bt_dev = "hci0";
+    char addr[19] = { 0 };
 	struct libusb_device_handle *devh = NULL;
 	uint32_t clock;
-	uint16_t accuracy;
+	uint16_t accuracy, handle, offset;
 	bdaddr_t bdaddr;
 	piconet pn;
+	struct hci_dev_info di;
+	int cc = 0;
+
 
 	init_piconet(&pn);
 
@@ -105,20 +112,59 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-	
-	bt_dev_id = hci_open_dev(hci_devid(bt_dev));
+
+	dev_id = hci_devid(bt_dev);
+	sock = hci_open_dev(dev_id);
+	hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
 
 	if ((have_lap != 1) || (have_uap != 1)) {
 		printf("No address given, reading address from device\n");
-		hci_read_bd_addr(bt_dev_id, &bdaddr, 0);
+		hci_read_bd_addr(sock, &bdaddr, 0);
 		pn.LAP = bdaddr.b[0] | bdaddr.b[1] << 8 | bdaddr.b[2] << 16;
 		pn.UAP = bdaddr.b[3];
 		printf("LAP=%06x UAP=%02x\n", pn.LAP, pn.UAP);
-		//usage();
-		//return 1;
+	} else {
+		if (have_lap && have_uap) {
+			printf("Address given, assuming address is remote\n");
+			sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
+				pn.UAP,
+				(pn.LAP >> 16) & 0xFF,
+				(pn.LAP >> 8) & 0xFF,
+				pn.LAP & 0xFF
+			);
+			str2ba(addr, &bdaddr);
+			printf("Address: %s\n", addr);
+	
+			if (hci_devinfo(dev_id, &di) < 0) {
+				perror("Can't get device info");
+				exit(1);
+			}
+
+			if (hci_create_connection(sock, &bdaddr,
+						htobs(di.pkt_type & ACL_PTYPE_MASK),
+						0, 0x01, &handle, 25000) < 0) {
+				perror("Can't create connection");
+				exit(1);
+			}
+			sleep(1);
+			cc = 1;
+
+			if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+				perror("Reading clock offset failed");
+			}
+			clock += offset;
+
+			if (cc) {
+				usleep(10000);
+				hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+			}
+			//exit(1);
+		} else {
+			usage();
+			exit(1);
+		}
 	}
 
-	hci_read_clock(bt_dev_id, 0, 0, &clock, &accuracy, 0);
 	devh = ubertooth_start(ubertooth_device);
 	if (devh == NULL) {
 		usage();

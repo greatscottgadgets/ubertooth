@@ -678,19 +678,12 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	if (infile == NULL)
 		systime = time(NULL);
 
-		/* Dump to sumpfile if specified */
-		if (dumpfile) {
-			for(i = 0; i < NUM_BANKS; i++) {
-				uint32_t systime_be = htobe32(systime);
-				if (fwrite(&systime_be, 
-					   sizeof(systime_be), 1,
-					   dumpfile)
-				    != 1) {;}
-				if (fwrite(rx,
-					   sizeof(usb_pkt_rx), 1, dumpfile)
-				    != 1) {;}
-			}
-		}
+	/* Dump to sumpfile if specified */
+	if (dumpfile) {
+		uint32_t systime_be = htobe32(systime);
+		if (fwrite(&systime_be, sizeof(systime_be), 1, dumpfile) != 1) {;}
+		if (fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile) != 1) {;}
+	}
 
 	for (i = 0; i < 4; ++i)
 		access_address |= rx->data[i] << (i * 8);
@@ -910,12 +903,11 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		if (!pn->have_UAP && header_present(&pkt)) {
 			UAP_from_header(&pkt, pn);
 		}
+		pn->afh_map[rx->channel/8] |= 0x1 << (rx->channel % 8);
 	}
 	
-	if (time(NULL) >= end_time) {
-		printf("Timeout reached\n");
+	if (time(NULL) >= end_time)
 		stop_ubertooth = 1;
-	}
 }
 
 pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
