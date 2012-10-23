@@ -784,7 +784,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_START_HOPPING:
 		clock_offset = 0;
 		for(i=0; i < 4; i++) {
-			clock_offset << 8;
+			clock_offset <<= 8;
 			clock_offset |= pbData[i];
 		}
 		clkn += clock_offset;
