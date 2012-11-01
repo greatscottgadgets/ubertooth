@@ -45,7 +45,6 @@ FILE *dumpfile = NULL;
 int max_ac_errors = 1;
 uint32_t systime;
 int clk_offset = -1;
-u8 hopping = 0;
 u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
 time_t end_time;
@@ -199,7 +198,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 			if(rx->pkt_type != KEEP_ALIVE)
 				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
-			if(((clk_offset != -1) && !hopping) || stop_ubertooth) {
+			if(stop_ubertooth) {
 				really_full = 0;
 				usb_retry = 0;
 				r = libusb_handle_events(NULL);
@@ -471,6 +470,7 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 					printf("got CLK1-27\n");
 					printf("clock offset = %d.\n", pn->clk_offset);
 					clk_offset = pn->clk_offset;
+					stop_ubertooth = 1;
 					return;
 				}
 			} else {
@@ -480,6 +480,7 @@ static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
 						printf("got CLK1-27\n");
 						printf("clock offset = %d.\n", pn->clk_offset);
 						clk_offset = pn->clk_offset;
+						stop_ubertooth = 1;
 						return;
 					}
 				} else {
@@ -614,6 +615,7 @@ void rx_hop(struct libusb_device_handle* devh, piconet* pn, int follow)
 	cmd_set_bdaddr(devh, address);
 
 	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
+	stop_ubertooth = 0;
 	if (follow == 1 && ret == 1) {
 		/* Allow previous transfers to be cleared out before starting again */
 		sleep(1);
@@ -638,7 +640,6 @@ void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, u
 	cmd_set_clock(devh, clock);
 	init_hop_reversal(0, pn);
 	pn->have_clk27 = 1;
-	hopping = 1;
 
 	/* delay value shlould be varied based on the delay in reading the clock */
 	cmd_start_hopping(devh, delay);
@@ -653,7 +654,6 @@ void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
 	//cmd_set_bdaddr(devh, address);
 
 	cmd_start_hopping(devh, pn->clk_offset);
-	hopping = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
 }
 
