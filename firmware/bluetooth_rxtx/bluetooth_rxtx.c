@@ -586,7 +586,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_RESET:
-		reset();
+		requested_mode = MODE_RESET;
 		break;
 
 	case UBERTOOTH_GET_SERIAL:
@@ -2308,9 +2308,13 @@ int main()
 
 	while (1) {
 		USBHwISR();
-		if (rx_pkts
-		    && requested_mode == MODE_RX_SYMBOLS
-		    && mode != MODE_RX_SYMBOLS )
+		if (requested_mode == MODE_RESET) {
+			/* Allow time for the USB command to return correctly */
+			wait(1);
+			reset();
+		}
+		else if (rx_pkts && requested_mode == MODE_RX_SYMBOLS
+				 && mode != MODE_RX_SYMBOLS )
 			bt_stream_rx();
 		else if (requested_mode == MODE_BT_FOLLOW && mode != MODE_BT_FOLLOW)
 			bt_follow();
