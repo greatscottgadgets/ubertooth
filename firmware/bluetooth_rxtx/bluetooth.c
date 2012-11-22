@@ -26,11 +26,22 @@ u8 a1, b, c1, e;
 u16 d1;
 /* frequency register bank */
 u8 bank[CHANNELS];
+u8 afh_bank[CHANNELS];
+u8 used_channels;
+
+/* count the number of 1 bits in a uint64_t */
+uint8_t count_bits(uint64_t n)
+{
+	uint8_t i = 0;
+	for (i = 0; n != 0; i++)
+		n &= n - 1;
+	return i;
+}
 
 /* do all of the one time precalculation */
 void precalc()
 {
-	u8 i;
+	u8 i, j, chan;
 	u32 address;
 	address = target.address & 0xffffffff;
 	syncword = 0;
@@ -57,6 +68,17 @@ void precalc()
 		((address >> 3) & 0x04) +
 		((address >> 2) & 0x02) +
 		((address >> 1) & 0x01);
+
+	if(afh_enabled) {
+		used_channels = 0;
+		for(i = 0; i < 10; i++)
+			used_channels += count_bits((uint64_t) afh_map[i]);
+		j = 0;
+		for (i = 0; i < CHANNELS; i++)
+			chan = (i * 2) % CHANNELS;
+			if(afh_map[chan/8] & (0x1 << (chan % 8)))
+				bank[j++] = chan;
+	}
 }
 
 /* 5 bit permutation */
@@ -102,10 +124,11 @@ u8 perm5(u8 z, u8 p_high, u16 p_low)
 
 u16 next_hop(u32 clock)
 {
-	u8 a, c, x, y1, perm;
+	u8 a, c, x, y1, perm, next_channel;
 	u16 d, y2;
-	u32 f;
+	u32 base_f, f, f_dash;
 
+	clock &= 0xfffffffc;
 	/* Variable names used in Vol 2, Part B, Section 2.6 of the spec */
 	x = (clock >> 2) & 0x1f;
 	y1 = (clock >> 1) & 0x01;
@@ -115,24 +138,21 @@ u16 next_hop(u32 clock)
 	c = (c1 ^ (clock >> 16)) & 0x1f;
 	d = (d1 ^ (clock >> 7)) & 0x1ff;
 	/* e is already defined */
-	f = (clock >> 3) & 0x1fffff0;
+	base_f = (clock >> 3) & 0x1fffff0;
+	f = base_f % 79;
 
 	perm = perm5(
 		((x + a) % 32) ^ b,
 		(y1 * 0x1f) ^ c,
 		d);
 	/* hop selection */
-	return(2402 + bank[(perm + e + f + y2) % CHANNELS]);
+	next_channel = bank[(perm + e + f + y2) % CHANNELS];
+	if(afh_enabled) {
+		f_dash = base_f % used_channels;
+		next_channel = afh_bank[(perm + e + f_dash + y2) % used_channels];
+	}
+	return(2402 + next_channel);
 
-}
-
-/* count the number of 1 bits in a uint64_t */
-uint8_t count_bits(uint64_t n)
-{
-	uint8_t i = 0;
-	for (i = 0; n != 0; i++)
-		n &= n - 1;
-	return i;
 }
 
 int find_access_code(u8 *idle_rxbuf)

@@ -19,6 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
+
+#ifndef __BLUETOOTH_H
+#define __BLUETOOTH_H
+
 #include "ubertooth.h"
 
 #define CHANNELS 79
@@ -26,6 +30,8 @@
 
 bdaddr target;
 u64 syncword;
+u8 afh_enabled;
+u8 afh_map[10];
 
 /* Barker distance/correct gains us very little when sniffing a known AC
 static const u8 ao_barker_distance[] = {
@@ -52,3 +58,5 @@ static const u8 ao_barker_correct[] = {
 void precalc();
 u16 next_hop(u32 clkn);
 int find_access_code(u8 *idle_rxbuf);
+
+#endif /* __BLUETOOTH_H */

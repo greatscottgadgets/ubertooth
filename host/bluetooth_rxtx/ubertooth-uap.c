@@ -43,7 +43,7 @@ static void usage()
 
 int main(int argc, char *argv[])
 {
-	int opt;
+	int opt, i;
 	int have_lap = 0;
 	char *end;
 	char ubertooth_device = -1;
@@ -98,6 +98,12 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 		rx_uap(devh, &pn);
+		// TODO - never get here because we don't return from callbacks properly
+		// Print AFH map from piconet
+		printf("AFH Map: 0x");
+		for(i=0; i<10; i++)
+			printf("%02x", pn.afh_map[i]);
+		printf("\n");		
 		ubertooth_stop(devh);
 	} else {
 		rx_uap_file(infile, &pn);

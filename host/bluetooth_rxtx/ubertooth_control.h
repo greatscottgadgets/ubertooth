@@ -113,6 +113,8 @@ int cmd_next_hop(struct libusb_device_handle* devh, u16 clk);
 int cmd_start_hopping(struct libusb_device_handle* devh, int clock_offset);
 int cmd_set_clock(struct libusb_device_handle* devh, u32 clkn);
 uint32_t cmd_get_clock(struct libusb_device_handle* devh);
+int cmd_set_afh_map(struct libusb_device_handle* devh, u8* afh_map);
+int cmd_clear_afh_map(struct libusb_device_handle* devh);
 int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num);
 u32 cmd_get_access_address(struct libusb_device_handle* devh);
 int cmd_set_access_address(struct libusb_device_handle* devh, u32 access_address);

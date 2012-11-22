@@ -659,6 +659,38 @@ int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num)
 	return 0;
 }
 
+int cmd_set_afh_map(struct libusb_device_handle* devh, u8* afh_map)
+{
+	int r;
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_AFHMAP, 0, 0,
+		afh_map, 10, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
+int cmd_clear_afh_map(struct libusb_device_handle* devh)
+{
+	int r;
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_CLEAR_AFHMAP, 0, 0,
+		NULL, 0, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
+
 u32 cmd_get_access_address(struct libusb_device_handle* devh)
 {
 	u32 access_address = 0;

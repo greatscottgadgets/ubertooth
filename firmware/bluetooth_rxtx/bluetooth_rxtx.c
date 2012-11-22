@@ -319,11 +319,11 @@ static int enqueue(u8 *buf)
 		f->clk100ns = idle_buf_clkn;
 	else
 		f->clk100ns = CLK100NS;
-	f->channel = channel - 2402;
+	f->channel = idle_buf_channel - 2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
 	if (hop_mode != HOP_NONE)
-		f->rssi_avg = (int8_t)((rssi_iir[channel-2402] + 128)/256);
+		f->rssi_avg = (int8_t)((rssi_iir[idle_buf_channel-2402] + 128)/256);
 	else
 		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
 	f->rssi_count = rssi_count;
@@ -778,6 +778,8 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		for(0; i < 8; i++) {
 			target.access_code |= pbData[i+8] << 8*i;
 		}
+		if(afh_enabled == NULL)
+			afh_enabled = 0;
 		precalc();
 		break;
 
@@ -796,6 +798,24 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		clock = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
 		clkn = clock;
 		cs_threshold_calc_and_set();
+		break;
+
+	case UBERTOOTH_SET_AFHMAP:
+		for(i=0; i < 10; i++) {
+			afh_map[i] = pbData[i];
+		}
+		afh_enabled = 1;
+		*piLen = 10;
+		precalc();
+		break;
+
+	case UBERTOOTH_CLEAR_AFHMAP:
+		for(i=0; i < 10; i++) {
+			afh_map[i] = 0;
+		}
+		afh_enabled = 0;
+		*piLen = 10;
+		precalc();
 		break;
 
 	case UBERTOOTH_GET_CLOCK:
@@ -1743,13 +1763,13 @@ void bt_follow()
 		hold--;
 
 		/* Queue data from DMA buffer. */
-		if ((packet_offset = find_access_code(idle_rxbuf)) >= 0) {
-			clock_trim = 20 - packet_offset;
+		//if ((packet_offset = find_access_code(idle_rxbuf)) >= 0) {
+		//	clock_trim = 20 - packet_offset;
 			if (enqueue(idle_rxbuf)) {
 				RXLED_SET;
 				--rx_pkts;
 			}
-		}
+		//}
 
 	rx_continue:
 		handle_usb();

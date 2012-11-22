@@ -56,6 +56,7 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 	uint8_t features[8], max_page = 0;
 	char name[249], *tmp;
 	char addr[19] = { 0 };
+	uint8_t mode, afh_map[10];
 	struct hci_version version;
 	struct hci_dev_info di;
 	struct hci_conn_info_req *cr;
@@ -142,6 +143,18 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 
 	printf("\tClock offset: 0x%4.4x\n", btohs(offset));
 
+	if(hci_read_afh_map(dd, handle, &mode, afh_map, 1000) < 0) {
+	perror("HCI read AFH map request failed");
+	//exit(1);
+	}
+	if(mode == 0x01) {
+		printf("\tAFH Map: 0x");
+		for(i=0; i<10; i++)
+			printf("%02x", afh_map[i]);
+		printf("\n");
+	} else {
+		printf("AFH disabled.\n");
+	}
 	free(cr);
 	
 	if (cc) {
@@ -247,10 +260,10 @@ int main(int argc, char *argv[])
 				extra_info(sock, dev_id, &bdaddr);
 
 			// Print AFH map from piconet
-			printf("\tAFH Map: 0x");
-			for(i=0; i<10; i++)
-				printf("%02x", pnet_list->pnet->afh_map[i]);
-			printf("\n");
+			//printf("\tAFH Map: 0x");
+			//for(i=0; i<10; i++)
+			//	printf("%02x", pnet_list->pnet->afh_map[i]);
+			//printf("\n");
 		}
 		pnet_list = pnet_list->next;
 	}

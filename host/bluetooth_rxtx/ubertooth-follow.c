@@ -44,6 +44,7 @@ static void usage()
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-e max_ac_errors\n");
 	printf("\t-d filename\n");
+	printf("\t-a Enable AFH\n");
 	printf("\t-b Bluetooth device (hci0)\n");
 	printf("\t-w USB delay in 625us timeslots (default:5)\n");
 	printf("\nLAP and UAP are both required, if not given they are read from the local device, in some cases this may give the incorrect address.\n");
@@ -52,9 +53,11 @@ static void usage()
 
 int main(int argc, char *argv[])
 {
-	int opt, sock, dev_id, delay = 5;
+	int opt, sock, dev_id, i, delay = 5;
 	int have_lap = 0;
 	int have_uap = 0;
+	int afh_enabled = 0;
+	uint8_t mode, afh_map[10];
 	char *end, ubertooth_device = -1;
 	char *bt_dev = "hci0";
     char addr[19] = { 0 };
@@ -69,7 +72,7 @@ int main(int argc, char *argv[])
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hl:u:U:e:d:b:w:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hl:u:U:e:d:ab:w:")) != EOF) {
 		switch(opt) {
 		case 'l':
 			pn.LAP = strtol(optarg, &end, 16);
@@ -95,6 +98,9 @@ int main(int argc, char *argv[])
 				perror(optarg);
 				return 1;
 			}
+			break;
+		case 'a':
+			afh_enabled = 1;
 			break;
 		case 'b':
 			bt_dev = optarg;
@@ -154,6 +160,22 @@ int main(int argc, char *argv[])
 			}
 			clock += offset;
 
+			//Experimental AFH map reading from remote device
+			if(afh_enabled) {
+				if(hci_read_afh_map(sock, handle, &mode, afh_map, 1000) < 0) {
+					perror("HCI read AFH map request failed");
+					//exit(1);
+				}
+				if(mode == 0x01) {
+					printf("\tAFH Map: 0x");
+					for(i=0; i<10; i++)
+						printf("%02x", afh_map[i]);
+					printf("\n");
+				} else {
+					printf("AFH disabled.\n");
+					afh_enabled = 0;
+				}
+			}
 			if (cc) {
 				usleep(10000);
 				hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
@@ -170,6 +192,8 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+	if(afh_enabled)
+		cmd_set_afh_map(devh, afh_map);
 	rx_follow(devh, &pn, clock, delay);
 	ubertooth_stop(devh);
 
