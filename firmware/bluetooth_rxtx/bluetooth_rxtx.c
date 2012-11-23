@@ -970,9 +970,9 @@ void TIMER0_IRQHandler()
 
 		/* Trigger hop based on mode */
 
-		/* NONE or SWEEP -> 100 Hz */
+		/* NONE or SWEEP -> 25 Hz */
 		if (hop_mode == HOP_NONE || hop_mode == HOP_SWEEP) {
-			if ((next & 0x1f) == 0)
+			if ((next & 0x7f) == 0)
 				do_hop = 1;
 		}
 		/* BLUETOOTH -> 1600 Hz */
@@ -1450,9 +1450,9 @@ void hop(void)
 
 	// Slow sweep (100 hops/sec)
 	else if (hop_mode == HOP_SWEEP) {
-		channel += 1;
+		channel += 32;
 		if (channel > 2480)
-			channel = 2402;
+			channel -= 79;
 	}
 
 	else if (hop_mode == HOP_BLUETOOTH) {
