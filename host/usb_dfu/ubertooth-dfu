@@ -173,7 +173,7 @@ if __name__ == '__main__':
         print str(e)
         usage()
 
-    vendorId = productId = None
+    vendorId = productId = dev = None
     try:
         if not opts:
             usage()
@@ -224,5 +224,6 @@ if __name__ == '__main__':
         exit(1)
     except Exception, e:
         print e
-        print dfu.get_status()
+        if dev:
+            print dev.get_status()
         exit(1)

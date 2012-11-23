@@ -232,7 +232,7 @@ def init_dfu(idVendor, idProduct):
     try:
         dfu.enter_dfu_mode()
     except usb.core.USBError, e:
-        if len(e.args) > 0 and e.args[0] == 'Pipe error':
+        if len(e.args) > 0 and 'Pipe error' in e.args:
             raise RuntimeError('Failed to enter DFU mode. Is bootloader running?')
         else:
             raise e
