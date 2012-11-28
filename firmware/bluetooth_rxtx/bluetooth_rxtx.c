@@ -269,7 +269,7 @@ static void cs_threshold_calc_and_set(void)
 static void cs_trigger_enable(void)
 {
 	cs_trigger = 0;
-	ISER0 |= ISER0_ISE_EINT3;
+	ISER0 = ISER0_ISE_EINT3;
 	IO2IntClr = PIN_GIO6;      // Clear pending
 	IO2IntEnF |= PIN_GIO6;     // Enable port 2.2 falling (CS active low)
 }
@@ -278,7 +278,7 @@ static void cs_trigger_disable(void)
 {
 	IO2IntEnF &= ~PIN_GIO6;    // Disable port 2.2 falling (CS active low)
 	IO2IntClr = PIN_GIO6;      // Clear pending
-	ISER0 &= ~ISER0_ISE_EINT3;
+	ICER0 = ICER0_ICE_EINT3;
 	cs_trigger = 0;
 }
 
@@ -915,7 +915,7 @@ static int ubertooth_usb_init()
 	//USBHwRegisterEPIntHandler(BULK_OUT_EP, usb_bulk_out_handler);
 
 	// enable USB interrupts
-	//ISER0 |= ISER0_ISE_USB;
+	//ISER0 = ISER0_ISE_USB;
 
 	// connect to bus
 	USBHwConnect(TRUE);
@@ -951,7 +951,7 @@ static void clkn_init()
 	/* 3125 * 100 ns = 312.5 us, the Bluetooth clock (CLKN). */
 	T0MR0 = 3124;
 	T0MCR = TMCR_MR0R | TMCR_MR0I;
-	ISER0 |= ISER0_ISE_TIMER0;
+	ISER0 = ISER0_ISE_TIMER0;
 
 	/* start timer */
 	T0TCR = TCR_Counter_Enable;
@@ -1063,7 +1063,7 @@ static void dma_init()
 			DMACCxControl_I;   /* terminal count interrupt enable */
 
 	/* disable DMA interrupts */
-	ISER0 &= ~ISER0_ISE_DMA;
+	ICER0 = ICER0_ICE_DMA;
 
 	/* enable DMA globally */
 	DMACConfig = DMACConfig_E;
@@ -1119,7 +1119,7 @@ static void dio_ssp_start()
 	
 	/* enable DMA */
 	DMACC0Config |= DMACCxConfig_E;
-	ISER0 |= ISER0_ISE_DMA;
+	ISER0 = ISER0_ISE_DMA;
 
 	/* activate slave select pin */
 	DIO_SSEL_CLR;
@@ -1795,7 +1795,7 @@ void bt_generic_le(u8 active_mode)
 	mode = active_mode;
 
 	// enable USB interrupts
-	ISER0 |= ISER0_ISE_USB;
+	ISER0 = ISER0_ISE_USB;
 
 	RXLED_CLR;
 
