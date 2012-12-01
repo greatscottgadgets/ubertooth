@@ -465,20 +465,6 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	}
 }
 
-/* sniff all packets and identify LAPs */
-void rx_lap(struct libusb_device_handle* devh)
-{
-	live = 1;
-	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
-	live = 0;
-}
-
-/* sniff all packets and identify LAPs */
-void rx_lap_file(FILE* fp)
-{
-	stream_rx_file(fp, 0, cb_lap, NULL);
-}
-
 /* sniff one target LAP until the UAP is determined */
 void rx_uap(struct libusb_device_handle* devh, bt_piconet* pn)
 {
