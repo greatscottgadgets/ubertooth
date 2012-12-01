@@ -562,7 +562,7 @@ int cmd_set_bdaddr(struct libusb_device_handle* devh, u64 address)
 	data_len = 16;
 	unsigned char data[data_len];
 
-	syncword = gen_syncword(address & 0xffffff);
+	syncword = bt_gen_syncword(address & 0xffffff);
 	//printf("syncword=%#llx\n", syncword);
 	for(r=0; r < 8; r++)
 		data[r] = (address >> (8*r)) & 0xff;

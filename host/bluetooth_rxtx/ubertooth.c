@@ -293,14 +293,14 @@ void try_hop(bt_packet *pkt, bt_piconet *pn)
 		}
 	} else {
 		if (pn->have_clk6) {
-			UAP_from_header(pkt, pn);
+			bt_uap_from_header(pkt, pn);
 			if (pn->have_clk27) {
 				printf("got CLK1-27\n");
 				printf("clock offset = %d.\n", pn->clk_offset);
 				clk_offset = pn->clk_offset;
 			}
 		} else {
-			if (UAP_from_header(pkt, pn)) {
+			if (bt_uap_from_header(pkt, pn)) {
 				if (filter_uap == pn->UAP) {
 					printf("got CLK1-6\n");
 					init_hop_reversal(0, pn);
@@ -460,7 +460,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		}
 		
 		/* Otherwise, try to determine UAP. */
-		else if (UAP_from_header(&pkt, pn))
+		else if (bt_uap_from_header(&pkt, pn))
 			hopping = 1;
 	}
 }
@@ -728,7 +728,7 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		pkt.clkn = clk1;
 		pkt.channel = rx->channel;
 		if (!pn->have_UAP && header_present(&pkt)) {
-			UAP_from_header(&pkt, pn);
+			bt_uap_from_header(&pkt, pn);
 		}
 		pn->afh_map[rx->channel/8] |= 0x1 << (rx->channel % 8);
 	}
