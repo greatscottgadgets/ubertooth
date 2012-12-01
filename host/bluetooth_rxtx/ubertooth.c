@@ -272,7 +272,7 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 
 static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 
-void try_hop(bt_packet *pkt, piconet *pn)
+void try_hop(bt_packet *pkt, bt_piconet *pn)
 {
 	uint8_t filter_uap = pn->UAP;
 
@@ -318,14 +318,12 @@ void try_hop(bt_packet *pkt, piconet *pn)
 	}
 }
 
-/* WC4: use double mmap for circbufs? Would save a log of copying. */
-
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
  */
 static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 {
-	piconet* pn = (piconet *)args;
+	bt_piconet* pn = (bt_piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	bt_packet pkt;
@@ -373,6 +371,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
+	/* WC4: use vm circbuf if target allows. This gets rid of this
+	 * wrapped copy step. */
+
 	/* Copy 2 oldest banks of symbols for analysis. Packet may
 	 * cross a bank boundary. */
 	for (i = 0; i < 2; i++)
@@ -396,8 +397,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		       symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
 
-	/* Set rx details: channel and clkn. The clock is not known
-	 * until after bt_packet_find() returns an offset. */
+	/* Once offset is known for a valid packet, copy in symbols
+	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
+	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset) / 3125;
 	bt_packet_set_data(&pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
 			   rx->channel, clkn);
@@ -429,7 +431,10 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	       rx->clk100ns, pkt.clkn, signal_level, noise_level, snr);
 	
 	/* If piconet structure is given, a LAP is given, and packet
-	 * header is readable, do further analysis. */
+	 * header is readable, do further analysis. If UAP has not yet
+	 * been determined, attempt to calculate it from headers. Once
+	 * UAP is known, try to determine clk6 and clk27. Once clocks
+	 * are known, follow the piconet. */
 	if (pn && pn->have_LAP && (header_present(&pkt))) {
 
 		/* If following is set, decode packets. */
@@ -475,7 +480,7 @@ void rx_lap_file(FILE* fp)
 }
 
 /* sniff one target LAP until the UAP is determined */
-void rx_uap(struct libusb_device_handle* devh, piconet* pn)
+void rx_uap(struct libusb_device_handle* devh, bt_piconet* pn)
 {
 	live = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
@@ -483,7 +488,7 @@ void rx_uap(struct libusb_device_handle* devh, piconet* pn)
 }
 
 /* sniff one target LAP until the UAP is determined */
-void rx_uap_file(FILE* fp, piconet* pn)
+void rx_uap_file(FILE* fp, bt_piconet* pn)
 {
 	stream_rx_file(fp, 0, cb_lap, pn);
 }
@@ -657,12 +662,13 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	return 0;
 }
 
-/* WC4: Integrate this into common callback */
+/* WC4: Integrate cb_scan into common callback. This mode looks for
+ * and stores UAPs for seen LAPs. */
 #ifdef WC4
 /* Sniff for LAPs. and attempt to determine matching UAPs */
 void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 {
-	piconet* pn = (piconet *)args;
+	bt_piconet* pn = (bt_piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	access_code ac;
@@ -721,7 +727,7 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		if (pnet_holder == NULL) {
 			//printf("Piconet not found\n");
 			pnet_holder = (pnet_list_item*) malloc(sizeof(pnet_list_item));
-			pn = (piconet*) malloc(sizeof(piconet));
+			pn = (bt_piconet*) malloc(sizeof(bt_piconet));
 			init_piconet(pn);
 			pn->LAP = ac.LAP;
 			pnet_holder->pnet = pn;

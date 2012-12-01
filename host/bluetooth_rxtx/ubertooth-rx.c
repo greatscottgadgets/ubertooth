@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	char *end;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
-	piconet pn;
+	bt_piconet pn;
 
 	init_piconet(&pn);
 
