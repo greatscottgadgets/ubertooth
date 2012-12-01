@@ -47,6 +47,10 @@ uint32_t systime;
 int clk_offset = -1;
 u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
+u8 live = 0;
+u8 hopping = 0;
+u8 following = 0;
+struct libusb_device_handle *devh_for_commands;
 time_t end_time;
 pnet_list_item* pnet_list_head;
 
@@ -145,6 +149,9 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
+
+	/* KLUDGE: allow callback to call command */
+	devh_for_commands = devh;
 
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
@@ -265,6 +272,54 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 
 static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 
+void try_hop(bt_packet *pkt, piconet *pn)
+{
+	uint8_t filter_uap = pn->UAP;
+
+	/* Decode packet - fixing clock drift in the process */
+	decode(pkt, pn);
+
+	if (pn->hop_reversal_inited) {
+		//pn->winnowed = 0;
+		pn->pattern_indices[pn->packets_observed] = pkt->clkn - pn->first_pkt_time;
+		pn->pattern_channels[pn->packets_observed] = pkt->channel;
+		pn->packets_observed++;
+		pn->total_packets_observed++;
+		winnow(pn);
+		if (pn->have_clk27) {
+			printf("got CLK1-27\n");
+			printf("clock offset = %d.\n", pn->clk_offset);
+			clk_offset = pn->clk_offset;
+		}
+	} else {
+		if (pn->have_clk6) {
+			UAP_from_header(pkt, pn);
+			if (pn->have_clk27) {
+				printf("got CLK1-27\n");
+				printf("clock offset = %d.\n", pn->clk_offset);
+				clk_offset = pn->clk_offset;
+			}
+		} else {
+			if (UAP_from_header(pkt, pn)) {
+				if (filter_uap == pn->UAP) {
+					printf("got CLK1-6\n");
+					init_hop_reversal(0, pn);
+					winnow(pn);
+				} else {
+					printf("failed to confirm UAP\n");
+				}
+			}
+		}
+	}
+
+	if(!pn->have_UAP) {
+		pn->have_UAP = 1;
+		pn->UAP = filter_uap;
+	}
+}
+
+/* WC4: use double mmap for circbufs? Would save a log of copying. */
+
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
  */
@@ -273,13 +328,14 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	piconet* pn = (piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
-	access_code ac;
-	packet pkt;
+	bt_packet pkt;
 	char *channel_rssi_history;
 	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
-	uint32_t clk0, clk1;
+	int offset;
+	uint32_t clkn;
+	uint32_t lap;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -317,86 +373,99 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	noise_level = rx->rssi_avg + RSSI_BASE;
 	snr = signal_level - noise_level;
 
-	/* Copy 2 banks for analysis */
+	/* Copy 2 oldest banks of symbols for analysis. Packet may
+	 * cross a bank boundary. */
 	for (i = 0; i < 2; i++)
 		memcpy(syms + i * BANK_LEN,
 		       symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
+	
+	/* Look for packets with specified LAP, if given. Otherwise
+	 * search for any packet. */
+	if (pn && pn->have_LAP)
+		lap = pn->LAP;
+	else
+		lap = LAP_ANY;
+	offset =  bt_find_ac(syms, BANK_LEN, lap, max_ac_errors, &pkt);
+	if (offset < 0)
+		return;
 
-	/* No piconet given, sniff for any LAP */
-	if (pn == NULL) {
-		if(!sniff_ac(syms, BANK_LEN, &ac))
-			return;
-	}
-	/* Find packets for specified LAP.  */
-	else {
-		if(!find_ac(syms, BANK_LEN, pn->LAP, &ac))
-			return;
-	}
+	/* Copy out remaining banks of symbols for full analysis. */
+	for (i = 1; i < NUM_BANKS; i++)
+		memcpy(syms + i * BANK_LEN,
+		       symbols[(i + 1 + bank) % NUM_BANKS],
+		       BANK_LEN);
 
-	if ((ac.offset > -1) && (ac.error_count <= max_ac_errors)) {
-		/* If dumpfile is specified, write out all banks to
-		 * the file. There could be duplicate data in the dump
-		 * if more than one LAP is found within the span of
-		 * NUM_BANKS. If experiment mode is selected, extra
-		 * info is written out. For now, it just prepends
-		 * capture time. */
-		if (dumpfile) {
-			for(i = 0; i < NUM_BANKS; i++) {
-				uint32_t systime_be = htobe32(systime);
-				if (fwrite(&systime_be, 
-					   sizeof(systime_be), 1,
-					   dumpfile)
-				    != 1) {;}
-				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
-					   sizeof(usb_pkt_rx), 1, dumpfile)
-				    != 1) {;}
-			}
+	/* Set rx details: channel and clkn. The clock is not known
+	 * until after bt_packet_find() returns an offset. */
+	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset) / 3125;
+	bt_packet_set_data(&pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
+			   rx->channel, clkn);
+
+	/* If dumpfile is specified, write out all banks to the
+	 * file. There could be duplicate data in the dump if more
+	 * than one LAP is found within the span of NUM_BANKS. */
+	if (dumpfile) {
+		for(i = 0; i < NUM_BANKS; i++) {
+			uint32_t systime_be = htobe32(systime);
+			if (fwrite(&systime_be, 
+				   sizeof(systime_be), 1,
+				   dumpfile)
+			    != 1) {;}
+			if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
+				   sizeof(usb_pkt_rx), 1, dumpfile)
+			    != 1) {;}
 		}
+	}
+	
+	/* When reading from file, caller will read
+	 * systime before calling this routine, so do
+	 * not overwrite. Otherwise, get current time. */
+	if ( infile == NULL )
+		systime = time(NULL);
+	
+	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
+	       (int)systime, pkt.channel, pkt.LAP, pkt.ac_errors,
+	       rx->clk100ns, pkt.clkn, signal_level, noise_level, snr);
+	
+	/* If piconet structure is given, a LAP is given, and packet
+	 * header is readable, do further analysis. */
+	if (pn && pn->have_LAP && (header_present(&pkt))) {
 
-		/* Native (Ubertooth) clock with period 312.5 uS. */
-		clk0 = (rx->clkn_high << 20)
-			+ (le32toh(rx->clk100ns) + ac.offset * 10) / 3125;
-		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
-		clk1 = clk0 / 2;
-
-		/* When reading from file, caller will read
-		 * systime before calling this routine, so do
-		 * not overwrite. Otherwise, get current time. */
-		if ( infile == NULL )
-			systime = time(NULL);
-
-		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
-		       (int)systime, rx->channel, ac.LAP, ac.error_count,
-		       rx->clk100ns, clk1, signal_level, noise_level, snr);
-
-		/* Found a packet with the requested LAP */
-		if (pn != NULL && ac.LAP == pn->LAP) {
-
-			/* Determining UAP requires more symbols. Copy
-			 * remaining banks. */
-			for (i = 2; i < NUM_BANKS; i++)
-				memcpy(syms + i * BANK_LEN,
-				       symbols[(i + 1 + bank) % NUM_BANKS],
-				       BANK_LEN);
+		/* If following is set, decode packets. */
+		if (following) {
+			pkt.UAP = pn->UAP;
+			pkt.have_clk6 = 1;
+			pkt.have_clk27 = 1;
 			
-			init_packet(&pkt, &syms[ac.offset],
-				    BANK_LEN * NUM_BANKS - ac.offset);
-			pkt.LAP = ac.LAP;
-			pkt.clkn = clk1;
-			pkt.channel = rx->channel;
-			if (header_present(&pkt)) {
-				if (UAP_from_header(&pkt, pn))
-					exit(0);
+			if(decode(&pkt, pn))
+				btbb_print_packet(&pkt);
+			else
+				printf("Failed to decode packet\n");
+		}
+
+		/* If hopping is set, UAP is known. Try to determine clk6. */
+		else if (hopping) {
+			try_hop(&pkt, pn);
+			if (pn->have_clk6 && pn->have_clk27) {
+				following = 1;
+				if (live)
+					cmd_start_hopping(devh_for_commands, pn->clk_offset);
 			}
 		}
+		
+		/* Otherwise, try to determine UAP. */
+		else if (UAP_from_header(&pkt, pn))
+			hopping = 1;
 	}
 }
 
 /* sniff all packets and identify LAPs */
 void rx_lap(struct libusb_device_handle* devh)
 {
+	live = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, NULL);
+	live = 0;
 }
 
 /* sniff all packets and identify LAPs */
@@ -408,7 +477,9 @@ void rx_lap_file(FILE* fp)
 /* sniff one target LAP until the UAP is determined */
 void rx_uap(struct libusb_device_handle* devh, piconet* pn)
 {
+	live = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
+	live = 0;
 }
 
 /* sniff one target LAP until the UAP is determined */
@@ -417,246 +488,7 @@ void rx_uap_file(FILE* fp, piconet* pn)
 	stream_rx_file(fp, 0, cb_lap, pn);
 }
 
-static void cb_hop(void* args, usb_pkt_rx *rx, int bank)
-{
-	char syms[BANK_LEN * NUM_BANKS];
-	int i, j, k;
-	access_code ac;
-	uint8_t channel;
-	uint32_t time; /* in 100 nanosecond units */
-	uint8_t clkn_high;
-	packet pkt;
-	piconet* pn = (piconet *)args;
-	uint8_t uap = pn->UAP;
-
-	channel = rx->channel;
-	time = le32toh(rx->clk100ns);  /* wire format is le32 */
-	clkn_high = rx->clkn_high;
-	unpack_symbols(rx->data, symbols[bank]);
-	/*
-	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-	*/
-	/* awfully repetitious */
-	k = 0;
-	for (i = 0; i < 2; i++)
-		for (j = 0; j < BANK_LEN; j++)
-			syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
-
-	if (find_ac(syms, BANK_LEN, pn->LAP, &ac)) {
-		for (i = 2; i < NUM_BANKS; i++)
-			for (j = 0; j < BANK_LEN; j++)
-				syms[k++] = symbols[(i + 1 + bank) % NUM_BANKS][j];
-
-		init_packet(&pkt, &syms[ac.offset], BANK_LEN * NUM_BANKS - ac.offset);
-		pkt.LAP = ac.LAP;
-		pkt.clkn = (clkn_high << 19) | ((time + ac.offset * 10) / 6250);
-		pkt.channel = channel;
-
-		if ((pkt.LAP == pn->LAP) && header_present(&pkt)) {
-			printf("\nGOT PACKET on channel %d, LAP = %06x at time stamp %u, clkn %u\n",
-			       channel, pkt.LAP, time + ac.offset * 10, pkt.clkn);
-
-			/* Decode packet - fixing clock drift in the process */
-			decode(&pkt, pn);
-
-			if (pn->hop_reversal_inited) {
-				//pn->winnowed = 0;
-				pn->pattern_indices[pn->packets_observed] = pkt.clkn - pn->first_pkt_time;
-				pn->pattern_channels[pn->packets_observed] = pkt.channel;
-				pn->packets_observed++;
-				pn->total_packets_observed++;
-				winnow(pn);
-				if (pn->have_clk27) {
-					printf("got CLK1-27\n");
-					printf("clock offset = %d.\n", pn->clk_offset);
-					clk_offset = pn->clk_offset;
-					stop_ubertooth = 1;
-					return;
-				}
-			} else {
-				if (pn->have_clk6) {
-					UAP_from_header(&pkt, pn);
-					if (pn->have_clk27) {
-						printf("got CLK1-27\n");
-						printf("clock offset = %d.\n", pn->clk_offset);
-						clk_offset = pn->clk_offset;
-						stop_ubertooth = 1;
-						return;
-					}
-				} else {
-					if (UAP_from_header(&pkt, pn)) {
-						if (uap == pn->UAP) {
-							printf("got CLK1-6\n");
-							init_hop_reversal(0, pn);
-							winnow(pn);
-						} else {
-							printf("failed to confirm UAP\n");
-							exit(1);
-						}
-					}
-				}
-			}
-			if(!pn->have_UAP) {
-				pn->have_UAP = 1;
-				pn->UAP = uap;
-			}
-		}
-	}
-}
-
-/* Follow a given piconet. */
-static void cb_follow(void* args, usb_pkt_rx *rx, int bank)
-{
-	piconet* pn = (piconet *)args;
-	char syms[BANK_LEN * NUM_BANKS];
-	int i;
-	access_code ac;
-	packet pkt;
-	char *channel_rssi_history;
-	int8_t signal_level;
-	int8_t noise_level;
-	int8_t snr;
-	uint32_t clkn, clk1;
-
-	/* Sanity check */
-	if (rx->channel > (NUM_CHANNELS-1))
-		return;
-
-	/* Copy packet (for dump) */
-	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
-
-	unpack_symbols(rx->data, symbols[bank]);
-
-	/* Do analysis based on oldest packet */
-	rx = &packets[ (bank+1) % NUM_BANKS ];
-
-	/* Shift rssi max history and append current max */
-	channel_rssi_history = rssi_history[rx->channel];
-	memmove(channel_rssi_history,
-		channel_rssi_history+1,
-		RSSI_HISTORY_LEN-1);
-	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
-
-	/* Signal starts in oldest bank, but may cross into second
-	 * oldest bank.  Take the max or the 2 maxs. */
-	signal_level = MAX(channel_rssi_history[0], channel_rssi_history[1]) + RSSI_BASE;
-
-	/* Noise is an IIR of averages */
-	noise_level = rx->rssi_avg + RSSI_BASE;
-	snr = signal_level - noise_level;
-
-	/* Copy all banks for analysis */
-	for (i = 0; i < NUM_BANKS; i++)
-		memcpy(syms + i * BANK_LEN,
-		       symbols[(i + 1 + bank) % NUM_BANKS],
-		       BANK_LEN);
-
-	if ((find_ac(syms, BANK_LEN, pn->LAP, &ac))
-		&& (ac.error_count <= max_ac_errors)) {
-		/* When reading from file, caller will read
-		 * systime before calling this routine, so do
-		 * not overwrite. Otherwise, get current time. */
-		if ( infile == NULL )
-			systime = time(NULL);
-
-		/* If dumpfile is specified, write out all banks to
-		 * the file. There could be duplicate data in the dump
-		 * if more than one LAP is found within the span of
-		 * NUM_BANKS. If experiment mode is selected, extra
-		 * info is written out. For now, it just prepends
-		 * capture time. */
-		if (dumpfile) {
-			for(i = 0; i < NUM_BANKS; i++) {
-				uint32_t systime_be = htobe32(systime);
-				if (fwrite(&systime_be, 
-					   sizeof(systime_be), 1,
-					   dumpfile)
-				    != 1) {;}
-				if (fwrite(&packets[(i + 1 + bank) % NUM_BANKS],
-					   sizeof(usb_pkt_rx), 1, dumpfile)
-				    != 1) {;}
-			}
-		}
-
-		/* Native (Ubertooth) clock with period 312.5 uS. */
-		clkn = le32toh(rx->clk100ns);
-
-		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
-		clk1 = clkn >> 1;
-
-		printf("systime=%u ch=%2d LAP=%06x err=%u clk1=0x%07x s=%d n=%d snr=%d\n",
-		       (int)systime, rx->channel, ac.LAP, ac.error_count, clk1,
-			   signal_level, noise_level, snr);
-
-		init_packet(&pkt, &syms[ac.offset],
-			    BANK_LEN * NUM_BANKS - ac.offset);
-		pkt.LAP = ac.LAP;
-		pkt.UAP = pn->UAP;
-		pkt.whitened = 1;
-		pkt.clkn = clkn;
-		pkt.clock = clk1;
-		pkt.have_clk6 = 1;
-		pkt.have_clk27 = 1;
-		pkt.channel = rx->channel;
-
-		if(decode(&pkt, pn))
-			btbb_print_packet(&pkt);
-		else
-			printf("Failed to decode packet\n");
-	}
-}
-
-/* sniff one target address until CLK is determined */
-void rx_hop(struct libusb_device_handle* devh, piconet* pn, int follow)
-{
-	int ret;
-	u64 address = 0;
-	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
-	cmd_set_bdaddr(devh, address);
-
-	ret = stream_rx_usb(devh, XFER_LEN, 0, cb_hop, pn);
-	stop_ubertooth = 0;
-	if (follow == 1 && ret == 1) {
-		/* Allow previous transfers to be cleared out before starting again */
-		sleep(1);
-		rx_follow_offset(devh, pn);
-	}
-}
-
-/* sniff one target LAP until the UAP is determined */
-void rx_hop_file(FILE* fp, piconet* pn)
-{
-	stream_rx_file(fp, 0, cb_hop, pn);
-}
-
-/* sniff one target address until CLK is determined */
-void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, uint32_t delay)
-{
-	u64 address = 0;
-	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
-	cmd_set_bdaddr(devh, address);
-
-	printf("Setting CLKN = 0x%x\n", clock);
-	cmd_set_clock(devh, clock);
-	init_hop_reversal(0, pn);
-	pn->have_clk27 = 1;
-
-	/* delay value shlould be varied based on the delay in reading the clock */
-	cmd_start_hopping(devh, delay);
-	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
-}
-
-/* sniff one target address until CLK is determined */
-void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
-{
-	//u64 address = 0;
-	//address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
-	//cmd_set_bdaddr(devh, address);
-
-	cmd_start_hopping(devh, pn->clk_offset);
-	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
-}
-
+#ifdef WC4
 /*
  * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept
  * that only captures advertising packets.
@@ -712,6 +544,7 @@ void rx_btle_file(FILE* fp)
 {
 	stream_rx_file(fp, 0, cb_btle, NULL);
 }
+#endif //WC4
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
 {
@@ -824,6 +657,8 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	return 0;
 }
 
+/* WC4: Integrate this into common callback */
+#ifdef WC4
 /* Sniff for LAPs. and attempt to determine matching UAPs */
 void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 {
@@ -831,7 +666,7 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	access_code ac;
-	packet pkt;
+	bt_packet pkt;
 	char *channel_rssi_history;
 	uint32_t clk0, clk1;
 	pnet_list_item* pnet_holder;
@@ -916,6 +751,7 @@ pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
 	stream_rx_usb(devh, XFER_LEN, 0, cb_scan, NULL);
 	return pnet_list_head;
 }
+#endif // WC4
 
 void ubertooth_stop(struct libusb_device_handle *devh)
 {

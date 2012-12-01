@@ -19,11 +19,9 @@
 ubertooth-btle
 ubertooth-dump
 ubertooth-follow
-ubertooth-hop
-ubertooth-lap
+ubertooth-rx
 ubertooth-scan
 ubertooth-specan
-ubertooth-uap
 ubertooth-util
 
 # kismet plugins

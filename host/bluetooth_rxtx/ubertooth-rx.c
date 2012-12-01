@@ -30,14 +30,15 @@ extern int max_ac_errors;
 
 static void usage()
 {
-	printf("ubertooth-uap - passive UAP discovery for a particular LAP\n");
+	printf("ubertooth-discover - passive Bluetooth discovery/decode\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
-	printf("\t-l<LAP> (in hexadecimal)\n");
+	printf("\t-l<LAP> to decode (2 hex), otherwise sniff all LAPs\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
 	printf("\t-e max_ac_errors\n");
+	printf("\t-s reset channel scanning\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
 {
 	int opt, i;
 	int have_lap = 0;
+	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
@@ -52,7 +54,7 @@ int main(int argc, char *argv[])
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hi:l:U:d:e:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:U:d:e:s")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -64,6 +66,7 @@ int main(int argc, char *argv[])
 			break;
 		case 'l':
 			pn.LAP = strtol(optarg, &end, 16);
+			pn.have_LAP = 1;
 			if (end != optarg)
 				++have_lap;
 			break;
@@ -80,15 +83,14 @@ int main(int argc, char *argv[])
 		case 'e':
 			max_ac_errors = atoi(optarg);
 			break;
+		case 's':
+			++reset_scan;
+			break;
 		case 'h':
 		default:
 			usage();
 			return 1;
 		}
-	}
-	if (have_lap != 1) {
-		usage();
-		return 1;
 	}
 
 	if (infile == NULL) {
@@ -97,6 +99,14 @@ int main(int argc, char *argv[])
 			usage();
 			return 1;
 		}
+
+		/* Scan all frequencies. Same effect as
+		 * ubertooth-utils -c9999. This is necessary after
+		 * following a piconet. */
+		if (reset_scan) {
+			cmd_set_channel(devh, 9999);
+		}
+
 		rx_uap(devh, &pn);
 		// TODO - never get here because we don't return from callbacks properly
 		// Print AFH map from piconet
