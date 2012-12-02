@@ -100,8 +100,10 @@ u16 le_hop_interval = 0;                    // connection-specific hop interval
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
 u32 last_usb_pkt = 0;                       // for keep alive packets
 int clock_trim = 0;                         // to counteract clock drift
-u32 idle_buf_clkn = 0;
-u32 active_buf_clkn = 0;
+u32 idle_buf_clkn_high;
+u32 active_buf_clkn_high;
+u32 idle_buf_clk100ns;
+u32 active_buf_clk100ns;
 u32 idle_buf_channel = 0;
 u32 active_buf_channel = 0;
 
@@ -313,12 +315,9 @@ static int enqueue(u8 *buf)
 		return 0;
 	}
 
-    f->pkt_type = BR_PACKET;
-	f->clkn_high = (clkn >> 20) & 0xff;
-	if (hop_mode == HOP_BLUETOOTH)
-		f->clk100ns = idle_buf_clkn;
-	else
-		f->clk100ns = CLK100NS;
+	f->pkt_type = BR_PACKET;
+	f->clkn_high = idle_buf_clkn_high;
+	f->clk100ns = idle_buf_clk100ns;
 	f->channel = idle_buf_channel - 2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
@@ -1080,8 +1079,10 @@ static void dma_init()
 			DMACCxConfig_IE |       /* allow error interrupts */
 			DMACCxConfig_ITC;       /* allow terminal count interrupts */
 
-	active_buf_clkn = clkn;
+	active_buf_clkn_high = (clkn >> 20) & 0xff;
+	active_buf_clk100ns = CLK100NS;
 	active_buf_channel = channel;
+
 	/* reset interrupt counters */
 	rx_tc = 0;
 	rx_err = 0;
@@ -1089,8 +1090,11 @@ static void dma_init()
 
 void DMA_IRQHandler()
 {
-	idle_buf_clkn = active_buf_clkn;
-	active_buf_clkn = clkn;
+	idle_buf_clkn_high = active_buf_clkn_high;
+	active_buf_clkn_high = (clkn >> 20) & 0xff;
+
+	idle_buf_clk100ns = active_buf_clk100ns;
+	active_buf_clk100ns = CLK100NS;
 
 	idle_buf_channel = active_buf_channel;
 	active_buf_channel = channel;
