@@ -34,8 +34,9 @@ static void usage()
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
-	printf("\t-l<LAP> to decode (2 hex), otherwise sniff all LAPs\n");
-	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
+	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate\n");
+	printf("\t-U <0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
 	printf("\t-e max_ac_errors\n");
 	printf("\t-s reset channel scanning\n");
@@ -45,7 +46,6 @@ static void usage()
 int main(int argc, char *argv[])
 {
 	int opt, i;
-	int have_lap = 0;
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
 	init_piconet(&pn);
 
-	while ((opt=getopt(argc,argv,"hi:l:U:d:e:s")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:s")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -67,8 +67,10 @@ int main(int argc, char *argv[])
 		case 'l':
 			pn.LAP = strtol(optarg, &end, 16);
 			pn.have_LAP = 1;
-			if (end != optarg)
-				++have_lap;
+			break;
+		case 'u':
+			pn.UAP = strtol(optarg, &end, 16);
+			pn.have_UAP = 1;
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
 			cmd_set_channel(devh, 9999);
 		}
 
-		rx_uap(devh, &pn);
+		rx_live(devh, &pn);
 		// TODO - never get here because we don't return from callbacks properly
 		// Print AFH map from piconet
 		printf("AFH Map: 0x");
@@ -116,7 +118,7 @@ int main(int argc, char *argv[])
 		printf("\n");		
 		ubertooth_stop(devh);
 	} else {
-		rx_uap_file(infile, &pn);
+		rx_file(infile, &pn);
 		fclose(infile);
 	}
 

@@ -47,8 +47,8 @@ int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	uint16_t num_blocks, rx_callback cb, void* cb_args);
 int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args);
-void rx_uap(struct libusb_device_handle* devh, bt_piconet* pn);
-void rx_uap_file(FILE* fp, bt_piconet* pn);
+void rx_live(struct libusb_device_handle* devh, bt_piconet* pn);
+void rx_file(FILE* fp, bt_piconet* pn);
 void rx_follow(struct libusb_device_handle* devh, bt_piconet* pn, uint32_t clock, uint32_t delay);
 void rx_follow_offset(struct libusb_device_handle* devh, bt_piconet* pn);
 void rx_dump(struct libusb_device_handle* devh, int full);

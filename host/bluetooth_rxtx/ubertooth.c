@@ -47,10 +47,7 @@ uint32_t systime;
 int clk_offset = -1;
 u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
-u8 live = 0;
-u8 hopping = 0;
-u8 following = 0;
-struct libusb_device_handle *devh_for_commands;
+bt_piconet *follow_pn = NULL;  // currently following this piconet
 time_t end_time;
 pnet_list_item* pnet_list_head;
 
@@ -150,16 +147,12 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
 
-	/* KLUDGE: allow callback to call command */
-	devh_for_commands = devh;
-
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
 	 * payload).  A transfer consists of one or more blocks.  Consecutive
 	 * blocks should be approximately 400 microseconds apart (timestamps about
 	 * 4000 apart in units of 100 nanoseconds).
 	 */
-
 	if (xfer_size > BUFFER_SIZE)
 		xfer_size = BUFFER_SIZE;
 	xfer_blocks = xfer_size / PKT_LEN;
@@ -206,6 +199,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
 			if(stop_ubertooth) {
+				stop_ubertooth = 0;
 				really_full = 0;
 				usb_retry = 0;
 				r = libusb_handle_events(NULL);
@@ -400,7 +394,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	/* Once offset is known for a valid packet, copy in symbols
 	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
 	 * btbb library can shift it be CLK1 if needed. */
-	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset) / 3125;
+	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset + 1562) / 3125;
 	bt_packet_set_data(&pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
 			   rx->channel, clkn);
 
@@ -426,9 +420,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	if ( infile == NULL )
 		systime = time(NULL);
 	
-	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
+	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d count=%d\n",
 	       (int)systime, pkt.channel, pkt.LAP, pkt.ac_errors,
-	       rx->clk100ns, pkt.clkn, signal_level, noise_level, snr);
+	       rx->clk100ns, pkt.clkn, signal_level, noise_level, snr, rx->rssi_count);
 	
 	/* If piconet structure is given, a LAP is given, and packet
 	 * header is readable, do further analysis. If UAP has not yet
@@ -437,8 +431,8 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	 * are known, follow the piconet. */
 	if (pn && pn->have_LAP && (bt_header_present(&pkt))) {
 
-		/* If following is set, decode packets. */
-		if (following) {
+		/* Have LAP/UAP/clocks, now hopping along with the piconet. */
+		if (follow_pn) {
 			pkt.UAP = pn->UAP;
 			pkt.have_clk6 = 1;
 			pkt.have_clk27 = 1;
@@ -449,32 +443,36 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 				printf("Failed to decode packet\n");
 		}
 
-		/* If hopping is set, UAP is known. Try to determine clk6. */
-		else if (hopping) {
+		/* Have LAP/UAP, need clocks. */
+		else if (pn->have_UAP) {
 			try_hop(&pkt, pn);
 			if (pn->have_clk6 && pn->have_clk27) {
-				following = 1;
-				if (live)
-					cmd_start_hopping(devh_for_commands, pn->clk_offset);
+				follow_pn = pn;
+				stop_ubertooth = 1;
 			}
 		}
 		
-		/* Otherwise, try to determine UAP. */
-		else if (bt_uap_from_header(&pkt, pn))
-			hopping = 1;
+		/* Have LAP, need UAP. */
+		else {
+			bt_uap_from_header(&pkt, pn);
+		}
 	}
 }
 
 /* sniff one target LAP until the UAP is determined */
-void rx_uap(struct libusb_device_handle* devh, bt_piconet* pn)
+void rx_live(struct libusb_device_handle* devh, bt_piconet* pn)
 {
-	live = 1;
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
-	live = 0;
+	if (follow_pn) {
+		pn = follow_pn;
+		sleep(1);
+		cmd_start_hopping(devh, follow_pn->clk_offset);
+		stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
+	}
 }
 
 /* sniff one target LAP until the UAP is determined */
-void rx_uap_file(FILE* fp, bt_piconet* pn)
+void rx_file(FILE* fp, bt_piconet* pn)
 {
 	stream_rx_file(fp, 0, cb_lap, pn);
 }
@@ -692,9 +690,9 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		return;
 
 	if (ac.error_count <= max_ac_errors) {
-		/* Native (Ubertooth) clock with period 312.5 uS. */
+		/* Native (Ubertooth) clock with period 312.5. */
 		clk0 = (rx->clkn_high << 20)
-			+ (le32toh(rx->clk100ns) + ac.offset * 10) / 3125;
+			+ (le32toh(rx->clk100ns) + ac.offset * 10 + 1562) / 3125;
 		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
 		clk1 = clk0 / 2;
 
