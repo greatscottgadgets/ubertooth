@@ -435,7 +435,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	 * been determined, attempt to calculate it from headers. Once
 	 * UAP is known, try to determine clk6 and clk27. Once clocks
 	 * are known, follow the piconet. */
-	if (pn && pn->have_LAP && (header_present(&pkt))) {
+	if (pn && pn->have_LAP && (bt_header_present(&pkt))) {
 
 		/* If following is set, decode packets. */
 		if (following) {
@@ -444,7 +444,7 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 			pkt.have_clk27 = 1;
 			
 			if(decode(&pkt, pn))
-				btbb_print_packet(&pkt);
+				bt_print_packet(&pkt);
 			else
 				printf("Failed to decode packet\n");
 		}
@@ -727,7 +727,7 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		pkt.LAP = ac.LAP;
 		pkt.clkn = clk1;
 		pkt.channel = rx->channel;
-		if (!pn->have_UAP && header_present(&pkt)) {
+		if (!pn->have_UAP && bt_header_present(&pkt)) {
 			bt_uap_from_header(&pkt, pn);
 		}
 		pn->afh_map[rx->channel/8] |= 0x1 << (rx->channel % 8);
