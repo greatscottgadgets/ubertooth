@@ -47,7 +47,7 @@ uint32_t systime;
 int clk_offset = -1;
 u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
-bt_piconet *follow_pn = NULL;  // currently following this piconet
+bt_piconet *follow_pn = NULL;               // currently following this piconet
 time_t end_time;
 pnet_list_item* pnet_list_head;
 
@@ -459,7 +459,10 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	}
 }
 
-/* sniff one target LAP until the UAP is determined */
+/* Receive and process packets. For now, returning from
+ * stream_rx_usb() means that UAP and clocks have been found, and that
+ * hopping should be started. A more flexible framework would be
+ * nice. */
 void rx_live(struct libusb_device_handle* devh, bt_piconet* pn)
 {
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
