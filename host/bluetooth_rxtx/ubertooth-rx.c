@@ -23,10 +23,13 @@
 #include <bluetooth_packet.h>
 #include <bluetooth_piconet.h>
 #include <getopt.h>
+#include <signal.h>
 
 extern FILE *dumpfile;
 extern FILE *infile;
 extern int max_ac_errors;
+
+struct libusb_device_handle *devh = NULL;
 
 static void usage()
 {
@@ -43,13 +46,19 @@ static void usage()
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
+void cleanup(int sig)
+{
+	if (devh) {
+		cmd_stop(devh);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int opt, i;
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
-	struct libusb_device_handle *devh = NULL;
 	bt_piconet pn;
 
 	init_piconet(&pn);
@@ -108,6 +117,11 @@ int main(int argc, char *argv[])
 		if (reset_scan) {
 			cmd_set_channel(devh, 9999);
 		}
+
+		/* Clean up on exit. */
+		signal(SIGINT,cleanup);
+		signal(SIGQUIT,cleanup);
+		signal(SIGTERM,cleanup);
 
 		rx_live(devh, &pn);
 		// TODO - never get here because we don't return from callbacks properly
