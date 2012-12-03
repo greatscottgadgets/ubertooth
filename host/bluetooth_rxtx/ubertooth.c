@@ -420,9 +420,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	if ( infile == NULL )
 		systime = time(NULL);
 	
-	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d count=%d\n",
+	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 	       (int)systime, pkt.channel, pkt.LAP, pkt.ac_errors,
-	       rx->clk100ns, pkt.clkn, signal_level, noise_level, snr, rx->rssi_count);
+	       rx->clk100ns, pkt.clkn, signal_level, noise_level, snr);
 	
 	/* If piconet structure is given, a LAP is given, and packet
 	 * header is readable, do further analysis. If UAP has not yet
