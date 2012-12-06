@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 const char* board_names[] = {
 	"Ubertooth Zero",

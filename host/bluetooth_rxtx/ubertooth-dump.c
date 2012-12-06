@@ -21,6 +21,7 @@
 
 #include "ubertooth.h"
 #include <getopt.h>
+#include <stdlib.h>
 
 static void usage(void)
 {

@@ -40,7 +40,7 @@
 #endif
 
 #include <stdio.h>
-#include <bluetooth_piconet.h>
+#include <btbb.h>
 
 #define u8 uint8_t
 #define u16 uint16_t

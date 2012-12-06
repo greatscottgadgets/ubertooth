@@ -20,10 +20,9 @@
  */
 
 #include "ubertooth.h"
-#include <bluetooth_packet.h>
-#include <bluetooth_piconet.h>
 #include <getopt.h>
 #include <signal.h>
+#include <stdlib.h>
 
 extern FILE *dumpfile;
 extern FILE *infile;
@@ -48,6 +47,7 @@ static void usage()
 
 void cleanup(int sig)
 {
+	sig = sig;
 	if (devh) {
 		cmd_stop(devh);
 	}
@@ -59,9 +59,9 @@ int main(int argc, char *argv[])
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
-	bt_piconet pn;
+	btbb_piconet pn;
 
-	init_piconet(&pn);
+	btbb_init_piconet(&pn);
 
 	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:s")) != EOF) {
 		switch(opt) {
