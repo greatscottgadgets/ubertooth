@@ -41,7 +41,7 @@ struct libusb_transfer *rx_xfer = NULL;
 char Quiet = false;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
-int max_ac_errors = 1;
+int max_ac_errors = 2;
 uint32_t systime;
 int clk_offset = -1;
 u8 usb_retry = 1;
@@ -183,7 +183,9 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		while (!really_full) {
 			r = libusb_handle_events(NULL);
 			if (r < 0) {
-				fprintf(stderr, "libusb_handle_events: %d\n", r);
+				if (r != LIBUSB_ERROR_INTERRUPTED) {
+					fprintf(stderr, "libusb_handle_events: %s\n", libusb_error_name(r));
+				}
 				return -1;
 			}
 		}
@@ -203,7 +205,9 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 				usb_retry = 0;
 				r = libusb_handle_events(NULL);
 				if (r < 0) {
-					fprintf(stderr, "libusb_handle_events: %d\n", r);
+					if (r != LIBUSB_ERROR_INTERRUPTED) {
+						fprintf(stderr, "libusb_handle_events: %s\n", libusb_error_name(r));
+					}
 					return -1;
 				}
 				usb_retry = 1;
@@ -433,8 +437,8 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		/* Have LAP/UAP/clocks, now hopping along with the piconet. */
 		if (follow_pn) {
 			pkt.UAP = pn->UAP;
-			pkt.have_clk6 = 1;
-			pkt.have_clk27 = 1;
+			pkt.flags.clk6_valid = 1;
+			pkt.flags.clk27_valid = 1;
 			
 			if(btbb_decode(&pkt, pn))
 				btbb_print_packet(&pkt);
@@ -464,6 +468,10 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
  * nice. */
 void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
 {
+	int r = btbb_init(max_ac_errors);
+	if (r < 0)
+		return;
+
 	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
 	if (follow_pn) {
 		pn = follow_pn;
@@ -476,6 +484,10 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
 /* sniff one target LAP until the UAP is determined */
 void rx_file(FILE* fp, btbb_piconet* pn)
 {
+	int r = btbb_init(max_ac_errors);
+	if (r < 0)
+		return;
+
 	stream_rx_file(fp, 0, cb_lap, pn);
 }
 

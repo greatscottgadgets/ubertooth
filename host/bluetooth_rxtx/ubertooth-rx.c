@@ -40,7 +40,7 @@ static void usage()
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
-	printf("\t-e max_ac_errors\n");
+	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
