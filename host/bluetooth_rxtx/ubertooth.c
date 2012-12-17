@@ -437,8 +437,8 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 		/* Have LAP/UAP/clocks, now hopping along with the piconet. */
 		if (follow_pn) {
 			pkt.UAP = pn->UAP;
-			pkt.flags.clk6_valid = 1;
-			pkt.flags.clk27_valid = 1;
+			btbb_packet_set_flag(&pkt, BTBB_CLK6_VALID, 1);
+			btbb_packet_set_flag(&pkt, BTBB_CLK27_VALID, 1);
 			
 			if(btbb_decode(&pkt, pn))
 				btbb_print_packet(&pkt);
