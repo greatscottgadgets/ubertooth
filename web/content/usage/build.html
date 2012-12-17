@@ -76,8 +76,8 @@ is nessecary to compile Kismet from source:</p>
   libpcap-dev libcap-dev
   wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
   tar xf kismet-2011-03-R2.tar.gz
-  ln -s ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
   cd kismet-2011-03-R2
+  ln -s ../ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
   ./configure
   make && make plugins
   sudo make suidinstall
@@ -155,8 +155,8 @@ to compile Kismet from source:</p>
   libstdc++-devel gcc-c++ ncurses-devel"
   wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
   tar xf kismet-2011-03-R2.tar.gz
-  ln -s ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
   cd kismet-2011-03-R2
+  ln -s ../ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
   ./configure
   make && make plugins
   su -c "make suidinstall"
@@ -298,8 +298,8 @@ source, with the plugin linked to the source tree:</p>
   First, create a kismet user group
   wget http://www.kismetwireless.net/code/kismet-2011-03-R2.tar.gz
   tar xf kismet-2011-03-R2.tar.gz
-  ln -s ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
   cd kismet-2011-03-R2
+  ln -s ../ubertooth-2012-10-R1/host/kismet/plugin-ubertooth kismet-2011-03-R2/
   ./configure --prefix=/opt/local --with-suidgroup=kismet
   make && make plugins
   sudo make suidinstall
