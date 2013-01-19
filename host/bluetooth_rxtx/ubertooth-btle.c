@@ -32,16 +32,22 @@ static void usage(void)
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
+	printf("\n");
+	printf("    Major modes:\n");
 	printf("\t-f follow connections\n");
 	printf("\t-p promiscuous: sniff active connections\n");
+	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
+	printf("\n");
+	printf("    Data source:\n");
 	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
-	printf("\t-d filename\n");
-	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
+	printf("\n");
+	printf("    Misc:\n");
+	printf("\t-d<filename> dump packets to file\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
-	printf("If get/set access address is specified, no capture occurs.\n");
+	printf("In get/set mode no capture occurs.\n");
 }
 
 int main(int argc, char *argv[])
