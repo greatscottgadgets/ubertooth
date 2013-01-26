@@ -22,7 +22,7 @@ AR      ?= ar
 INSTALL ?= /usr/bin/install
 LDCONFIG ?= /sbin/ldconfig
 
-OPTFLAGS   = -O2
+OPTFLAGS   = -O3
 ANGRYFLAGS = -Wall #-Wextra -pedantic
 CFLAGS    += $(OPTFLAGS) $(ANGRYFLAGS)
 

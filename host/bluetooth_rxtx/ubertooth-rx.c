@@ -59,9 +59,9 @@ int main(int argc, char *argv[])
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
-	btbb_piconet pn;
+	btbb_piconet *pn = NULL;
 
-	btbb_init_piconet(&pn);
+	btbb_init_piconet(pn);
 
 	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:s")) != EOF) {
 		switch(opt) {
@@ -74,12 +74,14 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'l':
-			pn.LAP = strtol(optarg, &end, 16);
-			pn.have_LAP = 1;
+			if (!pn)
+				pn = btbb_piconet_new();
+			btbb_piconet_set_lap(pn, strtol(optarg, &end, 16));
 			break;
 		case 'u':
-			pn.UAP = strtol(optarg, &end, 16);
-			pn.have_UAP = 1;
+			if (!pn)
+				pn = btbb_piconet_new();
+			btbb_piconet_set_uap(pn, strtol(optarg, &end, 16));
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -123,16 +125,23 @@ int main(int argc, char *argv[])
 		signal(SIGQUIT,cleanup);
 		signal(SIGTERM,cleanup);
 
-		rx_live(devh, &pn);
+		rx_live(devh, pn);
 		// TODO - never get here because we don't return from callbacks properly
 		// Print AFH map from piconet
 		printf("AFH Map: 0x");
-		for(i=0; i<10; i++)
-			printf("%02x", pn.afh_map[i]);
-		printf("\n");		
+
+		/* WC4: this is a pointer into the actual structure,
+		 * so has the same scope as 'pn'. Also has known
+		 * length 10. Fix all this. */
+		if (pn) {
+			uint8_t *afh_map = btbb_piconet_get_afh_map(pn);
+			for(i=0; i<10; i++)
+				printf("%02x", afh_map[i]);
+			printf("\n");
+		}
 		ubertooth_stop(devh);
 	} else {
-		rx_file(infile, &pn);
+		rx_file(infile, pn);
 		fclose(infile);
 	}
 
