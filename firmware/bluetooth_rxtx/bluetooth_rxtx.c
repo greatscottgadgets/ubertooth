@@ -1154,14 +1154,12 @@ static void cc2400_idle()
 static void cc2400_rx()
 {
 	if (modulation == MOD_BT_BASIC_RATE) {
-		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b); // without PRNG
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
 		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
 		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
-		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b); // without PRNG
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
@@ -1189,14 +1187,12 @@ void cc2400_txtest()
 {
 #ifdef TX_ENABLE
 	if (modulation == MOD_BT_BASIC_RATE) {
-		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x334b); // with PRNG
 		cc2400_set(GRMDM,   0x0df1); // default value
 		cc2400_set(FSDIV,   channel);
 		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
-		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x334b); // with PRNG
 		cc2400_set(GRMDM,   0x0df1); // default value
@@ -1288,7 +1284,6 @@ void cc2400_rangetest()
 	txbuf[21] = 0xff; // reply number
 
 	// Bluetooth-like modulation
-	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x134b);
 	cc2400_set(GRMDM,   0x0df1);  // default value
@@ -1381,7 +1376,6 @@ void cc2400_repeater()
 
 	//FIXME allow to be turned off
 	while (1) {
-		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b);
 		cc2400_set(FSDIV,   channel - 1);
@@ -2197,7 +2191,6 @@ void specan()
 	PAEN_SET;
 	//HGM_SET;
 #endif
-	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x134b); // without PRNG
 	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
@@ -2248,7 +2241,6 @@ void led_specan()
 	PAEN_SET;
 	//HGM_SET;
 #endif
-	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x134b); // without PRNG
 	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK

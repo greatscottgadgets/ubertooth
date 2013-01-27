@@ -240,6 +240,9 @@ void cc2400_init()
 
 	/* activate 3V3 supply for CC2400 IO */
 	CC3V3_SET;
+
+	/* initialise various cc2400 settings - see datasheet pg63 */
+	cc2400_set(MANAND,  0x7fff);
 }
 
 /*
