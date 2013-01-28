@@ -1956,7 +1956,7 @@ void connection_follow_cb(u8 *packet) {
 	if (le_connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
 		if (le_hop_after == 0)
-			le_hop_after = le_hop_interval;
+			le_hop_after = le_hop_interval / 2;
 	}
 
 	// connect packet
