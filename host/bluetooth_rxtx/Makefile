@@ -39,7 +39,7 @@ else
 endif
 
 LIBBTBB  = btbb
-LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB)
+LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB) -lpcap
 
 TOOLS = ubertooth-dump ubertooth-lap ubertooth-specan ubertooth-util ubertooth-uap ubertooth-hop ubertooth-btle
 ifeq ($(clock_debug), true)

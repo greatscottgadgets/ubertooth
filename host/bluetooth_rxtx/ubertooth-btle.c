@@ -21,11 +21,15 @@
 
 #include "ubertooth.h"
 #include <bluetooth_packet.h>
+#include <err.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <pcap.h>
 
 extern FILE *infile;
 extern FILE *dumpfile;
+extern pcap_t *pcap_dumpfile;
+extern pcap_dumper_t *dumper;
 
 static void usage(void)
 {
@@ -43,7 +47,8 @@ static void usage(void)
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\n");
 	printf("    Misc:\n");
-	printf("\t-d<filename> dump packets to file\n");
+	printf("\t-c<filename> capture packets to PCAP file\n");
+	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
@@ -65,7 +70,7 @@ int main(int argc, char *argv[])
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 
-	while ((opt=getopt(argc,argv,"a::d:hfpi:U:v::")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -92,6 +97,17 @@ int main(int argc, char *argv[])
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			break;
+		case 'c':
+			pcap_dumpfile = pcap_open_dead(DLT_PPI, 64);
+			if (pcap_dumpfile == NULL)
+				err(1, "pcap_open_dead: ");
+			dumper = pcap_dump_open(pcap_dumpfile, optarg);
+			if (dumper == NULL) {
+				warn("pcap_dump_open");
+				pcap_close(pcap_dumpfile);
+				exit(1);
+			}
 			break;
 		case 'd':
 			dumpfile = fopen(optarg, "w");
