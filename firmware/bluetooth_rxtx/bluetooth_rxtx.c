@@ -1795,6 +1795,7 @@ void bt_generic_le(u8 active_mode)
 	u8 *tmp = NULL;
 	u8 hold;
 	int i, j;
+	int8_t rssi, rssi_at_trigger;
 
 	mode = active_mode;
 
@@ -1823,9 +1824,18 @@ void bt_generic_le(u8 active_mode)
 
 		RXLED_CLR;
 
-		/* Wait for DMA transfer. */
+		/* Wait for DMA. Meanwhile keep track of RSSI. */
+		rssi_reset();
+		rssi_at_trigger = INT8_MIN;
 		while ((rx_tc == 0) && (rx_err == 0))
-			;
+		{
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi_at_trigger = rssi;
+			}
+			rssi_add(rssi);
+		}
 
 		/* Keep buffer swapping in sync with DMA. */
 		if (rx_tc % 2) {
@@ -1845,6 +1855,8 @@ void bt_generic_le(u8 active_mode)
 		/* Missed a DMA trasfer? */
 		if (rx_tc > 1)
 			status |= DMA_OVERFLOW;
+
+		rssi_iir_update();
 
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same

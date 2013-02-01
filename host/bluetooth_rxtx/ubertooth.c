@@ -68,9 +68,14 @@ typedef struct ppi_fieldheader {
 } ppi_fieldheader_t;
 
 typedef struct ppi_btle {
+	uint8_t btle_version; // 0 for now
 	uint16_t btle_channel;
 	uint8_t btle_clkn_high;
 	uint32_t btle_clk100ns;
+	int8_t rssi_max;
+	int8_t rssi_min;
+	int8_t rssi_avg;
+	uint8_t rssi_count;
 } __attribute__((packed)) ppi_btle_t;
 
 
@@ -800,9 +805,14 @@ static void log_packet(usb_pkt_rx *rx) {
 	ppifh->pfh_datalen = htole16(sizeof(ppi_btle_t));
 
 	ppi_btle_t *ppib = (void *)ppifh + sizeof(ppi_fieldheader_t);
+	ppib->btle_version = 0;
 	ppib->btle_channel = htole16(rx->channel + 2402);
 	ppib->btle_clkn_high = rx->clkn_high;
 	ppib->btle_clk100ns = htole32(rx->clk100ns);
+	ppib->rssi_max = rx->rssi_max;
+	ppib->rssi_min = rx->rssi_min;
+	ppib->rssi_avg = rx->rssi_avg;
+	ppib->rssi_count = rx->rssi_count;
 
 	void *packet_data_out = (void *)ppib + sizeof(ppi_btle_t);
 
