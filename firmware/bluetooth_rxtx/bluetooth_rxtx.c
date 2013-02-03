@@ -1797,6 +1797,7 @@ void bt_generic_le(u8 active_mode)
 	int i, j;
 	int8_t rssi, rssi_at_trigger;
 
+	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
 
 	// enable USB interrupts
