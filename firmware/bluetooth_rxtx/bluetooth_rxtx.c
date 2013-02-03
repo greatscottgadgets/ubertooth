@@ -1227,6 +1227,109 @@ void cc2400_txtest()
 }
 
 /*
+ * Transmit a BTLE packet with the specified access address.
+ *
+ * All modulation parameters are set within this function. The data
+ * should not be pre-whitened, but the CRC should be calculated and
+ * included in the data length.
+ */
+void le_transmit(u32 aa, u8 len, u8 *data)
+{
+	unsigned i, j;
+	int bit;
+	u8 txbuf[64];
+	u8 tx_len;
+	u8 byte;
+	u16 gio_save;
+
+	// first four bytes: AA
+	for (i = 0; i < 4; ++i) {
+		byte = aa & 0xff;
+		aa >>= 8;
+		txbuf[i] = 0;
+		for (j = 0; j < 8; ++j) {
+			txbuf[i] |= (byte & 1) << (7 - j);
+			byte >>= 1;
+		}
+	}
+
+	// whiten the data and copy it into the txbuf
+	int idx = whitening_index[btle_channel_index(channel-2402)];
+	for (i = 0; i < len; ++i) {
+		byte = data[i];
+		txbuf[i+4] = 0;
+		for (j = 0; j < 8; ++j) {
+			bit = (byte & 1) ^ whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+			byte >>= 1;
+			txbuf[i+4] |= bit << (7 - j);
+		}
+	}
+
+	len += 4; // include the AA in len
+
+	// Bluetooth-like modulation
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
+	cc2400_set(MDMTST0, 0x134b);    // no PRNG
+
+	cc2400_set(GRMDM,   0x0c01);
+	// 0 00 01 1 000 00 0 00 0 1
+	//      |  | |   |  +--------> CRC off
+	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+	//      |  | +---------------> 0 preamble bytes of 01010101
+	//      |  +-----------------> packet mode
+	//      +--------------------> buffered mode
+
+	cc2400_set(FSDIV,   channel);
+	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
+	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
+	cc2400_set(INT,     0x0014);	// FIFO_THRESHOLD: 20 bytes
+
+	// sync byte depends on the first transmitted bit of the AA
+	if (aa & 1)
+		cc2400_set(SYNCH,   0xaaaa);
+	else
+		cc2400_set(SYNCH,   0x5555);
+
+	// set GIO to FIFO_FULL
+	gio_save = cc2400_get(IOCFG);
+	cc2400_set(IOCFG, (GIO_FIFO_FULL << 9) | (gio_save & 0x1ff));
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	TXLED_SET;
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+#endif
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	cc2400_strobe(STX);
+
+	// put the packet into the FIFO
+	for (i = 0; i < len; i += 16) {
+		while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
+		tx_len = len - i;
+		if (tx_len > 16)
+			tx_len = 16;
+		cc2400_spi_buf(FIFOREG, tx_len, txbuf + i);
+	}
+
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	TXLED_CLR;
+
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK));
+
+#ifdef UBERTOOTH_ONE
+	PAEN_CLR;
+#endif
+
+	// reset GIO
+	cc2400_set(IOCFG, gio_save);
+}
+
+/*
  * This range test transmits a Bluetooth-like (but not Bluetooth compatible)
  * packet to a repeater and then receives the repeated packet.  It is only
  * useful if another device is running cc2400_repeater() some distance away.
