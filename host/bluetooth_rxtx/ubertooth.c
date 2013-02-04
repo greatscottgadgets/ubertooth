@@ -754,14 +754,24 @@ void rx_btle_file(FILE* fp)
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
 {
+	int i;
+	char nl = '\n';
+
 	/* unused parameter */ args = args;
 
 	unpack_symbols(rx->data, symbols[bank]);
+
+	// convert to ascii
+	for (i = 0; i < BANK_LEN; ++i)
+		symbols[bank][i] += 0x30;
+
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	if (dumpfile == NULL) {
 		if (fwrite(symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
+		fwrite(&nl, sizeof(u8), 1, stdout);
     } else {
 		if (fwrite(symbols[bank], sizeof(u8), BANK_LEN, dumpfile) != 1) {;}
+		fwrite(&nl, sizeof(u8), 1, dumpfile);
 	}
 }
 
