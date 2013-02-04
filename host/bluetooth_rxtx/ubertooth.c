@@ -271,7 +271,7 @@ static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
  */
-static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
+static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 {
 	btbb_packet *pkt = NULL;
 	btbb_piconet* pn = (btbb_piconet *)args;
@@ -338,11 +338,9 @@ static void cb_lap(void* args, usb_pkt_rx *rx, int bank)
 	else
 		lap = LAP_ANY;
 
-	/* WC4: pkt will be unref/deallocated most of the time
-	 * immediately ... way to combine find_ac with packet
-	 * allocation? */
-	pkt = btbb_packet_new();
-	offset =  btbb_find_ac(syms, BANK_LEN, lap, max_ac_errors, pkt);
+	/* Pass packet-pointer-pointer so that
+	 * packet can be created in libbtbb. */
+	offset = btbb_find_ac(syms, BANK_LEN, lap, max_ac_errors, &pkt);
 	if (offset < 0)
 		goto out;
 
@@ -443,14 +441,14 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
 	if (r < 0)
 		return;
 
-	stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
+	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
 	if (follow_pn) {
 		/* WC4: pn leak? Only once, but arch? */
 		pn = follow_pn;
 		sleep(1);
 		cmd_start_hopping(devh,
 				  btbb_piconet_get_clk_offset(follow_pn));
-		stream_rx_usb(devh, XFER_LEN, 0, cb_lap, pn);
+		stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
 	}
 }
 
@@ -461,7 +459,7 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 	if (r < 0)
 		return;
 
-	stream_rx_file(fp, 0, cb_lap, pn);
+	stream_rx_file(fp, 0, cb_rx, pn);
 }
 
 #ifdef WC4
@@ -635,7 +633,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 
 /* WC4: Integrate cb_scan into common callback. This mode looks for
  * and stores UAPs for seen LAPs. */
-#ifdef WC4
+#ifdef DGS
 /* Sniff for LAPs. and attempt to determine matching UAPs */
 void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 {
@@ -728,7 +726,7 @@ pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
 	stream_rx_usb(devh, XFER_LEN, 0, cb_scan, NULL);
 	return pnet_list_head;
 }
-#endif // WC4
+#endif // DGS
 
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
