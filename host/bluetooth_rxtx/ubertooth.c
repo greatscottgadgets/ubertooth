@@ -274,7 +274,7 @@ static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 {
 	btbb_packet *pkt = NULL;
-	btbb_piconet* pn = (btbb_piconet *)args;
+	btbb_piconet *pn = (btbb_piconet *)args;
 	char syms[BANK_LEN * NUM_BANKS];
 	int i;
 	char *channel_rssi_history;
@@ -389,41 +389,11 @@ static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 	       signal_level,
 	       noise_level,
 	       snr);
-	
-	/* If piconet structure is given, a LAP is given, and packet
-	 * header is readable, do further analysis. If UAP has not yet
-	 * been determined, attempt to calculate it from headers. Once
-	 * UAP is known, try to determine clk6 and clk27. Once clocks
-	 * are known, follow the piconet. */
-	if (pn && btbb_piconet_get_flag(pn, BTBB_LAP_VALID) &&
-	    btbb_header_present(pkt)) {
 
-		/* Have LAP/UAP/clocks, now hopping along with the piconet. */
-		if (follow_pn) {
-			btbb_packet_set_uap(pkt, btbb_piconet_get_uap(pn));
-			btbb_packet_set_flag(pkt, BTBB_CLK6_VALID, 1);
-			btbb_packet_set_flag(pkt, BTBB_CLK27_VALID, 1);
-			
-			if(btbb_decode(pkt, pn))
-				btbb_print_packet(pkt);
-			else
-				printf("Failed to decode packet\n");
-		}
-
-		/* Have LAP/UAP, need clocks. */
-		else if (btbb_piconet_get_uap(pn)) {
-			try_hop(pkt, pn);
-			if (btbb_piconet_get_flag(pn, BTBB_CLK6_VALID) &&
-			    btbb_piconet_get_flag(pn, BTBB_CLK27_VALID)) {
-				follow_pn = pn;
-				stop_ubertooth = 1;
-			}
-		}
-		
-		/* Have LAP, need UAP. */
-		else {
-			btbb_uap_from_header(pkt, pn);
-		}
+	i = btbb_process_packet(pkt, pn);
+	if(i < 0) {
+		follow_pn = pn;
+		stop_ubertooth = 1;
 	}
 
 out:
@@ -444,11 +414,11 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
 	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
 	if (follow_pn) {
 		/* WC4: pn leak? Only once, but arch? */
-		pn = follow_pn;
+		//pn = follow_pn;
 		sleep(1);
 		cmd_start_hopping(devh,
 				  btbb_piconet_get_clk_offset(follow_pn));
-		stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
+		stream_rx_usb(devh, XFER_LEN, 0, cb_rx, follow_pn);
 	}
 }
 
@@ -635,16 +605,15 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
  * and stores UAPs for seen LAPs. */
 #ifdef DGS
 /* Sniff for LAPs. and attempt to determine matching UAPs */
-void cb_scan(void* args, usb_pkt_rx *rx, int bank)
+void cb_scan(void *args, usb_pkt_rx *rx, int bank)
 {
-	btbb_piconet* pn = (btbb_piconet *)args;
+	btbb_piconet *pn = (btbb_piconet *)args;
+	btbb_packet *pkt = NULL;
 	char syms[BANK_LEN * NUM_BANKS];
-	int i;
-	access_code ac;
-	btbb_packet pkt;
+	int i, offset;
 	char *channel_rssi_history;
-	uint32_t clk0, clk1;
-	pnet_list_item* pnet_holder;
+	uint32_t clkn;
+	pnet_list_item *pnet_holder;
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -670,20 +639,23 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		memcpy(syms + i * BANK_LEN,
 		       symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
-			
-	if(!sniff_ac(syms, BANK_LEN, &ac))
-		return;
 
-	if (ac.error_count <= max_ac_errors) {
+	offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, max_ac_errors, &pkt);
+
+	if (offset >= 0) {
 		/* Native (Ubertooth) clock with period 312.5. */
-		clk0 = (rx->clkn_high << 20)
-			+ (le32toh(rx->clk100ns) + ac.offset * 10 + 1562) / 3125;
-		/* Bottom clkn bit not needed, clk1 period is 625 uS. */
-		clk1 = clk0 / 2;
+		clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset + 1562) / 3125;
 
-		//printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u\n",
-		//       (int)systime, rx->channel, ac.LAP, ac.error_count,
-		//       rx->clk100ns, clk1);
+		btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
+							 rx->channel, clkn);
+
+		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u\n",
+			   (int)systime,
+			   btbb_packet_get_channel(pkt),
+			   btbb_packet_get_lap(pkt),
+			   btbb_packet_get_ac_errors(pkt),
+			   rx->clk100ns,
+			   btbb_packet_get_clkn(pkt));
 
 		pnet_holder = pnet_list_head;
 		while(pnet_holder != NULL) {
@@ -705,13 +677,10 @@ void cb_scan(void* args, usb_pkt_rx *rx, int bank)
 		} else
 			pn = pnet_holder->pnet;
 
-		init_packet(&pkt, &syms[ac.offset],
-			    BANK_LEN * NUM_BANKS - ac.offset);
-		pkt.LAP = ac.LAP;
 		pkt.clkn = clk1;
 		pkt.channel = rx->channel;
-		if (!pn->have_UAP && btbb_header_present(&pkt)) {
-			btbb_uap_from_header(&pkt, pn);
+		if (!pn->have_UAP && btbb_header_present(pkt)) {
+			btbb_uap_from_header(pkt, pn);
 		}
 		btbb_piconet_set_channel_seen(pn, rx->channel);
 	}
