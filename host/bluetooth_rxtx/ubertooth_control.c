@@ -813,3 +813,22 @@ int cmd_btle_promisc(struct libusb_device_handle* devh)
 	}
 	return 0;
 }
+
+int cmd_read_register(struct libusb_device_handle* devh, u8 reg)
+{
+	int r;
+	u8 data[2];
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_READ_REGISTER, reg, 0,
+			data, 2, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	return (data[0] << 8) | data[1];
+}

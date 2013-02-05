@@ -124,5 +124,6 @@ int cmd_get_crc_verify(struct libusb_device_handle* devh);
 int cmd_set_crc_verify(struct libusb_device_handle* devh, int verify);
 int cmd_poll(struct libusb_device_handle* devh, usb_pkt_rx *p);
 int cmd_btle_promisc(struct libusb_device_handle* devh);
+int cmd_read_register(struct libusb_device_handle* devh, u8 register);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */

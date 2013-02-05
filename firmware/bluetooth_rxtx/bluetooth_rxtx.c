@@ -510,6 +510,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	int clock_offset;
 	u8 length; // string length
 	usb_pkt_rx *p = NULL;
+	u16 reg_val;
 
 	switch (pSetup->bRequest) {
 
@@ -890,6 +891,13 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 		queue_init();
 		cs_threshold_calc_and_set();
+		break;
+
+	case UBERTOOTH_READ_REGISTER:
+		reg_val = cc2400_get(pSetup->wValue);
+		pbData[0] = (reg_val >> 8) & 0xff;
+		pbData[1] = reg_val & 0xff;
+		*piLen = 2;
 		break;
 
 	default:
