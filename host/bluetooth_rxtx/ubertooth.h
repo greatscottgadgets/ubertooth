@@ -1,5 +1,5 @@
 /*
- * Copyright 2010, 2011 Michael Ossmann
+ * Copyright 2010 - 2013 Michael Ossmann, Dominic Spill, Will Code, Mike Ryan
  *
  * This file is part of Project Ubertooth.
  *

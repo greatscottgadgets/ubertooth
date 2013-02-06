@@ -413,8 +413,6 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
 
 	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
 	if (follow_pn) {
-		/* WC4: pn leak? Only once, but arch? */
-		//pn = follow_pn;
 		sleep(1);
 		cmd_start_hopping(devh,
 				  btbb_piconet_get_clk_offset(follow_pn));
@@ -601,101 +599,12 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	return 0;
 }
 
-/* WC4: Integrate cb_scan into common callback. This mode looks for
- * and stores UAPs for seen LAPs. */
-#ifdef DGS
-/* Sniff for LAPs. and attempt to determine matching UAPs */
-void cb_scan(void *args, usb_pkt_rx *rx, int bank)
-{
-	btbb_piconet *pn = (btbb_piconet *)args;
-	btbb_packet *pkt = NULL;
-	char syms[BANK_LEN * NUM_BANKS];
-	int i, offset;
-	char *channel_rssi_history;
-	uint32_t clkn;
-	pnet_list_item *pnet_holder;
-
-	/* Sanity check */
-	if (rx->channel > (NUM_CHANNELS-1))
-		return;
-
-	/* Copy packet (for dump) */
-	memcpy(&packets[bank], rx, sizeof(usb_pkt_rx));
-
-	unpack_symbols(rx->data, symbols[bank]);
-
-	/* Do analysis based on oldest packet */
-	rx = &packets[ (bank+1) % NUM_BANKS ];
-
-	/* Shift rssi max history and append current max */
-	channel_rssi_history = rssi_history[rx->channel];
-	memmove(channel_rssi_history,
-		channel_rssi_history+1,
-		RSSI_HISTORY_LEN-1);
-	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
-
-	/* Copy all banks for analysis */
-	for (i = 0; i < NUM_BANKS; i++)
-		memcpy(syms + i * BANK_LEN,
-		       symbols[(i + 1 + bank) % NUM_BANKS],
-		       BANK_LEN);
-
-	offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, max_ac_errors, &pkt);
-
-	if (offset >= 0) {
-		/* Native (Ubertooth) clock with period 312.5. */
-		clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset + 1562) / 3125;
-
-		btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
-							 rx->channel, clkn);
-
-		printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u\n",
-			   (int)systime,
-			   btbb_packet_get_channel(pkt),
-			   btbb_packet_get_lap(pkt),
-			   btbb_packet_get_ac_errors(pkt),
-			   rx->clk100ns,
-			   btbb_packet_get_clkn(pkt));
-
-		pnet_holder = pnet_list_head;
-		while(pnet_holder != NULL) {
-			if(pnet_holder->pnet->LAP == ac.LAP) {
-				//printf("Piconet found\n");
-				break;
-			}
-			pnet_holder = pnet_holder->next;
-		}
-		if (pnet_holder == NULL) {
-			//printf("Piconet not found\n");
-			pnet_holder = (pnet_list_item*) malloc(sizeof(pnet_list_item));
-			pn = (btbb_piconet*) malloc(sizeof(btbb_piconet));
-			init_piconet(pn);
-			pn->LAP = ac.LAP;
-			pnet_holder->pnet = pn;
-			pnet_holder->next = pnet_list_head;
-			pnet_list_head = pnet_holder;
-		} else
-			pn = pnet_holder->pnet;
-
-		pkt.clkn = clk1;
-		pkt.channel = rx->channel;
-		if (!pn->have_UAP && btbb_header_present(pkt)) {
-			btbb_uap_from_header(pkt, pn);
-		}
-		btbb_piconet_set_channel_seen(pn, rx->channel);
-	}
-	
-	if (time(NULL) >= end_time)
-		stop_ubertooth = 1;
-}
-
 pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
 {
 	end_time = time(NULL) + timeout;
-	stream_rx_usb(devh, XFER_LEN, 0, cb_scan, NULL);
+	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, NULL);
 	return pnet_list_head;
 }
-#endif // DGS
 
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
