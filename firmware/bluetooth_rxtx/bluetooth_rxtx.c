@@ -2029,7 +2029,12 @@ void cb_follow_le() {
 	int idx = whitening_index[btle_channel_index(channel-2402)];
 
 	u32 access_address = 0;
-	for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
+	for (i = 0; i < 31; ++i) {
+		access_address >>= 1;
+		access_address |= (unpacked[i] << 31);
+	}
+
+	for (i = 31; i < DMA_SIZE * 8 + 32; i++) {
 		access_address >>= 1;
 		access_address |= (unpacked[i] << 31);
 		if (access_address == desired_address) {
