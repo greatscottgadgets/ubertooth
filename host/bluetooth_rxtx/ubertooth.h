@@ -55,11 +55,5 @@ void rx_dump(struct libusb_device_handle* devh, int full);
 void rx_btle(struct libusb_device_handle* devh);
 void rx_btle_file(FILE* fp);
 void cb_btle(void* args, usb_pkt_rx *rx, int bank);
-
-typedef struct pnet_list_item {
-	btbb_piconet* pnet;
-	struct pnet_list_item* next;
-} pnet_list_item;
-
-pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout);
+int rx_survey(struct libusb_device_handle* devh, int timeout);
 #endif /* __UBERTOOTH_H__ */

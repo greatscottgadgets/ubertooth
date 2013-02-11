@@ -32,14 +32,15 @@ struct libusb_device_handle *devh = NULL;
 
 static void usage()
 {
-	printf("ubertooth-discover - passive Bluetooth discovery/decode\n");
+	printf("ubertooth-rx - passive Bluetooth discovery/decode\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
 	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
-	printf("\t-d filename\n");
+	printf("\t-c<filename> capture packets to PCAP file\n");
+	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
@@ -55,7 +56,7 @@ void cleanup(int sig)
 
 int main(int argc, char *argv[])
 {
-	int opt, i;
+	int opt;
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
@@ -126,19 +127,10 @@ int main(int argc, char *argv[])
 		signal(SIGTERM,cleanup);
 
 		rx_live(devh, pn);
-		// TODO - never get here because we don't return from callbacks properly
-		// Print AFH map from piconet
-		printf("AFH Map: 0x");
 
-		/* WC4: this is a pointer into the actual structure,
-		 * so has the same scope as 'pn'. Also has known
-		 * length 10. Fix all this. */
-		if (pn) {
-			uint8_t *afh_map = btbb_piconet_get_afh_map(pn);
-			for(i=0; i<10; i++)
-				printf("%02x", afh_map[i]);
-			printf("\n");
-		}
+		// Print AFH map from piconet
+		btbb_print_afh_map(pn);
+
 		ubertooth_stop(devh);
 	} else {
 		rx_file(infile, pn);

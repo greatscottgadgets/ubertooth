@@ -47,7 +47,6 @@ u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
 btbb_piconet *follow_pn = NULL;               // currently following this piconet
 time_t end_time;
-pnet_list_item* pnet_list_head;
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -372,7 +371,7 @@ static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 			    != 1) {;}
 		}
 	}
-	
+
 	/* When reading from file, caller will read
 	 * systime before calling this routine, so do
 	 * not overwrite. Otherwise, get current time. */
@@ -399,6 +398,9 @@ static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 out:
 	if (pkt)
 		btbb_packet_unref(pkt);
+
+	if (end_time && (time(NULL) >= end_time))
+		stop_ubertooth = 1;
 }
 
 /* Receive and process packets. For now, returning from
@@ -428,6 +430,15 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 		return;
 
 	stream_rx_file(fp, 0, cb_rx, pn);
+}
+
+int rx_survey(struct libusb_device_handle* devh, int timeout)
+{
+	btbb_init_survey();
+	end_time = time(NULL) + timeout;
+	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, NULL);
+	// Temporary?
+	return 0;
 }
 
 #ifdef WC4
@@ -597,13 +608,6 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		fflush(stderr);
 	}
 	return 0;
-}
-
-pnet_list_item* ubertooth_scan(struct libusb_device_handle* devh, int timeout)
-{
-	end_time = time(NULL) + timeout;
-	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, NULL);
-	return pnet_list_head;
 }
 
 void ubertooth_stop(struct libusb_device_handle *devh)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010, 2011 Michael Ossmann
+ * Copyright 2012 - 2013 Dominic Spill
  * Extra info scan:
  * Copyright (C) 2002-2010  Marcel Holtmann <marcel@holtmann.org>
  *
@@ -32,8 +32,7 @@
 #include <sys/ioctl.h>
 
 #include "ubertooth.h"
-#include <bluetooth_packet.h>
-#include <bluetooth_piconet.h>
+#include <btbb.h>
 #include <getopt.h>
 
 extern int max_ac_errors;
@@ -44,7 +43,7 @@ static void usage()
 	printf("Usage:\n");
 	printf("\t-h this Help\n");
 	printf("\t-s hci Scan - perform HCI scan\n");
-	printf("\t-t scan Time (seconds) - length of time to sniff packets\n");
+	printf("\t-t scan Time (seconds) - length of time to sniff packets. [Default: 20s]\n");
 	printf("\t-x eXtended scan - retrieve additional information about target devices\n");
 	printf("\t-b Bluetooth device (hci0)\n");
 }
@@ -166,7 +165,7 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 int main(int argc, char *argv[])
 {
     inquiry_info *ii = NULL;
-	int i, opt, dev_id, sock, len, flags, max_rsp, num_rsp, timeout = 20;
+	int i, opt, dev_id, sock, len, flags, max_rsp, num_rsp, lap, timeout = 20;
 	uint8_t extended = 0;
 	uint8_t scan = 0;
 	char ubertooth_device = -1;
@@ -174,7 +173,7 @@ int main(int argc, char *argv[])
     char addr[19] = { 0 };
     char name[248] = { 0 };
 	struct libusb_device_handle *devh = NULL;
-	pnet_list_item* pnet_list;
+	btbb_piconet *pn;
 	bdaddr_t bdaddr;
 
 	while ((opt=getopt(argc,argv,"ht:xsb:")) != EOF) {
@@ -214,6 +213,8 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+	/* Set sweep mode - otherwise AFH map is useless */
+	cmd_set_channel(devh, 9999);
 
 	if (scan) {
 		len  = 8;
@@ -240,17 +241,15 @@ int main(int argc, char *argv[])
 
 	/* Now find hidden piconets with Ubertooth */
 	printf("\nUbertooth scan\n");
-	pnet_list = ubertooth_scan(devh, timeout);
+	rx_survey(devh, timeout);
 	ubertooth_stop(devh);
 
-	while(pnet_list != NULL) {
-		if (pnet_list->pnet->have_UAP) {
-			sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
-				pnet_list->pnet->UAP,
-				(pnet_list->pnet->LAP >> 16) & 0xFF,
-				(pnet_list->pnet->LAP >> 8) & 0xFF,
-				pnet_list->pnet->LAP & 0xFF
-			);
+	while((pn=btbb_next_survey_result(1)) != NULL) {
+		lap = btbb_piconet_get_lap(pn);
+		if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
+			lap = btbb_piconet_get_lap(pn);
+			sprintf(addr, "00:00:%02X:%02X:%02X:%02X", btbb_piconet_get_uap(pn),
+					(lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
 			str2ba(addr, &bdaddr);
 			memset(name, 0, sizeof(name));
 			if (hci_read_remote_name(sock, &bdaddr, sizeof(name), name, 0) < 0)
@@ -258,14 +257,10 @@ int main(int argc, char *argv[])
 			printf("%s  %s\n", addr, name);
 			if (extended)
 				extra_info(sock, dev_id, &bdaddr);
-
-			// Print AFH map from piconet
-			//printf("\tAFH Map: 0x");
-			//for(i=0; i<10; i++)
-			//	printf("%02x", pnet_list->pnet->afh_map[i]);
-			//printf("\n");
-		}
-		pnet_list = pnet_list->next;
+		} else
+			printf("00:00:00:%02X:%02X:%02X\n",
+				   (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
+		btbb_piconet_print_afh_map(pn);
 	}
 
     close( sock );
