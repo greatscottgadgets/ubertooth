@@ -2091,6 +2091,7 @@ void connection_follow_cb(u8 *packet) {
 	// connect packet
 	if (!le_connected && packet[4] == 0x05) {
 		le_connected = 1;
+		crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 
 		desired_address = 0;
 		for (i = 0; i < 4; ++i)
