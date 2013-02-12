@@ -151,6 +151,7 @@ volatile u8 mode = MODE_IDLE;
 volatile u8 requested_mode = MODE_IDLE;
 volatile u8 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
+volatile u16 requested_channel = 0;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
@@ -694,22 +695,27 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_CHANNEL:
-		channel = pSetup->wValue;
+		requested_channel = pSetup->wValue;
 		/* bluetooth band sweep mode, start at channel 2402 */
-		if (channel == 9999) {
+		if (requested_channel == 9999) {
 			hop_mode = HOP_SWEEP;
-			channel = 2402;
+			requested_channel = 2402;
 		}
 		/* fixed channel mode, can be outside blueooth band */
 		else {
 			hop_mode = HOP_NONE;
-			channel = MAX(channel, MIN_FREQ);
-			channel = MIN(channel, MAX_FREQ);
+			requested_channel = MAX(requested_channel, MIN_FREQ);
+			requested_channel = MIN(requested_channel, MAX_FREQ);
 		}
 
-		/* CS threshold is mode-dependent. Update it after
-		 * possible mode change. TODO - kludgy. */
-		cs_threshold_calc_and_set();
+		if (mode != MODE_BT_FOLLOW_LE) {
+			channel = requested_channel;
+			requested_channel = 0;
+
+			/* CS threshold is mode-dependent. Update it after
+			 * possible mode change. TODO - kludgy. */
+			cs_threshold_calc_and_set();
+		}
 		break;
 
 	case UBERTOOTH_SET_ISP:
@@ -1927,6 +1933,22 @@ void bt_generic_le(u8 active_mode)
 	hold = 0;
 
 	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
+
+			/* Retune */
+			cc2400_set(FSDIV, channel - 1);
+
+			/* Wait for lock */
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+
+			/* RX mode */
+			cc2400_strobe(SRX);
+
+			requested_channel = 0;
+		}
 
 		if (do_hop) {
 			hop();

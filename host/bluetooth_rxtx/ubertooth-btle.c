@@ -49,6 +49,7 @@ static void usage(void)
 	printf("    Misc:\n");
 	printf("\t-c<filename> capture packets to PCAP file\n");
 	printf("\t-d<filename> dump packets to binary file\n");
+	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
 	int do_follow, do_file, do_promisc;
 	int do_get_aa, do_set_aa;
 	int do_crc;
+	int do_adv_index;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
@@ -69,8 +71,9 @@ int main(int argc, char *argv[])
 	do_follow = do_file = 0, do_promisc = 0;
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
+	do_adv_index = 37;
 
-	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::A:")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -122,6 +125,14 @@ int main(int argc, char *argv[])
 			else
 				do_crc = 2; // get
 			break;
+		case 'A':
+			do_adv_index = atoi(optarg);
+			if (do_adv_index < 37 || do_adv_index > 39) {
+				printf("Error: advertising index must be 37, 38, or 39\n");
+				usage();
+				return 1;
+			}
+			break;
 		case 'h':
 		default:
 			usage();
@@ -147,7 +158,14 @@ int main(int argc, char *argv[])
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 
 		if (do_follow) {
-			cmd_set_channel(devh, 2402);
+			u16 channel;
+			if (do_adv_index == 37)
+				channel = 2402;
+			else if (do_adv_index == 38)
+				channel = 2426;
+			else
+				channel = 2480;
+			cmd_set_channel(devh, channel);
 			cmd_btle_sniffing(devh, 2);
 		} else {
 			cmd_btle_promisc(devh);
