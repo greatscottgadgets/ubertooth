@@ -25,13 +25,14 @@
 #include <sys/ioctl.h>
 
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "ubertooth.h"
-#include <bluetooth_packet.h>
-#include <bluetooth_piconet.h>
+#include <btbb.h>
 #include <getopt.h>
 
 extern int max_ac_errors;
+extern btbb_piconet *follow_pn;
 extern FILE *dumpfile;
 
 static void usage()
@@ -53,7 +54,7 @@ static void usage()
 
 int main(int argc, char *argv[])
 {
-	int opt, sock, dev_id, i, delay = 5;
+	int opt, sock, dev_id, lap = 0, uap = 0, delay = 5;
 	int have_lap = 0;
 	int have_uap = 0;
 	int afh_enabled = 0;
@@ -65,25 +66,28 @@ int main(int argc, char *argv[])
 	uint32_t clock;
 	uint16_t accuracy, handle, offset;
 	bdaddr_t bdaddr;
-	piconet pn;
+	btbb_piconet *pn;
 	struct hci_dev_info di;
 	int cc = 0;
 
 
-	init_piconet(&pn);
+	pn = btbb_piconet_new();
 
 	while ((opt=getopt(argc,argv,"hl:u:U:e:d:ab:w:")) != EOF) {
 		switch(opt) {
 		case 'l':
-			pn.LAP = strtol(optarg, &end, 16);
-			if (end != optarg)
+			lap = strtol(optarg, &end, 16);
+			if (end != optarg) {
 				++have_lap;
+				btbb_piconet_set_lap(pn, lap);
+			}
 			break;
 		case 'u':
-			pn.UAP = strtol(optarg, &end, 16);
+			uap = strtol(optarg, &end, 16);
 			if (end != optarg) {
 				++have_uap;
-				pn.have_UAP = 1;
+				btbb_piconet_set_uap(pn, uap);
+
 			}
 			break;
 		case 'U':
@@ -126,65 +130,62 @@ int main(int argc, char *argv[])
 	if ((have_lap != 1) || (have_uap != 1)) {
 		printf("No address given, reading address from device\n");
 		hci_read_bd_addr(sock, &bdaddr, 0);
-		pn.LAP = bdaddr.b[0] | bdaddr.b[1] << 8 | bdaddr.b[2] << 16;
-		pn.UAP = bdaddr.b[3];
-		printf("LAP=%06x UAP=%02x\n", pn.LAP, pn.UAP);
-	} else {
-		if (have_lap && have_uap) {
-			printf("Address given, assuming address is remote\n");
-			sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
-				pn.UAP,
-				(pn.LAP >> 16) & 0xFF,
-				(pn.LAP >> 8) & 0xFF,
-				pn.LAP & 0xFF
-			);
-			str2ba(addr, &bdaddr);
-			printf("Address: %s\n", addr);
+		lap = bdaddr.b[0] | bdaddr.b[1] << 8 | bdaddr.b[2] << 16;
+		btbb_piconet_set_lap(pn, lap);
+		uap = bdaddr.b[3];
+		btbb_piconet_set_uap(pn, uap);
+		printf("LAP=%06x UAP=%02x\n", lap, uap);
+	} else if (have_lap && have_uap) {
+		printf("Address given, assuming address is remote\n");
+		sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
+			uap,
+			(lap >> 16) & 0xFF,
+			(lap >> 8) & 0xFF,
+			lap & 0xFF
+		);
+		str2ba(addr, &bdaddr);
+		printf("Address: %s\n", addr);
 	
-			if (hci_devinfo(dev_id, &di) < 0) {
-				perror("Can't get device info");
-				exit(1);
-			}
-
-			if (hci_create_connection(sock, &bdaddr,
-						htobs(di.pkt_type & ACL_PTYPE_MASK),
-						0, 0x01, &handle, 25000) < 0) {
-				perror("Can't create connection");
-				exit(1);
-			}
-			sleep(1);
-			cc = 1;
-
-			if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-				perror("Reading clock offset failed");
-			}
-			clock += offset;
-
-			//Experimental AFH map reading from remote device
-			if(afh_enabled) {
-				if(hci_read_afh_map(sock, handle, &mode, afh_map, 1000) < 0) {
-					perror("HCI read AFH map request failed");
-					//exit(1);
-				}
-				if(mode == 0x01) {
-					printf("\tAFH Map: 0x");
-					for(i=0; i<10; i++)
-						printf("%02x", afh_map[i]);
-					printf("\n");
-				} else {
-					printf("AFH disabled.\n");
-					afh_enabled = 0;
-				}
-			}
-			if (cc) {
-				usleep(10000);
-				hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-			}
-			//exit(1);
-		} else {
-			usage();
-			exit(1);
+		if (hci_devinfo(dev_id, &di) < 0) {
+			perror("Can't get device info");
+			return 1;
 		}
+
+		if (hci_create_connection(sock, &bdaddr,
+					htobs(di.pkt_type & ACL_PTYPE_MASK),
+					0, 0x01, &handle, 25000) < 0) {
+			perror("Can't create connection");
+			return 1;
+		}
+		sleep(1);
+		cc = 1;
+
+		if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+			perror("Reading clock offset failed");
+		}
+		clock += offset;
+
+		//Experimental AFH map reading from remote device
+		if(afh_enabled) {
+			if(hci_read_afh_map(sock, handle, &mode, afh_map, 1000) < 0) {
+				perror("HCI read AFH map request failed");
+				//exit(1);
+			}
+			if(mode == 0x01) {
+				btbb_piconet_set_afh_map(pn, afh_map);
+				btbb_print_afh_map(pn);
+			} else {
+				printf("AFH disabled.\n");
+				afh_enabled = 0;
+			}
+		}
+		if (cc) {
+			usleep(10000);
+			hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+		}
+	} else {
+			usage();
+			return 1;
 	}
 
 	devh = ubertooth_start(ubertooth_device);
@@ -194,7 +195,9 @@ int main(int argc, char *argv[])
 	}
 	if(afh_enabled)
 		cmd_set_afh_map(devh, afh_map);
-	rx_follow(devh, &pn, clock, delay);
+	btbb_piconet_set_clk_offset(pn, clock+delay);
+	follow_pn = pn;
+	rx_live(devh, pn);
 	ubertooth_stop(devh);
 
 	return 0;

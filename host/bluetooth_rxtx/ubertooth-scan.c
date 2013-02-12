@@ -36,6 +36,7 @@
 #include <getopt.h>
 
 extern int max_ac_errors;
+extern end_time;
 
 static void usage()
 {
@@ -144,9 +145,9 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 
 	if(hci_read_afh_map(dd, handle, &mode, afh_map, 1000) < 0) {
 	perror("HCI read AFH map request failed");
-	//exit(1);
 	}
 	if(mode == 0x01) {
+		// DGS: Replace with call to btbb_print_afh_map - need a piconet
 		printf("\tAFH Map: 0x");
 		for(i=0; i<10; i++)
 			printf("%02x", afh_map[i]);
@@ -241,10 +242,12 @@ int main(int argc, char *argv[])
 
 	/* Now find hidden piconets with Ubertooth */
 	printf("\nUbertooth scan\n");
-	rx_survey(devh, timeout);
+	btbb_init_survey();
+	end_time = time(NULL) + timeout;
+	rx_live(devh, NULL);
 	ubertooth_stop(devh);
 
-	while((pn=btbb_next_survey_result(1)) != NULL) {
+	while((pn=btbb_next_survey_result()) != NULL) {
 		lap = btbb_piconet_get_lap(pn);
 		if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
 			lap = btbb_piconet_get_lap(pn);
@@ -260,7 +263,7 @@ int main(int argc, char *argv[])
 		} else
 			printf("00:00:00:%02X:%02X:%02X\n",
 				   (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
-		btbb_piconet_print_afh_map(pn);
+		btbb_print_afh_map(pn);
 	}
 
     close( sock );

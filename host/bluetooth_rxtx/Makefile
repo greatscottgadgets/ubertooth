@@ -1,4 +1,4 @@
-# Copyright 2010 Michael Ossmann
+# Copyright 2010 - 2013 Michael Ossmann, Dominic Spill, Will Code, Mike Ryan
 #
 # This file is part of Project Ubertooth.
 #
@@ -92,7 +92,7 @@ install: $(LIB_FILE) $(TOOLS)
 
 cygwin-install: $(LIB_FILE) $(STATIC_LIB_FILE)
 	$(INSTALL) -m 0644 $(LIB_FILE) $(INSTALL_DIR)
-	$(INSTALL) -m 0644 $(HEADER_FILES) $(INCLUDE_DIR)
+	$(INSTALL) -m 0644 $(LIB_HEADER_FILES) $(INCLUDE_DIR)
 	$(INSTALL) -m 0644 $(STATIC_LIB_FILE) $(INSTALL_DIR)
 	ln -fs $(LIB_FILE) $(INSTALL_DIR)/$(LIB_NAME)
 	ln -fs $(LIB_FILE) $(INSTALL_DIR)/$(SONAME)
@@ -107,6 +107,6 @@ osx-install: $(LIB_FILE) $(TOOLS)
 	$(INSTALL) -m 0755 $(TOOLS) $(INSTALL_DIR)
 
 clean:
-	rm -f $(LIB_NAME).* $(STATIC_LIB_FILE) $(TOOLS) $(LIB_OBJECT_FILES) ubertooth-follow
+	rm -f $(LIB_NAME).* $(STATIC_LIB_FILE) $(TOOLS) $(LIB_OBJECT_FILES) ubertooth-follow ubertooth-scan
 
 .PHONY: all clean install cygwin-install osx-install

@@ -413,13 +413,21 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
 	if (r < 0)
 		return;
 
-	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
-	if (follow_pn) {
+	if (follow_pn)
+		cmd_set_clock(devh, 0);
+	else {
+		stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
+		/* Allow timeouts to finish */
 		sleep(1);
+	}
+
+	/* Used when follow_pn is preset OR set by stream_rx_usb above
+	 * i.e. This cannot be rolled in to the above if...else
+	 */
+	if (follow_pn)
 		cmd_start_hopping(devh,
 				  btbb_piconet_get_clk_offset(follow_pn));
 		stream_rx_usb(devh, XFER_LEN, 0, cb_rx, follow_pn);
-	}
 }
 
 /* sniff one target LAP until the UAP is determined */
@@ -430,15 +438,6 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 		return;
 
 	stream_rx_file(fp, 0, cb_rx, pn);
-}
-
-int rx_survey(struct libusb_device_handle* devh, int timeout)
-{
-	btbb_init_survey();
-	end_time = time(NULL) + timeout;
-	stream_rx_usb(devh, XFER_LEN, 0, cb_rx, NULL);
-	// Temporary?
-	return 0;
 }
 
 #ifdef WC4

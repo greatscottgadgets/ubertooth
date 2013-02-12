@@ -49,11 +49,8 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args);
 void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn);
 void rx_file(FILE* fp, btbb_piconet* pn);
-void rx_follow(struct libusb_device_handle* devh, btbb_piconet* pn, uint32_t clock, uint32_t delay);
-void rx_follow_offset(struct libusb_device_handle* devh, btbb_piconet* pn);
 void rx_dump(struct libusb_device_handle* devh, int full);
 void rx_btle(struct libusb_device_handle* devh);
 void rx_btle_file(FILE* fp);
 void cb_btle(void* args, usb_pkt_rx *rx, int bank);
-int rx_survey(struct libusb_device_handle* devh, int timeout);
 #endif /* __UBERTOOTH_H__ */
