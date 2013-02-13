@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'c':
-			pcap_dumpfile = pcap_open_dead(DLT_PPI, 64);
+			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
 			if (pcap_dumpfile == NULL)
 				err(1, "pcap_open_dead: ");
 			dumper = pcap_dump_open(pcap_dumpfile, optarg);
