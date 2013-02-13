@@ -2170,6 +2170,7 @@ void promisc_recover_hop_amount(u8 *packet) {
 			// move on to regular connection following!
 			hop_mode = HOP_BTLE;
 			do_hop = 0;
+			crc_verify = 0;
 			packet_cb = connection_follow_cb;
 
 			return;
@@ -2239,7 +2240,7 @@ void promisc_follow_cb(u8 *packet) {
 struct active_aa {
 	u32 aa;
 	int freq;
-} active_aa_list[10] = { { 0, 0, }, };
+} active_aa_list[32] = { { 0, 0, }, };
 #define AA_LIST_SIZE (int)(sizeof(active_aa_list) / sizeof(struct active_aa))
 
 // called when we see an AA, add it to the list
@@ -2265,30 +2266,55 @@ void see_aa(u32 aa) {
 /* le promiscuous mode */
 void cb_le_promisc(char *unpacked) {
 	int i, j, k;
+	int idx;
 
 	// empty data PDU: 01 00
-	char desired[] = { 1, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0, };
-	int idx = whitening_index[btle_channel_index(channel-2402)];
+	char desired[4][16] = {
+		{ 1, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+		{ 1, 0, 0, 1, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+		{ 1, 0, 1, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+		{ 1, 0, 1, 1, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+	};
 
-	// whiten the desired data
-	for (i = 0; i < (int)sizeof(desired); ++i) {
-		desired[i] ^= whitening[idx];
-		idx = (idx + 1) % sizeof(whitening);
+	for (i = 0; i < 4; ++i) {
+		idx = whitening_index[btle_channel_index(channel-2402)];
+
+		// whiten the desired data
+		for (j = 0; j < (int)sizeof(desired[i]); ++j) {
+			desired[i][j] ^= whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+		}
 	}
 
 	// then look for that bitsream in our receive buffer
-	for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
-		int ok = 1;
-		for (j = 0; j < (int)sizeof(desired); ++j) {
-			if (unpacked[i+j] != desired[j]) {
-				ok = 0;
+	for (i = 32; i < (DMA_SIZE*8*2 - 32 - 16); i++) {
+		int ok[4] = { 1, 1, 1, 1 };
+		int matching = -1;
+
+		for (j = 0; j < 4; ++j) {
+			for (k = 0; k < (int)sizeof(desired[j]); ++k) {
+				if (unpacked[i+k] != desired[j][k]) {
+					ok[j] = 0;
+					break;
+				}
+			}
+		}
+
+		// see if any match
+		for (j = 0; j < 4; ++j) {
+			if (ok[j]) {
+				matching = j;
 				break;
 			}
 		}
 
-		// no match, move along
-		if (!ok) continue;
+		// skip if no match
+		if (matching < 0)
+			continue;
 
 		// found a match! unwhiten it and send it home
 		idx = whitening_index[btle_channel_index(channel-2402)];
@@ -2319,7 +2345,7 @@ void cb_le_promisc(char *unpacked) {
 
 	// once we see an AA 5 times, start following it
 	for (i = 0; i < AA_LIST_SIZE; ++i) {
-		if (active_aa_list[i].freq > 5) {
+		if (active_aa_list[i].freq > 3) {
 			desired_address = active_aa_list[i].aa;
 			data_cb = cb_follow_le;
 			packet_cb = promisc_follow_cb;
@@ -2329,6 +2355,11 @@ void cb_le_promisc(char *unpacked) {
 }
 
 void bt_promisc_le() {
+	// jump to a random data channel and turn up the squelch
+	channel = 2440;
+	cs_threshold_req = -70;
+	cs_threshold_calc_and_set();
+
 	data_cb = cb_le_promisc;
 	bt_generic_le(MODE_BT_PROMISC_LE);
 }
