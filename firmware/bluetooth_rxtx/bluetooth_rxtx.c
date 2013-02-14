@@ -106,6 +106,7 @@ u32 idle_buf_clk100ns;
 u32 active_buf_clk100ns;
 u32 idle_buf_channel = 0;
 u32 active_buf_channel = 0;
+u8 slave_mac_address[6] = { 0, };
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -904,6 +905,11 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		pbData[0] = (reg_val >> 8) & 0xff;
 		pbData[1] = reg_val & 0xff;
 		*piLen = 2;
+		break;
+
+	case UBERTOOTH_BTLE_SLAVE:
+		memcpy(slave_mac_address, pbData, 6);
+		requested_mode = MODE_BT_SLAVE_LE;
 		break;
 
 	default:
@@ -2364,6 +2370,46 @@ void bt_promisc_le() {
 	bt_generic_le(MODE_BT_PROMISC_LE);
 }
 
+void bt_slave_le() {
+	u32 calc_crc;
+	int i;
+
+	u8 adv_ind[] = {
+		// LL header
+		0x00, 0x09,
+
+		// advertising address
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+		// advertising data
+		0x02, 0x01, 0x05,
+
+		// CRC (calc)
+		0xff, 0xff, 0xff,
+	};
+
+	u8 adv_ind_len = sizeof(adv_ind) - 3;
+
+	// copy the user-specified mac address
+	for (i = 0; i < 6; ++i)
+		adv_ind[i+2] = slave_mac_address[5-i];
+
+	calc_crc = btle_calc_crc(crc_init_reversed, adv_ind, adv_ind_len);
+	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
+	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
+	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+
+	// spam advertising packets
+	while (requested_mode == MODE_BT_SLAVE_LE) {
+		ICER0 = ICER0_ICE_USB;
+		ICER0 = ICER0_ICE_DMA;
+		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind);
+		ISER0 = ISER0_ISE_USB;
+		ISER0 = ISER0_ISE_DMA;
+		msleep(100);
+	}
+}
+
 /* spectrum analysis */
 void specan()
 {
@@ -2509,6 +2555,8 @@ int main()
 			bt_follow_le();
 		else if (requested_mode == MODE_BT_PROMISC_LE && mode != MODE_BT_PROMISC_LE)
 			bt_promisc_le();
+		else if (requested_mode == MODE_BT_SLAVE_LE && mode != MODE_BT_SLAVE_LE)
+			bt_slave_le();
 		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
 			cc2400_txtest();
 		else if (requested_mode == MODE_RANGE_TEST && mode != MODE_RANGE_TEST)
