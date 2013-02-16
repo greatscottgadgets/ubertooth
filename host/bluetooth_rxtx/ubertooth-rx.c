@@ -51,7 +51,9 @@ void cleanup(int sig)
 	sig = sig;
 	if (devh) {
 		cmd_stop(devh);
+		ubertooth_stop(devh);
 	}
+	exit(0);
 }
 
 int main(int argc, char *argv[])
