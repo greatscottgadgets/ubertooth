@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 		rx_live(devh, pn);
 
 		// Print AFH map from piconet
-		btbb_print_afh_map(pn);
+		//btbb_print_afh_map(pn);
 
 		ubertooth_stop(devh);
 	} else {
