@@ -399,7 +399,9 @@ out:
 	if (pkt)
 		btbb_packet_unref(pkt);
 
-	if (end_time && (time(NULL) >= end_time))
+	/* Use systime from above, if using an input
+	 * file we won't have set an endtime. */
+	if (end_time && (systime >= end_time))
 		stop_ubertooth = 1;
 }
 
