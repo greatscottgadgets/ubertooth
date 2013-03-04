@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 		signal(SIGQUIT,cleanup);
 		signal(SIGTERM,cleanup);
 
-		rx_live(devh, pn);
+		rx_live(devh, pn, 0);
 
 		// Print AFH map from piconet if we have one
 		if (pn)

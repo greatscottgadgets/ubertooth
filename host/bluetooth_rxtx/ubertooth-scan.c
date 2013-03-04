@@ -36,7 +36,6 @@
 #include <getopt.h>
 
 extern int max_ac_errors;
-extern end_time;
 
 static void usage()
 {
@@ -243,8 +242,7 @@ int main(int argc, char *argv[])
 	/* Now find hidden piconets with Ubertooth */
 	printf("\nUbertooth scan\n");
 	btbb_init_survey();
-	end_time = time(NULL) + timeout;
-	rx_live(devh, NULL);
+	rx_live(devh, NULL, timeout);
 	ubertooth_stop(devh);
 
 	while((pn=btbb_next_survey_result()) != NULL) {

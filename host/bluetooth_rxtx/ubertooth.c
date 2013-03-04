@@ -25,6 +25,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <bluetooth_le_packet.h>
 
@@ -45,8 +46,21 @@ int max_ac_errors = 2;
 uint32_t systime;
 u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
-btbb_piconet *follow_pn = NULL;               // currently following this piconet
-time_t end_time;
+btbb_piconet *follow_pn = NULL; // currently following this piconet
+
+void stop_transfers(int sig) {
+	sig = sig; // Unused parameter
+	stop_ubertooth = 1;
+}
+
+void set_timeout(int seconds) {
+	/* Upon SIGALRM, call stop_transfers() */
+	if (signal(SIGALRM, stop_transfers) == SIG_ERR) {
+	  perror("Unable to catch SIGALRM");
+	  exit(1);
+	}
+	alarm(seconds);
+}
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -132,6 +146,21 @@ static void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
+int handle_events_wrapper() {
+	int r = LIBUSB_ERROR_INTERRUPTED;
+	while (r == LIBUSB_ERROR_INTERRUPTED) {
+		r = libusb_handle_events(NULL);
+		if (r < 0) {
+			if (r != LIBUSB_ERROR_INTERRUPTED) {
+				fprintf(stderr, "libusb_handle_events: %s\n", libusb_error_name(r));
+				return -1;
+			}
+		} else
+			return r;
+	}
+	return 0;
+}
+
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		uint16_t num_blocks, rx_callback cb, void* cb_args)
 {
@@ -179,35 +208,21 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 
 	while (1) {
 		while (!really_full) {
-			r = libusb_handle_events(NULL);
-			if (r < 0) {
-				if (r != LIBUSB_ERROR_INTERRUPTED) {
-					fprintf(stderr, "libusb_handle_events: %s\n", libusb_error_name(r));
-				}
-				return -1;
-			}
+			handle_events_wrapper();
 		}
-		/*
-		fprintf(stderr, "transfer completed\n");
-		*/
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
 			rx = (usb_pkt_rx *)(full_buf + PKT_LEN * i);
-			if(rx->pkt_type != KEEP_ALIVE)
+			if(rx->pkt_type != KEEP_ALIVE) 
 				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
 			if(stop_ubertooth) {
+				printf("stop_ubertooth is set 2\n");
 				stop_ubertooth = 0;
 				really_full = 0;
 				usb_retry = 0;
-				r = libusb_handle_events(NULL);
-				if (r < 0) {
-					if (r != LIBUSB_ERROR_INTERRUPTED) {
-						fprintf(stderr, "libusb_handle_events: %s\n", libusb_error_name(r));
-					}
-					return -1;
-				}
+				handle_events_wrapper();
 				usb_retry = 1;
 				return 1;
 			}
@@ -398,28 +413,26 @@ static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 out:
 	if (pkt)
 		btbb_packet_unref(pkt);
-
-	/* Use systime from above, if using an input
-	 * file we won't have set an endtime. */
-	if (end_time && (systime >= end_time))
-		stop_ubertooth = 1;
 }
 
 /* Receive and process packets. For now, returning from
  * stream_rx_usb() means that UAP and clocks have been found, and that
  * hopping should be started. A more flexible framework would be
  * nice. */
-void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn)
+void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
 {
 	int r = btbb_init(max_ac_errors);
 	if (r < 0)
 		return;
 
+	if (timeout)
+		set_timeout(timeout);
+
 	if (follow_pn)
 		cmd_set_clock(devh, 0);
 	else {
 		stream_rx_usb(devh, XFER_LEN, 0, cb_rx, pn);
-		/* Allow timeouts to finish */
+		/* Allow pending transfers to finish */
 		sleep(1);
 	}
 
