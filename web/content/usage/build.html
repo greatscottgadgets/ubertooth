@@ -22,7 +22,7 @@ images and flashing them to the Ubertooth can be found <a href="#firmware">here.
 <p>There are some prerequisites that can be installed from the apt repositories
 on Debian/Ubuntu systems:</p>
 <pre>
-  sudo apt-get install libusb-1.0-0-dev make gcc pyside-tools
+  sudo apt-get install libusb-1.0-0-dev make gcc pyside-tools python-numpy
 </pre>
 
 <p>PyUSB is not yet available from the apt repositories, so it must be
@@ -111,7 +111,7 @@ useful to update the <a href="#firmware">firmware</a> on the Ubertooth.</p>
 on RedHat based systems:</p>
 <pre>
   su -c "yum install libusb1-devel make gcc pyside-tools \
-  pyusb wget tar"
+  pyusb wget tar numpy"
 </pre>
 
 <p>Next the Bluetooth baseband library (libbtbb) needs to be built for the
