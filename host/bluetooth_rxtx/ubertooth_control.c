@@ -590,7 +590,7 @@ int cmd_start_hopping(struct libusb_device_handle* devh, int clock_offset)
 	int r;
 	u8 data[4];
 	for(r=0; r < 4; r++)
-		data[r] = (clock_offset >> (8*r)) & 0xff;
+		data[r] = (clock_offset >> (8*(3-r))) & 0xff;
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_START_HOPPING, 0, 0,
 		data, 4, 1000);
