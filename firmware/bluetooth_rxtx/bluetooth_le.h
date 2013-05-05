@@ -25,6 +25,17 @@
 #define ADVERTISING_CHANNELS 3
 #define DATA_CHANNELS 37
 
+typedef struct _le_state_t {
+    u32 access_address;         // Access Address to filter by
+    u32 crc_init;               // CrcInit: used to calculate CRC
+    u32 crc_init_reversed;      // bits-reversed version of the previous
+    int crc_verify;             // true to reject packets with bad CRC
+    int connected;              // true if following an LE connection
+    u8 hop_increment;           // amount to hop
+    u8 channel_idx;             // current channel index
+    u16 hop_interval;           // connection-specific hop interval
+} le_state_t;
+
 static const u8 advertising_channels[] = {0, 12, 39};
 static const u8 data_channels[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16 , 17, 18, 19, 20,
@@ -57,7 +68,7 @@ u32 access_address;
 u8 btle_channel;
 u8 hop_increment;
 
-u16 btle_next_hop();
+u16 btle_next_hop(le_state_t *le);
 int btle_find_access_address(u8 *idle_rxbuf);
 u8 btle_channel_index(u8 channel);
 u16 btle_channel_index_to_phys(u8 idx);

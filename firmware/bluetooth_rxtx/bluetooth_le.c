@@ -24,10 +24,10 @@
 extern u8 le_channel_idx;
 extern u8 le_hop_amount;
 
-u16 btle_next_hop()
+u16 btle_next_hop(le_state_t *le)
 {
-	le_channel_idx = (le_channel_idx + le_hop_amount) % 37;
-	return btle_channel_index_to_phys(le_channel_idx);
+	le->channel_idx = (le->channel_idx + le->hop_increment) % 37;
+	return btle_channel_index_to_phys(le->channel_idx);
 }
 
 u32 received_data = 0;

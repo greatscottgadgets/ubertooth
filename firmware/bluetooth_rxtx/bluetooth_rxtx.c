@@ -89,14 +89,6 @@ int8_t cs_threshold_cur=CS_THRESHOLD_DEFAULT; // current CS threshold in dBm
 volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
-u32 desired_address = 0x8e89bed6;
-u32 crc_init = 0x555555;					// advertising channel CRCInit
-u32 crc_init_reversed = 0xAAAAAA;
-int crc_verify = 1;							// reject packets with bad CRC
-int le_connected = 0;                       // true if LE is connected
-u8 le_hop_amount = 0;                       // amount to hop in LE
-u8 le_channel_idx = 0;                      // current channel index in LE
-u16 le_hop_interval = 0;                    // connection-specific hop interval
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
 u32 last_usb_pkt = 0;                       // for keep alive packets
 int clock_trim = 0;                         // to counteract clock drift
@@ -107,6 +99,14 @@ u32 active_buf_clk100ns;
 u32 idle_buf_channel = 0;
 u32 active_buf_channel = 0;
 u8 slave_mac_address[6] = { 0, };
+
+le_state_t le = {
+	.access_address = 0x8e89bed6,           // advertising channel access address
+	.crc_init  = 0x555555,                  // advertising channel CRCInit
+	.crc_init_reversed = 0xAAAAAA,
+	.crc_verify = 1,
+	.connected = 0,
+};
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -849,13 +849,13 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 	case UBERTOOTH_GET_ACCESS_ADDRESS:
 		for(i=0; i < 4; i++) {
-			pbData[i] = (desired_address >> (8*i)) & 0xff;
+			pbData[i] = (le.access_address >> (8*i)) & 0xff;
 		}
 		*piLen = 4;
 		break;
 
 	case UBERTOOTH_SET_ACCESS_ADDRESS:
-		desired_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
+		le.access_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
 		break;
 
 	case UBERTOOTH_DO_SOMETHING:
@@ -871,12 +871,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_GET_CRC_VERIFY:
-		pbData[0] = crc_verify ? 1 : 0;
+		pbData[0] = le.crc_verify ? 1 : 0;
 		*piLen = 1;
 		break;
 
 	case UBERTOOTH_SET_CRC_VERIFY:
-		crc_verify = pSetup->wValue ? 1 : 0;
+		le.crc_verify = pSetup->wValue ? 1 : 0;
 		break;
 
 	case UBERTOOTH_POLL:
@@ -1004,7 +1004,7 @@ void TIMER0_IRQHandler()
 			if ((next & 0x3) == 0) {
 				if (le_hop_after > 0 && --le_hop_after == 0) {
 					do_hop = 1;
-					le_hop_after = le_hop_interval;
+					le_hop_after = le.hop_interval;
 				}
 			}
 		}
@@ -1589,7 +1589,7 @@ void hop(void)
 
 	else if (hop_mode == HOP_BTLE) {
 		TXLED_SET;
-		channel = btle_next_hop();
+		channel = btle_next_hop(&le);
 	}
 
 	else if (hop_mode == HOP_DIRECT) {
@@ -2065,7 +2065,7 @@ void cb_follow_le() {
 	for (i = 31; i < DMA_SIZE * 8 + 32; i++) {
 		access_address >>= 1;
 		access_address |= (unpacked[i] << 31);
-		if (access_address == desired_address) {
+		if (access_address == le.access_address) {
 			for (j = 0; j < 46; ++j) {
 				u8 byte = 0;
 				for (k = 0; k < 8; k++) {
@@ -2082,9 +2082,9 @@ void cb_follow_le() {
 			}
 
 			// verify CRC
-			if (crc_verify) {
+			if (le.crc_verify) {
 				int len		 = (idle_rxbuf[5] & 0x3f) + 2;
-				u32 calc_crc = btle_calc_crc(crc_init_reversed, idle_rxbuf + 4, len);
+				u32 calc_crc = btle_calc_crc(le.crc_init_reversed, idle_rxbuf + 4, len);
 				u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
 							 | (idle_rxbuf[4+len+1] << 8)
 							 |  idle_rxbuf[4+len+0];
@@ -2110,39 +2110,39 @@ void cb_follow_le() {
 void connection_follow_cb(u8 *packet) {
 	int i;
 
-	if (le_connected) {
+	if (le.connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
 		if (le_hop_after == 0)
-			le_hop_after = le_hop_interval / 2;
+			le_hop_after = le.hop_interval / 2;
 	}
 
 	// connect packet
-	if (!le_connected && packet[4] == 0x05) {
-		le_connected = 1;
-		crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
+	if (!le.connected && packet[4] == 0x05) {
+		le.connected = 1;
+		le.crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 
-		desired_address = 0;
+		le.access_address = 0;
 		for (i = 0; i < 4; ++i)
-			desired_address |= packet[18+i] << (i*8);
+			le.access_address |= packet[18+i] << (i*8);
 
 #define CRC_INIT (2+4+6+6+4)
-		crc_init = (packet[CRC_INIT+2] << 16)
-				 | (packet[CRC_INIT+1] << 8)
-				 |  packet[CRC_INIT+0];
-		crc_init_reversed = 0;
+		le.crc_init = (packet[CRC_INIT+2] << 16)
+					| (packet[CRC_INIT+1] << 8)
+					|  packet[CRC_INIT+0];
+		le.crc_init_reversed = 0;
 		for (i = 0; i < 24; ++i)
-			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+			le.crc_init_reversed |= ((le.crc_init >> i) & 1) << (23 - i);
 
 #define WIN_OFFSET (2+4+6+6+4+3+1)
 		// le_hop_after = idle_rxbuf[WIN_OFFSET]-2;
 		do_hop = 1;
 
 #define HOP_INTERVAL (2+4+6+6+4+3+1+2)
-		le_hop_interval = idle_rxbuf[HOP_INTERVAL];
+		le.hop_interval = idle_rxbuf[HOP_INTERVAL];
 
 #define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
-		le_hop_amount = packet[HOP] & 0x1f;
-		le_channel_idx = le_hop_amount;
+		le.hop_increment = packet[HOP] & 0x1f;
+		le.channel_idx = le.hop_increment;
 	}
 }
 
@@ -2155,7 +2155,7 @@ void bt_follow_le() {
 // divide, rounding to the nearest integer: round up at 0.5.
 #define DIVIDE_ROUND(N, D) ((N) + (D)/2) / (D)
 
-void promisc_recover_hop_amount(u8 *packet) {
+void promisc_recover_hop_increment(u8 *packet) {
 	static u32 first_ts = 0;
 	if (channel == 2404) {
 		first_ts = CLK100NS;
@@ -2165,18 +2165,18 @@ void promisc_recover_hop_amount(u8 *packet) {
 		u32 second_ts = CLK100NS;
 		// number of channels hopped between previous and current
 		u32 channels_hopped = DIVIDE_ROUND(second_ts - first_ts,
-										   le_hop_interval * LE_BASECLK);
+										   le.hop_interval * LE_BASECLK);
 		if (channels_hopped < 37) {
 			// get the hop amount based on the number of channels hopped
-			le_hop_amount = hop_interval_lut[channels_hopped];
-			le_channel_idx = 1;
+			le.hop_increment = hop_interval_lut[channels_hopped];
+			le.channel_idx = 1;
 			le_hop_after = 0;
-			le_connected = 1;
+			le.connected = 1;
 
 			// move on to regular connection following!
 			hop_mode = HOP_BTLE;
 			do_hop = 0;
-			crc_verify = 0;
+			le.crc_verify = 0;
 			packet_cb = connection_follow_cb;
 
 			return;
@@ -2208,17 +2208,17 @@ void promisc_recover_hop_interval(u8 *packet) {
 
 	obsv_hop_interval = DIVIDE_ROUND(smallest_interval, 37 * LE_BASECLK);
 
-	if (le_hop_interval == obsv_hop_interval) {
+	if (le.hop_interval == obsv_hop_interval) {
 		// 5 consecutive hop intervals: consider it legit and move on
 		++consec;
 		if (consec == 5) {
-			packet_cb = promisc_recover_hop_amount;
+			packet_cb = promisc_recover_hop_increment;
 			hop_direct_channel = 2404;
 			hop_mode = HOP_DIRECT;
 			do_hop = 1;
 		}
 	} else {
-		le_hop_interval = obsv_hop_interval;
+		le.hop_interval = obsv_hop_interval;
 		consec = 0;
 	}
 
@@ -2229,15 +2229,15 @@ void promisc_follow_cb(u8 *packet) {
 	int i;
 
 	// get the CRCInit
-	if (!crc_verify && packet[4] == 0x01 && packet[5] == 0x00) {
+	if (!le.crc_verify && packet[4] == 0x01 && packet[5] == 0x00) {
 		u32 crc = (packet[8] << 16) | (packet[7] << 8) | packet[6];
 
-		crc_init = btle_reverse_crc(crc, packet + 4, 2);
-		crc_init_reversed = 0;
+		le.crc_init = btle_reverse_crc(crc, packet + 4, 2);
+		le.crc_init_reversed = 0;
 		for (i = 0; i < 24; ++i)
-			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+			le.crc_init_reversed |= ((le.crc_init >> i) & 1) << (23 - i);
 
-		crc_verify = 1;
+		le.crc_verify = 1;
 		packet_cb = promisc_recover_hop_interval;
 	}
 }
@@ -2352,10 +2352,10 @@ void cb_le_promisc(char *unpacked) {
 	// once we see an AA 5 times, start following it
 	for (i = 0; i < AA_LIST_SIZE; ++i) {
 		if (active_aa_list[i].freq > 3) {
-			desired_address = active_aa_list[i].aa;
+			le.access_address = active_aa_list[i].aa;
 			data_cb = cb_follow_le;
 			packet_cb = promisc_follow_cb;
-			crc_verify = 0;
+			le.crc_verify = 0;
 		}
 	}
 }
@@ -2394,7 +2394,7 @@ void bt_slave_le() {
 	for (i = 0; i < 6; ++i)
 		adv_ind[i+2] = slave_mac_address[5-i];
 
-	calc_crc = btle_calc_crc(crc_init_reversed, adv_ind, adv_ind_len);
+	calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind, adv_ind_len);
 	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
 	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
 	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
