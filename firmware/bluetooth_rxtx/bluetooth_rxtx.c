@@ -1184,7 +1184,16 @@ static void cc2400_rx()
 		cc2400_set(MANAND,  0x7fff);
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b); // without PRNG
+
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+		// 0 00 00 0 010 00 0 00 0 1
+		//      |  | |   |  +--------> CRC off
+		//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+		//      |  | +---------------> 2 preamble bytes of 01010101
+		//      |  +-----------------> not packet mode
+		//      +--------------------> un-buffered mode
+		//
+
 		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
 		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
 	} else {
@@ -1204,6 +1213,43 @@ static void cc2400_rx()
 	HGM_SET;
 #endif
 }
+
+static void cc2400_rx_le_sync()
+{
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x134b); // without PRNG
+
+	cc2400_set(GRMDM,   0x0561); // un-buffered mode, packet w/ sync word detection
+	// 0 00 00 1 010 11 0 00 0 1
+	//   |  |  | |   |  +--------> CRC off
+	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
+	//   |  |  | +---------------> 2 preamble bytes of 01010101
+	//   |  |  +-----------------> packet mode
+	//   |  +--------------------> un-buffered mode
+	//   +-----------------------> sync error bits: 0
+
+	// cc2400_set(SYNCH,   0x8e89);
+	// cc2400_set(SYNCL,   0xbed6);
+	cc2400_set(SYNCH,   0x6b7d); // bit-reversed access address
+	cc2400_set(SYNCL,   0x9171);
+
+	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
+	cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+
+	// Set up CS register
+	cs_threshold_calc_and_set();
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	cc2400_strobe(SRX);
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	HGM_SET;
+#endif
+}
+
 
 void cc2400_txtest()
 {
@@ -2050,6 +2096,160 @@ void bt_generic_le(u8 active_mode)
 	cs_trigger_disable();
 }
 
+uint32_t rbit(uint32_t value) {
+  uint32_t result = 0;
+  asm("rbit %0, %1" : "=r" (result) : "r" (value));
+  return result;
+}
+
+void bt_le_sync(u8 active_mode)
+{
+	u8 *tmp = NULL;
+	u8 hold;
+	int i, j;
+	int8_t rssi, rssi_at_trigger;
+
+	modulation = MOD_BT_LOW_ENERGY;
+	mode = active_mode;
+
+	// enable USB interrupts
+	ISER0 = ISER0_ISE_USB;
+
+	RXLED_CLR;
+
+	queue_init();
+	dio_ssp_init();
+	dma_init();
+	dio_ssp_start();
+	cc2400_rx_le_sync();
+
+	cs_trigger_enable();
+
+	hold = 0;
+
+	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
+
+			/* Retune */
+			cc2400_set(FSDIV, channel - 1);
+
+			/* Wait for lock */
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+
+			/* RX mode */
+			cc2400_strobe(SRX);
+
+			requested_channel = 0;
+		}
+
+		if (do_hop) {
+			hop();
+		} else {
+			TXLED_CLR;
+		}
+
+		RXLED_CLR;
+
+		/* Wait for DMA. Meanwhile keep track of RSSI. */
+		rssi_reset();
+		rssi_at_trigger = INT8_MIN;
+		while ((rx_tc == 0) && (rx_err == 0))
+		{
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi_at_trigger = rssi;
+			}
+			rssi_add(rssi);
+		}
+
+		/* Keep buffer swapping in sync with DMA. */
+		if (rx_tc % 2) {
+			tmp = active_rxbuf;
+			active_rxbuf = idle_rxbuf;
+			idle_rxbuf = tmp;
+		}
+
+		if (rx_err) {
+			status |= DMA_ERROR;
+		}
+
+		/* No DMA transfer? */
+		if (!rx_tc)
+			goto rx_continue;
+
+		/* Missed a DMA trasfer? */
+		if (rx_tc > 1)
+			status |= DMA_OVERFLOW;
+
+		rssi_iir_update();
+
+		/* Set squelch hold if there was either a CS trigger, squelch
+		 * is disabled, or if the current rssi_max is above the same
+		 * threshold. Currently, this is redundant, but allows for
+		 * per-channel or other rssi triggers in the future. */
+		if (cs_trigger || cs_no_squelch) {
+			status |= CS_TRIGGER;
+			hold = CS_HOLD_TIME;
+			cs_trigger = 0;
+		}
+
+		if (rssi_max >= (cs_threshold_cur + 54)) {
+			status |= RSSI_TRIGGER;
+			hold = CS_HOLD_TIME;
+		}
+
+		/* Send a packet once in a while (6.25 Hz) to keep
+		 * host USB reads from timing out. */
+		if (keepalive_trigger) {
+			if (hold == 0)
+				hold = 1;
+			keepalive_trigger = 0;
+		}
+
+		/* Hold expired? Ignore data. */
+		if (hold == 0) {
+			goto rx_continue;
+		}
+		hold--;
+
+		uint32_t packet[48/4+1];
+		packet[0] = le.access_address;
+
+		// const uint32_t *whit = whitening_word[le.channel_idx];
+		const uint32_t *whit = whitening_word[37];
+		// FIXME get rid of this hardcoded 48
+		for (i = 0; i < 48; i+=4) {
+			uint32_t v = idle_rxbuf[i+0] << 24
+					   | idle_rxbuf[i+1] << 16
+				       | idle_rxbuf[i+2] << 8
+					   | idle_rxbuf[i+3] << 0;
+			packet[i/4+1] = rbit(v) ^ whit[i/4];
+		}
+
+		enqueue((uint8_t *)packet);
+
+		cc2400_strobe(SFSON);
+		while (!(cc2400_status() & FS_LOCK));
+		memset(idle_rxbuf, 0, 48);
+
+		/* RX mode */
+		cc2400_strobe(SRX);
+
+	rx_continue:
+		rx_tc = 0;
+		rx_err = 0;
+	}
+
+	dio_ssp_stop();
+	cs_trigger_disable();
+}
+
+
+
 /* low energy connection following
  * follows a known AA around */
 void cb_follow_le() {
@@ -2147,6 +2347,7 @@ void connection_follow_cb(u8 *packet) {
 }
 
 void bt_follow_le() {
+	bt_le_sync(MODE_BT_FOLLOW_LE);
 	data_cb = cb_follow_le;
 	packet_cb = connection_follow_cb;
 	bt_generic_le(MODE_BT_FOLLOW_LE);
