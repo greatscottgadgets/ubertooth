@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 	if(do_firmware == 0) {
 		char version[255];
 		cmd_get_rev_num(devh, version, (u8)sizeof(version));
-		printf("Firmare revision: %s\n", version);
+		printf("Firmware revision: %s\n", version);
         }
 	if(do_leds == 2)
 		printf("USR LED status: %d\n", r= cmd_get_usrled(devh));
