@@ -2329,11 +2329,12 @@ void bt_le_sync(u8 active_mode)
 
 		cc2400_strobe(SFSON);
 		while (!(cc2400_status() & FS_LOCK));
-		memset(idle_rxbuf, 0, 48);
 
-		dma_flush_le();
-		dio_ssp_start();
-		msleep(5); // FIXME
+		// flush any excess bytes from the SSP's buffer
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+		while (SSP1SR & SSPSR_RNE) {
+			u8 tmp = (u8)DIO_SSP_DR;
+		}
 
 		/* RX mode */
 		dma_init_le();
