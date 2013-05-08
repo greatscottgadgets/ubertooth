@@ -2312,6 +2312,7 @@ void bt_le_sync(u8 active_mode)
 		hold--;
 
 		uint32_t packet[48/4+1];
+		u8 *p = (u8 *)packet;
 		packet[0] = le.access_address;
 
 		// const uint32_t *whit = whitening_word[le.channel_idx];
@@ -2325,8 +2326,22 @@ void bt_le_sync(u8 active_mode)
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
+		unsigned len = (p[5] & 0x3f) + 2;
+		if (len > 39)
+			goto rx_flush;
+
+		if (le.crc_verify) {
+			u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
+			u32 wire_crc = (p[4+len+2] << 16)
+						 | (p[4+len+1] << 8)
+						 | (p[4+len+0] << 0);
+			if (calc_crc != wire_crc) // skip packets with a bad CRC
+				goto rx_flush;
+		}
+
 		enqueue((uint8_t *)packet);
 
+	rx_flush:
 		cc2400_strobe(SFSON);
 		while (!(cc2400_status() & FS_LOCK));
 
