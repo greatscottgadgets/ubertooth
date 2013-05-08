@@ -1108,6 +1108,57 @@ static void dma_init()
 	rx_err = 0;
 }
 
+static void dma_init_le()
+{
+	/* power up GPDMA controller */
+	PCONP |= PCONP_PCGPDMA;
+
+	/* zero out channel configs and clear interrupts */
+	DMACC0Config = 0;
+	DMACC1Config = 0;
+	DMACC2Config = 0;
+	DMACC3Config = 0;
+	DMACC4Config = 0;
+	DMACC5Config = 0;
+	DMACC6Config = 0;
+	DMACC7Config = 0;
+	DMACIntTCClear = 0xFF;
+	DMACIntErrClr = 0xFF;
+
+	/* enable DMA globally */
+	DMACConfig = DMACConfig_E;
+	while (!(DMACConfig & DMACConfig_E));
+
+	// page 607
+
+	/* configure DMA channel 0 */
+	DMACC0SrcAddr = (u32)&(DIO_SSP_DR);
+	DMACC0DestAddr = (u32)&rxbuf1[0];
+	DMACC0LLI = (u32)0;
+	DMACC0Control = (DMA_SIZE) |
+			(1 << 12) |        /* source burst size = 4 */
+			(1 << 15) |        /* destination burst size = 4 */
+			(0 << 18) |        /* source width 8 bits */
+			(0 << 21) |        /* destination width 8 bits */
+			DMACCxControl_DI | /* destination increment */
+			DMACCxControl_I;   /* terminal count interrupt enable */
+
+	DMACC0Config =
+			DIO_SSP_SRC |
+			(0x2 << 11) |           /* peripheral to memory */
+			DMACCxConfig_IE |       /* allow error interrupts */
+			DMACCxConfig_ITC;       /* allow terminal count interrupts */
+
+	active_buf_clkn_high = (clkn >> 20) & 0xff;
+	active_buf_clk100ns = CLK100NS;
+	active_buf_channel = channel;
+
+	/* reset interrupt counters */
+	rx_tc = 0;
+	rx_err = 0;
+}
+
+
 void DMA_IRQHandler()
 {
 	idle_buf_clkn_high = active_buf_clkn_high;
@@ -2119,7 +2170,7 @@ void bt_le_sync(u8 active_mode)
 
 	queue_init();
 	dio_ssp_init();
-	dma_init();
+	dma_init_le();
 	dio_ssp_start();
 	cc2400_rx_le_sync();
 
@@ -2168,9 +2219,12 @@ void bt_le_sync(u8 active_mode)
 
 		/* Keep buffer swapping in sync with DMA. */
 		if (rx_tc % 2) {
+			/*
 			tmp = active_rxbuf;
 			active_rxbuf = idle_rxbuf;
 			idle_rxbuf = tmp;
+			*/
+			idle_rxbuf = rxbuf1;
 		}
 
 		if (rx_err) {
@@ -2223,10 +2277,10 @@ void bt_le_sync(u8 active_mode)
 		const uint32_t *whit = whitening_word[37];
 		// FIXME get rid of this hardcoded 48
 		for (i = 0; i < 48; i+=4) {
-			uint32_t v = idle_rxbuf[i+0] << 24
-					   | idle_rxbuf[i+1] << 16
-				       | idle_rxbuf[i+2] << 8
-					   | idle_rxbuf[i+3] << 0;
+			uint32_t v = idle_rxbuf[i+1] << 24
+					   | idle_rxbuf[i+2] << 16
+				       | idle_rxbuf[i+3] << 8
+					   | idle_rxbuf[i+4] << 0;
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
@@ -2237,6 +2291,8 @@ void bt_le_sync(u8 active_mode)
 		memset(idle_rxbuf, 0, 48);
 
 		/* RX mode */
+		dma_init_le();
+		dio_ssp_start();
 		cc2400_strobe(SRX);
 
 	rx_continue:
