@@ -2315,8 +2315,7 @@ void bt_le_sync(u8 active_mode)
 		u8 *p = (u8 *)packet;
 		packet[0] = le.access_address;
 
-		// const uint32_t *whit = whitening_word[le.channel_idx];
-		const uint32_t *whit = whitening_word[37];
+		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
 		// FIXME get rid of this hardcoded 48
 		for (i = 0; i < 48; i+=4) {
 			uint32_t v = idle_rxbuf[i+0] << 24
