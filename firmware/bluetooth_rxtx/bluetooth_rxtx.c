@@ -89,14 +89,6 @@ int8_t cs_threshold_cur=CS_THRESHOLD_DEFAULT; // current CS threshold in dBm
 volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
-u32 desired_address = 0x8e89bed6;
-u32 crc_init = 0x555555;					// advertising channel CRCInit
-u32 crc_init_reversed = 0xAAAAAA;
-int crc_verify = 1;							// reject packets with bad CRC
-int le_connected = 0;                       // true if LE is connected
-u8 le_hop_amount = 0;                       // amount to hop in LE
-u8 le_channel_idx = 0;                      // current channel index in LE
-u16 le_hop_interval = 0;                    // connection-specific hop interval
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
 u32 last_usb_pkt = 0;                       // for keep alive packets
 int clock_trim = 0;                         // to counteract clock drift
@@ -107,6 +99,14 @@ u32 active_buf_clk100ns;
 u32 idle_buf_channel = 0;
 u32 active_buf_channel = 0;
 u8 slave_mac_address[6] = { 0, };
+
+le_state_t le = {
+	.access_address = 0x8e89bed6,           // advertising channel access address
+	.crc_init  = 0x555555,                  // advertising channel CRCInit
+	.crc_init_reversed = 0xAAAAAA,
+	.crc_verify = 1,
+	.connected = 0,
+};
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -849,13 +849,13 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 	case UBERTOOTH_GET_ACCESS_ADDRESS:
 		for(i=0; i < 4; i++) {
-			pbData[i] = (desired_address >> (8*i)) & 0xff;
+			pbData[i] = (le.access_address >> (8*i)) & 0xff;
 		}
 		*piLen = 4;
 		break;
 
 	case UBERTOOTH_SET_ACCESS_ADDRESS:
-		desired_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
+		le.access_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
 		break;
 
 	case UBERTOOTH_DO_SOMETHING:
@@ -871,12 +871,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_GET_CRC_VERIFY:
-		pbData[0] = crc_verify ? 1 : 0;
+		pbData[0] = le.crc_verify ? 1 : 0;
 		*piLen = 1;
 		break;
 
 	case UBERTOOTH_SET_CRC_VERIFY:
-		crc_verify = pSetup->wValue ? 1 : 0;
+		le.crc_verify = pSetup->wValue ? 1 : 0;
 		break;
 
 	case UBERTOOTH_POLL:
@@ -1004,7 +1004,7 @@ void TIMER0_IRQHandler()
 			if ((next & 0x3) == 0) {
 				if (le_hop_after > 0 && --le_hop_after == 0) {
 					do_hop = 1;
-					le_hop_after = le_hop_interval;
+					le_hop_after = le.hop_interval;
 				}
 			}
 		}
@@ -1108,6 +1108,98 @@ static void dma_init()
 	rx_err = 0;
 }
 
+static void dma_init_le()
+{
+	/* power up GPDMA controller */
+	PCONP |= PCONP_PCGPDMA;
+
+	/* zero out channel configs and clear interrupts */
+	DMACC0Config = 0;
+	DMACC1Config = 0;
+	DMACC2Config = 0;
+	DMACC3Config = 0;
+	DMACC4Config = 0;
+	DMACC5Config = 0;
+	DMACC6Config = 0;
+	DMACC7Config = 0;
+	DMACIntTCClear = 0xFF;
+	DMACIntErrClr = 0xFF;
+
+	/* enable DMA globally */
+	DMACConfig = DMACConfig_E;
+	while (!(DMACConfig & DMACConfig_E));
+
+	// page 607
+
+	/* configure DMA channel 0 */
+	DMACC0SrcAddr = (u32)&(DIO_SSP_DR);
+	DMACC0DestAddr = (u32)&rxbuf1[0];
+	DMACC0LLI = (u32)0;
+	DMACC0Control = (DMA_SIZE) |
+			(1 << 12) |        /* source burst size = 4 */
+			(1 << 15) |        /* destination burst size = 4 */
+			(0 << 18) |        /* source width 8 bits */
+			(0 << 21) |        /* destination width 8 bits */
+			DMACCxControl_DI | /* destination increment */
+			DMACCxControl_I;   /* terminal count interrupt enable */
+
+	DMACC0Config =
+			DIO_SSP_SRC |
+			(0x2 << 11) |           /* peripheral to memory */
+			DMACCxConfig_IE |       /* allow error interrupts */
+			DMACCxConfig_ITC;       /* allow terminal count interrupts */
+
+	active_buf_clkn_high = (clkn >> 20) & 0xff;
+	active_buf_clk100ns = CLK100NS;
+	active_buf_channel = channel;
+
+	/* reset interrupt counters */
+	rx_tc = 0;
+	rx_err = 0;
+}
+
+/*
+ * Flush whatever's in the CC2400's output buffer before going on to
+ * receive the next packet.
+ */
+static void dma_flush_le()
+{
+	/* power up GPDMA controller */
+	PCONP |= PCONP_PCGPDMA;
+
+	/* zero out channel configs and clear interrupts */
+	DMACC0Config = 0;
+	DMACC1Config = 0;
+	DMACC2Config = 0;
+	DMACC3Config = 0;
+	DMACC4Config = 0;
+	DMACC5Config = 0;
+	DMACC6Config = 0;
+	DMACC7Config = 0;
+	DMACIntTCClear = 0xFF;
+	DMACIntErrClr = 0xFF;
+
+	/* enable DMA globally */
+	DMACConfig = DMACConfig_E;
+	while (!(DMACConfig & DMACConfig_E));
+
+
+	/* configure DMA channel 0 */
+	DMACC0SrcAddr = (u32)&(DIO_SSP_DR);
+	DMACC0DestAddr = (u32)&rxbuf1[0];
+	DMACC0LLI = (u32)0;
+	DMACC0Control = (DMA_SIZE) |
+			(1 << 12) |        /* source burst size = 4 */
+			(1 << 15) |        /* destination burst size = 4 */
+			(0 << 18) |        /* source width 8 bits */
+			(0 << 21) ;        /* destination width 8 bits */
+
+	DMACC0Config =
+			DIO_SSP_SRC |
+			(0x2 << 11);            /* peripheral to memory */
+			// XXX no interrupts: we don't care about the data
+}
+
 void DMA_IRQHandler()
 {
 	idle_buf_clkn_high = active_buf_clkn_high;
@@ -1182,7 +1274,16 @@ static void cc2400_rx()
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
 		cc2400_set(LMTST,   0x2b22);
 		cc2400_set(MDMTST0, 0x134b); // without PRNG
+
 		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+		// 0 00 00 0 010 00 0 00 0 1
+		//      |  | |   |  +--------> CRC off
+		//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+		//      |  | +---------------> 2 preamble bytes of 01010101
+		//      |  +-----------------> not packet mode
+		//      +--------------------> un-buffered mode
+		//
+
 		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
 		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
 	} else {
@@ -1202,6 +1303,43 @@ static void cc2400_rx()
 	HGM_SET;
 #endif
 }
+
+static void cc2400_rx_le_sync()
+{
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x134b); // without PRNG
+
+	cc2400_set(GRMDM,   0x0561); // un-buffered mode, packet w/ sync word detection
+	// 0 00 00 1 010 11 0 00 0 1
+	//   |  |  | |   |  +--------> CRC off
+	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
+	//   |  |  | +---------------> 2 preamble bytes of 01010101
+	//   |  |  +-----------------> packet mode
+	//   |  +--------------------> un-buffered mode
+	//   +-----------------------> sync error bits: 0
+
+	// cc2400_set(SYNCH,   0x8e89);
+	// cc2400_set(SYNCL,   0xbed6);
+	cc2400_set(SYNCH,   0x6b7d); // bit-reversed access address
+	cc2400_set(SYNCL,   0x9171);
+
+	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
+	cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+
+	// Set up CS register
+	cs_threshold_calc_and_set();
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	cc2400_strobe(SRX);
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	HGM_SET;
+#endif
+}
+
 
 void cc2400_txtest()
 {
@@ -1583,7 +1721,7 @@ void hop(void)
 
 	else if (hop_mode == HOP_BTLE) {
 		TXLED_SET;
-		channel = btle_next_hop();
+		channel = btle_next_hop(&le);
 	}
 
 	else if (hop_mode == HOP_DIRECT) {
@@ -2044,6 +2182,184 @@ void bt_generic_le(u8 active_mode)
 	cs_trigger_disable();
 }
 
+uint32_t rbit(uint32_t value) {
+  uint32_t result = 0;
+  asm("rbit %0, %1" : "=r" (result) : "r" (value));
+  return result;
+}
+
+void bt_le_sync(u8 active_mode)
+{
+	u8 *tmp = NULL;
+	u8 hold;
+	int i, j;
+	int8_t rssi, rssi_at_trigger;
+
+	modulation = MOD_BT_LOW_ENERGY;
+	mode = active_mode;
+
+	// enable USB interrupts
+	ISER0 = ISER0_ISE_USB;
+
+	RXLED_CLR;
+
+	queue_init();
+	dio_ssp_init();
+	dma_init_le();
+	dio_ssp_start();
+	cc2400_rx_le_sync();
+
+	cs_trigger_enable();
+
+	hold = 0;
+
+	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
+
+			/* Retune */
+			cc2400_set(FSDIV, channel - 1);
+
+			/* Wait for lock */
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+
+			/* RX mode */
+			cc2400_strobe(SRX);
+
+			requested_channel = 0;
+		}
+
+		if (do_hop) {
+			hop();
+		} else {
+			TXLED_CLR;
+		}
+
+		RXLED_CLR;
+
+		/* Wait for DMA. Meanwhile keep track of RSSI. */
+		rssi_reset();
+		rssi_at_trigger = INT8_MIN;
+		while ((rx_tc == 0) && (rx_err == 0))
+		{
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi_at_trigger = rssi;
+			}
+			rssi_add(rssi);
+		}
+
+		/* Keep buffer swapping in sync with DMA. */
+		if (rx_tc % 2) {
+			/*
+			tmp = active_rxbuf;
+			active_rxbuf = idle_rxbuf;
+			idle_rxbuf = tmp;
+			*/
+			idle_rxbuf = rxbuf1;
+		}
+
+		if (rx_err) {
+			status |= DMA_ERROR;
+		}
+
+		/* No DMA transfer? */
+		if (!rx_tc)
+			goto rx_continue;
+
+		/* Missed a DMA trasfer? */
+		if (rx_tc > 1)
+			status |= DMA_OVERFLOW;
+
+		rssi_iir_update();
+
+		/* Set squelch hold if there was either a CS trigger, squelch
+		 * is disabled, or if the current rssi_max is above the same
+		 * threshold. Currently, this is redundant, but allows for
+		 * per-channel or other rssi triggers in the future. */
+		if (cs_trigger || cs_no_squelch) {
+			status |= CS_TRIGGER;
+			hold = CS_HOLD_TIME;
+			cs_trigger = 0;
+		}
+
+		if (rssi_max >= (cs_threshold_cur + 54)) {
+			status |= RSSI_TRIGGER;
+			hold = CS_HOLD_TIME;
+		}
+
+		/* Send a packet once in a while (6.25 Hz) to keep
+		 * host USB reads from timing out. */
+		if (keepalive_trigger) {
+			if (hold == 0)
+				hold = 1;
+			keepalive_trigger = 0;
+		}
+
+		/* Hold expired? Ignore data. */
+		if (hold == 0) {
+			goto rx_continue;
+		}
+		hold--;
+
+		uint32_t packet[48/4+1];
+		u8 *p = (u8 *)packet;
+		packet[0] = le.access_address;
+
+		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
+		// FIXME get rid of this hardcoded 48
+		for (i = 0; i < 48; i+=4) {
+			uint32_t v = idle_rxbuf[i+0] << 24
+					   | idle_rxbuf[i+1] << 16
+				       | idle_rxbuf[i+2] << 8
+					   | idle_rxbuf[i+3] << 0;
+			packet[i/4+1] = rbit(v) ^ whit[i/4];
+		}
+
+		unsigned len = (p[5] & 0x3f) + 2;
+		if (len > 39)
+			goto rx_flush;
+
+		if (le.crc_verify) {
+			u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
+			u32 wire_crc = (p[4+len+2] << 16)
+						 | (p[4+len+1] << 8)
+						 | (p[4+len+0] << 0);
+			if (calc_crc != wire_crc) // skip packets with a bad CRC
+				goto rx_flush;
+		}
+
+		enqueue((uint8_t *)packet);
+
+	rx_flush:
+		cc2400_strobe(SFSON);
+		while (!(cc2400_status() & FS_LOCK));
+
+		// flush any excess bytes from the SSP's buffer
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+		while (SSP1SR & SSPSR_RNE) {
+			u8 tmp = (u8)DIO_SSP_DR;
+		}
+
+		/* RX mode */
+		dma_init_le();
+		dio_ssp_start();
+		cc2400_strobe(SRX);
+
+	rx_continue:
+		rx_tc = 0;
+		rx_err = 0;
+	}
+
+	dio_ssp_stop();
+	cs_trigger_disable();
+}
+
+
+
 /* low energy connection following
  * follows a known AA around */
 void cb_follow_le() {
@@ -2059,7 +2375,7 @@ void cb_follow_le() {
 	for (i = 31; i < DMA_SIZE * 8 + 32; i++) {
 		access_address >>= 1;
 		access_address |= (unpacked[i] << 31);
-		if (access_address == desired_address) {
+		if (access_address == le.access_address) {
 			for (j = 0; j < 46; ++j) {
 				u8 byte = 0;
 				for (k = 0; k < 8; k++) {
@@ -2076,9 +2392,9 @@ void cb_follow_le() {
 			}
 
 			// verify CRC
-			if (crc_verify) {
+			if (le.crc_verify) {
 				int len		 = (idle_rxbuf[5] & 0x3f) + 2;
-				u32 calc_crc = btle_calc_crc(crc_init_reversed, idle_rxbuf + 4, len);
+				u32 calc_crc = btle_calc_crc(le.crc_init_reversed, idle_rxbuf + 4, len);
 				u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
 							 | (idle_rxbuf[4+len+1] << 8)
 							 |  idle_rxbuf[4+len+0];
@@ -2104,43 +2420,44 @@ void cb_follow_le() {
 void connection_follow_cb(u8 *packet) {
 	int i;
 
-	if (le_connected) {
+	if (le.connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
 		if (le_hop_after == 0)
-			le_hop_after = le_hop_interval / 2;
+			le_hop_after = le.hop_interval / 2;
 	}
 
 	// connect packet
-	if (!le_connected && packet[4] == 0x05) {
-		le_connected = 1;
-		crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
+	if (!le.connected && packet[4] == 0x05) {
+		le.connected = 1;
+		le.crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 
-		desired_address = 0;
+		le.access_address = 0;
 		for (i = 0; i < 4; ++i)
-			desired_address |= packet[18+i] << (i*8);
+			le.access_address |= packet[18+i] << (i*8);
 
 #define CRC_INIT (2+4+6+6+4)
-		crc_init = (packet[CRC_INIT+2] << 16)
-				 | (packet[CRC_INIT+1] << 8)
-				 |  packet[CRC_INIT+0];
-		crc_init_reversed = 0;
+		le.crc_init = (packet[CRC_INIT+2] << 16)
+					| (packet[CRC_INIT+1] << 8)
+					|  packet[CRC_INIT+0];
+		le.crc_init_reversed = 0;
 		for (i = 0; i < 24; ++i)
-			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+			le.crc_init_reversed |= ((le.crc_init >> i) & 1) << (23 - i);
 
 #define WIN_OFFSET (2+4+6+6+4+3+1)
 		// le_hop_after = idle_rxbuf[WIN_OFFSET]-2;
 		do_hop = 1;
 
 #define HOP_INTERVAL (2+4+6+6+4+3+1+2)
-		le_hop_interval = idle_rxbuf[HOP_INTERVAL];
+		le.hop_interval = idle_rxbuf[HOP_INTERVAL];
 
 #define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
-		le_hop_amount = packet[HOP] & 0x1f;
-		le_channel_idx = le_hop_amount;
+		le.hop_increment = packet[HOP] & 0x1f;
+		le.channel_idx = le.hop_increment;
 	}
 }
 
 void bt_follow_le() {
+	bt_le_sync(MODE_BT_FOLLOW_LE);
 	data_cb = cb_follow_le;
 	packet_cb = connection_follow_cb;
 	bt_generic_le(MODE_BT_FOLLOW_LE);
@@ -2149,7 +2466,7 @@ void bt_follow_le() {
 // divide, rounding to the nearest integer: round up at 0.5.
 #define DIVIDE_ROUND(N, D) ((N) + (D)/2) / (D)
 
-void promisc_recover_hop_amount(u8 *packet) {
+void promisc_recover_hop_increment(u8 *packet) {
 	static u32 first_ts = 0;
 	if (channel == 2404) {
 		first_ts = CLK100NS;
@@ -2159,18 +2476,18 @@ void promisc_recover_hop_amount(u8 *packet) {
 		u32 second_ts = CLK100NS;
 		// number of channels hopped between previous and current
 		u32 channels_hopped = DIVIDE_ROUND(second_ts - first_ts,
-										   le_hop_interval * LE_BASECLK);
+										   le.hop_interval * LE_BASECLK);
 		if (channels_hopped < 37) {
 			// get the hop amount based on the number of channels hopped
-			le_hop_amount = hop_interval_lut[channels_hopped];
-			le_channel_idx = 1;
+			le.hop_increment = hop_interval_lut[channels_hopped];
+			le.channel_idx = 1;
 			le_hop_after = 0;
-			le_connected = 1;
+			le.connected = 1;
 
 			// move on to regular connection following!
 			hop_mode = HOP_BTLE;
 			do_hop = 0;
-			crc_verify = 0;
+			le.crc_verify = 0;
 			packet_cb = connection_follow_cb;
 
 			return;
@@ -2202,17 +2519,17 @@ void promisc_recover_hop_interval(u8 *packet) {
 
 	obsv_hop_interval = DIVIDE_ROUND(smallest_interval, 37 * LE_BASECLK);
 
-	if (le_hop_interval == obsv_hop_interval) {
+	if (le.hop_interval == obsv_hop_interval) {
 		// 5 consecutive hop intervals: consider it legit and move on
 		++consec;
 		if (consec == 5) {
-			packet_cb = promisc_recover_hop_amount;
+			packet_cb = promisc_recover_hop_increment;
 			hop_direct_channel = 2404;
 			hop_mode = HOP_DIRECT;
 			do_hop = 1;
 		}
 	} else {
-		le_hop_interval = obsv_hop_interval;
+		le.hop_interval = obsv_hop_interval;
 		consec = 0;
 	}
 
@@ -2223,15 +2540,15 @@ void promisc_follow_cb(u8 *packet) {
 	int i;
 
 	// get the CRCInit
-	if (!crc_verify && packet[4] == 0x01 && packet[5] == 0x00) {
+	if (!le.crc_verify && packet[4] == 0x01 && packet[5] == 0x00) {
 		u32 crc = (packet[8] << 16) | (packet[7] << 8) | packet[6];
 
-		crc_init = btle_reverse_crc(crc, packet + 4, 2);
-		crc_init_reversed = 0;
+		le.crc_init = btle_reverse_crc(crc, packet + 4, 2);
+		le.crc_init_reversed = 0;
 		for (i = 0; i < 24; ++i)
-			crc_init_reversed |= ((crc_init >> i) & 1) << (23 - i);
+			le.crc_init_reversed |= ((le.crc_init >> i) & 1) << (23 - i);
 
-		crc_verify = 1;
+		le.crc_verify = 1;
 		packet_cb = promisc_recover_hop_interval;
 	}
 }
@@ -2346,10 +2663,10 @@ void cb_le_promisc(char *unpacked) {
 	// once we see an AA 5 times, start following it
 	for (i = 0; i < AA_LIST_SIZE; ++i) {
 		if (active_aa_list[i].freq > 3) {
-			desired_address = active_aa_list[i].aa;
+			le.access_address = active_aa_list[i].aa;
 			data_cb = cb_follow_le;
 			packet_cb = promisc_follow_cb;
-			crc_verify = 0;
+			le.crc_verify = 0;
 		}
 	}
 }
@@ -2388,7 +2705,7 @@ void bt_slave_le() {
 	for (i = 0; i < 6; ++i)
 		adv_ind[i+2] = slave_mac_address[5-i];
 
-	calc_crc = btle_calc_crc(crc_init_reversed, adv_ind, adv_ind_len);
+	calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind, adv_ind_len);
 	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
 	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
 	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
