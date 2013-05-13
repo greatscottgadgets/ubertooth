@@ -106,6 +106,7 @@ u32 idle_buf_clk100ns;
 u32 active_buf_clk100ns;
 u32 idle_buf_channel = 0;
 u32 active_buf_channel = 0;
+u8 slave_mac_address[6] = { 0, };
 
 typedef void (*data_cb_t)(char *);
 data_cb_t data_cb = NULL;
@@ -151,6 +152,7 @@ volatile u8 mode = MODE_IDLE;
 volatile u8 requested_mode = MODE_IDLE;
 volatile u8 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
+volatile u16 requested_channel = 0;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
@@ -510,6 +512,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	int clock_offset;
 	u8 length; // string length
 	usb_pkt_rx *p = NULL;
+	u16 reg_val;
 
 	switch (pSetup->bRequest) {
 
@@ -693,22 +696,27 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_CHANNEL:
-		channel = pSetup->wValue;
+		requested_channel = pSetup->wValue;
 		/* bluetooth band sweep mode, start at channel 2402 */
-		if (channel == 9999) {
+		if (requested_channel == 9999) {
 			hop_mode = HOP_SWEEP;
-			channel = 2402;
+			requested_channel = 2402;
 		}
 		/* fixed channel mode, can be outside blueooth band */
 		else {
 			hop_mode = HOP_NONE;
-			channel = MAX(channel, MIN_FREQ);
-			channel = MIN(channel, MAX_FREQ);
+			requested_channel = MAX(requested_channel, MIN_FREQ);
+			requested_channel = MIN(requested_channel, MAX_FREQ);
 		}
 
-		/* CS threshold is mode-dependent. Update it after
-		 * possible mode change. TODO - kludgy. */
-		cs_threshold_calc_and_set();
+		if (mode != MODE_BT_FOLLOW_LE) {
+			channel = requested_channel;
+			requested_channel = 0;
+
+			/* CS threshold is mode-dependent. Update it after
+			 * possible mode change. TODO - kludgy. */
+			cs_threshold_calc_and_set();
+		}
 		break;
 
 	case UBERTOOTH_SET_ISP:
@@ -890,6 +898,18 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 		queue_init();
 		cs_threshold_calc_and_set();
+		break;
+
+	case UBERTOOTH_READ_REGISTER:
+		reg_val = cc2400_get(pSetup->wValue);
+		pbData[0] = (reg_val >> 8) & 0xff;
+		pbData[1] = reg_val & 0xff;
+		*piLen = 2;
+		break;
+
+	case UBERTOOTH_BTLE_SLAVE:
+		memcpy(slave_mac_address, pbData, 6);
+		requested_mode = MODE_BT_SLAVE_LE;
 		break;
 
 	default:
@@ -1212,6 +1232,109 @@ void cc2400_txtest()
 #endif
 	mode = MODE_TX_TEST;
 #endif
+}
+
+/*
+ * Transmit a BTLE packet with the specified access address.
+ *
+ * All modulation parameters are set within this function. The data
+ * should not be pre-whitened, but the CRC should be calculated and
+ * included in the data length.
+ */
+void le_transmit(u32 aa, u8 len, u8 *data)
+{
+	unsigned i, j;
+	int bit;
+	u8 txbuf[64];
+	u8 tx_len;
+	u8 byte;
+	u16 gio_save;
+
+	// first four bytes: AA
+	for (i = 0; i < 4; ++i) {
+		byte = aa & 0xff;
+		aa >>= 8;
+		txbuf[i] = 0;
+		for (j = 0; j < 8; ++j) {
+			txbuf[i] |= (byte & 1) << (7 - j);
+			byte >>= 1;
+		}
+	}
+
+	// whiten the data and copy it into the txbuf
+	int idx = whitening_index[btle_channel_index(channel-2402)];
+	for (i = 0; i < len; ++i) {
+		byte = data[i];
+		txbuf[i+4] = 0;
+		for (j = 0; j < 8; ++j) {
+			bit = (byte & 1) ^ whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+			byte >>= 1;
+			txbuf[i+4] |= bit << (7 - j);
+		}
+	}
+
+	len += 4; // include the AA in len
+
+	// Bluetooth-like modulation
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
+	cc2400_set(MDMTST0, 0x134b);    // no PRNG
+
+	cc2400_set(GRMDM,   0x0c01);
+	// 0 00 01 1 000 00 0 00 0 1
+	//      |  | |   |  +--------> CRC off
+	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+	//      |  | +---------------> 0 preamble bytes of 01010101
+	//      |  +-----------------> packet mode
+	//      +--------------------> buffered mode
+
+	cc2400_set(FSDIV,   channel);
+	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
+	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
+	cc2400_set(INT,     0x0014);	// FIFO_THRESHOLD: 20 bytes
+
+	// sync byte depends on the first transmitted bit of the AA
+	if (aa & 1)
+		cc2400_set(SYNCH,   0xaaaa);
+	else
+		cc2400_set(SYNCH,   0x5555);
+
+	// set GIO to FIFO_FULL
+	gio_save = cc2400_get(IOCFG);
+	cc2400_set(IOCFG, (GIO_FIFO_FULL << 9) | (gio_save & 0x1ff));
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	TXLED_SET;
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+#endif
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	cc2400_strobe(STX);
+
+	// put the packet into the FIFO
+	for (i = 0; i < len; i += 16) {
+		while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
+		tx_len = len - i;
+		if (tx_len > 16)
+			tx_len = 16;
+		cc2400_spi_buf(FIFOREG, tx_len, txbuf + i);
+	}
+
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	TXLED_CLR;
+
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK));
+
+#ifdef UBERTOOTH_ONE
+	PAEN_CLR;
+#endif
+
+	// reset GIO
+	cc2400_set(IOCFG, gio_save);
 }
 
 /*
@@ -1789,7 +1912,9 @@ void bt_generic_le(u8 active_mode)
 	u8 *tmp = NULL;
 	u8 hold;
 	int i, j;
+	int8_t rssi, rssi_at_trigger;
 
+	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
 
 	// enable USB interrupts
@@ -1808,6 +1933,22 @@ void bt_generic_le(u8 active_mode)
 	hold = 0;
 
 	while (requested_mode == active_mode) {
+		if (requested_channel != 0) {
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
+
+			/* Retune */
+			cc2400_set(FSDIV, channel - 1);
+
+			/* Wait for lock */
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
+
+			/* RX mode */
+			cc2400_strobe(SRX);
+
+			requested_channel = 0;
+		}
 
 		if (do_hop) {
 			hop();
@@ -1817,9 +1958,18 @@ void bt_generic_le(u8 active_mode)
 
 		RXLED_CLR;
 
-		/* Wait for DMA transfer. */
+		/* Wait for DMA. Meanwhile keep track of RSSI. */
+		rssi_reset();
+		rssi_at_trigger = INT8_MIN;
 		while ((rx_tc == 0) && (rx_err == 0))
-			;
+		{
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
+				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi_at_trigger = rssi;
+			}
+			rssi_add(rssi);
+		}
 
 		/* Keep buffer swapping in sync with DMA. */
 		if (rx_tc % 2) {
@@ -1839,6 +1989,8 @@ void bt_generic_le(u8 active_mode)
 		/* Missed a DMA trasfer? */
 		if (rx_tc > 1)
 			status |= DMA_OVERFLOW;
+
+		rssi_iir_update();
 
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same
@@ -1899,7 +2051,12 @@ void cb_follow_le() {
 	int idx = whitening_index[btle_channel_index(channel-2402)];
 
 	u32 access_address = 0;
-	for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
+	for (i = 0; i < 31; ++i) {
+		access_address >>= 1;
+		access_address |= (unpacked[i] << 31);
+	}
+
+	for (i = 31; i < DMA_SIZE * 8 + 32; i++) {
 		access_address >>= 1;
 		access_address |= (unpacked[i] << 31);
 		if (access_address == desired_address) {
@@ -1950,12 +2107,13 @@ void connection_follow_cb(u8 *packet) {
 	if (le_connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
 		if (le_hop_after == 0)
-			le_hop_after = le_hop_interval;
+			le_hop_after = le_hop_interval / 2;
 	}
 
 	// connect packet
 	if (!le_connected && packet[4] == 0x05) {
 		le_connected = 1;
+		crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 
 		desired_address = 0;
 		for (i = 0; i < 4; ++i)
@@ -2012,6 +2170,7 @@ void promisc_recover_hop_amount(u8 *packet) {
 			// move on to regular connection following!
 			hop_mode = HOP_BTLE;
 			do_hop = 0;
+			crc_verify = 0;
 			packet_cb = connection_follow_cb;
 
 			return;
@@ -2081,7 +2240,7 @@ void promisc_follow_cb(u8 *packet) {
 struct active_aa {
 	u32 aa;
 	int freq;
-} active_aa_list[10] = { { 0, 0, }, };
+} active_aa_list[32] = { { 0, 0, }, };
 #define AA_LIST_SIZE (int)(sizeof(active_aa_list) / sizeof(struct active_aa))
 
 // called when we see an AA, add it to the list
@@ -2107,30 +2266,55 @@ void see_aa(u32 aa) {
 /* le promiscuous mode */
 void cb_le_promisc(char *unpacked) {
 	int i, j, k;
+	int idx;
 
 	// empty data PDU: 01 00
-	char desired[] = { 1, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0, };
-	int idx = whitening_index[btle_channel_index(channel-2402)];
+	char desired[4][16] = {
+		{ 1, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+		{ 1, 0, 0, 1, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+		{ 1, 0, 1, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+		{ 1, 0, 1, 1, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0, },
+	};
 
-	// whiten the desired data
-	for (i = 0; i < (int)sizeof(desired); ++i) {
-		desired[i] ^= whitening[idx];
-		idx = (idx + 1) % sizeof(whitening);
+	for (i = 0; i < 4; ++i) {
+		idx = whitening_index[btle_channel_index(channel-2402)];
+
+		// whiten the desired data
+		for (j = 0; j < (int)sizeof(desired[i]); ++j) {
+			desired[i][j] ^= whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+		}
 	}
 
 	// then look for that bitsream in our receive buffer
-	for (i = 32; i < (DMA_SIZE*8 + 32); i++) {
-		int ok = 1;
-		for (j = 0; j < (int)sizeof(desired); ++j) {
-			if (unpacked[i+j] != desired[j]) {
-				ok = 0;
+	for (i = 32; i < (DMA_SIZE*8*2 - 32 - 16); i++) {
+		int ok[4] = { 1, 1, 1, 1 };
+		int matching = -1;
+
+		for (j = 0; j < 4; ++j) {
+			for (k = 0; k < (int)sizeof(desired[j]); ++k) {
+				if (unpacked[i+k] != desired[j][k]) {
+					ok[j] = 0;
+					break;
+				}
+			}
+		}
+
+		// see if any match
+		for (j = 0; j < 4; ++j) {
+			if (ok[j]) {
+				matching = j;
 				break;
 			}
 		}
 
-		// no match, move along
-		if (!ok) continue;
+		// skip if no match
+		if (matching < 0)
+			continue;
 
 		// found a match! unwhiten it and send it home
 		idx = whitening_index[btle_channel_index(channel-2402)];
@@ -2161,7 +2345,7 @@ void cb_le_promisc(char *unpacked) {
 
 	// once we see an AA 5 times, start following it
 	for (i = 0; i < AA_LIST_SIZE; ++i) {
-		if (active_aa_list[i].freq > 5) {
+		if (active_aa_list[i].freq > 3) {
 			desired_address = active_aa_list[i].aa;
 			data_cb = cb_follow_le;
 			packet_cb = promisc_follow_cb;
@@ -2171,8 +2355,53 @@ void cb_le_promisc(char *unpacked) {
 }
 
 void bt_promisc_le() {
+	// jump to a random data channel and turn up the squelch
+	channel = 2440;
+	cs_threshold_req = -70;
+	cs_threshold_calc_and_set();
+
 	data_cb = cb_le_promisc;
 	bt_generic_le(MODE_BT_PROMISC_LE);
+}
+
+void bt_slave_le() {
+	u32 calc_crc;
+	int i;
+
+	u8 adv_ind[] = {
+		// LL header
+		0x00, 0x09,
+
+		// advertising address
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+		// advertising data
+		0x02, 0x01, 0x05,
+
+		// CRC (calc)
+		0xff, 0xff, 0xff,
+	};
+
+	u8 adv_ind_len = sizeof(adv_ind) - 3;
+
+	// copy the user-specified mac address
+	for (i = 0; i < 6; ++i)
+		adv_ind[i+2] = slave_mac_address[5-i];
+
+	calc_crc = btle_calc_crc(crc_init_reversed, adv_ind, adv_ind_len);
+	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
+	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
+	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+
+	// spam advertising packets
+	while (requested_mode == MODE_BT_SLAVE_LE) {
+		ICER0 = ICER0_ICE_USB;
+		ICER0 = ICER0_ICE_DMA;
+		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind);
+		ISER0 = ISER0_ISE_USB;
+		ISER0 = ISER0_ISE_DMA;
+		msleep(100);
+	}
 }
 
 /* spectrum analysis */
@@ -2318,6 +2547,8 @@ int main()
 			bt_follow_le();
 		else if (requested_mode == MODE_BT_PROMISC_LE && mode != MODE_BT_PROMISC_LE)
 			bt_promisc_le();
+		else if (requested_mode == MODE_BT_SLAVE_LE && mode != MODE_BT_SLAVE_LE)
+			bt_slave_le();
 		else if (requested_mode == MODE_TX_TEST && mode != MODE_TX_TEST)
 			cc2400_txtest();
 		else if (requested_mode == MODE_RANGE_TEST && mode != MODE_RANGE_TEST)

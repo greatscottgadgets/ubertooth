@@ -17,6 +17,7 @@
 
 # host utilities
 ubertooth-btle
+ubertooth-debug
 ubertooth-dump
 ubertooth-follow
 ubertooth-hop

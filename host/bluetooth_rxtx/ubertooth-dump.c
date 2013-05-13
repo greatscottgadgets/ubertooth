@@ -28,6 +28,8 @@ static void usage(void)
 	printf("Usage:\n");
 	printf("\t-h this help\n");
 	printf("\t-b only dump received bitstream (GnuRadio style)\n");
+	printf("\t-c classic modulation\n");
+	printf("\t-l LE modulation\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-d filename\n");
 	printf("\nThis program sends binary data to stdout.  You probably don't want to\n");
@@ -48,13 +50,20 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int bitstream = 0;
+	int modulation = MOD_BT_BASIC_RATE;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
-	while ((opt=getopt(argc,argv,"bhU:d:")) != EOF) {
+	while ((opt=getopt(argc,argv,"bhclU:d:")) != EOF) {
 		switch(opt) {
 		case 'b':
 			bitstream = 1;
+			break;
+		case 'c':
+			modulation = MOD_BT_BASIC_RATE;
+			break;
+		case 'l':
+			modulation = MOD_BT_LOW_ENERGY;
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -80,8 +89,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* FIXME cli mod options */
-	/* cmd_set_modulation(devh, MOD_BT_LOW_ENERGY); */
+	cmd_set_modulation(devh, modulation);
 	rx_dump(devh, bitstream);
 
 	ubertooth_stop(devh);
