@@ -2457,7 +2457,9 @@ void connection_follow_cb(u8 *packet) {
 }
 
 void bt_follow_le() {
-	bt_le_sync(MODE_BT_FOLLOW_LE);
+	// FIXME: sync mode does not yet follow connections properly
+	// bt_le_sync(MODE_BT_FOLLOW_LE);
+
 	data_cb = cb_follow_le;
 	packet_cb = connection_follow_cb;
 	bt_generic_le(MODE_BT_FOLLOW_LE);
