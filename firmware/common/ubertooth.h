@@ -180,6 +180,7 @@
 #define SCLK_CLR   (FIO1CLR = PIN_SCLK)
 #define MOSI_SET   (FIO1SET = PIN_MOSI)
 #define MOSI_CLR   (FIO1CLR = PIN_MOSI)
+#define GIO6       (FIO2PIN & PIN_GIO6)
 #define GIO6_SET   (FIO1SET = PIN_GIO6)
 #define GIO6_CLR   (FIO1CLR = PIN_GIO6)
 #define BTGR_SET   (FIO1SET = PIN_BTGR)
@@ -199,6 +200,7 @@
 #define SCLK_CLR   (FIO2CLR = PIN_SCLK)
 #define MOSI_SET   (FIO2SET = PIN_MOSI)
 #define MOSI_CLR   (FIO2CLR = PIN_MOSI)
+#define GIO6       (FIO2PIN & PIN_GIO6)
 #define GIO6_SET   (FIO2SET = PIN_GIO6)
 #define GIO6_CLR   (FIO2CLR = PIN_GIO6)
 #define BTGR_SET   (FIO1SET = PIN_BTGR)
@@ -214,6 +216,7 @@
 #define SCLK_CLR   (FIO1CLR = PIN_SCLK)
 #define MOSI_SET   (FIO1SET = PIN_MOSI)
 #define MOSI_CLR   (FIO1CLR = PIN_MOSI)
+#define GIO6       (FIO2PIN & PIN_GIO6)
 #define GIO6_SET   (FIO1SET = PIN_GIO6)
 #define GIO6_CLR   (FIO1CLR = PIN_GIO6)
 #define MISO       (FIO1PIN & PIN_MISO)
@@ -298,6 +301,7 @@ u16 cc2400_get(u8 reg);
 void cc2400_set(u8 reg, u16 val);
 u8 cc2400_get8(u8 reg);
 void cc2400_set8(u8 reg, u8 val);
+void cc2400_spi_buf(u8 reg, u8 len, u8 *data);
 u8 cc2400_status(void);
 u8 cc2400_strobe(u8 reg);
 void cc2400_reset(void);

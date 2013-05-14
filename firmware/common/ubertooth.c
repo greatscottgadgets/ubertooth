@@ -240,6 +240,9 @@ void cc2400_init()
 
 	/* activate 3V3 supply for CC2400 IO */
 	CC3V3_SET;
+
+	/* initialise various cc2400 settings - see datasheet pg63 */
+	cc2400_set(MANAND,  0x7fff);
 }
 
 /*
@@ -314,6 +317,48 @@ void cc2400_set8(u8 reg, u8 val)
 {
 	u32 out = (reg << 8) | val;
 	cc2400_spi(16, out);
+}
+
+/* write multiple bytes to SPI */
+void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
+{
+	u8 msb = 1 << 7;
+	u8 i, j, temp;
+
+	/* start transaction by dropping CSN */
+	CSN_CLR;
+
+	for (i = 0; i < 8; ++i) {
+		if (reg & msb)
+			MOSI_SET;
+		else
+			MOSI_CLR;
+		reg <<= 1;
+		SCLK_SET;
+		SCLK_CLR;
+	}
+
+	for (i = 0; i < len; ++i) {
+		temp = data[i];
+		for (j = 0; j < 8; ++j) {
+			if (temp & msb)
+				MOSI_SET;
+			else
+				MOSI_CLR;
+			temp <<= 1;
+			SCLK_SET;
+			SCLK_CLR;
+		}
+	}
+
+	// this is necessary to clock in the last byte
+	for (i = 0; i < 8; ++i) {
+		SCLK_SET;
+		SCLK_CLR;
+	}
+
+	/* end transaction by raising CSN */
+	CSN_SET;
 }
 
 /* get the status */

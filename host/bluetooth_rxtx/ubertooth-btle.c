@@ -21,27 +21,74 @@
 
 #include "ubertooth.h"
 #include <bluetooth_packet.h>
+#include <ctype.h>
+#include <err.h>
 #include <getopt.h>
+#include <string.h>
 #include <unistd.h>
+#include <pcap.h>
 
 extern FILE *infile;
 extern FILE *dumpfile;
+extern pcap_t *pcap_dumpfile;
+extern pcap_dumper_t *dumper;
+
+int convert_mac_address(char *s, uint8_t *o) {
+	int i;
+
+	// validate length
+	if (strlen(s) != 6 * 2 + 5) {
+		printf("Error: MAC address is wrong length\n");
+		return 0;
+	}
+
+	// validate hex chars and : separators
+	for (i = 0; i < 6*3; i += 3) {
+		if (!isxdigit(s[i]) ||
+			!isxdigit(s[i+1])) {
+			printf("Error: MAC address contains invalid character(s)\n");
+			return 0;
+		}
+		if (i < 5*3 && s[i+2] != ':') {
+			printf("Error: MAC address contains invalid character(s)\n");
+			return 0;
+		}
+	}
+
+	// sanity: checked; convert
+	for (i = 0; i < 6; ++i) {
+		unsigned byte;
+		sscanf(&s[i*3], "%02x",&byte);
+		o[i] = byte;
+	}
+
+	return 1;
+}
 
 static void usage(void)
 {
 	printf("ubertooth-btle - passive Bluetooth Low Energy monitoring\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
+	printf("\n");
+	printf("    Major modes:\n");
 	printf("\t-f follow connections\n");
 	printf("\t-p promiscuous: sniff active connections\n");
+	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
+	printf("\t-s<address> faux slave mode, using MAC addr (example: -s22:44:66:88:aa:cc)\n");
+	printf("\n");
+	printf("    Data source:\n");
 	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
-	printf("\t-d filename\n");
-	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
+	printf("\n");
+	printf("    Misc:\n");
+	printf("\t-c<filename> capture packets to PCAP file\n");
+	printf("\t-d<filename> dump packets to binary file\n");
+	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
-	printf("If get/set access address is specified, no capture occurs.\n");
+	printf("In get/set mode no capture occurs.\n");
 }
 
 int main(int argc, char *argv[])
@@ -50,16 +97,21 @@ int main(int argc, char *argv[])
 	int do_follow, do_file, do_promisc;
 	int do_get_aa, do_set_aa;
 	int do_crc;
+	int do_adv_index;
+	int do_slave_mode;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
+	int r;
 	u32 access_address;
+	uint8_t mac_address[6] = { 0, };
 
 	do_follow = do_file = 0, do_promisc = 0;
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
+	do_adv_index = 37;
 
-	while ((opt=getopt(argc,argv,"a::d:hfpi:U:v::")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::A:s:")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -87,6 +139,17 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
+		case 'c':
+			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
+			if (pcap_dumpfile == NULL)
+				err(1, "pcap_open_dead: ");
+			dumper = pcap_dump_open(pcap_dumpfile, optarg);
+			if (dumper == NULL) {
+				warn("pcap_dump_open");
+				pcap_close(pcap_dumpfile);
+				exit(1);
+			}
+			break;
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {
@@ -99,6 +162,22 @@ int main(int argc, char *argv[])
 				do_crc = atoi(optarg) ? 1 : 0;
 			else
 				do_crc = 2; // get
+			break;
+		case 'A':
+			do_adv_index = atoi(optarg);
+			if (do_adv_index < 37 || do_adv_index > 39) {
+				printf("Error: advertising index must be 37, 38, or 39\n");
+				usage();
+				return 1;
+			}
+			break;
+		case 's':
+			do_slave_mode = 1;
+			r = convert_mac_address(optarg, mac_address);
+			if (!r) {
+				usage();
+				return 1;
+			}
 			break;
 		case 'h':
 		default:
@@ -125,7 +204,14 @@ int main(int argc, char *argv[])
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 
 		if (do_follow) {
-			cmd_set_channel(devh, 2402);
+			u16 channel;
+			if (do_adv_index == 37)
+				channel = 2402;
+			else if (do_adv_index == 38)
+				channel = 2426;
+			else
+				channel = 2480;
+			cmd_set_channel(devh, channel);
 			cmd_btle_sniffing(devh, 2);
 		} else {
 			cmd_btle_promisc(devh);
@@ -164,6 +250,19 @@ int main(int argc, char *argv[])
 			r = do_crc;
 		}
 		printf("CRC: %sverify\n", r ? "" : "DO NOT ");
+	}
+
+	if (do_slave_mode) {
+		u16 channel;
+		if (do_adv_index == 37)
+			channel = 2402;
+		else if (do_adv_index == 38)
+			channel = 2426;
+		else
+			channel = 2480;
+		cmd_set_channel(devh, channel);
+
+		cmd_btle_slave(devh, mac_address);
 	}
 
 	return 0;

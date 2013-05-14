@@ -590,7 +590,7 @@ int cmd_start_hopping(struct libusb_device_handle* devh, int clock_offset)
 	int r;
 	u8 data[4];
 	for(r=0; r < 4; r++)
-		data[r] = (clock_offset >> (8*r)) & 0xff;
+		data[r] = (clock_offset >> (8*(3-r))) & 0xff;
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_START_HOPPING, 0, 0,
 		data, 4, 1000);
@@ -811,5 +811,42 @@ int cmd_btle_promisc(struct libusb_device_handle* devh)
 		}
 		return r;
 	}
+	return 0;
+}
+
+int cmd_read_register(struct libusb_device_handle* devh, u8 reg)
+{
+	int r;
+	u8 data[2];
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_READ_REGISTER, reg, 0,
+			data, 2, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	return (data[0] << 8) | data[1];
+}
+
+int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SLAVE, 0, 0,
+			mac_address, 6, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
 	return 0;
 }
