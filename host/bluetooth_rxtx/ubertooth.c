@@ -673,7 +673,7 @@ void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, u
 	init_hop_reversal(0, pn);
 	pn->have_clk27 = 1;
 
-	/* delay value shlould be varied based on the delay in reading the clock */
+	/* delay value should be varied based on the delay in reading the clock */
 	cmd_start_hopping(devh, delay);
 	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
 }
