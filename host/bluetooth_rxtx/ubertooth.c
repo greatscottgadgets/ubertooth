@@ -44,13 +44,9 @@ struct libusb_transfer *rx_xfer = NULL;
 char Quiet = false;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
-<<<<<<< HEAD
-int max_ac_errors = 2;
-=======
 pcap_t *pcap_dumpfile = NULL;
 pcap_dumper_t *dumper = NULL;
-int max_ac_errors = 1;
->>>>>>> master
+int max_ac_errors = 2;
 uint32_t systime;
 u8 usb_retry = 1;
 u8 stop_ubertooth = 0;
@@ -485,48 +481,66 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
 /* sniff one target LAP until the UAP is determined */
 void rx_file(FILE* fp, btbb_piconet* pn)
 {
-<<<<<<< HEAD
 	int r = btbb_init(max_ac_errors);
 	if (r < 0)
 		return;
-=======
-	stream_rx_file(fp, 0, cb_hop, pn);
-}
-
-/* sniff one target address until CLK is determined */
-void rx_follow(struct libusb_device_handle* devh, piconet* pn, uint32_t clock, uint32_t delay)
-{
-	u64 address = 0;
-	address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
-	cmd_set_bdaddr(devh, address);
-
-	printf("Setting CLKN = 0x%x\n", clock);
-	cmd_set_clock(devh, clock);
-	init_hop_reversal(0, pn);
-	pn->have_clk27 = 1;
-
-	/* delay value should be varied based on the delay in reading the clock */
-	cmd_start_hopping(devh, delay);
-	stream_rx_usb(devh, XFER_LEN, 0, cb_follow, pn);
-}
-
-/* sniff one target address until CLK is determined */
-void rx_follow_offset(struct libusb_device_handle* devh, piconet* pn)
-{
-	//u64 address = 0;
-	//address = (pn->LAP & 0xffffff) | (pn->UAP & 0xff) << 24;
-	//cmd_set_bdaddr(devh, address);
->>>>>>> master
-
 	stream_rx_file(fp, 0, cb_rx, pn);
 }
 
-<<<<<<< HEAD
 #ifdef WC4
-=======
-static void log_packet(usb_pkt_rx *rx);
+/* Dump packet to PCAP file */
+static void log_packet(usb_pkt_rx *rx) {
+	le_packet_t p;
+	decode_le(rx->data, rx->channel + 2402, rx->clk100ns, &p);
 
->>>>>>> master
+	unsigned packet_length = 4 + 2 + p.length + 3;
+
+	unsigned ppi_length = sizeof(ppi_fieldheader_t) + sizeof(ppi_btle_t);
+	printf("size %u\n", ppi_length);
+
+	void *logblob = malloc(sizeof(ppi_packet_header_t) + ppi_length + packet_length);
+	ppi_packet_header_t *ppih = (ppi_packet_header_t *)logblob;
+	ppih->pph_version = 0;
+	ppih->pph_flags = 0;
+	ppih->pph_len = htole16(sizeof(ppi_packet_header_t) + ppi_length);
+	ppih->pph_dlt = htole32(DLT_USER0); //htole32(DLT_BTLE);
+
+	// add PPI field
+	ppi_fieldheader_t *ppifh = logblob + sizeof(ppi_packet_header_t);
+	ppifh->pfh_type = htole16(PPI_BTLE);
+	ppifh->pfh_datalen = htole16(sizeof(ppi_btle_t));
+
+	ppi_btle_t *ppib = (void *)ppifh + sizeof(ppi_fieldheader_t);
+	ppib->btle_version = 0;
+	ppib->btle_channel = htole16(rx->channel + 2402);
+	ppib->btle_clkn_high = rx->clkn_high;
+	ppib->btle_clk100ns = htole32(rx->clk100ns);
+	ppib->rssi_max = rx->rssi_max;
+	ppib->rssi_min = rx->rssi_min;
+	ppib->rssi_avg = rx->rssi_avg;
+	ppib->rssi_count = rx->rssi_count;
+
+	void *packet_data_out = (void *)ppib + sizeof(ppi_btle_t);
+
+	// copy the data
+	memcpy(packet_data_out, rx->data, packet_length);
+
+	struct pcap_pkthdr wh;
+	struct timeval ts;
+	gettimeofday(&ts, NULL);
+
+	wh.ts = ts;
+	wh.caplen = wh.len = packet_length + sizeof(ppi_packet_header_t) + ppi_length;
+
+	pcap_dump((unsigned char *)dumper, &wh, logblob);
+	pcap_dump_flush(dumper);
+
+	/* FIXME: don't force a flush
+	 * Instead, write a signal handler to flush and close */
+
+	free(logblob);
+}
+
 /*
  * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept
  * that only captures advertising packets.
@@ -627,59 +641,6 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 		if (fwrite(&time_be, 1, sizeof(time_be), dumpfile) != 1) {;}
 		if (fwrite(buf, sizeof(u8), PKT_LEN, dumpfile) != 1) {;}
 	}
-}
-
-/* Dump packet to PCAP file */
-static void log_packet(usb_pkt_rx *rx) {
-	le_packet_t p;
-	decode_le(rx->data, rx->channel + 2402, rx->clk100ns, &p);
-
-	unsigned packet_length = 4 + 2 + p.length + 3;
-
-	unsigned ppi_length = sizeof(ppi_fieldheader_t) + sizeof(ppi_btle_t);
-	printf("size %u\n", ppi_length);
-
-	void *logblob = malloc(sizeof(ppi_packet_header_t) + ppi_length + packet_length);
-	ppi_packet_header_t *ppih = (ppi_packet_header_t *)logblob;
-	ppih->pph_version = 0;
-	ppih->pph_flags = 0;
-	ppih->pph_len = htole16(sizeof(ppi_packet_header_t) + ppi_length);
-	ppih->pph_dlt = htole32(DLT_USER0); //htole32(DLT_BTLE);
-
-	// add PPI field
-	ppi_fieldheader_t *ppifh = logblob + sizeof(ppi_packet_header_t);
-	ppifh->pfh_type = htole16(PPI_BTLE);
-	ppifh->pfh_datalen = htole16(sizeof(ppi_btle_t));
-
-	ppi_btle_t *ppib = (void *)ppifh + sizeof(ppi_fieldheader_t);
-	ppib->btle_version = 0;
-	ppib->btle_channel = htole16(rx->channel + 2402);
-	ppib->btle_clkn_high = rx->clkn_high;
-	ppib->btle_clk100ns = htole32(rx->clk100ns);
-	ppib->rssi_max = rx->rssi_max;
-	ppib->rssi_min = rx->rssi_min;
-	ppib->rssi_avg = rx->rssi_avg;
-	ppib->rssi_count = rx->rssi_count;
-
-	void *packet_data_out = (void *)ppib + sizeof(ppi_btle_t);
-
-	// copy the data
-	memcpy(packet_data_out, rx->data, packet_length);
-
-	struct pcap_pkthdr wh;
-	struct timeval ts;
-	gettimeofday(&ts, NULL);
-
-	wh.ts = ts;
-	wh.caplen = wh.len = packet_length + sizeof(ppi_packet_header_t) + ppi_length;
-
-	pcap_dump((unsigned char *)dumper, &wh, logblob);
-	pcap_dump_flush(dumper);
-
-	/* FIXME: don't force a flush
-	 * Instead, write a signal handler to flush and close */
-
-	free(logblob);
 }
 
 /* dump received symbols to stdout */
