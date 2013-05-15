@@ -34,6 +34,7 @@ static void usage()
 {
 	printf("ubertooth-debug - command line utility for debugging Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
+        printf("\t-h this message\n");
 	printf("\t-r<hex> read the contents of a 16 bit CC2400 register\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 }
@@ -51,8 +52,11 @@ int main(int argc, char *argv[])
 	 * setting to positive is value of specified argument */
 	do_read_register= -1;
 
-	while ((opt=getopt(argc,argv,"U:r:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hU:r:")) != EOF) {
 		switch(opt) {
+                case 'h':
+                        usage();
+                        return 0;
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
