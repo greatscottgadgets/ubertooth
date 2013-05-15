@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2012 Michael Ossmann, Dominic Spill
+ * Copyright 2010-2013 Michael Ossmann, Dominic Spill
  *
  * This file is part of Project Ubertooth.
  *
@@ -25,20 +25,33 @@
 
 void show_libusb_error(int error_code)
 {
-    switch (error_code) {
-	    case LIBUSB_ERROR_TIMEOUT:
-	        fprintf(stderr, "libUSB Error: Timeout (%d)\n", error_code);
-	        break;
-	    case LIBUSB_ERROR_NO_DEVICE:
-	        fprintf(stderr, "libUSB Error: No Device, did you disconnect the ubertooth? (%d)\n", error_code);
-	        break;
-	    case LIBUSB_ERROR_ACCESS:
-	        fprintf(stderr, "libUSB Error: Insufficient Permissions (%d)\n", error_code);
-	        break;
-	    default:
-	        fprintf(stderr, "command error %d\n", error_code);
-	        break;
+	char *error_hint = "";
+	const char *error_name;
+
+	/* Available only in libusb > 1.0.3 */
+	// error_name = libusb_error_name(error_code);
+
+	switch (error_code) {
+		case LIBUSB_ERROR_TIMEOUT:
+			error_name="Timeout";
+			break;
+		case LIBUSB_ERROR_NO_DEVICE:
+			error_name="No Device";
+			error_hint="Check Ubertooth is connected to host";
+			break;
+		case LIBUSB_ERROR_ACCESS:
+			error_name="Insufficient Permissions";
+			break;
+		case LIBUSB_ERROR_OVERFLOW:
+			error_name="Overflow";
+			error_hint="Try resetting the Ubertooth";
+			break;
+		default:
+			error_name="Command Error";
+			break;
 	}
+
+	fprintf(stderr,"libUSB Error: %s: %s (%d)\n", error_name, error_hint, error_code);
 }
 
 int cmd_ping(struct libusb_device_handle* devh)
