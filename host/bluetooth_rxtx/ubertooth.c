@@ -135,13 +135,44 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 	return devh;
 }
 
+
+/*
+ * based on http://libusb.sourceforge.net/api-1.0/group__asyncio.html#ga9fcb2aa23d342060ebda1d0cf7478856
+ */
+static void rx_xfer_status(int status)
+{
+	char *error_name = "";
+
+	switch (status) {
+		case LIBUSB_TRANSFER_ERROR:
+			error_name="Transfer error.";
+			break;
+		case LIBUSB_TRANSFER_TIMED_OUT:
+			error_name="Transfer timed out.";
+			break;
+		case LIBUSB_TRANSFER_CANCELLED:
+			error_name="Transfer cancelled.";
+			break;
+		case LIBUSB_TRANSFER_STALL:
+			error_name="Halt condition detected, or control request not supported.";
+			break;
+		case LIBUSB_TRANSFER_NO_DEVICE:
+			error_name="Device disconnected.";
+			break;
+		case LIBUSB_TRANSFER_OVERFLOW:
+			error_name="Device sent more data than requested.";
+			break;
+	}
+	fprintf(stderr,"rx_xfer status: %s (%d)\n",error_name,status);
+}
+
 static void cb_xfer(struct libusb_transfer *xfer)
 {
 	int r;
 	uint8_t *tmp;
 
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
-		fprintf(stderr, "rx_xfer status: %d\n", xfer->status);
+		rx_xfer_status(xfer->status);
 		libusb_free_transfer(xfer);
 		rx_xfer = NULL;
 		return;
