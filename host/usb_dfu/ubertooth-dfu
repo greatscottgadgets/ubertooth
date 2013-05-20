@@ -30,6 +30,12 @@ application_offset = bootloader_offset + bootloader_size
 application_size   = (256 * 1024) - application_offset
 UBERTOOTH_FLASH    = 25
 
+class UbertoothNotFoundError(RuntimeError):
+    pass
+
+class UbertoothInitializationError(RuntimeError):
+    pass
+
 def set_flash_mode(vendor=None, product=None):
     '''
     A function to find Ubertooth devices in firmware mode and allow the user to
@@ -79,6 +85,8 @@ def set_flash_mode(vendor=None, product=None):
                 pass
             print "Not a valid option"
             value = 0
+    else:
+        raise UbertoothNotFoundError("No Ubertooth found - is the device connected?")
 
 def get_ubertooth(vendor=None, product=None, check_firmware_mode=True):
     if vendor and product:
@@ -89,7 +97,7 @@ def get_ubertooth(vendor=None, product=None, check_firmware_mode=True):
             if check_firmware_mode:
                 dev = set_flash_mode(vendor, product)
             else:
-                raise RuntimeError('Could not initialise Ubertooth - is the device connected and in DFU mode?')
+                raise UbertoothInitializationError('Could not initialise Ubertooth - is the device connected and in DFU mode?')
     else:
         ids = [
             (0x1D50, 0x6001), # UBERTOOTH_ZERO
@@ -110,7 +118,7 @@ def get_ubertooth(vendor=None, product=None, check_firmware_mode=True):
             if check_firmware_mode:
                 dev = set_flash_mode()
             else:
-                raise RuntimeError('Could not initialise Ubertooth - is the device connected and in DFU mode?')
+                raise UbertoothInitializationError('Could not initialise Ubertooth - is the device connected and in DFU mode?')
     return dev
 
 def usage():
@@ -143,12 +151,15 @@ def write(filename, bootloader=False):
         firmware = data[:-suf_len]
     else:
         firmware = data
+    retry = 0
     try:
         dev = get_ubertooth(vendor, product)
-    except RuntimeError:
+    except UbertoothInitializationError, e:
         # May be an old bootloader
         if (vendor, product) == (0x1D50, 0x6003):
             dev = get_ubertooth(0xFFFF, 0x0004)
+        else:
+            raise e
 
     if bootloader:
         dfu.download(dev, firmware, bootloader_offset)
