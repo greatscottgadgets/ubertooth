@@ -143,7 +143,12 @@ def write(filename, bootloader=False):
         firmware = data[:-suf_len]
     else:
         firmware = data
-    dev = get_ubertooth(vendor, product)
+    try:
+        dev = get_ubertooth(vendor, product)
+    except RuntimeError:
+        # May be an old bootloader
+        if (vendor, product) == (0x1D50, 0x6003):
+            dev = get_ubertooth(0xFFFF, 0x0004)
 
     if bootloader:
         dfu.download(dev, firmware, bootloader_offset)
@@ -204,8 +209,8 @@ if __name__ == '__main__':
                 f.close()
 
                 signer = dfu.DfuSuffix()
-                #FIXME - workout which bootloader we're signing for - default:old
-                data = signer.add_suffix(firmware, 0xFFFF, 0x0004)
+                # Sign for new bootloader, workaround in write{} for old.
+                data = signer.add_suffix(firmware, 0x1D50, 0x6003)
 
                 dfu_file = arg[:-4] + '.dfu'
                 f = open(dfu_file, 'wb')
