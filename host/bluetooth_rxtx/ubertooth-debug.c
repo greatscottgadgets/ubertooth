@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
 	char ubertooth_device = -1;
 
 	/* set command states to negative as a starter
-	 * setting to 0 means 'do it'
 	 * setting to positive is value of specified argument */
 	do_read_register= -1;
 
@@ -61,10 +60,16 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'r':
-			if (optarg)
+			if (optarg) {
 				do_read_register = strtoul(optarg, NULL, 16);
-			else
-				do_read_register = 0;
+				if (do_read_register < 0 || do_read_register > 0xff) {
+					fprintf(stderr,"ERROR: register address must be > 0x00 and < 0xff\n");
+					return 1;
+				}
+			} else {
+				fprintf(stderr,"ERROR: -r requires an argument\n");
+				return 1;
+                        }
 			break;
 		default:
 			usage();
@@ -80,17 +85,6 @@ int main(int argc, char *argv[])
 	}
 
 	if (do_read_register >= 0) {
-		if (do_read_register == 0) {
-			printf("ERROR: -r requires an argument\n");
-			usage();
-			return 1;
-		}
-		else if (do_read_register > 0xff) {
-			printf("ERROR: register address must be < 0xff\n");
-			usage();
-			return 1;
-		}
-
 		r = cmd_read_register(devh, do_read_register);
 		if (r >= 0)
 			printf("register 0x%02x value: %04x\n", do_read_register, r);
