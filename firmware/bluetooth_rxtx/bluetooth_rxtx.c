@@ -698,11 +698,11 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_SET_CHANNEL:
 		requested_channel = pSetup->wValue;
 		/* bluetooth band sweep mode, start at channel 2402 */
-		if (requested_channel >= 2483) {
+		if (requested_channel > MAX_FREQ) {
 			hop_mode = HOP_SWEEP;
 			requested_channel = 2402;
 		}
-		/* fixed channel mode, can be outside blueooth band */
+		/* fixed channel mode, can be outside bluetooth band */
 		else {
 			hop_mode = HOP_NONE;
 			requested_channel = MAX(requested_channel, MIN_FREQ);
