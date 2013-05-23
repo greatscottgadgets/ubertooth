@@ -7,6 +7,7 @@ TARGET = bluetooth_rxtx
 SRC = $(TARGET).c \
 	bluetooth.c \
 	bluetooth_le.c \
+	ubertooth_usb.c \
 	$(LIBS_PATH)/usb_serial.c \
 	$(LIBS_PATH)/serial_fifo.c \
 	$(LIBS_PATH)/LPC17xx_Startup.c \
