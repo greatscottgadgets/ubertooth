@@ -1359,7 +1359,7 @@ void cc2400_rangetest()
 	txbuf[1] = 1; // expected value in rxbuf
 	for (i = 0; i < 18; i++)
 		if (rxbuf[i] != txbuf[i])
-			rr.valid = 0;
+			rr.valid = 2+i;
 
 	USRLED_CLR;
 	mode = MODE_IDLE;
