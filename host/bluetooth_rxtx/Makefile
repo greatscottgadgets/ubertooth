@@ -56,8 +56,8 @@ STATIC_LIB_FILE = libubertooth.a
 
 ifeq ($(OS), Darwin)
 	CFLAGS += -I/opt/local/include/
-	LDFLAGS += -L/opt/local/lib/ -rpath,/opt/local/lib
-	LIB_CFLAGS = $(CFLAGS) -shared -Wl -install_name $(INSTALL_DIR)/$(SONAME)
+	LDFLAGS += -L/opt/local/lib/
+	LIB_CFLAGS = $(CFLAGS) -shared -Wl,-install_name,$(INSTALL_DIR)/$(SONAME)
 else
 	LIB_CFLAGS = $(CFLAGS) -shared -Wl,-soname,$(SONAME)
 endif
