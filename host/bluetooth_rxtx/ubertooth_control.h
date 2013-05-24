@@ -35,6 +35,8 @@
 #define le32toh EndianU32_LtoN
 #define htobe64 EndianU64_NtoB
 #define be64toh EndianU64_BtoN
+#define htole16 EndianU16_NtoL
+#define htole32 EndianU32_NtoL
 #else
 #include <endian.h>
 #endif
