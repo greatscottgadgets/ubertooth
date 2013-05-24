@@ -243,11 +243,13 @@ int main(int argc, char *argv[])
 	if(do_range_result == 0) {
 		r = cmd_get_rangeresult(devh, &rr);
 		if (r == 0) {
-			if (rr.valid) {
+			if (rr.valid==1) {
 				printf("request PA level : %d\n", rr.request_pa);
 				printf("request number   : %d\n", rr.request_num);
 				printf("reply PA level   : %d\n", rr.reply_pa);
 				printf("reply number     : %d\n", rr.reply_num);
+			} else if (rr.valid>1) {
+				printf("Invalid range test: mismatch on byte %d\n", rr.valid-2);
 			} else {
 				printf("invalid range test result\n");
 			}
