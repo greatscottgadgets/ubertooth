@@ -256,8 +256,12 @@ int main(int argc, char *argv[])
 		}
 	}
 	if(do_serial == 0) {
-		printf("Serial No: ");
-		r= cmd_get_serial(devh);
+		u8 serial[17];
+		r= cmd_get_serial(devh, serial);
+		if(r==0) {
+			print_serial(serial, NULL);
+		}
+		// FIXME: Why do we do this to non-zero results?
 		r = (r >= 0) ? 0 : r;
 	}
 
