@@ -24,6 +24,8 @@
 #include <getopt.h>
 #include <unistd.h>
 
+#include "cc2400.h"
+
 const char* board_names[] = {
 	"Ubertooth Zero",
 	"Ubertooth One",
@@ -37,12 +39,14 @@ static void usage()
         printf("\t-h this message\n");
 	printf("\t-r<hex> read the contents of a 16 bit CC2400 register\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-v<0-2> verbosity\n");
 }
 
 int main(int argc, char *argv[])
 {
 	int opt;
 	int r = 0;
+        int verbose = 1;
 	struct libusb_device_handle *devh= NULL;
 	int do_read_register;
 	char ubertooth_device = -1;
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
 	 * setting to positive is value of specified argument */
 	do_read_register= -1;
 
-	while ((opt=getopt(argc,argv,"hU:r:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hU:r:v:")) != EOF) {
 		switch(opt) {
                 case 'h':
                         usage();
@@ -59,17 +63,19 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
-		case 'r':
-			if (optarg) {
-				do_read_register = strtoul(optarg, NULL, 16);
-				if (do_read_register < 0 || do_read_register > 0xff) {
-					fprintf(stderr,"ERROR: register address must be > 0x00 and < 0xff\n");
-					return 1;
-				}
-			} else {
-				fprintf(stderr,"ERROR: -r requires an argument\n");
+		case 'v':
+			verbose = atoi(optarg);
+                        if (verbose < 0 || verbose > 2) {
+				fprintf(stderr,"ERROR: verbosity out of range\n");
 				return 1;
-                        }
+			}
+			break;
+		case 'r':
+			do_read_register = strtoul(optarg, NULL, 16);
+			if (do_read_register < 0 || do_read_register > 0xff) {
+				fprintf(stderr,"ERROR: register address must be > 0x00 and < 0xff\n");
+				return 1;
+			}
 			break;
 		default:
 			usage();
@@ -87,7 +93,7 @@ int main(int argc, char *argv[])
 	if (do_read_register >= 0) {
 		r = cmd_read_register(devh, do_read_register);
 		if (r >= 0)
-			printf("register 0x%02x value: %04x\n", do_read_register, r);
+			cc2400_decode(stdout,do_read_register,r,verbose);
 	}
 
 	return r;

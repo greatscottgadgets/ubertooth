@@ -1,0 +1,503 @@
+/*
+ * Copyright 2013
+ *
+ * This file is part of Project Ubertooth.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#include <string.h>
+#include <stdio.h>
+
+/*
+ * based on http://www.ti.com/lit/ds/symlink/cc2400.pdf
+ */
+
+int value;
+int size;
+int verbose;
+FILE *fp;
+
+static void
+bits_init (FILE * f, char *name, int v, int s, int vb)
+{
+  value = v;
+  size = s * 8 - 1;
+  verbose = vb;
+  fp = f;
+  char format[16];
+
+
+  if (name)
+    {
+      sprintf (format, "%%s = 0x%%0%dX\n", s * 2);
+      fprintf (fp, format, name, value);
+    }
+}
+
+static void
+bits (int high, int low, char *name, char *mode, char *desc)
+{
+  int i;
+  int mask = 1;
+  char c;
+
+  if (strcmp (name, "-") == 0 && verbose < 2)
+    return;
+
+  mask <<= size;
+
+  for (i = size; i >= 0; i--, mask >>= 1)
+    {
+      if (i > high || i < low)
+	c = '.';
+      else if (value & mask)
+	c = '1';
+      else
+	c = '0';
+
+      fprintf (fp, "%c", c);
+      if (i % 8 == 0)
+	fprintf (fp, " ");
+    }
+  fprintf (fp, "(%2s) %s", mode, name);
+  if (*desc)
+    fprintf (fp, " (%s)", desc);
+  fprintf (fp, "\n");
+}
+
+struct reg_t
+{
+  unsigned char num;
+  char *name;
+  void (*f) (FILE * fp, struct reg_t * reg, unsigned short v);
+};
+
+static void
+cc2400_main (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  bits (15, 15, "RESETN", "RW", "");
+  bits (14, 10, "-", "W0", "");
+  bits (9, 9, "FS_FORCE_EN", "RW", "");
+  bits (8, 8, "RXN_TX", "RW", (v & (1 << 8)) ? "TX" : "RX");
+  bits (7, 4, "-", "W0", "");
+  bits (3, 3, "-", "W0", "");
+  bits (2, 2, "-", "W0", "");
+  bits (1, 1, "XOSC16M_BYPASS", "RW", "");
+  bits (0, 0, "XOSC16M_EN", "RW", "");
+}
+
+static void
+cc2400_fsctrl (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  bits (15, 6, "-", "W0", "");
+  sprintf (description, "periods=%d", 1 << (((v & 0x30) >> 4) + 6));
+  bits (5, 4, "LOCK_THRESHOLD", "RW", description);
+  bits (3, 3, "CAL_DONE", "RO", "");
+  bits (2, 2, "CAL_RUNNING", "RO", "");
+  sprintf (description, "periods=%d", 2 + (v & 0x2));
+  bits (1, 1, "LOCK_LENGTH", "RW", description);
+  bits (0, 0, "LOCK_STATUS", "RO", "");
+}
+
+static void
+cc2400_fsdiv (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  sprintf (description, "fc = %d MHz", v & 0xfff);
+
+  bits (15, 12, "-", "W0", "");
+  bits (11, 10, "FREQ[11:10]", "RO", "");
+  bits (9, 0, "FREQ[9:0]", "RW", description);
+}
+
+static void
+cc2400_mdmctrl (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  bits (15, 13, "-", "W0", "");
+  sprintf (description, "%0.3f kHz", 15.625 * ((v >> 7) & 0x3F));
+  bits (12, 7, "MOD_OFFSET", "RW", description);
+  sprintf (description, "%0.4f kHz", 3.9062 * (v & 0x7F));
+  bits (6, 0, "MOD_DEV", "RW", description);
+}
+
+static void
+cc2400_agcctrl (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  sprintf (description, "%d", (v >> 8));
+  bits (15, 8, "VGA_GAIN", "RW", description);
+  bits (7, 4, "-", "W0", "");
+  bits (3, 3, "AGC_LOCKED", "RO", "");
+  bits (2, 2, "AGC_LOCK", "RW", "");
+  bits (1, 1, "AGC_SYNC_LOCK", "RW", "");
+  bits (0, 0, "VGA_GAIN_OE", "RW", "");
+}
+
+static void
+cc2400_frend (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  sprintf (description, "%d", (v & 0x7));
+  bits (15, 4, "-", "W0", "");
+  bits (3, 3, "-", "W1", "");
+  bits (2, 0, "PA_LEVEL", "RW", description);
+}
+
+static void
+cc2400_rssi (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  sprintf (description, "%d dB", ((signed short) v) >> 8);
+  bits (15, 8, "RSSI_VAL", "RO", description);
+  sprintf (description, "%d dB", 4 * (((signed char) v) >> 2));
+  bits (7, 2, "RSSI_CS_THRES", "RW", description);
+  sprintf (description, "%d bits", v & 0x3);
+  bits (1, 0, "RSSI_FILT", "RW", description);
+}
+
+static void
+cc2400_frequest (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  sprintf (description, "%d", ((signed short) v) >> 8);
+  bits (15, 8, "RX_FREQ_OFFSET", "RO", description);
+  bits (7, 0, "-", "W0", "");
+}
+
+static void
+cc2400_iocfg (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char *description[] =
+    { "Off", "Output AGC status", "Output ADC I and Q values",
+    "Output I/Q after digital down-mixing and channel filtering",
+    "Output RX signal magnitude / frequency unfiltered",
+    "Output RX signal magnitude / frequency filtered",
+    "Output RSSI / RX frequency offset estimation", "Input DAC values"
+  };
+
+  bits (15, 15, "-", "W0", "");
+  bits (14, 9, "GPIO6_CFG", "RW", "");
+  bits (8, 3, "GPIO1_CFG", "RW", "");
+  bits (2, 0, "HSSD_SRC", "RW", description[v & 0x7]);
+}
+
+static void
+cc2400_fsmtc (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  sprintf (description, "%d us", 5 * ((v >> 13) & 0x7));
+  bits (15, 13, "TC_RXON2AGCEN", "RW", description);
+  sprintf (description, "%d us", (v >> 10) & 0x7);
+  bits (12, 10, "TC_PAON2AGCEN", "RW", description);
+  bits (9, 6, "-", "RW", "");
+  sprintf (description, "%d us", (v >> 3) & 0x7);
+  bits (5, 3, "END2SWITCH", "RW", description);
+  sprintf (description, "%d us", v & 0x7);
+  bits (5, 3, "TC_TXEND2PAOFF", "RW", description);
+}
+
+static void
+cc2400_reserved (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  bits (15, 5, "RES", "RW", "");
+  bits (4, 0, "RES", "RW", "");
+}
+
+static void
+cc2400_manand (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  bits (15, 15, "VGA_RESET_N", "RW", "");
+  bits (14, 14, "LOCK_STATUS", "RW", "");
+  bits (13, 13, "BALUN_CTRL", "RW", "");
+  bits (12, 12, "RXTX", "RW", "");
+  bits (11, 11, "PRE_PD", "RW", "");
+  bits (10, 10, "PA_N_PD", "RW", "");
+  bits (9, 9, "PA_P_PD", "RW", "");
+  bits (8, 8, "DAC_LPF_PD", "RW", "");
+  bits (7, 7, "BIAS_PD", "RW", "");
+  bits (6, 6, "XOSC16M_PD", "RW", "");
+  bits (5, 5, "CHP_PD", "RW", "");
+  bits (4, 4, "FS_PD", "RW", "");
+  bits (3, 3, "ADC_PD", "RW", "");
+  bits (2, 2, "VGA_PD", "RW", "");
+  bits (1, 1, "RXBPF_PD", "RW", "");
+  bits (0, 0, "LNAMIX_PD", "RW", "");
+}
+
+static void
+cc2400_fsmstate (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  bits (15, 13, "-", "W0", "");
+  bits (12, 8, "FSM_STATE_BKPT", "RW",
+	((v >> 8) & 0xF) == 0 ? "disabled" : "");
+  bits (7, 5, "-", "W0", "");
+  bits (4, 0, "FSM_CUR_STATE", "RO", "");
+}
+
+static void
+cc2400_adctst (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  bits (15, 15, "-", "W0", "");
+  sprintf (description, "%d", (v >> 8) & 0x3F);
+  bits (14, 8, "ADC_I", "RO", description);
+  bits (7, 7, "-", "W0", "");
+  sprintf (description, "%d", v & 0x3F);
+  bits (6, 0, "ADC_Q", "RO", description);
+}
+
+static void
+cc2400_rxbpftst (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits (15, 15, "-", "W0", "");
+  bits (14, 14, "RXBPF_CAP_OE", "RW", "");
+  sprintf(description,"%d",(v>>7)&0x7F);
+  bits (13, 7, "RXBPF_CAP_O", "RW", description);
+  sprintf(description,"%d",v&0x7F);
+  bits (6, 0, "RXBPF_CAP_RES", "RW", description);
+}
+
+static void
+cc2400_pamtst (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,13,"-","W0","");
+  bits(12,12,"VC_IN_TEST_EN","RW","");
+  bits(11,11,"ATESTMOD_PD","WO","");
+  switch ((v>>8)&0x7) {
+    case 0:
+      strcpy(description,"Output IQ from RxMIX");
+      break;
+    case 1:
+      strcpy(description,"Input IQ to BPF");
+      break;
+    case 2:
+      strcpy(description,"Output IQ from VGA");
+      break;
+    case 3:
+      strcpy(description,"Input IQ to ADC");
+      break;
+    case 4:
+      strcpy(description,"Output IQ from LPF");
+      break;
+    case 5:
+      strcpy(description,"Input IQ to TxMIX");
+      break;
+    case 6:
+      strcpy(description,"Output PN from Prescaler");
+      break;
+    case 7:
+      strcpy(description,"Connects TX IF to RX IF and simultaneously the ATEST1 pin to the internal VC node");
+      break;
+  }
+  bits(10,8,"ATESTMOD_MODE","RW",description);
+  bits(7,7,"-","W0","");
+  bits(6,5,"TXMIX_CAP_ARRAY","RW","");
+  switch ((v>>3)&0x3) {
+    case 0:
+      strcpy(description,"1.72 mA");
+      break;
+    case 1:
+      strcpy(description,"1.88 mA");
+      break;
+    case 2:
+      strcpy(description,"2.05 mA");
+      break;
+    case 3:
+      strcpy(description,"2.21 mA");
+      break;
+  }
+  bits(4,3,"TXMIX_CURRENT","RW",description);
+  sprintf(description,"%+d",(v&0x7)-3);
+  bits(2,0,"PA_CURRENT","RW",description);
+}
+
+static void
+cc2400_lmtst (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,14,"-","W0","");
+  bits(13,13,"RXMIX_HGM", "RW","");
+  sprintf(description,"%d uA",((v>>11)&0x3)*4+12);
+  bits(12,11,"RXMIX_TAIL", "RW",description);
+  sprintf(description,"%d uA",((v>>9)&0x3)*4+82);
+  bits(10,9,"RXMIX_CVM", "RW",description);
+  switch ((v>>7)&0x3) {
+     case 0:
+       strcpy(description,"360");
+       break;
+     case 1:
+       strcpy(description,"720");
+       break;
+     case 2:
+       strcpy(description,"900");
+       break;
+     case 3:
+       strcpy(description,"1260");
+       break;
+  }
+  strcat(description," uA");
+  bits(8,7,"RXMIX_CURRENT", "RW",description);
+  switch ((v>>5)&0x3) {
+     case 0:
+       strcpy(description,"OFF");
+       break;
+     case 1:
+     case 2:
+     case 3:
+       sprintf(description,"0.%d pF",(v>>5)&0x3);
+       break;
+  }
+  bits(6,5,"LNA_CAP_ARRAY", "RW",description);
+  bits(4,4,"LNA_LOWGAIN", "RW",(v>>4)&1?"7 dB":"19 dB");
+  switch ((v>>2)&0x3) {
+     case 0:
+       strcpy(description,"OFF");
+       break;
+     case 1:
+       strcpy(description,"100 uA");
+       break;
+     case 2:
+       strcpy(description,"300 uA");
+       break;
+     case 3:
+       strcpy(description,"1000 uA");
+       break;
+  }
+  bits(3,2,"LNA_GAIN", "RW",description);
+  switch (v&0x3) {
+     case 0:
+       strcpy(description,"240 uA");
+       break;
+     case 1:
+       strcpy(description,"480 uA");
+       break;
+     case 2:
+       strcpy(description,"640 uA");
+       break;
+     case 3:
+       strcpy(description,"1280 uA");
+       break;
+  }
+  bits(1,0,"LNA_CURRENT", "RW",description);
+}
+static void
+cc2400_manor (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  bits(15,15,"VGA_RESET_N","RW","");
+  bits(14,14,"LOCK_STATUS","RW","");
+  bits(13,13,"BALUN_CTRL","RW","");
+  bits(12,12,"RXTX","RW","");
+  bits(11,11,"PRE_PD","RW","");
+  bits(10,10,"PA_N_PD","RW","");
+  bits(9,9,"PA_P_PD","RW","");
+  bits(8,8,"DAC_LPF_PD","RW","");
+  bits(7,7,"BIAS_PD","RW","");
+  bits(6,6,"XOSC16M_PD","RW","");
+  bits(5,5,"CHP_PD","RW","");
+  bits(4,4,"FS_PD","RW","");
+  bits(3,3,"ADC_PD","RW","");
+  bits(2,2,"VGA_PD","RW","");
+  bits(1,1,"RXBPF_PD","RW","");
+  bits(0,0,"LNAMIX_PD","RW","");
+}
+static void
+cc2400_mdmtst0 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,14,"-","W0","");
+  bits(13,13,"TX_PRNG","RW","");
+  bits(12,12,"TX_1MHZ_OFFSET_N","RW","");
+  bits(11,11,"INVERT_DATA","RW","");
+  bits(10,10,"AFC_ADJUST_ON_PACKET","RW","");
+  sprintf(description,"%d pairs",1<<((v>>8)&0x3));
+  bits(9,8,"AFC_SETTLING","RW",description);
+  sprintf(description,"%d",v&0xff);
+  bits(7,0,"AFC_SETTLING","RW",description);
+}
+static void
+cc2400_mdmtst1 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,7,"-","W0","");
+  sprintf(description,"%d",v&0x7f);
+  bits(6,0,"BSYNC_THRESHOLD","RW",description);
+}
+static struct reg_t cc2400[] = {
+  {0x00, "%MAIN", cc2400_main},
+  {0x01, "%FSCTRL", cc2400_fsctrl},
+  {0x02, "%FSDIV", cc2400_fsdiv},
+  {0x03, "%MDMCTRL", cc2400_mdmctrl},
+  {0x04, "%AGCCTRL", cc2400_agcctrl},
+  {0x05, "%FREND", cc2400_frend},
+  {0x06, "%RSSI", cc2400_rssi},
+  {0x07, "%FREQUEST", cc2400_frequest},
+  {0x08, "%IOCFG", cc2400_iocfg},
+  {0x0b, "%FSMTC", cc2400_fsmtc},
+  {0x0c, "%RESERVED", cc2400_reserved},
+  {0x0d, "%MANAND", cc2400_manand},
+  {0x0e, "%FSMSTATE", cc2400_fsmstate},
+  {0x0f, "%ADCTST", cc2400_adctst},
+  {0x10, "%RXBPFTST", cc2400_rxbpftst},
+  {0x11, "%PAMTST", cc2400_pamtst},
+  {0x12, "%LMTST", cc2400_lmtst},
+  {0x13, "%MANOR", cc2400_manor},
+  {0x14, "%MDMTST0", cc2400_mdmtst0},
+  {0x15, "%MDMTST0", cc2400_mdmtst1},
+  /* End of list marker */
+  {0, NULL, NULL}
+};
+
+void
+cc2400_decode (FILE * fp, int r, unsigned short v, int verbose)
+{
+  int i = 0;
+
+  for (i = 0; cc2400[i].f; i++)
+    if (cc2400[i].num == r)
+      break;
+
+  bits_init (fp, cc2400[i].name, v, sizeof (v), verbose);
+
+  if (cc2400[i].f == NULL)
+    {
+      fprintf (fp, "%%r%02x = 0x%04X\n", r, v);
+      if (verbose > 0)
+	bits (sizeof (v) * 8 - 1, 0, "Name?", "??", "");
+    }
+  else if (verbose > 0)
+    (cc2400[i].f) (fp, &cc2400[i], v);
+}
+
+#ifdef CC2400_DEBUG
+main ()
+{
+  cc2400_decode (stdout, 0, 0, 0);
+  cc2400_decode (stdout, 0, 0, 1);
+  cc2400_decode (stdout, 0, 0, 2);
+}
+#endif
