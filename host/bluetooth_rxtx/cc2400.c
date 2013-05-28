@@ -447,6 +447,151 @@ cc2400_mdmtst1 (FILE * fp, struct reg_t *reg, unsigned short v)
   sprintf(description,"%d",v&0x7f);
   bits(6,0,"BSYNC_THRESHOLD","RW",description);
 }
+static void
+cc2400_dactst (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char *src[] = {"Normal","Override","From ADC","I/Q after digital down-mixing and channel filtering", "Full-spectrum White Noise","RX signal magnitude/frequency", "RSSI/RX frequency offset estimation","HSSD Module"};
+  char description[64];
+  bits(15,15,"-","W0","");
+  bits(14,12,"DAC_SRC","RW",src[(v>>12)&0x7]);
+  sprintf(description,"%d",(v>>6)&0x3F);
+  bits(11,6,"DAC_I_O","RW",description);
+  sprintf(description,"%d",v&0x3F);
+  bits(5,0,"DAC_Q_O","RW",description);
+}
+static void
+cc2400_agctst0 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+
+  if (((v>>13)&0x7) == 0)
+    strcpy(description,"Disabled");
+  else
+    sprintf(description,"%d * 8 MHz clock cycles",(v>>13)&0x7);
+  bits(15,13,"AGC_SETTLE_BLANK_DN","RW",description);
+  sprintf(description,"%d",(v>>11)&0x3);
+  bits(12,11,"AGC_WIN_SIZE","RW",description);
+  sprintf(description,"%d",(v>>7)&0xF);
+  bits(10,7,"AGC_SETTLE_PEAK","RW",description);
+  sprintf(description,"%d",(v>>3)&0xF);
+  bits(6,3,"AGC_SETTLE_ADC","RW",description);
+  sprintf(description,"%d",(v)&0x3);
+  bits(2,0,"AGC_ATTEMPTS","RW",description);
+}
+static void
+cc2400_agctst1 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,15,"-","W0","");
+  bits(14,14,"AGC_VAR_GAIN_SAT","RW",(v&0x4000)?"-3/-5":"-1/-3");
+  if (((v>>11)&7) == 0)
+    strcpy(description,"Disabled");
+  else
+    sprintf(description,"%d * 8 MHz clock cycles",(v>>11)&7);
+  bits(13,11,"AGC_SETTLE_BLANK_UP","RW",description);
+  bits(10,10,"PEAKDET_CUR_BOOST","RW","");
+  sprintf(description,"%d",(v>>6)&7);
+  bits(9,6,"AGC_MULT_SLOW","RW",description);
+  sprintf(description,"%d",(v>>2)&7);
+  bits(5,2,"AGC_SETTLE_FIXED","RW",description);
+  sprintf(description,"%d",v&3);
+  bits(1,0,"AGC_SETTLE_VAR","RW",description);
+}
+static void
+cc2400_agctst2 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,14,"-","W0","");
+  if (((v>>12)&3) == 0)
+    strcpy(description,"Disabled");
+  else
+    sprintf(description,"%d Fixed/Variable enable",(v>>12)&3);
+  bits(13,12,"AGC_BACKEND_BLANKING","RW",description);
+  sprintf(description,"%d",(v>>9)&7);
+  bits(11,9,"AGC_ADJUST_M3DB","RW",description);
+  sprintf(description,"%d",(v>>6)&7);
+  bits(8,6,"AGC_ADJUST_M1DB","RW",description);
+  sprintf(description,"%d",(v>>3)&7);
+  bits(5,3,"AGC_ADJUST_P3DB","RW",description);
+  sprintf(description,"%d",v&7);
+  bits(2,0,"AGC_ADJUST_P1DB","RW",description);
+}
+static void
+cc2400_fstst0 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  char *rxmixbuf[] = {"690uA","980uA","1.16mA","1.44mA"};
+
+  bits(15,14,"RXMIXBUF_CUR","RW",rxmixbuf[(v>>14)&3]);
+  bits(13,12,"TXMIXBUF_CUR","RW",rxmixbuf[(v>>12)&3]);
+  bits(11,11,"VCO_ARRAY_SETTLE_LONG","RW","");
+  bits(10,10,"VCO_ARRAY_OE","RW","");
+  sprintf(description,"%d",(v>>5)&0xF);
+  bits(9,5,"VCO_ARRAY_O","RW",description);
+  sprintf(description,"%d",v&0xF);
+  bits(4,0,"VCO_ARRAY_RES","RO",description);
+}
+static void
+cc2400_fstst1 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  bits(15,15,"RXBPF_LOCUR","RW",(v&0x8000)?"3uA":"4uA");
+  bits(14,14,"RXBPF_MIDCUR","RW",(v&0x4000)?"3uA":"4uA");
+  sprintf(description,"%d",(v>>10)&0xF);
+  bits(13,10,"VCO_CURRENT_REF","RW",description);
+  sprintf(description,"%d",(v>>4)&0x3F);
+  bits(9,4,"VCO_CURRENT_K","RW",description);
+  bits(3,3,"VCO_DAC_EN","RW","");
+  sprintf(description,"%d",v&0x3);
+  bits(2,0,"VCO_DAC_VAL","RW","");
+}
+static void
+cc2400_fstst2 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char *speed[] = {"Normal","Undefined","Half Speed","Undefined"};
+  char description[64];
+  bits(15,15,"-","W0","");
+  bits(14,13,"VCO_CURCAL_SPEED","RW",speed[(v>>13)&3]);
+  bits(12,12,"VCO_CURRENT_OE","RW","");
+  sprintf(description,"%d",(v>>6)&0x3f);
+  bits(11,6,"VCO_CURRENT_O","RW",description);
+  sprintf(description,"%d",v&0x3f);
+  bits(5,0,"VCO_CURRENT_RES","RO",description);
+}
+static void
+cc2400_fstst3 (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char *period[] = {"0.25us","0.5us","1us","4us"};
+  char description[64];
+  bits(15,14,"-","W0","");
+  bits(13,13,"CHP_TEST_UP","RW","");
+  bits(12,12,"CHP_TEST_DN","RW","");
+  bits(11,11,"CHP_DISABLE","RW","");
+  bits(10,10,"PD_DELAY","RW",((v>>11)&1)?"Long":"Short");
+  bits(9,8,"CHP_STEP_PERIOD","RW",period[(v>>8)&3]);
+  sprintf(description,"%d",(v>>4)&0xF);
+  bits(7,4,"STOP_CHP_CURRENT","RW",description);
+  sprintf(description,"%d",v&0xF);
+  bits(3,0,"START_CHP_CURRENT","RW",description);
+}
+static void
+cc2400_manfidl (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  sprintf(description,"0x%X",(v>>12)&0xF);
+  bits(15,12,"PARTNUM","RO",description);
+  sprintf(description,"0x%X",v&0xFFF);
+  bits(11,0,"MANFID","RO",description);
+}
+static void
+cc2400_manfidh (FILE * fp, struct reg_t *reg, unsigned short v)
+{
+  char description[64];
+  sprintf(description,"0x%X",(v>>12)&0xF);
+  bits(15,12,"VERSION","RO",description);
+  sprintf(description,"0x%X",v&0xFFF);
+  bits(11,0,"PARTNUM","RO",description);
+}
 static struct reg_t cc2400[] = {
   {0x00, "%MAIN", cc2400_main},
   {0x01, "%FSCTRL", cc2400_fsctrl},
@@ -468,6 +613,16 @@ static struct reg_t cc2400[] = {
   {0x13, "%MANOR", cc2400_manor},
   {0x14, "%MDMTST0", cc2400_mdmtst0},
   {0x15, "%MDMTST0", cc2400_mdmtst1},
+  {0x16, "%DACTST", cc2400_dactst},
+  {0x17, "%AGCTST0", cc2400_agctst0},
+  {0x18, "%AGCTST1", cc2400_agctst1},
+  {0x19, "%AGCTST2", cc2400_agctst2},
+  {0x1a, "%FSTST0", cc2400_fstst0},
+  {0x1b, "%FSTST1", cc2400_fstst1},
+  {0x1c, "%FSTST2", cc2400_fstst2},
+  {0x1d, "%FSTST3", cc2400_fstst3},
+  {0x1e, "%MANFIDL", cc2400_manfidl},
+  {0x1f, "%MANFIDH", cc2400_manfidh},
   /* End of list marker */
   {0, NULL, NULL}
 };
