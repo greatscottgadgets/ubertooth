@@ -22,6 +22,9 @@
 #include <string.h>
 #include <stdio.h>
 
+/* Mark unused variables to avoid gcc/clang warnings */
+#define UNUSED(x) (void)(x)
+
 /*
  * based on http://www.ti.com/lit/ds/symlink/cc2400.pdf
  */
@@ -89,6 +92,8 @@ struct reg_t
 static void
 cc2400_main (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   bits (15, 15, "RESETN", "RW", "");
   bits (14, 10, "-", "W0", "");
   bits (9, 9, "FS_FORCE_EN", "RW", "");
@@ -103,6 +108,8 @@ cc2400_main (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fsctrl (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   bits (15, 6, "-", "W0", "");
@@ -118,6 +125,8 @@ cc2400_fsctrl (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fsdiv (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   sprintf (description, "fc = %d MHz", v & 0xfff);
@@ -130,6 +139,8 @@ cc2400_fsdiv (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_mdmctrl (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   bits (15, 13, "-", "W0", "");
@@ -142,6 +153,8 @@ cc2400_mdmctrl (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_agcctrl (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   sprintf (description, "%d", (v >> 8));
   bits (15, 8, "VGA_GAIN", "RW", description);
@@ -155,6 +168,8 @@ cc2400_agcctrl (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_frend (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   sprintf (description, "%d", (v & 0x7));
   bits (15, 4, "-", "W0", "");
@@ -165,6 +180,8 @@ cc2400_frend (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_rssi (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   sprintf (description, "%d dB", ((signed short) v) >> 8);
@@ -178,6 +195,8 @@ cc2400_rssi (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_frequest (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   sprintf (description, "%d", ((signed short) v) >> 8);
@@ -188,6 +207,8 @@ cc2400_frequest (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_iocfg (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char *description[] =
     { "Off", "Output AGC status", "Output ADC I and Q values",
     "Output I/Q after digital down-mixing and channel filtering",
@@ -205,6 +226,8 @@ cc2400_iocfg (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fsmtc (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   sprintf (description, "%d us", 5 * ((v >> 13) & 0x7));
@@ -221,6 +244,9 @@ cc2400_fsmtc (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_reserved (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
+  UNUSED(v);
   bits (15, 5, "RES", "RW", "");
   bits (4, 0, "RES", "RW", "");
 }
@@ -228,6 +254,9 @@ cc2400_reserved (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_manand (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
+  UNUSED(v);
   bits (15, 15, "VGA_RESET_N", "RW", "");
   bits (14, 14, "LOCK_STATUS", "RW", "");
   bits (13, 13, "BALUN_CTRL", "RW", "");
@@ -249,6 +278,8 @@ cc2400_manand (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fsmstate (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   bits (15, 13, "-", "W0", "");
   bits (12, 8, "FSM_STATE_BKPT", "RW",
 	((v >> 8) & 0xF) == 0 ? "disabled" : "");
@@ -259,6 +290,8 @@ cc2400_fsmstate (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_adctst (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   bits (15, 15, "-", "W0", "");
@@ -272,6 +305,8 @@ cc2400_adctst (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_rxbpftst (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits (15, 15, "-", "W0", "");
   bits (14, 14, "RXBPF_CAP_OE", "RW", "");
@@ -284,6 +319,8 @@ cc2400_rxbpftst (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_pamtst (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,13,"-","W0","");
   bits(12,12,"VC_IN_TEST_EN","RW","");
@@ -339,6 +376,8 @@ cc2400_pamtst (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_lmtst (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,14,"-","W0","");
   bits(13,13,"RXMIX_HGM", "RW","");
@@ -408,6 +447,9 @@ cc2400_lmtst (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_manor (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
+  UNUSED(v);
   bits(15,15,"VGA_RESET_N","RW","");
   bits(14,14,"LOCK_STATUS","RW","");
   bits(13,13,"BALUN_CTRL","RW","");
@@ -428,6 +470,8 @@ cc2400_manor (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_mdmtst0 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,14,"-","W0","");
   bits(13,13,"TX_PRNG","RW","");
@@ -442,6 +486,8 @@ cc2400_mdmtst0 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_mdmtst1 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,7,"-","W0","");
   sprintf(description,"%d",v&0x7f);
@@ -450,6 +496,8 @@ cc2400_mdmtst1 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_dactst (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char *src[] = {"Normal","Override","From ADC","I/Q after digital down-mixing and channel filtering", "Full-spectrum White Noise","RX signal magnitude/frequency", "RSSI/RX frequency offset estimation","HSSD Module"};
   char description[64];
   bits(15,15,"-","W0","");
@@ -462,6 +510,8 @@ cc2400_dactst (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_agctst0 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
 
   if (((v>>13)&0x7) == 0)
@@ -481,6 +531,8 @@ cc2400_agctst0 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_agctst1 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,15,"-","W0","");
   bits(14,14,"AGC_VAR_GAIN_SAT","RW",(v&0x4000)?"-3/-5":"-1/-3");
@@ -500,6 +552,8 @@ cc2400_agctst1 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_agctst2 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,14,"-","W0","");
   if (((v>>12)&3) == 0)
@@ -519,6 +573,8 @@ cc2400_agctst2 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fstst0 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   char *rxmixbuf[] = {"690uA","980uA","1.16mA","1.44mA"};
 
@@ -534,6 +590,8 @@ cc2400_fstst0 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fstst1 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   bits(15,15,"RXBPF_LOCUR","RW",(v&0x8000)?"3uA":"4uA");
   bits(14,14,"RXBPF_MIDCUR","RW",(v&0x4000)?"3uA":"4uA");
@@ -548,6 +606,8 @@ cc2400_fstst1 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fstst2 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char *speed[] = {"Normal","Undefined","Half Speed","Undefined"};
   char description[64];
   bits(15,15,"-","W0","");
@@ -561,6 +621,8 @@ cc2400_fstst2 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_fstst3 (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char *period[] = {"0.25us","0.5us","1us","4us"};
   char description[64];
   bits(15,14,"-","W0","");
@@ -577,6 +639,8 @@ cc2400_fstst3 (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_manfidl (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   sprintf(description,"0x%X",(v>>12)&0xF);
   bits(15,12,"PARTNUM","RO",description);
@@ -586,6 +650,8 @@ cc2400_manfidl (FILE * fp, struct reg_t *reg, unsigned short v)
 static void
 cc2400_manfidh (FILE * fp, struct reg_t *reg, unsigned short v)
 {
+  UNUSED(fp);
+  UNUSED(reg);
   char description[64];
   sprintf(description,"0x%X",(v>>12)&0xF);
   bits(15,12,"VERSION","RO",description);

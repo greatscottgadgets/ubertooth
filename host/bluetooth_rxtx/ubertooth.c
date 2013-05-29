@@ -289,7 +289,7 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
 
-	/* unused parameter */ num_blocks = num_blocks;
+	UNUSED(num_blocks);
 
         /*
 	fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
@@ -737,8 +737,8 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	static u32 prev_ts = 0;
 
-	/* unused parameter */ args = args;
-	/* unused parameter */ bank = bank;
+	UNUSED(args);
+	UNUSED(bank);
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -792,7 +792,7 @@ static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
 	int i;
 	char nl = '\n';
 
-	/* unused parameter */ args = args;
+	UNUSED(args);
 
 	unpack_symbols(rx->data, symbols[bank]);
 
@@ -814,7 +814,8 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 {
 	uint8_t *buf = (uint8_t*)rx;
 
-	/* unused parameter */ args = args; bank = bank;
+	UNUSED(args);
+	UNUSED(bank);
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	uint32_t time_be = htobe32((uint32_t)time(NULL));
