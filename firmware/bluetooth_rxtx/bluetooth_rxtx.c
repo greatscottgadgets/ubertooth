@@ -1,5 +1,6 @@
 /*
- * Copyright 2010 Michael Ossmann
+ * Copyright 2010-2013 Michael Ossmann
+ * Copyright 2011-2013 Dominic Spill
  *
  * This file is part of Project Ubertooth.
  *
@@ -19,38 +20,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*
-	LPCUSB, an USB device driver for LPC microcontrollers	
-	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
-
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
-
-	1. Redistributions of source code must retain the above copyright
-	   notice, this list of conditions and the following disclaimer.
-	2. Redistributions in binary form must reproduce the above copyright
-	   notice, this list of conditions and the following disclaimer in the
-	   documentation and/or other materials provided with the distribution.
-	3. The name of the author may not be used to endorse or promote products
-	   derived from this software without specific prior written permission.
-
-	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
 #include <string.h>
 
 #include "ubertooth.h"
-#include "usbapi.h"
-#include "usbhw_lpc.h"
+#include "ubertooth_usb.h"
 #include "ubertooth_interface.h"
 #include "bluetooth.h"
 #include "bluetooth_le.h"
@@ -58,6 +31,9 @@
 #define IAP_LOCATION 0x1FFF1FF1
 typedef void (*IAP)(u32[], u32[]);
 IAP iap_entry = (IAP)IAP_LOCATION;
+
+#define MIN(x,y)	((x)<(y)?(x):(y))
+#define MAX(x,y)	((x)>(y)?(x):(y))
 
 /*
  * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
@@ -90,7 +66,6 @@ volatile u8 cs_trigger;                     // set by intr on P2.2 falling (CS)
 volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
-u32 last_usb_pkt = 0;                       // for keep alive packets
 int clock_trim = 0;                         // to counteract clock drift
 u32 idle_buf_clkn_high;
 u32 active_buf_clkn_high;
@@ -99,6 +74,17 @@ u32 active_buf_clk100ns;
 u32 idle_buf_channel = 0;
 u32 active_buf_channel = 0;
 u8 slave_mac_address[6] = { 0, };
+
+/* DMA buffers */
+u8 rxbuf1[DMA_SIZE];
+u8 rxbuf2[DMA_SIZE];
+
+/*
+ * The active buffer is the one with an active DMA transfer.
+ * The idle buffer is the one we can read/write between transfers.
+ */
+u8 *active_rxbuf = &rxbuf1[0];
+u8 *idle_rxbuf = &rxbuf2[0];
 
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
@@ -124,24 +110,6 @@ int16_t rssi_iir[79] = {0};
  * CLK_TUNE_TIME * 100 ns prior to the start of an upcoming time slot.
 */
 #define CLK_TUNE_TIME   2250
-
-#define BULK_IN_EP		0x82
-#define BULK_OUT_EP		0x05
-
-#define MAX_PACKET_SIZE	64
-
-#define LE_WORD(x)		((x)&0xFF),((x)>>8)
-
-/* DMA buffers */
-u8 rxbuf1[DMA_SIZE];
-u8 rxbuf2[DMA_SIZE];
-
-/*
- * The active buffer is the one with an active DMA transfer.
- * The idle buffer is the one we can read/write between transfers.
- */
-u8 *active_rxbuf = &rxbuf1[0];
-u8 *idle_rxbuf = &rxbuf2[0];
 
 /* Unpacked symbol buffers (two rxbufs) */
 char unpacked[DMA_SIZE*8*2];
@@ -248,6 +216,56 @@ static void cs_threshold_set(int8_t level, u8 samples)
 	cs_no_squelch = (level <= -120);
 }
 
+static int enqueue(u8 *buf)
+{
+	usb_pkt_rx *f = usb_enqueue();
+
+	/* fail if queue is full */
+	if (f == NULL) {
+		status |= FIFO_OVERFLOW;
+		return 0;
+	}
+
+	f->pkt_type = BR_PACKET;
+	f->clkn_high = idle_buf_clkn_high;
+	f->clk100ns = idle_buf_clk100ns;
+	f->channel = idle_buf_channel - 2402;
+	f->rssi_min = rssi_min;
+	f->rssi_max = rssi_max;
+	if (hop_mode != HOP_NONE)
+		f->rssi_avg = (int8_t)((rssi_iir[idle_buf_channel-2402] + 128)/256);
+	else
+		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
+	f->rssi_count = rssi_count;
+
+	USRLED_SET;
+
+	// Unrolled copy of 50 bytes from buf to fifo
+	u32 *p1 = (u32 *)f->data;
+	u32 *p2 = (u32 *)buf;
+	p1[0] = p2[0];
+	p1[1] = p2[1];
+	p1[2] = p2[2];
+	p1[3] = p2[3];
+	p1[4] = p2[4];
+	p1[5] = p2[5];
+	p1[6] = p2[6];
+	p1[7] = p2[7];
+	p1[8] = p2[8];
+	p1[9] = p2[9];
+	p1[10] = p2[10];
+	p1[11] = p2[11];
+	/* Avoid gcc warning about strict-aliasing */
+	u16 *p3 = (u16 *)f->data;
+	u16 *p4 = (u16 *)buf;
+	p3[48] = p4[48];
+
+	f->status = status;
+	status = 0;
+
+	return 1;
+}
+
 static void cs_threshold_calc_and_set(void)
 {
 	int8_t level;
@@ -286,224 +304,8 @@ static void cs_trigger_disable(void)
 	cs_trigger = 0;
 }
 
-/*
- * This is supposed to be a lock-free ring buffer, but I haven't verified
- * atomicity of the operations on head and tail.
- */
-
-usb_pkt_rx fifo[128];
-
-volatile u32 head = 0;
-volatile u32 tail = 0;
-
-void queue_init()
+static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int *data_len)
 {
-	head = 0;
-	tail = 0;
-}
-
-static int enqueue(u8 *buf)
-{
-	int i;
-	u8 h = head & 0x7F;
-	u8 t = tail & 0x7F;
-	u8 n = (t + 1) & 0x7F;
-
-	usb_pkt_rx *f = &fifo[t];
-
-	/* fail if queue is full */
-	if (h == n) {
-		status |= FIFO_OVERFLOW;
-		return 0;
-	}
-
-	f->pkt_type = BR_PACKET;
-	f->clkn_high = idle_buf_clkn_high;
-	f->clk100ns = idle_buf_clk100ns;
-	f->channel = idle_buf_channel - 2402;
-	f->rssi_min = rssi_min;
-	f->rssi_max = rssi_max;
-	if (hop_mode != HOP_NONE)
-		f->rssi_avg = (int8_t)((rssi_iir[idle_buf_channel-2402] + 128)/256);
-	else
-		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
-	f->rssi_count = rssi_count;
-
-	USRLED_SET;
-
-	// Unrolled copy of 50 bytes from buf to fifo
-	u32 *p1 = (u32 *)fifo[t].data;
-	u32 *p2 = (u32 *)buf;
-	p1[0] = p2[0];
-	p1[1] = p2[1];
-	p1[2] = p2[2];
-	p1[3] = p2[3];
-	p1[4] = p2[4];
-	p1[5] = p2[5];
-	p1[6] = p2[6];
-	p1[7] = p2[7];
-	p1[8] = p2[8];
-	p1[9] = p2[9];
-	p1[10] = p2[10];
-	p1[11] = p2[11];
-	*(u16 *)&(fifo[t].data[48]) = *(u16 *)&(buf[48]);
-
-	fifo[t].status = status;
-	status = 0;
-	++tail;
-
-	return 1;
-}
-
-static usb_pkt_rx *dequeue()
-{
-	u8 h = head & 0x7F;
-	u8 t = tail & 0x7F;
-
-	/* fail if queue is empty */
-	if (h == t) {
-		USRLED_CLR;
-		return NULL;
-	}
-
-	++head;
-
-	return &fifo[h];
-}
-
-#define USB_KEEP_ALIVE 400000
-static int dequeue_send()
-{
-	usb_pkt_rx *pkt = dequeue(&pkt);
-	if (pkt != NULL) {
-		last_usb_pkt = clkn;
-		USBHwEPWrite(BULK_IN_EP, (u8 *)pkt, sizeof(usb_pkt_rx));
-		return 1;
-	} else {
-		if (clkn - last_usb_pkt > USB_KEEP_ALIVE) {
-			u8 pkt_type = KEEP_ALIVE;
-			last_usb_pkt = clkn;
-			USBHwEPWrite(BULK_IN_EP, &pkt_type, 1);
-		}
-		return 0;
-	}
-}
-
-
-#ifdef UBERTOOTH_ZERO
-#define ID_VENDOR 0x1D50
-#define ID_PRODUCT 0x6000
-#elif defined UBERTOOTH_ONE
-#define ID_VENDOR 0x1D50
-#define ID_PRODUCT 0x6002
-#elif defined TC13BADGE
-#define ID_VENDOR 0xFFFF
-#define ID_PRODUCT 0x0004
-#else
-#define ID_VENDOR 0xFFFF
-#define ID_PRODUCT 0x0004
-#endif
-
-
-static const u8 abDescriptors[] = {
-
-/* Device descriptor */
-	0x12,              		
-	DESC_DEVICE,       		
-	LE_WORD(0x0200),		// bcdUSB	
-	0xFF,              		// bDeviceClass
-	0x00,              		// bDeviceSubClass
-	0x00,              		// bDeviceProtocol
-	MAX_PACKET_SIZE0,  		// bMaxPacketSize
-	LE_WORD(ID_VENDOR),		// idVendor
-	LE_WORD(ID_PRODUCT),	// idProduct
-	LE_WORD(0x0100),		// bcdDevice
-	0x01,              		// iManufacturer
-	0x02,              		// iProduct
-	0x03,              		// iSerialNumber
-	0x01,              		// bNumConfigurations
-
-// configuration
-	0x09,
-	DESC_CONFIGURATION,
-	LE_WORD(0x20),  		// wTotalLength
-	0x01,  					// bNumInterfaces
-	0x01,  					// bConfigurationValue
-	0x00,  					// iConfiguration
-	0x80,  					// bmAttributes
-	0x32,  					// bMaxPower
-
-// interface
-	0x09,   				
-	DESC_INTERFACE, 
-	0x00,  		 			// bInterfaceNumber
-	0x00,   				// bAlternateSetting
-	0x02,   				// bNumEndPoints
-	0xFF,   				// bInterfaceClass
-	0x00,   				// bInterfaceSubClass
-	0x00,   				// bInterfaceProtocol
-	0x00,   				// iInterface
-
-// bulk in
-	0x07,   		
-	DESC_ENDPOINT,   		
-	BULK_IN_EP,				// bEndpointAddress
-	0x02,   				// bmAttributes = BULK
-	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval   		
-
-// bulk out
-	0x07,   		
-	DESC_ENDPOINT,   		
-	BULK_OUT_EP,			// bEndpointAddress
-	0x02,   				// bmAttributes = BULK
-	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval 
-
-// string descriptors
-	0x04,
-	DESC_STRING,
-	LE_WORD(0x0409),
-
-	// manufacturer string
-	0x44,
-	DESC_STRING,
-	'h', 0, 't', 0, 't', 0, 'p', 0, ':', 0, '/', 0, '/', 0, 'u', 0,
-	'b', 0, 'e', 0, 'r', 0, 't', 0, 'o', 0, 'o', 0, 't', 0, 'h', 0,
-	'.', 0, 's', 0, 'o', 0, 'u', 0, 'r', 0, 'c', 0, 'e', 0, 'f', 0,
-	'o', 0, 'r', 0, 'g', 0, 'e', 0, '.', 0, 'n', 0, 'e', 0, 't', 0,
-	'/', 0,
-
-	// product string
-	0x1E,
-	DESC_STRING,
-	'b', 0, 'l', 0, 'u', 0, 'e', 0, 't', 0, 'o', 0, 'o', 0, 't', 0, 'h', 0, '_', 0,
-	'r', 0, 'x', 0, 't', 0, 'x', 0,
-
-	// serial number string
-	0x12,
-	DESC_STRING,
-	'0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '1', 0,
-
-	// terminator
-	0
-};
-
-static u8 abVendorReqData[258];
-
-static void usb_bulk_in_handler(u8 bEP, u8 bEPStatus)
-{
-	if (!(bEPStatus & EP_STATUS_DATA))
-		dequeue_send();
-}
-
-static void usb_bulk_out_handler(u8 bEP, u8 bEPStatus)
-{
-}
-
-static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
-{
-	u8 *pbData = *ppbData;
 	u32 command[5];
 	u32 result[5];
 	u64 ac_copy;
@@ -514,63 +316,63 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	usb_pkt_rx *p = NULL;
 	u16 reg_val;
 
-	switch (pSetup->bRequest) {
+	switch (request) {
 
 	case UBERTOOTH_PING:
-		*piLen = 0;
+		*data_len = 0;
 		break;
 
 	case UBERTOOTH_RX_SYMBOLS:
 		requested_mode = MODE_RX_SYMBOLS;
-		rx_pkts += pSetup->wValue;
+		rx_pkts += request_params[0];
 		if (rx_pkts == 0)
 			rx_pkts = 0xFFFFFFFF;
-		*piLen = 0;
+		*data_len = 0;
 		break;
 
 	case UBERTOOTH_GET_USRLED:
-		pbData[0] = (USRLED) ? 1 : 0;
-		*piLen = 1;
+		data[0] = (USRLED) ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_USRLED:
-		if (pSetup->wValue)
+		if (request_params[0])
 			USRLED_SET;
 		else
 			USRLED_CLR;
 		break;
 
 	case UBERTOOTH_GET_RXLED:
-		pbData[0] = (RXLED) ? 1 : 0;
-		*piLen = 1;
+		data[0] = (RXLED) ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_RXLED:
-		if (pSetup->wValue)
+		if (request_params[0])
 			RXLED_SET;
 		else
 			RXLED_CLR;
 		break;
 
 	case UBERTOOTH_GET_TXLED:
-		pbData[0] = (TXLED) ? 1 : 0;
-		*piLen = 1;
+		data[0] = (TXLED) ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_TXLED:
-		if (pSetup->wValue)
+		if (request_params[0])
 			TXLED_SET;
 		else
 			TXLED_CLR;
 		break;
 
 	case UBERTOOTH_GET_1V8:
-		pbData[0] = (CC1V8) ? 1 : 0;
-		*piLen = 1;
+		data[0] = (CC1V8) ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_1V8:
-		if (pSetup->wValue)
+		if (request_params[0])
 			CC1V8_SET;
 		else
 			CC1V8_CLR;
@@ -579,12 +381,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_GET_PARTNUM:
 		command[0] = 54; /* read part number */
 		iap_entry(command, result);
-		pbData[0] = result[0] & 0xFF; /* status */
-		pbData[1] = result[1] & 0xFF;
-		pbData[2] = (result[1] >> 8) & 0xFF;
-		pbData[3] = (result[1] >> 16) & 0xFF;
-		pbData[4] = (result[1] >> 24) & 0xFF;
-		*piLen = 5;
+		data[0] = result[0] & 0xFF; /* status */
+		data[1] = result[1] & 0xFF;
+		data[2] = (result[1] >> 8) & 0xFF;
+		data[3] = (result[1] >> 16) & 0xFF;
+		data[4] = (result[1] >> 24) & 0xFF;
+		*data_len = 5;
 		break;
 
 	case UBERTOOTH_RESET:
@@ -594,46 +396,46 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_GET_SERIAL:
 		command[0] = 58; /* read device serial number */
 		iap_entry(command, result);
-		pbData[0] = result[0] & 0xFF; /* status */
-		pbData[1] = result[1] & 0xFF;
-		pbData[2] = (result[1] >> 8) & 0xFF;
-		pbData[3] = (result[1] >> 16) & 0xFF;
-		pbData[4] = (result[1] >> 24) & 0xFF;
-		pbData[5] = result[2] & 0xFF;
-		pbData[6] = (result[2] >> 8) & 0xFF;
-		pbData[7] = (result[2] >> 16) & 0xFF;
-		pbData[8] = (result[2] >> 24) & 0xFF;
-		pbData[9] = result[3] & 0xFF;
-		pbData[10] = (result[3] >> 8) & 0xFF;
-		pbData[11] = (result[3] >> 16) & 0xFF;
-		pbData[12] = (result[3] >> 24) & 0xFF;
-		pbData[13] = result[4] & 0xFF;
-		pbData[14] = (result[4] >> 8) & 0xFF;
-		pbData[15] = (result[4] >> 16) & 0xFF;
-		pbData[16] = (result[4] >> 24) & 0xFF;
-		*piLen = 17;
+		data[0] = result[0] & 0xFF; /* status */
+		data[1] = result[1] & 0xFF;
+		data[2] = (result[1] >> 8) & 0xFF;
+		data[3] = (result[1] >> 16) & 0xFF;
+		data[4] = (result[1] >> 24) & 0xFF;
+		data[5] = result[2] & 0xFF;
+		data[6] = (result[2] >> 8) & 0xFF;
+		data[7] = (result[2] >> 16) & 0xFF;
+		data[8] = (result[2] >> 24) & 0xFF;
+		data[9] = result[3] & 0xFF;
+		data[10] = (result[3] >> 8) & 0xFF;
+		data[11] = (result[3] >> 16) & 0xFF;
+		data[12] = (result[3] >> 24) & 0xFF;
+		data[13] = result[4] & 0xFF;
+		data[14] = (result[4] >> 8) & 0xFF;
+		data[15] = (result[4] >> 16) & 0xFF;
+		data[16] = (result[4] >> 24) & 0xFF;
+		*data_len = 17;
 		break;
 
 #ifdef UBERTOOTH_ONE
 	case UBERTOOTH_GET_PAEN:
-		pbData[0] = (PAEN) ? 1 : 0;
-		*piLen = 1;
+		data[0] = (PAEN) ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_PAEN:
-		if (pSetup->wValue)
+		if (request_params[0])
 			PAEN_SET;
 		else
 			PAEN_CLR;
 		break;
 
 	case UBERTOOTH_GET_HGM:
-		pbData[0] = (HGM) ? 1 : 0;
-		*piLen = 1;
+		data[0] = (HGM) ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_HGM:
-		if (pSetup->wValue)
+		if (request_params[0])
 			HGM_SET;
 		else
 			HGM_CLR;
@@ -646,15 +448,15 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_GET_PALEVEL:
-		pbData[0] = cc2400_get(FREND) & 0x7;
-		*piLen = 1;
+		data[0] = cc2400_get(FREND) & 0x7;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_PALEVEL:
-		if( pSetup->wValue < 8 ) {
-			cc2400_set(FREND, 8 | pSetup->wValue);
+		if( request_params[0] < 8 ) {
+			cc2400_set(FREND, 8 | request_params[0]);
 		} else {
-			return FALSE;
+			return 0;
 		}
 		break;
 
@@ -668,12 +470,12 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 #endif
 
 	case UBERTOOTH_RANGE_CHECK:
-		pbData[0] = rr.valid;
-		pbData[1] = rr.request_pa;
-		pbData[2] = rr.request_num;
-		pbData[3] = rr.reply_pa;
-		pbData[4] = rr.reply_num;
-		*piLen = 5;
+		data[0] = rr.valid;
+		data[1] = rr.request_pa;
+		data[2] = rr.request_num;
+		data[3] = rr.reply_pa;
+		data[4] = rr.reply_num;
+		*data_len = 5;
 		break;
 
 	case UBERTOOTH_STOP:
@@ -681,28 +483,28 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_GET_MOD:
-		pbData[0] = modulation;
-		*piLen = 1;
+		data[0] = modulation;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_MOD:
-		modulation = pSetup->wValue;
+		modulation = request_params[0];
 		break;
 
 	case UBERTOOTH_GET_CHANNEL:
-		pbData[0] = channel & 0xFF;
-		pbData[1] = (channel >> 8) & 0xFF;
-		*piLen = 2;
+		data[0] = channel & 0xFF;
+		data[1] = (channel >> 8) & 0xFF;
+		*data_len = 2;
 		break;
 
 	case UBERTOOTH_SET_CHANNEL:
-		requested_channel = pSetup->wValue;
+		requested_channel = request_params[0];
 		/* bluetooth band sweep mode, start at channel 2402 */
-		if (requested_channel == 9999) {
+		if (requested_channel > MAX_FREQ) {
 			hop_mode = HOP_SWEEP;
 			requested_channel = 2402;
 		}
-		/* fixed channel mode, can be outside blueooth band */
+		/* fixed channel mode, can be outside bluetooth band */
 		else {
 			hop_mode = HOP_NONE;
 			requested_channel = MAX(requested_channel, MIN_FREQ);
@@ -722,7 +524,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_SET_ISP:
 		command[0] = 57;
 		iap_entry(command, result);
-		*piLen = 0; /* should never return */
+		*data_len = 0; /* should never return */
 		break;
 
 	case UBERTOOTH_FLASH:
@@ -731,62 +533,60 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SPECAN:
-		if (pSetup->wValue < 2049 || pSetup->wValue > 3072 || 
-				pSetup->wIndex < 2049 || pSetup->wIndex > 3072 ||
-				pSetup->wIndex < pSetup->wValue)
-			return FALSE;
-		low_freq = pSetup->wValue;
-		high_freq = pSetup->wIndex;
+		if (request_params[0] < 2049 || request_params[0] > 3072 || 
+				request_params[1] < 2049 || request_params[1] > 3072 ||
+				request_params[1] < request_params[0])
+			return 0;
+		low_freq = request_params[0];
+		high_freq = request_params[1];
 		requested_mode = MODE_SPECAN;
-		*piLen = 0;
+		*data_len = 0;
 		break;
 
 	case UBERTOOTH_LED_SPECAN:
-		if (pSetup->wValue > 256)
-			return FALSE;
-		rssi_threshold = (int8_t)pSetup->wValue;
+		if (request_params[0] > 256)
+			return 0;
+		rssi_threshold = (int8_t)request_params[0];
 		requested_mode = MODE_LED_SPECAN;
-		*piLen = 0;
+		*data_len = 0;
 		break;
 
 	case UBERTOOTH_GET_REV_NUM:
-		pbData[0] = 0x00;
-		pbData[1] = 0x00;
+		data[0] = 0x00;
+		data[1] = 0x00;
 
 		length = (u8)strlen(GIT_DESCRIBE);
-		pbData[2] = length;
+		data[2] = length;
 
-		memcpy(&pbData[3], GIT_DESCRIBE, length);
+		memcpy(&data[3], GIT_DESCRIBE, length);
 
-		*piLen = 2 + 1 + length;
+		*data_len = 2 + 1 + length;
 		break;
 
 	case UBERTOOTH_GET_BOARD_ID:
-		pbData[0] = BOARD_ID;
-		*piLen = 1;
+		data[0] = BOARD_ID;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_SQUELCH:
-		cs_threshold_req = (int8_t)pSetup->wValue;
+		cs_threshold_req = (int8_t)request_params[0];
 		cs_threshold_calc_and_set();
 		break;
 
 	case UBERTOOTH_GET_SQUELCH:
-		pbData[0] = cs_threshold_req;
-		*piLen = 1;
+		data[0] = cs_threshold_req;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_BDADDR:
 		target.address = 0;
 		target.access_code = 0;
 		for(i=0; i < 8; i++) {
-			target.address |= pbData[i] << 8*i;
+			target.address |= data[i] << 8*i;
 		}
-		for(0; i < 8; i++) {
-			target.access_code |= pbData[i+8] << 8*i;
+		for(i=0; i < 8; i++) {
+			target.access_code |= data[i+8] << 8*i;
 		}
-		if(afh_enabled == NULL)
-			afh_enabled = 0;
 		precalc();
 		break;
 
@@ -794,7 +594,7 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		clock_offset = 0;
 		for(i=0; i < 4; i++) {
 			clock_offset <<= 8;
-			clock_offset |= pbData[i];
+			clock_offset |= data[i];
 		}
 		clkn += clock_offset;
 		hop_mode = HOP_BLUETOOTH;
@@ -802,17 +602,17 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_SET_CLOCK:
-		clock = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
+		clock = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 		clkn = clock;
 		cs_threshold_calc_and_set();
 		break;
 
 	case UBERTOOTH_SET_AFHMAP:
 		for(i=0; i < 10; i++) {
-			afh_map[i] = pbData[i];
+			afh_map[i] = data[i];
 		}
 		afh_enabled = 1;
-		*piLen = 10;
+		*data_len = 10;
 		precalc();
 		break;
 
@@ -821,23 +621,23 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 			afh_map[i] = 0;
 		}
 		afh_enabled = 0;
-		*piLen = 10;
+		*data_len = 10;
 		precalc();
 		break;
 
 	case UBERTOOTH_GET_CLOCK:
 		clock = clkn;
 		for(i=0; i < 4; i++) {
-			pbData[i] = (clock >> (8*i)) & 0xff;
+			data[i] = (clock >> (8*i)) & 0xff;
 		}
-		*piLen = 4;
+		*data_len = 4;
 		break;
 
 	case UBERTOOTH_BTLE_SNIFFING:
-		rx_pkts += pSetup->wValue;
+		rx_pkts += request_params[0];
 		if (rx_pkts == 0)
 			rx_pkts = 0xFFFFFFFF;
-		*piLen = 0;
+		*data_len = 0;
 
 		do_hop = 0;
 		hop_mode = HOP_BTLE;
@@ -849,13 +649,13 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 
 	case UBERTOOTH_GET_ACCESS_ADDRESS:
 		for(i=0; i < 4; i++) {
-			pbData[i] = (le.access_address >> (8*i)) & 0xff;
+			data[i] = (le.access_address >> (8*i)) & 0xff;
 		}
-		*piLen = 4;
+		*data_len = 4;
 		break;
 
 	case UBERTOOTH_SET_ACCESS_ADDRESS:
-		le.access_address = pbData[0] | pbData[1] << 8 | pbData[2] << 16 | pbData[3] << 24;
+		le.access_address = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 		break;
 
 	case UBERTOOTH_DO_SOMETHING:
@@ -865,33 +665,33 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 	case UBERTOOTH_DO_SOMETHING_REPLY:
 		// after you do something, tell me what you did!
 		// don't commit here please
-		pbData[0] = 0x13;
-		pbData[1] = 0x37;
-		*piLen = 2;
+		data[0] = 0x13;
+		data[1] = 0x37;
+		*data_len = 2;
 		break;
 
 	case UBERTOOTH_GET_CRC_VERIFY:
-		pbData[0] = le.crc_verify ? 1 : 0;
-		*piLen = 1;
+		data[0] = le.crc_verify ? 1 : 0;
+		*data_len = 1;
 		break;
 
 	case UBERTOOTH_SET_CRC_VERIFY:
-		le.crc_verify = pSetup->wValue ? 1 : 0;
+		le.crc_verify = request_params[0] ? 1 : 0;
 		break;
 
 	case UBERTOOTH_POLL:
 		p = dequeue();
 		if (p != NULL) {
-			memcpy(pbData, (void *)p, sizeof(usb_pkt_rx));
-			*piLen = sizeof(usb_pkt_rx);
+			memcpy(data, (void *)p, sizeof(usb_pkt_rx));
+			*data_len = sizeof(usb_pkt_rx);
 		} else {
-			pbData[0] = 0;
-			*piLen = 1;
+			data[0] = 0;
+			*data_len = 1;
 		}
 		break;
 
 	case UBERTOOTH_BTLE_PROMISC:
-		*piLen = 0;
+		*data_len = 0;
 
 		hop_mode = HOP_NONE;
 		requested_mode = MODE_BT_PROMISC_LE;
@@ -901,45 +701,21 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		break;
 
 	case UBERTOOTH_READ_REGISTER:
-		reg_val = cc2400_get(pSetup->wValue);
-		pbData[0] = (reg_val >> 8) & 0xff;
-		pbData[1] = reg_val & 0xff;
-		*piLen = 2;
+		reg_val = cc2400_get(request_params[0]);
+		data[0] = (reg_val >> 8) & 0xff;
+		data[1] = reg_val & 0xff;
+		*data_len = 2;
 		break;
 
 	case UBERTOOTH_BTLE_SLAVE:
-		memcpy(slave_mac_address, pbData, 6);
+		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
 		break;
 
 	default:
-		return FALSE;
+		return 0;
 	}
-	return TRUE;
-}
-
-static int ubertooth_usb_init()
-{
-	// initialise stack
-	USBInit();
-	
-	// register device descriptors
-	USBRegisterDescriptors(abDescriptors);
-
-	// override standard request handler
-	USBRegisterRequestHandler(REQTYPE_TYPE_VENDOR, usb_vendor_request_handler, abVendorReqData);
-
-	// register endpoints
-	//USBHwRegisterEPIntHandler(BULK_IN_EP, usb_bulk_in_handler);
-	//USBHwRegisterEPIntHandler(BULK_OUT_EP, usb_bulk_out_handler);
-
-	// enable USB interrupts
-	//ISER0 = ISER0_ISE_USB;
-
-	// connect to bus
-	USBHwConnect(TRUE);
-
-	return 0;
+	return 1;
 }
 
 static void clkn_init()
@@ -1158,48 +934,6 @@ static void dma_init_le()
 	rx_err = 0;
 }
 
-/*
- * Flush whatever's in the CC2400's output buffer before going on to
- * receive the next packet.
- */
-static void dma_flush_le()
-{
-	/* power up GPDMA controller */
-	PCONP |= PCONP_PCGPDMA;
-
-	/* zero out channel configs and clear interrupts */
-	DMACC0Config = 0;
-	DMACC1Config = 0;
-	DMACC2Config = 0;
-	DMACC3Config = 0;
-	DMACC4Config = 0;
-	DMACC5Config = 0;
-	DMACC6Config = 0;
-	DMACC7Config = 0;
-	DMACIntTCClear = 0xFF;
-	DMACIntErrClr = 0xFF;
-
-	/* enable DMA globally */
-	DMACConfig = DMACConfig_E;
-	while (!(DMACConfig & DMACConfig_E));
-
-
-	/* configure DMA channel 0 */
-	DMACC0SrcAddr = (u32)&(DIO_SSP_DR);
-	DMACC0DestAddr = (u32)&rxbuf1[0];
-	DMACC0LLI = (u32)0;
-	DMACC0Control = (DMA_SIZE) |
-			(1 << 12) |        /* source burst size = 4 */
-			(1 << 15) |        /* destination burst size = 4 */
-			(0 << 18) |        /* source width 8 bits */
-			(0 << 21) ;        /* destination width 8 bits */
-
-	DMACC0Config =
-			DIO_SSP_SRC |
-			(0x2 << 11);            /* peripheral to memory */
-			// XXX no interrupts: we don't care about the data
-}
-
 void DMA_IRQHandler()
 {
 	idle_buf_clkn_high = active_buf_clkn_high;
@@ -1265,32 +999,28 @@ static void cc2400_idle()
 /* start un-buffered rx */
 static void cc2400_rx()
 {
+	u16 mdmctrl;
 	if (modulation == MOD_BT_BASIC_RATE) {
-		cc2400_set(LMTST,   0x2b22);
-		cc2400_set(MDMTST0, 0x134b); // without PRNG
-		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
-		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
-		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+		mdmctrl = 0x0029; // 160 kHz frequency deviation
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
-		cc2400_set(LMTST,   0x2b22);
-		cc2400_set(MDMTST0, 0x134b); // without PRNG
-
-		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
-		// 0 00 00 0 010 00 0 00 0 1
-		//      |  | |   |  +--------> CRC off
-		//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
-		//      |  | +---------------> 2 preamble bytes of 01010101
-		//      |  +-----------------> not packet mode
-		//      +--------------------> un-buffered mode
-		//
-
-		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
-		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+		mdmctrl = 0x0040; // 250 kHz frequency deviation
 	} else {
 		/* oops */
 		return;
 	}
 
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x134b); // without PRNG
+	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+	// 0 00 00 0 010 00 0 00 0 1
+	//      |  | |   |  +--------> CRC off
+	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+	//      |  | +---------------> 2 preamble bytes of 01010101
+	//      |  +-----------------> not packet mode
+	//      +--------------------> un-buffered mode
+	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
+	cc2400_set(MDMCTRL, mdmctrl);
+
 	// Set up CS register
 	cs_threshold_calc_and_set();
 
@@ -1304,28 +1034,48 @@ static void cc2400_rx()
 #endif
 }
 
-static void cc2400_rx_le_sync()
+/* start un-buffered rx */
+static void cc2400_rx_sync(u32 sync)
 {
+	u16 grmdm, mdmctrl;
+
+	if (modulation == MOD_BT_BASIC_RATE) {
+		mdmctrl = 0x0029; // 160 kHz frequency deviation
+		grmdm = 0x0461; // un-buffered mode, packet w/ sync word detection
+		// 0 00 00 1 000 11 0 00 0 1
+		//   |  |  | |   |  +--------> CRC off
+		//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
+		//   |  |  | +---------------> 0 preamble bytes of 01010101
+		//   |  |  +-----------------> packet mode
+		//   |  +--------------------> un-buffered mode
+		//   +-----------------------> sync error bits: 0
+
+	} else if (modulation == MOD_BT_LOW_ENERGY) {
+		mdmctrl = 0x0040; // 250 kHz frequency deviation
+		grmdm = 0x0561; // un-buffered mode, packet w/ sync word detection
+		// 0 00 00 1 010 11 0 00 0 1
+		//   |  |  | |   |  +--------> CRC off
+		//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
+		//   |  |  | +---------------> 2 preamble bytes of 01010101
+		//   |  |  +-----------------> packet mode
+		//   |  +--------------------> un-buffered mode
+		//   +-----------------------> sync error bits: 0
+
+	} else {
+		/* oops */
+		return;
+	}
+
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x134b); // without PRNG
+	cc2400_set(GRMDM,   grmdm);
 
-	cc2400_set(GRMDM,   0x0561); // un-buffered mode, packet w/ sync word detection
-	// 0 00 00 1 010 11 0 00 0 1
-	//   |  |  | |   |  +--------> CRC off
-	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
-	//   |  |  | +---------------> 2 preamble bytes of 01010101
-	//   |  |  +-----------------> packet mode
-	//   |  +--------------------> un-buffered mode
-	//   +-----------------------> sync error bits: 0
-
-	// cc2400_set(SYNCH,   0x8e89);
-	// cc2400_set(SYNCL,   0xbed6);
-	cc2400_set(SYNCH,   0x6b7d); // bit-reversed access address
-	cc2400_set(SYNCL,   0x9171);
-
+	cc2400_set(SYNCL,   sync & 0xffff);
+	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
+	
 	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
-	cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+	cc2400_set(MDMCTRL, mdmctrl);
 
 	// Set up CS register
 	cs_threshold_calc_and_set();
@@ -1339,27 +1089,25 @@ static void cc2400_rx_le_sync()
 	HGM_SET;
 #endif
 }
-
 
 void cc2400_txtest()
 {
 #ifdef TX_ENABLE
+	u16 mdmctrl;
 	if (modulation == MOD_BT_BASIC_RATE) {
-		cc2400_set(LMTST,   0x2b22);
-		cc2400_set(MDMTST0, 0x334b); // with PRNG
-		cc2400_set(GRMDM,   0x0df1); // default value
-		cc2400_set(FSDIV,   channel);
-		cc2400_set(MDMCTRL, 0x0029); // 160 kHz frequency deviation
+		mdmctrl = 0x0029; // 160 kHz frequency deviation
 	} else if (modulation == MOD_BT_LOW_ENERGY) {
-		cc2400_set(LMTST,   0x2b22);
-		cc2400_set(MDMTST0, 0x334b); // with PRNG
-		cc2400_set(GRMDM,   0x0df1); // default value
-		cc2400_set(FSDIV,   channel);
-		cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
+		mdmctrl = 0x0040; // 250 kHz frequency deviation
 	} else {
 		/* oops */
 		return;
 	}
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x334b); // with PRNG
+	cc2400_set(GRMDM,   0x0df1); // default value
+	cc2400_set(FSDIV,   channel);
+	cc2400_set(MDMCTRL, mdmctrl); 
+
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -1614,7 +1362,7 @@ void cc2400_rangetest()
 	txbuf[1] = 1; // expected value in rxbuf
 	for (i = 0; i < 18; i++)
 		if (rxbuf[i] != txbuf[i])
-			rr.valid = 0;
+			rr.valid = 2 + i;
 
 	USRLED_CLR;
 	mode = MODE_IDLE;
@@ -1750,24 +1498,6 @@ void hop(void)
 
 }
 
-static void handle_usb(void)
-{
-	u8 epstat;
-
-	/* write queued packets to USB if possible */
-	epstat = USBHwEPGetStatus(BULK_IN_EP);
-	if (!(epstat & EPSTAT_B1FULL)) {
-		dequeue_send();
-	}
-	if (!(epstat & EPSTAT_B2FULL)) {
-		dequeue_send();
-	}
-
-	/* polled "interrupt" */
-	USBHwISR();
-}
-
-
 /* Bluetooth packet monitoring */
 void bt_stream_rx()
 {
@@ -1899,7 +1629,7 @@ void bt_stream_rx()
 		}
 
 	rx_continue:
-		handle_usb();
+		handle_usb(clkn);
 		rx_tc = 0;
 		rx_err = 0;
 	}
@@ -1932,7 +1662,7 @@ void bt_follow()
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
-	cc2400_rx();
+	cc2400_rx_sync(syncword & 0xffffffff);
 
 	cs_trigger_enable();
 
@@ -2031,7 +1761,7 @@ void bt_follow()
 		//}
 
 	rx_continue:
-		handle_usb();
+		handle_usb(clkn);
 		rx_tc = 0;
 		rx_err = 0;
 	}
@@ -2207,7 +1937,7 @@ void bt_le_sync(u8 active_mode)
 	dio_ssp_init();
 	dma_init_le();
 	dio_ssp_start();
-	cc2400_rx_le_sync();
+	cc2400_rx_sync(0x6b7d9171); // bit-reversed access address
 
 	cs_trigger_enable();
 
@@ -2765,7 +2495,7 @@ void specan()
 				enqueue(buf);
 				i = 0;
 
-				handle_usb();
+				handle_usb(clkn);
 			}
 
 			cc2400_strobe(SRFOFF);
@@ -2836,7 +2566,7 @@ void led_specan()
 
 		i = (i+1) % 3;
 
-		USBHwISR();
+		handle_usb(clkn);
         //wait(1);
 		cc2400_strobe(SRFOFF);
 		while ((cc2400_status() & FS_LOCK));
@@ -2848,10 +2578,10 @@ int main()
 {
 	ubertooth_init();
 	clkn_init();
-	ubertooth_usb_init();
+	ubertooth_usb_init(vendor_request_handler);
 
 	while (1) {
-		USBHwISR();
+		handle_usb(clkn);
 		if (requested_mode == MODE_RESET) {
 			/* Allow time for the USB command to return correctly */
 			wait(1);

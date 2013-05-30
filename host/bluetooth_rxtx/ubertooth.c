@@ -126,6 +126,7 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 	else {
 		if (ubertooth_device < 0) {
 			fprintf(stderr, "multiple Ubertooth devices found! Use '-U' to specify device number\n");
+			u8 serial[17], r;
 			for(i = 0 ; i < ubertooths ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
 				ret = libusb_open(usb_list[ubertooth_devs[i]], &devh);
@@ -134,8 +135,11 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 					show_libusb_error(ret);
 				}
 				else {
-					fprintf(stderr, "  Device %d: serial no: ", i);
-					cmd_get_serial(devh);
+					r = cmd_get_serial(devh, serial);
+					if(r==0) {
+						fprintf(stderr, "  Device %d: ", i);
+						print_serial(serial, stderr);
+					}
 					libusb_close(devh);
 				}
 			}
@@ -147,13 +151,44 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 	return devh;
 }
 
+
+/*
+ * based on http://libusb.sourceforge.net/api-1.0/group__asyncio.html#ga9fcb2aa23d342060ebda1d0cf7478856
+ */
+static void rx_xfer_status(int status)
+{
+	char *error_name = "";
+
+	switch (status) {
+		case LIBUSB_TRANSFER_ERROR:
+			error_name="Transfer error.";
+			break;
+		case LIBUSB_TRANSFER_TIMED_OUT:
+			error_name="Transfer timed out.";
+			break;
+		case LIBUSB_TRANSFER_CANCELLED:
+			error_name="Transfer cancelled.";
+			break;
+		case LIBUSB_TRANSFER_STALL:
+			error_name="Halt condition detected, or control request not supported.";
+			break;
+		case LIBUSB_TRANSFER_NO_DEVICE:
+			error_name="Device disconnected.";
+			break;
+		case LIBUSB_TRANSFER_OVERFLOW:
+			error_name="Device sent more data than requested.";
+			break;
+	}
+	fprintf(stderr,"rx_xfer status: %s (%d)\n",error_name,status);
+}
+
 static void cb_xfer(struct libusb_transfer *xfer)
 {
 	int r;
 	uint8_t *tmp;
 
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
-		fprintf(stderr, "rx_xfer status: %d\n", xfer->status);
+		rx_xfer_status(xfer->status);
 		libusb_free_transfer(xfer);
 		rx_xfer = NULL;
 		return;
@@ -271,7 +306,7 @@ int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
 
-	/* unused parameter */ num_blocks = num_blocks;
+	UNUSED(num_blocks);
 
         /*
 	fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
@@ -552,8 +587,8 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	static u32 prev_ts = 0;
 
-	/* unused parameter */ args = args;
-	/* unused parameter */ bank = bank;
+	UNUSED(args);
+	UNUSED(bank);
 
 	/* Sanity check */
 	if (rx->channel > (NUM_CHANNELS-1))
@@ -608,7 +643,7 @@ static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
 	int i;
 	char nl = '\n';
 
-	/* unused parameter */ args = args;
+	UNUSED(args);
 
 	unpack_symbols(rx->data, symbols[bank]);
 
@@ -630,7 +665,8 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 {
 	uint8_t *buf = (uint8_t*)rx;
 
-	/* unused parameter */ args = args; bank = bank;
+	UNUSED(args);
+	UNUSED(bank);
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	uint32_t time_be = htobe32((uint32_t)time(NULL));

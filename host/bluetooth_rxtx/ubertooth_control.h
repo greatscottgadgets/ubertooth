@@ -35,6 +35,8 @@
 #define le32toh EndianU32_LtoN
 #define htobe64 EndianU64_NtoB
 #define be64toh EndianU64_BtoN
+#define htole16 EndianU16_NtoL
+#define htole32 EndianU32_NtoL
 #else
 #include <endian.h>
 #endif
@@ -86,7 +88,8 @@ int cmd_get_rxled(struct libusb_device_handle* devh);
 int cmd_set_txled(struct libusb_device_handle* devh, u16 state);
 int cmd_get_txled(struct libusb_device_handle* devh);
 int cmd_get_partnum(struct libusb_device_handle* devh);
-int cmd_get_serial(struct libusb_device_handle* devh);
+void print_serial(u8 *serial, FILE *fileptr);
+int cmd_get_serial(struct libusb_device_handle* devh, u8 *serial);
 int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod);
 int cmd_get_modulation(struct libusb_device_handle* devh);
 int cmd_set_isp(struct libusb_device_handle* devh);

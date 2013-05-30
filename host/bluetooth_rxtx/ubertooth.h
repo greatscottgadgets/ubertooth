@@ -24,6 +24,9 @@
 
 #include "ubertooth_control.h"
 
+/* Mark unused variables to avoid gcc/clang warnings */
+#define UNUSED(x) (void)(x)
+
 /* gnuplot output types
  * see https://github.com/dkogan/feedgnuplot for plotter */
 #define GNUPLOT_NORMAL		1

@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'f':
+			fprintf(stderr, "ubertooth-util -f is no longer required - use ubertooth-dfu instead");
 			do_flash= 0;
 			break;
 		case 'i':
@@ -244,19 +245,25 @@ int main(int argc, char *argv[])
 	if(do_range_result == 0) {
 		r = cmd_get_rangeresult(devh, &rr);
 		if (r == 0) {
-			if (rr.valid) {
+			if (rr.valid==1) {
 				printf("request PA level : %d\n", rr.request_pa);
 				printf("request number   : %d\n", rr.request_num);
 				printf("reply PA level   : %d\n", rr.reply_pa);
 				printf("reply number     : %d\n", rr.reply_num);
+			} else if (rr.valid>1) {
+				printf("Invalid range test: mismatch on byte %d\n", rr.valid-2);
 			} else {
 				printf("invalid range test result\n");
 			}
 		}
 	}
 	if(do_serial == 0) {
-		printf("Serial No: ");
-		r= cmd_get_serial(devh);
+		u8 serial[17];
+		r= cmd_get_serial(devh, serial);
+		if(r==0) {
+			print_serial(serial, NULL);
+		}
+		// FIXME: Why do we do this to non-zero results?
 		r = (r >= 0) ? 0 : r;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2012 Michael Ossmann, Dominic Spill
+ * Copyright 2010-2013 Michael Ossmann, Dominic Spill
  *
  * This file is part of Project Ubertooth.
  *
@@ -25,20 +25,33 @@
 
 void show_libusb_error(int error_code)
 {
-    switch (error_code) {
-	    case LIBUSB_ERROR_TIMEOUT:
-	        fprintf(stderr, "libUSB Error: Timeout (%d)\n", error_code);
-	        break;
-	    case LIBUSB_ERROR_NO_DEVICE:
-	        fprintf(stderr, "libUSB Error: No Device, did you disconnect the ubertooth? (%d)\n", error_code);
-	        break;
-	    case LIBUSB_ERROR_ACCESS:
-	        fprintf(stderr, "libUSB Error: Insufficient Permissions (%d)\n", error_code);
-	        break;
-	    default:
-	        fprintf(stderr, "command error %d\n", error_code);
-	        break;
+	char *error_hint = "";
+	const char *error_name;
+
+	/* Available only in libusb > 1.0.3 */
+	// error_name = libusb_error_name(error_code);
+
+	switch (error_code) {
+		case LIBUSB_ERROR_TIMEOUT:
+			error_name="Timeout";
+			break;
+		case LIBUSB_ERROR_NO_DEVICE:
+			error_name="No Device";
+			error_hint="Check Ubertooth is connected to host";
+			break;
+		case LIBUSB_ERROR_ACCESS:
+			error_name="Insufficient Permissions";
+			break;
+		case LIBUSB_ERROR_OVERFLOW:
+			error_name="Overflow";
+			error_hint="Try resetting the Ubertooth";
+			break;
+		default:
+			error_name="Command Error";
+			break;
 	}
+
+	fprintf(stderr,"libUSB Error: %s: %s (%d)\n", error_name, error_hint, error_code);
 }
 
 int cmd_ping(struct libusb_device_handle* devh)
@@ -241,27 +254,37 @@ int cmd_get_partnum(struct libusb_device_handle* devh)
 	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
 }
 
-int cmd_get_serial(struct libusb_device_handle* devh)
+void print_serial(u8 *serial, FILE *fileptr)
 {
-	u8 result[17];
-	int r;
+	if(fileptr != NULL) {
+		fprintf(fileptr, "Serial No: ");
+		fprintf(fileptr, "%08x", serial[1] | (serial[2] << 8) | (serial[3] << 16) | (serial[4] << 24));
+		fprintf(fileptr, "%08x", serial[5] | (serial[6] << 8) | (serial[7] << 16) | (serial[8] << 24));
+		fprintf(fileptr, "%08x", serial[9] | (serial[10] << 8) | (serial[11] << 16) | (serial[12] << 24));
+		fprintf(fileptr, "%08x\n", serial[13] | (serial[14] << 8) | (serial[15] << 16) | (serial[16] << 24));
+	} else {
+		printf("Serial No: ");
+		printf("%08x", serial[1] | (serial[2] << 8) | (serial[3] << 16) | (serial[4] << 24));
+		printf("%08x", serial[5] | (serial[6] << 8) | (serial[7] << 16) | (serial[8] << 24));
+		printf("%08x", serial[9] | (serial[10] << 8) | (serial[11] << 16) | (serial[12] << 24));
+		printf("%08x\n", serial[13] | (serial[14] << 8) | (serial[15] << 16) | (serial[16] << 24));
+	}
+}
 
+int cmd_get_serial(struct libusb_device_handle* devh, u8 *serial)
+{
+	int r;
 	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_SERIAL, 0, 0,
-			result, 17, 1000);
+			serial, 17, 1000);
 	if (r < 0) {
 		show_libusb_error(r);
 		return r;
 	}
-	if (result[0] != 0) {
-		fprintf(stderr, "result not zero: %d\n", result[0]);
-		return 0;
+	if (serial[0] != 0) {
+		fprintf(stderr, "result not zero: %d\n", serial[0]);
+		return 1;
 	}
-	/* FIXME shouldn't print to stdout, should return complete serial number */
-	printf("%08x", result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24));
-	printf("%08x", result[5] | (result[6] << 8) | (result[7] << 16) | (result[8] << 24));
-	printf("%08x", result[9] | (result[10] << 8) | (result[11] << 16) | (result[12] << 24));
-	printf("%08x\n", result[13] | (result[14] << 8) | (result[15] << 16) | (result[16] << 24));
-	return result[1] | (result[2] << 8) | (result[3] << 16) | (result[4] << 24);
+	return 0;
 }
 
 int cmd_set_modulation(struct libusb_device_handle* devh, u16 mod)
