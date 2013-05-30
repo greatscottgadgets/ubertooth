@@ -28,3 +28,10 @@
  * verbose = if non-zero, output reserved fields
  */
 void cc2400_decode(FILE *fp, int r, unsigned short v, int verbose);
+
+/*
+ * name = register name
+ *
+ * Returns register number or -1 if not found
+ */
+int cc2400_name2reg(char *name);
