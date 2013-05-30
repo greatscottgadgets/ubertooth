@@ -1,6 +1,7 @@
 /*
+    Copyright 2012, 2013 Dominic Spill
     Copyright 2010, 2011 Michael Ossmann
-    Copyright 2009, 2010, 2011 Mike Kershaw
+    Copyright 2009 - 2011 Mike Kershaw
  
 	This file is part of Project Ubertooth.
 
@@ -116,12 +117,12 @@ Btbb_Phy::Btbb_Phy(GlobalRegistry *in_globalreg, Devicetracker *in_tracker,
 	globalreg->InsertGlobal("PHY_BTBB_TRACKER", this);
 	phyname = "BTBB";
 
-	globalreg->packetchain->RegisterHandler(&phybtbb_packethook_btbbdissect, this,
-											CHAINPOS_LLCDISSECT, 0);
-	globalreg->packetchain->RegisterHandler(&phybtbb_packethook_btbbclassify, this,
-											CHAINPOS_CLASSIFIER, 0);
-	globalreg->packetchain->RegisterHandler(&phybtbb_packethook_btbbtracker, this,
-											CHAINPOS_TRACKER, 100);
+	globalreg->packetchain->RegisterHandler(&phybtbb_packethook_btbbdissect,
+											this, CHAINPOS_LLCDISSECT, 0);
+	globalreg->packetchain->RegisterHandler(&phybtbb_packethook_btbbclassify,
+											this, CHAINPOS_CLASSIFIER, 0);
+	globalreg->packetchain->RegisterHandler(&phybtbb_packethook_btbbtracker,
+											this, CHAINPOS_TRACKER, 100);
 
 	dev_comp_btbbdev = devicetracker->RegisterDeviceComponent("BTBB_DEV");
 	dev_comp_common = devicetracker->RegisterDeviceComponent("COMMON");
@@ -136,7 +137,6 @@ Btbb_Phy::Btbb_Phy(GlobalRegistry *in_globalreg, Devicetracker *in_tracker,
 												  &Protocol_BTBB,
 												  &Protocol_BTBB_enable,
 												  this);
-
 }
 
 Btbb_Phy::~Btbb_Phy() {

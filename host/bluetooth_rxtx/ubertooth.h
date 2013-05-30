@@ -50,6 +50,7 @@ int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	uint16_t num_blocks, rx_callback cb, void* cb_args);
 int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args);
+void cb_rx(void* args, usb_pkt_rx *rx, int bank);
 void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout);
 void rx_file(FILE* fp, btbb_piconet* pn);
 void rx_dump(struct libusb_device_handle* devh, int full);
