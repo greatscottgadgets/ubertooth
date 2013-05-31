@@ -163,9 +163,7 @@ void *ubertooth_cap_thread(void *arg)
 	int i, j, k, m, r, offset;
 	int xfer_size = 512;
 	int xfer_blocks;
-	uint32_t time; /* in 100 nanosecond units */
 	uint32_t clkn; /* native (local) clock in 625 us */
-	uint8_t clkn_high;
 	char syms[BANK_LEN * NUM_BANKS];
 	usb_pkt_rx *rx;
 	
@@ -208,8 +206,6 @@ void *ubertooth_cap_thread(void *arg)
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
 			rx = (usb_pkt_rx *)&(ubertooth->full_buf[64 * i]);
-			clkn_high = rx->clkn_high;
-			time = le32toh(rx->clk100ns);
 			//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = 0; j < 50; j++) {
 				/* output one byte for each received symbol (0 or 1) */
@@ -495,9 +491,9 @@ int PacketSource_Ubertooth::Poll() {
 	
 			newpack->insert(_PCM(PACK_COMP_LINKFRAME), rawchunk);
 	
-			printf("debug - Got packet lap %06x chan %d len=%d\n",
-				   btbb_packet_get_lap(pkt), btbb_packet_get_channel(pkt),
-				   btbb_packet_get_payload_length(pkt));
+			//printf("debug - Got packet lap %06x chan %d len=%d\n",
+			//	   btbb_packet_get_lap(pkt), btbb_packet_get_channel(pkt),
+			//	   btbb_packet_get_payload_length(pkt));
 	
 			num_packets++;
 	
