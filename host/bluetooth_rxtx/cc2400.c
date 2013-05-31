@@ -37,11 +37,11 @@ FILE *fp;
 static void
 bits_init (FILE * f, char *name, int v, int s, int vb)
 {
+  char format[16];
   value = v;
   size = s * 8 - 1;
   verbose = vb;
   fp = f;
-  char format[16];
 
 
   if (name)
@@ -73,8 +73,10 @@ bits (int high, int low, char *name, char *mode, char *desc)
 	c = '0';
 
       fprintf (fp, "%c", c);
+/*
       if (i % 8 == 0)
 	fprintf (fp, " ");
+*/
     }
   fprintf (fp, "(%2s) %s", mode, name);
   if (*desc)
@@ -322,53 +324,16 @@ cc2400_pamtst (FILE * fp, struct reg_t *reg, unsigned short v)
   UNUSED(fp);
   UNUSED(reg);
   char description[64];
+  char *testmode[] = {"Output IQ from RxMIX", "Input IQ to BPF", "Output IQ from VGA", "Input IQ to ADC", "Output IQ from LPF", "Input IQ to TxMIX", "Output PN from Prescaler", "Connects TX IF to RX IF and simultaneously the ATEST1 pin to the internal VC node"};
+  char *current[] = {"1.72 mA", "1.88 mA", "2.05 mA", "2.21 mA"}; 
+
   bits(15,13,"-","W0","");
   bits(12,12,"VC_IN_TEST_EN","RW","");
   bits(11,11,"ATESTMOD_PD","WO","");
-  switch ((v>>8)&0x7) {
-    case 0:
-      strcpy(description,"Output IQ from RxMIX");
-      break;
-    case 1:
-      strcpy(description,"Input IQ to BPF");
-      break;
-    case 2:
-      strcpy(description,"Output IQ from VGA");
-      break;
-    case 3:
-      strcpy(description,"Input IQ to ADC");
-      break;
-    case 4:
-      strcpy(description,"Output IQ from LPF");
-      break;
-    case 5:
-      strcpy(description,"Input IQ to TxMIX");
-      break;
-    case 6:
-      strcpy(description,"Output PN from Prescaler");
-      break;
-    case 7:
-      strcpy(description,"Connects TX IF to RX IF and simultaneously the ATEST1 pin to the internal VC node");
-      break;
-  }
-  bits(10,8,"ATESTMOD_MODE","RW",description);
+  bits(10,8,"ATESTMOD_MODE","RW",testmode[(v>>8)&7]);
   bits(7,7,"-","W0","");
   bits(6,5,"TXMIX_CAP_ARRAY","RW","");
-  switch ((v>>3)&0x3) {
-    case 0:
-      strcpy(description,"1.72 mA");
-      break;
-    case 1:
-      strcpy(description,"1.88 mA");
-      break;
-    case 2:
-      strcpy(description,"2.05 mA");
-      break;
-    case 3:
-      strcpy(description,"2.21 mA");
-      break;
-  }
-  bits(4,3,"TXMIX_CURRENT","RW",description);
+  bits(4,3,"TXMIX_CURRENT","RW",current[(v>>3)&3]);
   sprintf(description,"%+d",(v&0x7)-3);
   bits(2,0,"PA_CURRENT","RW",description);
 }
@@ -692,6 +657,18 @@ static struct reg_t cc2400[] = {
   /* End of list marker */
   {0, NULL, NULL}
 };
+
+int cc2400_name2reg(char *name)
+{
+  int i;
+  int r = -1;
+
+  for (i=0; r < 0 && cc2400[i].name; i++)
+    if (strcmp(cc2400[i].name,name) == 0)
+      r = cc2400[i].num;
+
+  return r;
+}
 
 void
 cc2400_decode (FILE * fp, int r, unsigned short v, int verbose)
