@@ -53,10 +53,7 @@ PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, str
 
 	pending_packet = 0;
 
-	// Hardcode the channel for now
-	last_channel = 39;
 	channel = 39;
-
 	bank = 0;
 	empty_buf = NULL;
 	full_buf = NULL;
@@ -64,6 +61,8 @@ PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, str
 	rx_xfer = NULL;
 
 	btbb_packet_id = globalreg->packetchain->RegisterPacketComponent("UBERTOOTH");
+
+	ParseOptions(in_opts);
 }
 
 PacketSource_Ubertooth::~PacketSource_Ubertooth() {
@@ -72,6 +71,7 @@ PacketSource_Ubertooth::~PacketSource_Ubertooth() {
 	
 
 int PacketSource_Ubertooth::ParseOptions(vector<opt_pair> *in_opts) {
+	// Fixme = allow multiple ubertooth devices, etc
 	//if (FetchOpt("device", in_opts) != "") {
 		//usb_dev = FetchOpt("usbdev", in_opts);
 		//_MSG("Ubertooth Bluetooth using USB device '" + usb_dev + "'", MSGFLAG_INFO);
@@ -127,17 +127,16 @@ void cb_xfer(struct libusb_transfer *xfer)
 	}
 }
 
-void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32_t clkn, uint8_t ac_errors)
+void enqueue(PacketSource_Ubertooth *ubertooth, btbb_packet *pkt)
 {
-	packet *pkt = new packet;
-	init_packet(pkt, syms, MAX_SYMBOLS);
-	pkt->LAP = lap;
-	pkt->clkn = clkn;
-	pkt->channel = ubertooth->channel;
-	pkt->ac_errors = ac_errors;
-
-	//printf("GOT PACKET on channel %d, errs=%d, LAP = %06x at clkn = %u\n",
-	//		ubertooth->channel, pkt->ac_errors, pkt->LAP, clkn);
+	int write_size;
+	
+	if (btbb_packet_get_ac_errors(pkt) <= 2)
+		printf("GOT PACKET ch=%2d LAP=%06x err=%u clk100ns=%u\n",
+			   btbb_packet_get_channel(pkt),
+			   btbb_packet_get_lap(pkt),
+			   btbb_packet_get_ac_errors(pkt),
+			   btbb_packet_get_clkn(pkt));
 	// Lock the packet queue, throw away when there are more than 20 in the queue
 	// that haven't been handled, raise the file descriptor hot if we need to
 	pthread_mutex_lock(&(ubertooth->packet_lock));
@@ -149,7 +148,9 @@ void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32
 		if (ubertooth->pending_packet == 0) {
 			// printf("debug - writing to fakefd\n");
 			ubertooth->pending_packet = 1;
-			write(ubertooth->fake_fd[1], "bogus", 1);
+			write_size = write(ubertooth->fake_fd[1], "bogus", 1);
+			if (write_size <= 0)
+				printf("Error writing to fakefd\n");
 		}
 	}
 	pthread_mutex_unlock(&(ubertooth->packet_lock));
@@ -159,45 +160,41 @@ void enqueue(PacketSource_Ubertooth *ubertooth, char *syms, uint32_t lap, uint32
 void *ubertooth_cap_thread(void *arg)
 {
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
-	int r;
-	access_code ac;
-	int i, j, k, m;
+	int i, j, k, m, r, offset;
 	int xfer_size = 512;
 	int xfer_blocks;
-	uint32_t time; /* in 100 nanosecond units */
 	uint32_t clkn; /* native (local) clock in 625 us */
-	uint8_t clkn_high;
 	char syms[BANK_LEN * NUM_BANKS];
-
+	usb_pkt_rx *rx;
+	
 	/*
-	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
-	 * payload).  A transfer consists of one or more blocks.  Consecutive
-	 * blocks should be approximately 400 microseconds apart (timestamps about
-	 * 4000 apart in units of 100 nanoseconds).
-	 */
-
+	* A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
+	* payload).  A transfer consists of one or more blocks.  Consecutive
+	* blocks should be approximately 400 microseconds apart (timestamps about
+	* 4000 apart in units of 100 nanoseconds).
+	*/
+	
 	if (xfer_size > BUFFER_SIZE)
 		xfer_size = BUFFER_SIZE;
 	xfer_blocks = xfer_size / 64;
 	xfer_size = xfer_blocks * 64;
-
 	fprintf(stderr, "rx blocks of 64 bytes in %d byte transfers\n", xfer_size);
-
+ 
 	ubertooth->empty_buf = &(ubertooth->rx_buf1[0]);
 	ubertooth->full_buf = &(ubertooth->rx_buf2[0]);
 	ubertooth->really_full = 0;
 	ubertooth->rx_xfer = libusb_alloc_transfer(0);
 	libusb_fill_bulk_transfer(ubertooth->rx_xfer, ubertooth->devh, DATA_IN,
-			ubertooth->empty_buf, xfer_size, cb_xfer, ubertooth, TIMEOUT);
-
+					ubertooth->empty_buf, xfer_size, cb_xfer, ubertooth, TIMEOUT);
+ 
 	cmd_rx_syms(ubertooth->devh, 0);
-
+ 
 	r = libusb_submit_transfer(ubertooth->rx_xfer);
 	if (r < 0) {
-		fprintf(stderr, "rx_xfer submission: %d\n", r);
-		goto out;
+			fprintf(stderr, "rx_xfer submission: %d\n", r);
+			goto out;
 	}
-
+ 
 	while (ubertooth->thread_active) {
 		while (!ubertooth->really_full) {
 			r = libusb_handle_events(NULL);
@@ -206,59 +203,59 @@ void *ubertooth_cap_thread(void *arg)
 				goto out;
 			}
 		}
-
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			time = ubertooth->full_buf[4 + 64 * i]
-					| (ubertooth->full_buf[5 + 64 * i] << 8)
-					| (ubertooth->full_buf[6 + 64 * i] << 16)
-					| (ubertooth->full_buf[7 + 64 * i] << 24);
-			clkn_high = ubertooth->full_buf[3 + 64 * i];
+			rx = (usb_pkt_rx *)&(ubertooth->full_buf[64 * i]);
 			//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = 0; j < 50; j++) {
 				/* output one byte for each received symbol (0 or 1) */
 				for (k = 0; k < 8; k++) {
 					//printf("%c", (full_buf[j] & 0x80) >> 7 );
 					ubertooth->symbols[ubertooth->bank][j * 8 + k] =
-							(ubertooth->full_buf[j + 14 + i * 64] & 0x80) >> 7;
-					ubertooth->full_buf[j + 14 + i * 64] <<= 1;
+						(rx->data[j] & 0x80) >> 7;
+					rx->data[j] <<= 1;
 				}
 			}
-
+ 
 			/*
-			 * Populate syms with enough symbols to run sniff_ac across one
-			 * bank (BANK_LEN + AC_LEN).
-			 */
+			* Populate syms with enough symbols to run sniff_ac across one
+			* bank (BANK_LEN + AC_LEN).
+			*/
 			m = 0;
 			for (j = 0, k = 0; k < BANK_LEN; k++)
-				syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-						% NUM_BANKS][k];
+					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+									% NUM_BANKS][k];
 			for (j = 1, k = 0; k < AC_LEN; k++)
-				syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-						% NUM_BANKS][k];
-
-			if (sniff_ac(syms, BANK_LEN, &ac)) {
+					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
+									% NUM_BANKS][k];
+ 
+			btbb_packet *pkt;
+			offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, 1, &pkt);
+			if (offset >= 0) {
 				/*
-				 * Populate syms with the remaining banks.  We don't know how
-				 * long the packet is, so we assume the maximum length.
-				 */
+				* Populate syms with the remaining banks.  We don't know how
+				* long the packet is, so we assume the maximum length.
+				*/
 				for (j = 1, k = AC_LEN; k < BANK_LEN; k++)
 					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-							% NUM_BANKS][k];
+								% NUM_BANKS][k];
 				for (j = 2; j < NUM_BANKS; j++)
 					for (k = 0; k < BANK_LEN; k++)
 						syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
 								% NUM_BANKS][k];
-
-				clkn = (clkn_high << 19) | ((time + ac.offset * 10) / 6250);
-				enqueue(ubertooth, &syms[ac.offset], ac.LAP, clkn, ac.error_count);
+				
+				clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset + 1562) / 3125;
+				btbb_packet_set_data(pkt, syms + offset,
+									 NUM_BANKS * BANK_LEN - offset,
+									 rx->channel, clkn);
+				enqueue(ubertooth, pkt);
 			}
 			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
 		}
 		ubertooth->really_full = 0;
 		fflush(stderr);
-	}
-
+   }
+ 
 out:
 	ubertooth->thread_active = -1;
 	close(ubertooth->fake_fd[1]);
@@ -268,10 +265,13 @@ out:
 
 int PacketSource_Ubertooth::OpenSource() {
 	if ((devh = ubertooth_start(-1)) == NULL) {
-		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev + "': " +
-				string(strerror(errno)), MSGFLAG_ERROR);
+		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev +
+			 "': " + string(strerror(errno)), MSGFLAG_ERROR);
 		return 0;
 	}
+
+	/* Set sweep mode on startup */
+	cmd_set_channel(devh, 9999);
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
@@ -331,20 +331,24 @@ int PacketSource_Ubertooth::CloseSource() {
 	return 1;
 }
 
-// Currently never called because channel-capable returns 0; 
-// we want to update this at the same time we decide we need to
-// roam channels w/ ubertooth.    /dragorn
 int PacketSource_Ubertooth::SetChannel(unsigned int in_ch) {
+	int ret;
 	if (in_ch < 0 || in_ch > 78)
 		return -1;
 
-	//if (thread_active <= 0 || devh == NULL)
-	if (thread_active)
+	if (thread_active <= 0 || devh == NULL)
 		return 0;
 
 	//FIXME actually set the channel
 
-	last_channel = in_ch;
+	printf("Switching channel to %d\n", in_ch);
+	ret = 0; //cmd_set_channel(devh, (u16) in_ch);
+	printf("cmd_set_channel got return value: %d\n", ret);
+	if (ret) {
+		_MSG("Packet source '" + name + "' failed to set channel "
+			 + IntToString(in_ch), MSGFLAG_PRINTERROR);
+		return -1;
+	}
 	channel = in_ch;
 
 	return 1;
@@ -372,99 +376,82 @@ void PacketSource_Ubertooth::build_pcap_header(uint8_t* data, uint32_t lap) {
 	data[13] = 0xf0;
 }
 
-void PacketSource_Ubertooth::build_pcap_payload(uint8_t* data, packet* pkt) {
-	int i;
+void PacketSource_Ubertooth::build_pcap_payload(uint8_t* data, btbb_packet* pkt) {
+	uint32_t clkn;
+	uint16_t nap;
 
-	if (pkt->have_NAP) {
-		data[6] = (pkt->NAP >> 8) & 0xff;
-		data[7] = pkt->NAP & 0xff;
+	if (btbb_packet_get_flag(pkt, BTBB_NAP_VALID)) {
+		nap = btbb_packet_get_nap(pkt);
+		data[6] = (nap >> 8) & 0xff;
+		data[7] = nap & 0xff;
 	}
 
-	if (pkt->have_UAP)
-		data[8] = pkt->UAP;
+	data[8] = btbb_packet_get_uap(pkt);
 
 	/* meta data */
-	data[14] = pkt->clock & 0xff;
-	data[15] = (pkt->clock >> 8) & 0xff;
-	data[16] = (pkt->clock >> 16) & 0xff;
-	data[17] = (pkt->clock >> 24) & 0xff;
-	data[18] = pkt->channel;
-	data[19] = pkt->have_clk27 | (pkt->have_NAP << 1);
+	clkn = btbb_packet_get_clkn(pkt);
+	data[14] = clkn & 0xff;
+	data[15] = (clkn >> 8) & 0xff;
+	data[16] = (clkn >> 16) & 0xff;
+	data[17] = (clkn >> 24) & 0xff;
+	data[18] = btbb_packet_get_channel(pkt);
+	data[19] = btbb_packet_get_flag(pkt, BTBB_CLK27_VALID) | (btbb_packet_get_flag(pkt, BTBB_NAP_VALID) << 1);
 
 	/* packet header modified to fit byte boundaries */
 	/* lt_addr and type */
-	data[20] = (char) air_to_host8(&pkt->packet_header[0], 7);
+	data[20] = (char) (btbb_packet_get_type(pkt) << 3) | btbb_packet_get_lt_addr(pkt);
 	/* flags */
-	data[21] = (char) air_to_host8(&pkt->packet_header[7], 3);
+	data[21] = (char) btbb_packet_get_header_flags(pkt);
 	/* HEC */
-	data[22] = (char) air_to_host8(&pkt->packet_header[10], 8);
+	data[22] = (char) btbb_packet_get_hec(pkt);
 
-	for(i=0;i<pkt->payload_length;i++)
-		data[i+23] = (char) air_to_host8(&pkt->payload[i*8], 8);
+	btbb_get_payload_packed(pkt, (char *) &data[23]);
+
 }
 
-int PacketSource_Ubertooth::handle_header(packet* pkt) {
+int PacketSource_Ubertooth::handle_header(btbb_packet* pkt) {
+	btbb_piconet *pn;
+	uint32_t lap;
 	/* Only create new piconets for LAPs we've seen with fewer errors */
-	if (piconets.find(pkt->LAP) == piconets.end()) {
-		if (pkt->ac_errors <= 2) {
-			init_piconet(&piconets[pkt->LAP]);
-			piconets[pkt->LAP].LAP = pkt->LAP;
+	lap = btbb_packet_get_lap(pkt);
+	if (piconets.find(lap) == piconets.end()) {
+		if (btbb_packet_get_ac_errors(pkt) <= 1) {
+			pn = btbb_piconet_new();
+			piconets[lap] = pn;
+			btbb_piconet_set_lap(pn, lap);
 		} else
-			return 1;
+			return 0;
 	}
-	if (piconets[pkt->LAP].have_clk6 && piconets[pkt->LAP].have_UAP)
-		decode_pkt(pkt, &piconets[pkt->LAP]);
+	pn = piconets[lap];
+	if (btbb_piconet_get_flag(pn, BTBB_CLK6_VALID) && btbb_piconet_get_flag(pn, BTBB_UAP_VALID))
+		decode_pkt(pkt, pn);
 	else
-		if (UAP_from_header(pkt, &piconets[pkt->LAP]))
-			decode_pkt(pkt, &piconets[pkt->LAP]);
+		if (btbb_uap_from_header(pkt, pn))
+			decode_pkt(pkt, pn);
 	/*
 	 * If this is an inquiry response, saving the piconet state will only
 	 * cause problems later.
 	 */
-	if (pkt->LAP == GIAC || pkt->LAP == LIAC)
-		piconets.erase(pkt->LAP);
+	if (lap == GIAC || lap == LIAC)
+		piconets.erase(lap);
 
-	return 0;
+	return 1;
 }
 
 /* decode packet with header */
-void PacketSource_Ubertooth::decode_pkt(packet* pkt, piconet* pn) {
-	pkt->clock = pkt->clkn + pn->clk_offset;
-	if (pn->have_clk27) {
-		pkt->have_clk27 = 1;
-		pkt->clock &= 0x7ffffff;
-	} else {
-		pkt->clock &= 0x3f;
-	}
-	pkt->have_clk6 = 1;
-	pkt->UAP = pn->UAP;
-	pkt->have_UAP = 1;
-
-	if (decode(pkt, pn)) {
-		//DEBUG: probably don't want to print packets in production output
-		btbb_print_packet(pkt);
-		if (pn->have_NAP) {
-			pkt->NAP = pn->NAP;
-			pkt->have_NAP = 1;
-		}
-		//FIXME should do something special with FHS packets
-		//if (pkt->packet_type == 2)
-			//fhs(pkt);
-	} else {
-		printf("Failed to decode packet, lost clock?\n");
-		reset(pn);
-
-		/* start rediscovery with this packet */
-		if (UAP_from_header(pkt, pn))
-			decode_pkt(pkt, pn);
-	}
+void PacketSource_Ubertooth::decode_pkt(btbb_packet* pkt, btbb_piconet* pn) {
+	btbb_process_packet(pkt, pn);
 }
 
 int PacketSource_Ubertooth::Poll() {
 	char rx;
+	int read_size;
+	int process_packet;
 
 	// Consume the junk byte we used to raise the FD high
-	read(fake_fd[0], &rx, 1);
+	read_size = read(fake_fd[0], &rx, 1);
+	if (read_size <= 0)
+		printf("Error reading from fakefd\n");
 
 	pthread_mutex_lock(&packet_lock);
 
@@ -472,21 +459,30 @@ int PacketSource_Ubertooth::Poll() {
 
 	for (unsigned int x = 0; x < packet_queue.size(); x++) {
 		kis_packet *newpack = globalreg->packetchain->GeneratePacket();
-		packet *pkt = packet_queue[x];
+		btbb_packet *pkt = packet_queue[x];
 
 		newpack->ts.tv_sec = globalreg->timestamp.tv_sec;
 		newpack->ts.tv_usec = globalreg->timestamp.tv_usec;
 
 		kis_datachunk *rawchunk = new kis_datachunk;
 
-		/* Only continue processing packet if it has a header and piconet */
-		if ((header_present(pkt)) && (!handle_header(pkt))) {
+		process_packet = 1;
+		if (btbb_header_present(pkt))
+			process_packet = handle_header(pkt);
+		else if (btbb_packet_get_ac_errors(pkt) > 1)
+			process_packet = 0;
+
+		/*
+		 * Only continue processing packet if it has a header and piconet or if
+		 * it is an ID packet (without header).
+		 */
+		if (process_packet) {
 			rawchunk->length = 14;
-			if (pkt->have_payload)
-				rawchunk->length += 9 + pkt->payload_length;
+			if (btbb_packet_get_flag(pkt, BTBB_HAS_PAYLOAD))
+				rawchunk->length += 9 + btbb_packet_get_payload_length(pkt);
 			rawchunk->data = new uint8_t[rawchunk->length];
-			build_pcap_header(rawchunk->data, pkt->LAP);
-			if (pkt->have_payload)
+			build_pcap_header(rawchunk->data, btbb_packet_get_lap(pkt));
+			if (btbb_packet_get_flag(pkt, BTBB_HAS_PAYLOAD))
 				build_pcap_payload(rawchunk->data, pkt);
 	
 			rawchunk->source_id = source_id;
@@ -495,7 +491,9 @@ int PacketSource_Ubertooth::Poll() {
 	
 			newpack->insert(_PCM(PACK_COMP_LINKFRAME), rawchunk);
 	
-			//printf("debug - Got packet lap %06x chan %d len=%d\n", pkt->LAP, pkt->channel, pkt->length);
+			//printf("debug - Got packet lap %06x chan %d len=%d\n",
+			//	   btbb_packet_get_lap(pkt), btbb_packet_get_channel(pkt),
+			//	   btbb_packet_get_payload_length(pkt));
 	
 			num_packets++;
 	
@@ -507,7 +505,7 @@ int PacketSource_Ubertooth::Poll() {
 		}
 
 		// Delete the temp struct
-		delete pkt;
+		btbb_packet_unref(pkt);
 	}
 
 	// Flush the queue

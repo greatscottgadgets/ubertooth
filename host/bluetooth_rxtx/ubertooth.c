@@ -352,7 +352,7 @@ static char rssi_history[NUM_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
  */
-void cb_rx(void* args, usb_pkt_rx *rx, int bank)
+static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 {
 	btbb_packet *pkt = NULL;
 	btbb_piconet *pn = (btbb_piconet *)args;

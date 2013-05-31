@@ -29,16 +29,22 @@
 #include <packetsource.h>
 #include <map>
 
+extern "C" {
+	#include <btbb.h>
+	#include <ubertooth.h>
+}
+
+#ifdef NUM_BANKS
+#undef NUM_BANKS
+#endif
+#ifdef BANK_LEN
+#undef BANK_LEN
+#endif
+
 /* BANK_LEN must be >= AC_LEN */
 #define AC_LEN    72
 #define NUM_BANKS 10
 #define BANK_LEN  400
-
-extern "C" {
-	#include <bluetooth_packet.h>
-	#include <bluetooth_piconet.h>
-	#include "ubertooth.h"
-}
 
 #define USE_PACKETSOURCE_UBERTOOTH
 
@@ -104,7 +110,7 @@ protected:
 	int fake_fd[2];
 
 	// Packet storage, locked with packet_lock
-	vector<packet *> packet_queue;
+	vector<btbb_packet *> packet_queue;
     
 	// Pending packet, locked with packet_lock
 	int pending_packet;
@@ -126,18 +132,18 @@ protected:
 
 	pthread_mutex_t packet_lock;
 
-	map<int, piconet> piconets;
+	map<int, btbb_piconet*> piconets;
 
 	static const uint32_t GIAC = 0x9E8B33;
 	static const uint32_t LIAC = 0x9E8B00;
 
 	void build_pcap_header(uint8_t*, uint32_t);
-	void build_pcap_payload(uint8_t*, packet*);
-	int handle_header(packet*);
-	void decode_pkt(packet*, piconet*);
+	void build_pcap_payload(uint8_t*, btbb_packet*);
+	int handle_header(btbb_packet*);
+	void decode_pkt(btbb_packet*, btbb_piconet*);
 
 
-	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t, uint8_t);
+	friend void enqueue(PacketSource_Ubertooth *, btbb_packet *);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
 };
