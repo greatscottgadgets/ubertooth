@@ -24,6 +24,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "cc2400.h"
 
