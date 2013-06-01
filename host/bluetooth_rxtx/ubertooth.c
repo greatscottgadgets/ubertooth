@@ -522,7 +522,6 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 	stream_rx_file(fp, 0, cb_rx, pn);
 }
 
-#ifdef WC4
 /* Dump packet to PCAP file */
 static void log_packet(usb_pkt_rx *rx) {
 	le_packet_t p;
@@ -636,7 +635,6 @@ void rx_btle_file(FILE* fp)
 {
 	stream_rx_file(fp, 0, cb_btle, NULL);
 }
-#endif //WC4
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
 {

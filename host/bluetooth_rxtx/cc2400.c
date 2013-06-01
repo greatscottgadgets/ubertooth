@@ -227,6 +227,7 @@ cc2400_fsmtc (unsigned short v)
 static void
 cc2400_reserved (unsigned short v)
 {
+  UNUSED(v);
   bits (15, 5, "RES", "RW", "");
   bits (4, 0, "RES", "RW", "");
 }
@@ -234,6 +235,7 @@ cc2400_reserved (unsigned short v)
 static void
 cc2400_manand (unsigned short v)
 {
+  UNUSED(v);
   bits (15, 15, "VGA_RESET_N", "RW", "");
   bits (14, 14, "LOCK_STATUS", "RW", "");
   bits (13, 13, "BALUN_CTRL", "RW", "");

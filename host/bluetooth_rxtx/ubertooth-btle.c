@@ -20,12 +20,12 @@
  */
 
 #include "ubertooth.h"
-#include <bluetooth_packet.h>
 #include <ctype.h>
 #include <err.h>
 #include <getopt.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <pcap.h>
 
 extern FILE *infile;

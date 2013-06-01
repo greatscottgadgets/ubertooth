@@ -48,11 +48,11 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int r = 0;
-        int verbose = 1;
+	int verbose = 1;
 	struct libusb_device_handle *devh= NULL;
 	int do_read_register;
 	char ubertooth_device = -1;
-        char *endptr;
+	char *endptr;
 
 	/* set command states to negative as a starter
 	 * setting to positive is value of specified argument */
@@ -74,13 +74,13 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'r':
-                        if (optarg[0] == '%')
-                                do_read_register = cc2400_name2reg(optarg);
-                        else {
-			        do_read_register = strtoul(optarg, &endptr, 0);
-                                if ((*endptr != NULL) || (errno != 0))
-                                      do_read_register = -1;
-                        } 
+			if (optarg[0] == '%')
+					do_read_register = cc2400_name2reg(optarg);
+			else {
+				do_read_register = strtoul(optarg, &endptr, 0);
+				if ((endptr != NULL) || (errno != 0))
+					do_read_register = -1;
+            } 
 			if (do_read_register < 0 || do_read_register > 0xff) {
 				fprintf(stderr,"ERROR: register address must be > 0x00 and < 0xff\n");
 				return 1;

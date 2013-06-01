@@ -41,8 +41,7 @@ endif
 LIBBTBB  = btbb
 LDFLAGS += -l$(LIBUSB) -l$(LIBBTBB) -lpcap
 
-TOOLS = ubertooth-dump ubertooth-rx ubertooth-util ubertooth-debug
-#TOOLS = ubertooth-dump ubertooth-rx ubertooth-specan ubertooth-util ubertooth-btle ubertooth-debug
+TOOLS = ubertooth-dump ubertooth-rx ubertooth-util ubertooth-debug ubertooth-btle
 
 ifeq ($(clock_debug), true)
 	# Debug using locak clock
