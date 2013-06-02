@@ -632,6 +632,88 @@ cc2400_synch (unsigned short v)
   sprintf(description,"0x%04X",v);
   bits(15,0,"SYNCWORD_UPPER","RW",description);
 }
+
+static void
+cc2400_res24 (unsigned short v)
+{
+  char description[64];
+  bits(15,14,"-","W0","");
+  sprintf(description,"%d",(v>>10)&0xF);
+  bits(13,10,"-","RW",description);
+  sprintf(description,"%d",(v>>7)&0x7);
+  bits(9,7,"-","RW",description);
+  sprintf(description,"%d",v&0x3F);
+  bits(6,0,"-","RW",description);
+}
+static void
+cc2400_res25 (unsigned short v)
+{
+  char description[64];
+  bits(15,12,"-","W0","");
+  sprintf(description,"%d",v&0xFFF);
+  bits(11,0,"-","RW",description);
+}
+static void
+cc2400_res26 (unsigned short v)
+{
+  char description[64];
+  sprintf(description,"%d",(v>>10)&0x3F);
+  bits(15,10,"-","RW",description);
+  sprintf(description,"%d",v&0x1FF);
+  bits(9,0,"-","RW",description);
+}
+static void
+cc2400_res27 (unsigned short v)
+{
+  char description[64];
+  sprintf(description,"%d",(v>>8)&0xFF);
+  bits(15,8,"-","RO",description);
+  sprintf(description,"%d",(v>>3)&0xF);
+  bits(7,3,"-","RW",description);
+  sprintf(description,"%d",v&7);
+  bits(2,0,"-","RW",description);
+}
+static void
+cc2400_res28 (unsigned short v)
+{
+  char description[64];
+  bits(15,15,"-","RW","");
+  sprintf(description,"%d",(v>>13)&3);
+  bits(14,13,"-","RW",description);
+  sprintf(description,"%d",(v>>7)&0x3F);
+  bits(12,7,"-","RW",description);
+  sprintf(description,"%d",v&0x3F);
+  bits(6,0,"-","RW",description);
+}
+static void
+cc2400_res29 (unsigned short v)
+{
+  char description[64];
+  bits(15,8,"-","W0","");
+  sprintf(description,"%d",(v>>3)&0x1F);
+  bits(7,3,"-","RW",description);
+  sprintf(description,"%d",v&7);
+  bits(2,0,"-","RW",description);
+}
+static void
+cc2400_res2a (unsigned short v)
+{
+  char description[64];
+  bits(15,11,"-","W0","");
+  bits(10,10,"-","RW","");
+  sprintf(description,"%d",v&0x3FF);
+  bits(9,0,"-","RW",description);
+}
+static void
+cc2400_res2b (unsigned short v)
+{
+  char description[64];
+  bits(15,14,"-","W0","");
+  bits(13,13,"-","RW","");
+  bits(12,12,"-","RO","");
+  sprintf(description,"%d",v&0x7FF);
+  bits(11,0,"-","RO",description);
+}
 static struct reg_t cc2400[] = {
   {0x00, "%MAIN", cc2400_main},
   {0x01, "%FSCTRL", cc2400_fsctrl},
@@ -668,7 +750,15 @@ static struct reg_t cc2400[] = {
   {0x21, "%GRDEC", cc2400_grdec},
   {0x22, "%PKTSTATUS", cc2400_pktstatus},
   {0x23, "%INT", cc2400_int},
-  /* 0x24 - 0x2B are Reserved */
+  /* 0x24 - 0x2B are Reserved, but documented at the bit level */
+  {0x24, "%R24", cc2400_res24},
+  {0x25, "%R25", cc2400_res25},
+  {0x26, "%R26", cc2400_res26},
+  {0x27, "%R27", cc2400_res27},
+  {0x28, "%R28", cc2400_res28},
+  {0x29, "%R29", cc2400_res29},
+  {0x2a, "%R2A", cc2400_res2a},
+  {0x2b, "%R2B", cc2400_res2b},
   {0x2c, "%SYNCL", cc2400_syncl},
   {0x2d, "%SYNCH", cc2400_synch},
   /* 0x2C - 0x5F undocumented */
@@ -678,9 +768,18 @@ static struct reg_t cc2400[] = {
   {0x63, "%STX", NULL},
   {0x64, "%SRFOFF", NULL},
   {0x65, "%SXOSCOFF", NULL},
-  /* 0x66 - 0x6F are Reserved */
+  /* 0x66 - 0x6F are Reserved, but not documented at the bit level */
+  {0x66, "%R66", NULL},
+  {0x67, "%R67", NULL},
+  {0x68, "%R68", NULL},
+  {0x69, "%R69", NULL},
+  {0x6a, "%R6A", NULL},
+  {0x6b, "%R6B", NULL},
+  {0x6c, "%R6C", NULL},
+  {0x6d, "%R6D", NULL},
+  {0x6e, "%R6E", NULL},
+  {0x6f, "%R6F", NULL},
   {0x70, "%FIFOREG", NULL},
-
   /* End of list marker */
   {0, NULL, NULL}
 };
