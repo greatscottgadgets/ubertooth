@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 					do_read_register = cc2400_name2reg(optarg);
 			else {
 				do_read_register = strtoul(optarg, &endptr, 0);
-				if ((endptr != NULL) || (errno != 0))
+				if ((*endptr != '\0') || (errno != 0))
 					do_read_register = -1;
             } 
 			if (do_read_register < 0 || do_read_register > 0xff) {
