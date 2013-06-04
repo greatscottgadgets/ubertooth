@@ -37,7 +37,7 @@ static void usage()
 	printf("\t-h this help\n");
 	printf("\t-i filename\n");
 	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
-	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate\n");
+	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
 	printf("\t-c<filename> capture packets to PCAP file\n");
 	printf("\t-d<filename> dump packets to binary file\n");
@@ -58,13 +58,13 @@ void cleanup(int sig)
 
 int main(int argc, char *argv[])
 {
-	int opt;
+	int opt, have_lap = 0, have_uap = 0;
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
 	btbb_piconet *pn = NULL;
-
-	btbb_init_piconet(pn);
+	uint32_t lap;
+	uint8_t uap;
 
 	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:s")) != EOF) {
 		switch(opt) {
@@ -77,14 +77,12 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'l':
-			if (!pn)
-				pn = btbb_piconet_new();
-			btbb_piconet_set_lap(pn, strtol(optarg, &end, 16));
+			lap = strtol(optarg, &end, 16);
+			have_lap++;
 			break;
 		case 'u':
-			if (!pn)
-				pn = btbb_piconet_new();
-			btbb_piconet_set_uap(pn, strtol(optarg, &end, 16));
+			uap = strtol(optarg, &end, 16);
+			have_uap++;
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -107,6 +105,17 @@ int main(int argc, char *argv[])
 			usage();
 			return 1;
 		}
+	}
+	
+	if (have_lap) {
+		pn = btbb_piconet_new();
+		btbb_init_piconet(pn, lap);
+		if (have_uap)
+			btbb_piconet_set_uap(pn, uap);
+	} else if (have_uap) {
+		printf("Error: UAP but no LAP specified\n");
+		usage();
+		return 1;
 	}
 
 	if (infile == NULL) {

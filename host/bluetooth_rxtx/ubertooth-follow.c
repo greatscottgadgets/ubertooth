@@ -79,15 +79,12 @@ int main(int argc, char *argv[])
 			lap = strtol(optarg, &end, 16);
 			if (end != optarg) {
 				++have_lap;
-				btbb_piconet_set_lap(pn, lap);
 			}
 			break;
 		case 'u':
 			uap = strtol(optarg, &end, 16);
 			if (end != optarg) {
 				++have_uap;
-				btbb_piconet_set_uap(pn, uap);
-
 			}
 			break;
 		case 'U':
@@ -131,11 +128,13 @@ int main(int argc, char *argv[])
 		printf("No address given, reading address from device\n");
 		hci_read_bd_addr(sock, &bdaddr, 0);
 		lap = bdaddr.b[0] | bdaddr.b[1] << 8 | bdaddr.b[2] << 16;
-		btbb_piconet_set_lap(pn, lap);
+		btbb_init_piconet(pn, lap);
 		uap = bdaddr.b[3];
 		btbb_piconet_set_uap(pn, uap);
 		printf("LAP=%06x UAP=%02x\n", lap, uap);
 	} else if (have_lap && have_uap) {
+		btbb_init_piconet(pn, lap);
+		btbb_piconet_set_uap(pn, uap);
 		printf("Address given, assuming address is remote\n");
 		sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
 			uap,
