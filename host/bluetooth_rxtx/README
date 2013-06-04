@@ -9,7 +9,7 @@ follows:
 
 $ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
 $ cd libbtbb/
-$ gmake
+$ make
 $ sudo make install
 
 This software also requires libusb 1.0 or higher:
