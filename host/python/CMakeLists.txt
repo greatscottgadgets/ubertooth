@@ -17,8 +17,25 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
+project(ubertooth-python)
+
 # Check for python installation
-find_package(PYTHON)
+find_package(PythonInterp)
 if(NOT PYTHONINTERP_FOUND)
-    return()
+	return()
+else()
+	add_subdirectory(specan_ui)
+	add_subdirectory(usb_dfu)
+endif()
+
+# Create uninstall target
+if(NOT ubertooth_all_SOURCE_DIR)
+configure_file(
+    ${PROJECT_SOURCE_DIR}/../cmake/cmake_uninstall.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+@ONLY)
+
+add_custom_target(uninstall
+    ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+)
 endif()

@@ -14,12 +14,14 @@ from distutils.core import setup
 
 setup(
     name        = "specan",
-    version     = "0.svn",
     description = "A tool for reading spectrum analyzer data from an Ubertooth device",
     author      = "Jared Boone, Michael Ossmann, Dominic Spill",
     url         = "https://sourceforge.net/projects/ubertooth/",
     license     = "GPL",
+    version     = '',
+    package_dir = { '': '/home/dominicgs/CS/Bluetooth/ubertooth/host/python/specan_ui' },
     packages    = ['specan'],
+    scripts     = ['ubertooth-specan-ui'],
     classifiers=[
         'Development Status :: 5 - Beta',
         'Intended Audience :: Developers',

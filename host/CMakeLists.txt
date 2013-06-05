@@ -21,23 +21,26 @@
 #top level cmake project for ubertooth lib + tools
 
 cmake_minimum_required(VERSION 2.8)
-project (ubertooth_all)
+project(ubertooth C)
+set(MAJOR_VERSION 0)
+set(MINOR_VERSION 2)
+project(ubertooth_all)
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+
+set(INSTALL_DEFAULT_BINDIR "bin" CACHE STRING "Appended to CMAKE_INSTALL_PREFIX")
 
 add_subdirectory(libubertooth)
 add_subdirectory(ubertooth-tools)
-#add_subdirectory(python)
+add_subdirectory(python)
 
-########################################################################
+# Comment the following out for releases.
+set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
+
 # Create uninstall target
-########################################################################
-
 configure_file(
     ${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 @ONLY)
-
-# Comment the following out for releases.
-set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
 
 add_custom_target(uninstall
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake

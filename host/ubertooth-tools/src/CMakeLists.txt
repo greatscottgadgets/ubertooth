@@ -21,8 +21,6 @@
 
 # Based heavily upon the hackrf cmake setup.
 
-set(INSTALL_DEFAULT_BINDIR "bin" CACHE STRING "Appended to CMAKE_INSTALL_PREFIX")
-
 find_package(BTBB REQUIRED)
 find_package(PCAP)
 
@@ -32,7 +30,7 @@ if(MSVC)
 endif()
 
 if(NOT libubertooth_SOURCE_DIR)
-	find_package(LIBUBERTOOTH REQUIRED)
+	find_package(UBERTOOTH REQUIRED)
 	include_directories(${LIBUBERTOOTH_INCLUDE_DIR})
 	LIST(APPEND TOOLS_LINK_LIBS ${LIBUBERTOOTH_LIBRARIES})
 else()
@@ -42,7 +40,7 @@ endif()
 
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIB_BTBB_DIR})
 
-LIST(APPEND TOOLS_LINK_LIBS ${LIBUSB_LIBRARIES})
+LIST(APPEND TOOLS_LINK_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
 if( ${PCAP_FOUND} )
 	include_directories(${PCAP_INCLUDE_DIRS})
