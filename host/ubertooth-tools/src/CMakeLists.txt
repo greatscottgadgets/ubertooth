@@ -45,7 +45,7 @@ include_directories(${LIBUSB_INCLUDE_DIR} ${LIB_BTBB_DIR})
 LIST(APPEND TOOLS_LINK_LIBS ${LIBUSB_LIBRARIES})
 
 if( ${PCAP_FOUND} )
-	include_directories()
+	include_directories(${PCAP_INCLUDE_DIRS})
 	LIST(APPEND TOOLS_LINK_LIBS ${PCAP_LIBRARIES})
 	add_definitions( -DUSE_PCAP )
 endif( ${PCAP_FOUND} )
@@ -62,7 +62,7 @@ foreach(tool ${TOOLS})
 	install(TARGETS ${tool} RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
 endforeach(tool)
 
-# Ubertooth-debug is special because of the extra source file
+# ubertooth-debug is special because of the extra source file
 add_executable(ubertooth-debug ubertooth-debug.c cc2400.c)
 install(TARGETS ubertooth-debug RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
 target_link_libraries(ubertooth-debug ${TOOLS_LINK_LIBS})

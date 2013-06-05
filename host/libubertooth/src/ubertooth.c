@@ -29,6 +29,8 @@
 
 #ifdef USE_PCAP
 #include <pcap.h>
+pcap_t *pcap_dumpfile = NULL;
+pcap_dumper_t *dumper = NULL;
 #endif
 
 #include <bluetooth_le_packet.h>
@@ -46,8 +48,6 @@ struct libusb_transfer *rx_xfer = NULL;
 char Quiet = false;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
-pcap_t *pcap_dumpfile = NULL;
-pcap_dumper_t *dumper = NULL;
 int max_ac_errors = 2;
 uint32_t systime;
 u8 usb_retry = 1;
@@ -524,6 +524,7 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 	stream_rx_file(fp, 0, cb_rx, pn);
 }
 
+#ifdef USE_PCAP
 /* Dump packet to PCAP file */
 static void log_packet(usb_pkt_rx *rx) {
 	le_packet_t p;
@@ -576,6 +577,7 @@ static void log_packet(usb_pkt_rx *rx) {
 
 	free(logblob);
 }
+#endif // USE_PCAP
 
 /*
  * Sniff Bluetooth Low Energy packets.  So far this is just a proof of concept
@@ -605,10 +607,12 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 		if (fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile) != 1) {;}
 	}
 
+#ifdef USE_PCAP
 	/* Dump to PCAP if specified */
 	if (pcap_dumpfile) {
 		log_packet(rx);
 	}
+#endif // USE_PCAP
 
 	for (i = 0; i < 4; ++i)
 		access_address |= rx->data[i] << (i * 8);

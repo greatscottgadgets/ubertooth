@@ -26,12 +26,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#ifdef USE_PCAP
 #include <pcap.h>
+extern pcap_t *pcap_dumpfile;
+extern pcap_dumper_t *dumper;
+#endif // USE_PCAP
 
 extern FILE *infile;
 extern FILE *dumpfile;
-extern pcap_t *pcap_dumpfile;
-extern pcap_dumper_t *dumper;
 
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
@@ -82,7 +85,9 @@ static void usage(void)
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\n");
 	printf("    Misc:\n");
+#ifdef USE_PCAP
 	printf("\t-c<filename> capture packets to PCAP file\n");
+#endif // USE_PCAP
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
@@ -139,6 +144,7 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
+#ifdef USE_PCAP
 		case 'c':
 			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
 			if (pcap_dumpfile == NULL)
@@ -150,6 +156,7 @@ int main(int argc, char *argv[])
 				exit(1);
 			}
 			break;
+#endif // USE_PCAP
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {
