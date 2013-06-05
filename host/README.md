@@ -1,24 +1,36 @@
+Ubertooth Host
+==============
 This is host code for use with bluetooth_rxtx firmware.
 
 
 REQUIRED SOFTWARE
-
-These tools link to libbtbb > 0.8  (http://libbtbb.sourceforge.net/).  Svn trunk
-should always work the latest git verions of libbtbb.  Libbtbb can be built as
-follows:
+-----------------
+These tools link to libbtbb  (http://libbtbb.sourceforge.net/).
+The versions tend to be matched, git should always work with git and all
+releases should come in matched pairs (until the interface stabalises).
+Libbtbb can be retrieved from git and built as follows:
 
 $ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
 $ cd libbtbb/
 $ make
 $ sudo make install
 
-This software also requires libusb 1.0 or higher:
+This software also requires libusb 1.0 or higher, which can be foung at
+http://www.libusb.org or installed from your OS's package repository.
 
-http://www.libusb.org/
+
+Building
+--------
+Build the library and tools using the following steps:
+  $ mkdir build
+  $ cd build
+  $ cmake ..
+  $ make
+  $ make install (may require root privileges)
 
 
 THE TOOLS
-
+---------
 ubertooth-util: various utility functions including reboot into bootloader DFU
 mode.
 
@@ -41,7 +53,7 @@ frequency spectrum.
 
 
 PRIVLEDGE REDUCTION
-
+-------------------
 If you desire to run any program which accesses the ubertooth hardware as a user
 you may do so by copying 40-ubertooth.rules to whereever your distro keeps udev
 rules, typically /lib/udev/rules.d
