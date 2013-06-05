@@ -18,14 +18,14 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
-#top dir cmake project for ubertooth lib + tools
+#top level cmake project for ubertooth lib + tools
 
 cmake_minimum_required(VERSION 2.8)
 project (ubertooth_all)
 
 add_subdirectory(libubertooth)
 add_subdirectory(ubertooth-tools)
-add_subdirectory(python)
+#add_subdirectory(python)
 
 ########################################################################
 # Create uninstall target
@@ -36,6 +36,8 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 @ONLY)
 
+# Comment the following out for releases.
+set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
 
 add_custom_target(uninstall
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake

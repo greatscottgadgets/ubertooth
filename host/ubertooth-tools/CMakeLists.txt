@@ -19,7 +19,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-# Based heavily upon the ubertooth cmake setup.
+# Based heavily upon the hackrf cmake setup.
 
 cmake_minimum_required(VERSION 2.8)
 project(ubertooth-tools C)
@@ -30,35 +30,14 @@ set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
 set(VERSION ${VERSION_STRING})
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake/modules)
 
-if(MSVC)
-include_directories(getopt)
-else()
-add_definitions(-Wall)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu90")
-endif()
-
-
-find_package(PCAP REQUIRED)
-
-if(NOT libubertooth_SOURCE_DIR)
-find_package(LIBUBERTOOTH REQUIRED)
-include_directories(${LIBUBERTOOTH_INCLUDE_DIR})
-else()
-include_directories(${libubertooth_SOURCE_DIR}/src)
-endif()
-
 add_subdirectory(src)
 
-########################################################################
 # Create uninstall target
-########################################################################
-
 if(NOT ubertooth_all_SOURCE_DIR)
 configure_file(
     ${PROJECT_SOURCE_DIR}/../cmake/cmake_uninstall.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 @ONLY)
-
 
 add_custom_target(uninstall
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake

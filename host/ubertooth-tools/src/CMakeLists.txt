@@ -23,41 +23,46 @@
 
 set(INSTALL_DEFAULT_BINDIR "bin" CACHE STRING "Appended to CMAKE_INSTALL_PREFIX")
 
+find_package(BTBB REQUIRED)
+find_package(PCAP)
+
 if(MSVC)
-add_library(libgetopt_static STATIC
-    ../getopt/getopt.c
-)
+	include_directories(../getopt)
+	add_library(libgetopt_static STATIC ../getopt/getopt.c)
 endif()
-
-add_executable(ubertooth-rx ubertooth-rx.c)
-install(TARGETS ubertooth-rx RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
-
-add_executable(ubertooth-dump ubertooth-dump.c)
-install(TARGETS ubertooth-dump RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
-
-add_executable(ubertooth-util ubertooth-util.c)
-install(TARGETS ubertooth-util RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
-
-add_executable(ubertooth-debug ubertooth-debug.c cc2400.c)
-install(TARGETS ubertooth-debug RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
-
-add_executable(ubertooth-btle ubertooth-btle.c)
-install(TARGETS ubertooth-btle RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
 
 if(NOT libubertooth_SOURCE_DIR)
-include_directories(${LIBUBERTOOTH_INCLUDE_DIR})
-LIST(APPEND TOOLS_LINK_LIBS ${LIBUBERTOOTH_LIBRARIES} ${LIBPCAP_LIBRARIES})
+	find_package(LIBUBERTOOTH REQUIRED)
+	include_directories(${LIBUBERTOOTH_INCLUDE_DIR})
+	LIST(APPEND TOOLS_LINK_LIBS ${LIBUBERTOOTH_LIBRARIES})
 else()
-LIST(APPEND TOOLS_LINK_LIBS ubertooth pcap)
+	include_directories(${libubertooth_SOURCE_DIR}/src)
+	LIST(APPEND TOOLS_LINK_LIBS ubertooth)
 endif()
+
+include_directories(${LIBUSB_INCLUDE_DIR} ${LIB_BTBB_DIR})
+
+LIST(APPEND TOOLS_LINK_LIBS ${LIBUSB_LIBRARIES})
+
+if( ${PCAP_FOUND} )
+	include_directories()
+	LIST(APPEND TOOLS_LINK_LIBS ${PCAP_LIBRARIES})
+	add_definitions( -DUSE_PCAP )
+endif( ${PCAP_FOUND} )
 
 if(MSVC)
-LIST(APPEND TOOLS_LINK_LIBS libgetopt_static)
+	LIST(APPEND TOOLS_LINK_LIBS libgetopt_static)
 endif()
 
+set(TOOLS ubertooth-rx ubertooth-dump ubertooth-util ubertooth-btle)
 
-target_link_libraries(ubertooth-rx ${TOOLS_LINK_LIBS})
-target_link_libraries(ubertooth-dump ${TOOLS_LINK_LIBS})
-target_link_libraries(ubertooth-util ${TOOLS_LINK_LIBS})
+foreach(tool ${TOOLS})
+	add_executable(${tool} ${tool}.c)
+	target_link_libraries(${tool} ${TOOLS_LINK_LIBS})
+	install(TARGETS ${tool} RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
+endforeach(tool)
+
+# Ubertooth-debug is special because of the extra source file
+add_executable(ubertooth-debug ubertooth-debug.c cc2400.c)
+install(TARGETS ubertooth-debug RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
 target_link_libraries(ubertooth-debug ${TOOLS_LINK_LIBS})
-target_link_libraries(ubertooth-btle ${TOOLS_LINK_LIBS})

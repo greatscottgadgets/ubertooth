@@ -27,7 +27,9 @@
 #include <unistd.h>
 #include <signal.h>
 
+#ifdef USE_PCAP
 #include <pcap.h>
+#endif
 
 #include <bluetooth_le_packet.h>
 

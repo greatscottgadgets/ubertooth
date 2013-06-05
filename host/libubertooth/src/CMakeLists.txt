@@ -16,49 +16,58 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
-# Based slightly upon the libubertooth cmake setup.
+# Based slightly upon the hackrf cmake setup.
 
 # Targets
 set(c_sources ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.c
-				${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.c
-				CACHE INTERNAL "List of C sources")
+              ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.c
+			  CACHE INTERNAL "List of C sources")
 set(c_headers ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.h
-				${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.h
-				${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_interface.h
-				CACHE INTERNAL "List of C headers")
+              ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.h
+			  ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_interface.h
+			  CACHE INTERNAL "List of C headers")
 
-# Dynamic library
-add_library(ubertooth SHARED ${c_sources})
-set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.0 SOVERSION 0)
+# For cygwin just force UNIX OFF and WIN32 ON
+if( ${CYGWIN} )
+	SET(UNIX OFF)
+	SET(WIN32 ON)
+endif( ${CYGWIN} )
 
-# Static library
-add_library(ubertooth-static STATIC ${c_sources})
-if(MSVC)
-	set_target_properties(ubertooth-static PROPERTIES OUTPUT_NAME "ubertooth_static")
+# FIXME: This may be a hack
+# perhaps there should be separate ubertooth and ubertooth-static targets?
+if( ${WIN32} )
+	# Static library
+	add_library(ubertooth STATIC ${c_sources})
+	set_target_properties(ubertooth PROPERTIES OUTPUT_NAME "ubertooth_static")
 else()
-	set_target_properties(ubertooth-static PROPERTIES OUTPUT_NAME "ubertooth")
+	# Dynamic library
+	add_library(ubertooth SHARED ${c_sources})
+	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.0 SOVERSION 0)
 endif()
 
 set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-set_target_properties(ubertooth-static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
-# Dependencies
-target_link_libraries(ubertooth ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
-   
-# For cygwin just force UNIX OFF and WIN32 ON
-if( ${CYGWIN} )
-  SET(UNIX OFF)
-  SET(WIN32 ON)
-endif( ${CYGWIN} )
+# Include and link to libbtbb and libusb-1.0
+find_package(BTBB REQUIRED)
+find_package(USB1 REQUIRED)
+
+include_directories(${LIBUSB_INCLUDE_DIR} ${LIB_BTBB_DIR})
+LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
+
+# Conditional libpcap support
+find_package(PCAP)
+if( ${PCAP_FOUND} )
+	include_directories(${PCAP_INCLUDE_DIRS})
+	LIST(APPEND LIBUBERTOOTH_LIBS ${PCAP_LIBRARIES})
+	add_definitions( -DUSE_PCAP )
+endif( ${PCAP_FOUND} )
+
+target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
 
 if( ${UNIX} )
    install(TARGETS ubertooth
            LIBRARY DESTINATION lib${LIB_SUFFIX}
            COMPONENT sharedlibs
-           )
-   install(TARGETS ubertooth-static
-           ARCHIVE DESTINATION lib${LIB_SUFFIX}
-           COMPONENT staticlibs
            )
    install(FILES ${c_headers}
            DESTINATION include/${PROJECT_NAME}
@@ -68,10 +77,6 @@ endif( ${UNIX} )
 
 if( ${WIN32} )
    install(TARGETS ubertooth
-           DESTINATION bin
-           COMPONENT sharedlibs
-           )
-   install(TARGETS ubertooth-static
            DESTINATION bin
            COMPONENT staticlibs
            )

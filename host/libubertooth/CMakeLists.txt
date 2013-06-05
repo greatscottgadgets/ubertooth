@@ -30,17 +30,9 @@ set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
 set(VERSION ${VERSION_STRING})
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake/modules)
 
-find_package(BTBB REQUIRED)
-find_package(USB1 REQUIRED)
-find_package(PCAP REQUIRED)
-
-include_directories(${LIBUSB_INCLUDE_DIR} ${LIB_BTBB_DIR} ${LIB_PCAP_DIR})
-
 add_subdirectory(src)
 
-########################################################################
 # Create uninstall target
-########################################################################
 if(NOT ubertooth_all_SOURCE_DIR)
 configure_file(
     ${PROJECT_SOURCE_DIR}/../cmake/cmake_uninstall.cmake.in

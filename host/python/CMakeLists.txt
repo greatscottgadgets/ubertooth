@@ -1,10 +1,10 @@
-# Copyright 2011 Free Software Foundation, Inc.
+# Copyright 2013 Dominic Spill
 #
-# This file is part of GNU Radio
+# This file is part of Ubertooth
 #
 # GNU Radio is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
+# the Free Software Foundation; either version 2, or (at your option)
 # any later version.
 #
 # GNU Radio is distributed in the hope that it will be useful,
@@ -17,27 +17,8 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-########################################################################
-# Include python install macros
-########################################################################
-include(GrPython)
+# Check for python installation
+find_package(PYTHON)
 if(NOT PYTHONINTERP_FOUND)
     return()
 endif()
-
-########################################################################
-# Install python sources
-########################################################################
-GR_PYTHON_INSTALL(
-    FILES
-    __init__.py
-    DESTINATION ${GR_PYTHON_DIR}/osmosdr
-)
-
-########################################################################
-# Handle the unit tests
-########################################################################
-include(GrTest)
-
-set(GR_TEST_TARGET_DEPS gnuradio-osmosdr)
-set(GR_TEST_PYTHON_DIRS ${CMAKE_BINARY_DIR}/swig)
