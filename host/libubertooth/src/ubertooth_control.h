@@ -22,11 +22,7 @@
 #ifndef __UBERTOOTH_CONTROL_H__
 #define __UBERTOOTH_CONTROL_H__
 
-#ifdef FREEBSD
 #include <libusb.h>
-#else
-#include <libusb-1.0/libusb.h>
-#endif
 
 #if defined __MACH__
 #include <CoreServices/CoreServices.h>
