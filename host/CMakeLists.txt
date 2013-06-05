@@ -25,6 +25,7 @@ project (ubertooth_all)
 
 add_subdirectory(libubertooth)
 add_subdirectory(ubertooth-tools)
+add_subdirectory(python)
 
 ########################################################################
 # Create uninstall target

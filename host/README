@@ -22,11 +22,9 @@ THE TOOLS
 ubertooth-util: various utility functions including reboot into bootloader DFU
 mode.
 
-ubertooth-lap: sniffs a single Bluetooth channel and outputs LAPs of observed
-packets.
-
-ubertooth-uap: sniffs a single Bluetooth channel and determines the UAP of the
-device withe the LAP specified on the command line.
+ubertooth-rx: a general purpose Bluetooth sniffing tool, will promiscuously
+find LAPs or, if given a LAP, will determine a UAP.  Given both a LAP and a UAP
+it will attempt to calculate a clock and hop along with the piconet.
 
 ubertooth-dump: dumps a raw Bluetooth symbol stream from an Ubertooth board.
 If you pipe it into xxd, you should see various ones and zeros.  If you pipe it
