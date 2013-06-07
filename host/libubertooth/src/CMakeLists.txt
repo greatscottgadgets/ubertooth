@@ -51,7 +51,7 @@ set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 find_package(BTBB REQUIRED)
 find_package(USB1 REQUIRED)
 
-include_directories(${LIBUSB_INCLUDE_DIR} ${LIB_BTBB_DIR})
+include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
 # Conditional libpcap support
