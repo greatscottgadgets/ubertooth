@@ -2394,7 +2394,7 @@ void cb_follow_le() {
 			// verify CRC
 			if (le.crc_verify) {
 				int len		 = (idle_rxbuf[5] & 0x3f) + 2;
-				u32 calc_crc = btle_calc_crc(le.crc_init_reversed, idle_rxbuf + 4, len);
+				u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, idle_rxbuf + 4, len);
 				u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
 							 | (idle_rxbuf[4+len+1] << 8)
 							 |  idle_rxbuf[4+len+0];
