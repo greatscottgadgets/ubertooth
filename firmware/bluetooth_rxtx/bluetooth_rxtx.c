@@ -2419,6 +2419,7 @@ void cb_follow_le() {
  */
 void connection_follow_cb(u8 *packet) {
 	int i;
+	int type;
 
 	if (le.connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
@@ -2426,8 +2427,10 @@ void connection_follow_cb(u8 *packet) {
 			le_hop_after = le.hop_interval / 2;
 	}
 
+	type = packet[4] & 0xf;
+
 	// connect packet
-	if (!le.connected && packet[4] == 0x05) {
+	if (!le.connected && type == 0x05) {
 		le.connected = 1;
 		le.crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 
