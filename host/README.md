@@ -7,7 +7,7 @@ REQUIRED SOFTWARE
 -----------------
 These tools link to libbtbb  (http://libbtbb.sourceforge.net/).
 The versions tend to be matched, git should always work with git and all
-releases should come in matched pairs (until the interface stabalises).
+releases should come in matched pairs (until the interface stabilizes).
 Libbtbb can be retrieved from git and built as follows:
 
 $ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
@@ -15,7 +15,7 @@ $ cd libbtbb/
 $ make
 $ sudo make install
 
-This software also requires libusb 1.0 or higher, which can be foung at
+This software also requires libusb 1.0 or higher, which can be found at
 http://www.libusb.org or installed from your OS's package repository.
 
 
@@ -55,7 +55,7 @@ frequency spectrum.
 PRIVLEDGE REDUCTION
 -------------------
 If you desire to run any program which accesses the ubertooth hardware as a user
-you may do so by copying 40-ubertooth.rules to whereever your distro keeps udev
+you may do so by copying 40-ubertooth.rules to wherever your distro keeps udev
 rules, typically /lib/udev/rules.d
 
 This action will allow any user in the "usb" group to access the ubertooth
