@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
 			if (pcap_dumpfile == NULL)
 				err(1, "pcap_open_dead: ");
 			dumper = pcap_dump_open(pcap_dumpfile, optarg);
+			pcap_dump_flush(dumper);
 			if (dumper == NULL) {
 				warn("pcap_dump_open");
 				pcap_close(pcap_dumpfile);
