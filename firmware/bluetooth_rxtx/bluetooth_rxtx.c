@@ -2182,12 +2182,6 @@ void bt_generic_le(u8 active_mode)
 	cs_trigger_disable();
 }
 
-uint32_t rbit(uint32_t value) {
-  uint32_t result = 0;
-  asm("rbit %0, %1" : "=r" (result) : "r" (value));
-  return result;
-}
-
 void bt_le_sync(u8 active_mode)
 {
 	u8 *tmp = NULL;

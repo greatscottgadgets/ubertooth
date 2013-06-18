@@ -32,6 +32,13 @@ void wait_ms(u32 ms)
 	wait_us(ms * 1000);
 }
 
+/* efficiently reverse the bits of a 32-bit word */
+u32 rbit(u32 value) {
+  u32 result = 0;
+  asm("rbit %0, %1" : "=r" (result) : "r" (value));
+  return result;
+}
+
 /* delay a number of microseconds while on internal oscillator (4 MHz) */
 /* we only have a resolution of 1000/400, so to the nearest 2.5        */
 static volatile u32 wait_us_counter;
