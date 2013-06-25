@@ -1,0 +1,7 @@
+This is an external capture binary, a utility for capturing packets
+directly into Wireshark. This capability is currently under development
+by Mike Kershaw (dragorn) and Mike Ryan. It is expected to be integrated
+Real Soon.
+
+This is distributed under the terms of the GNU GPL, as is the rest of
+the Ubertooth project.
