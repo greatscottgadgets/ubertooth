@@ -1912,12 +1912,6 @@ void bt_generic_le(u8 active_mode)
 	cs_trigger_disable();
 }
 
-uint32_t rbit(uint32_t value) {
-  uint32_t result = 0;
-  asm("rbit %0, %1" : "=r" (result) : "r" (value));
-  return result;
-}
-
 void bt_le_sync(u8 active_mode)
 {
 	u8 *tmp = NULL;
@@ -2124,7 +2118,7 @@ void cb_follow_le() {
 			// verify CRC
 			if (le.crc_verify) {
 				int len		 = (idle_rxbuf[5] & 0x3f) + 2;
-				u32 calc_crc = btle_calc_crc(le.crc_init_reversed, idle_rxbuf + 4, len);
+				u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, idle_rxbuf + 4, len);
 				u32 wire_crc = (idle_rxbuf[4+len+2] << 16)
 							 | (idle_rxbuf[4+len+1] << 8)
 							 |  idle_rxbuf[4+len+0];
@@ -2149,6 +2143,7 @@ void cb_follow_le() {
  */
 void connection_follow_cb(u8 *packet) {
 	int i;
+	int type;
 
 	if (le.connected) {
 		// hop (8 * 1.25) = 10 ms after we see a packet on this channel
@@ -2156,8 +2151,10 @@ void connection_follow_cb(u8 *packet) {
 			le_hop_after = le.hop_interval / 2;
 	}
 
+	type = packet[4] & 0xf;
+
 	// connect packet
-	if (!le.connected && packet[4] == 0x05) {
+	if (!le.connected && type == 0x05) {
 		le.connected = 1;
 		le.crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 

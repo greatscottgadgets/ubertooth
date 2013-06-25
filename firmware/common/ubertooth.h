@@ -290,6 +290,7 @@ extern uint32_t bootloader_ctrl;
 void wait(u8 seconds);
 void wait_ms(u32 ms);
 void wait_us(u32 us);
+u32 rbit(u32 value);
 void gpio_init(void);
 void all_pins_off(void);
 void ubertooth_init(void);
