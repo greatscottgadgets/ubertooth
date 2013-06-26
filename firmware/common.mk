@@ -105,7 +105,7 @@ LINKER_SCRIPT ?= LPC17xx_Linker_Script_with_bootloader.ld
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH) ../../host/bluetooth_rxtx/
+EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH) ../../host/bluetooth_rxtx/ ../../host/libubertooth/src/
 
 # Compiler flag to set the C Standard level.
 #     c89   = "ANSI" C
@@ -244,7 +244,7 @@ REMOVE = rm -f
 
 # 
 ifeq ($(strip $(`which ubertooth-dfu`)),)
-  DFU_TOOL ?= ../../host/usb_dfu/ubertooth-dfu
+  DFU_TOOL ?= ../../host/python/usb_dfu/ubertooth-dfu
 else
   DFU_TOOL ?= `which ubertooth-dfu`
 endif
