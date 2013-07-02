@@ -52,10 +52,6 @@
 #include "usbapi.h"
 #include "usbhw_lpc.h"
 
-#define IAP_LOCATION 0x1FFF1FF1
-typedef void (*IAP)(u32[], u32[]);
-IAP iap_entry = (IAP)IAP_LOCATION;
-
 /*
  * CLK100NS is a free-running clock with a period of 100ns.  It resets every
  * 2^15 * 10^5 cycles (about 5.5 minutes) and is used to compute CLKN.
