@@ -27,6 +27,10 @@
 #include "cc2400.h"
 #include "ubertooth_interface.h"
 
+#define IAP_LOCATION 0x1FFF1FF1
+typedef void (*IAP)(u32[], u32[]);
+static IAP iap_entry = (IAP)IAP_LOCATION;
+
 /* hardware identification number */
 #define BOARD_ID_UBERTOOTH_ZERO 0
 #define BOARD_ID_UBERTOOTH_ONE  1
