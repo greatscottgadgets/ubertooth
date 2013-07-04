@@ -27,16 +27,43 @@
 #include <unistd.h>
 #include <signal.h>
 
-#ifdef USE_PCAP
-#include <pcap.h>
-pcap_t *pcap_dumpfile = NULL;
-pcap_dumper_t *dumper = NULL;
-#endif
-
 #include <bluetooth_le_packet.h>
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
+
+#ifdef USE_PCAP
+#include <pcap.h>
+pcap_t *pcap_dumpfile = NULL;
+pcap_dumper_t *dumper = NULL;
+
+// CACE PPI headers
+#define PPI_BTLE		30006
+
+typedef struct ppi_packetheader {
+	uint8_t pph_version;
+	uint8_t pph_flags;
+	uint16_t pph_len;
+	uint32_t pph_dlt;
+} __attribute__((packed)) ppi_packet_header_t;
+
+typedef struct ppi_fieldheader {
+	u_int16_t pfh_type;       /* Type */
+	u_int16_t pfh_datalen;    /* Length of data */
+} ppi_fieldheader_t;
+
+typedef struct ppi_btle {
+	uint8_t btle_version; // 0 for now
+	uint16_t btle_channel;
+	uint8_t btle_clkn_high;
+	uint32_t btle_clk100ns;
+	int8_t rssi_max;
+	int8_t rssi_min;
+	int8_t rssi_avg;
+	uint8_t rssi_count;
+} __attribute__((packed)) ppi_btle_t;
+#endif
+
 
 /* this stuff should probably be in a struct managed by the calling program */
 usb_pkt_rx packets[NUM_BANKS];
@@ -67,34 +94,6 @@ void set_timeout(int seconds) {
 	}
 	alarm(seconds);
 }
-
-// CACE PPI headers
-typedef struct ppi_packetheader {
-	uint8_t pph_version;
-	uint8_t pph_flags;
-	uint16_t pph_len;
-	uint32_t pph_dlt;
-} __attribute__((packed)) ppi_packet_header_t;
-
-typedef struct ppi_fieldheader {
-	u_int16_t pfh_type;       /* Type */
-	u_int16_t pfh_datalen;    /* Length of data */
-} ppi_fieldheader_t;
-
-typedef struct ppi_btle {
-	uint8_t btle_version; // 0 for now
-	uint16_t btle_channel;
-	uint8_t btle_clkn_high;
-	uint32_t btle_clk100ns;
-	int8_t rssi_max;
-	int8_t rssi_min;
-	int8_t rssi_avg;
-	uint8_t rssi_count;
-} __attribute__((packed)) ppi_btle_t;
-
-
-
-#define PPI_BTLE		30006
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
@@ -287,7 +286,6 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
 			if(stop_ubertooth) {
-				printf("stop_ubertooth is set 2\n");
 				stop_ubertooth = 0;
 				really_full = 0;
 				usb_retry = 0;

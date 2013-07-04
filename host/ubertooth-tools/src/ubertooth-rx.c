@@ -24,6 +24,12 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#ifdef USE_PCAP
+#include <pcap.h>
+extern pcap_t *pcap_dumpfile;
+extern pcap_dumper_t *dumper;
+#endif // USE_PCAP
+
 extern FILE *dumpfile;
 extern FILE *infile;
 extern int max_ac_errors;
@@ -39,7 +45,9 @@ static void usage()
 	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
+#ifdef USE_PCAP
 	printf("\t-c<filename> capture packets to PCAP file\n");
+#endif // USE_PCAP
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
@@ -87,6 +95,20 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
+#ifdef USE_PCAP
+		case 'c':
+			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
+			if (pcap_dumpfile == NULL)
+				err(1, "pcap_open_dead: ");
+			dumper = pcap_dump_open(pcap_dumpfile, optarg);
+			pcap_dump_flush(dumper);
+			if (dumper == NULL) {
+				warn("pcap_dump_open");
+				pcap_close(pcap_dumpfile);
+				exit(1);
+			}
+			break;
+#endif // USE_PCAP
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {

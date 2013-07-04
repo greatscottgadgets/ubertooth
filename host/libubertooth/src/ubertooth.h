@@ -23,6 +23,7 @@
 #define __UBERTOOTH_H__
 
 #include "ubertooth_control.h"
+#include <btbb.h>
 
 /* Mark unused variables to avoid gcc/clang warnings */
 #define UNUSED(x) (void)(x)

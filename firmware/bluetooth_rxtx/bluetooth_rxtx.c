@@ -1407,7 +1407,7 @@ void bt_follow()
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
-	cc2400_rx_sync(syncword & 0xffffffff);
+	cc2400_rx_sync((syncword >> 32) & 0xffffffff);
 
 	cs_trigger_enable();
 
