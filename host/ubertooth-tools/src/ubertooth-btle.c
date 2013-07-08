@@ -144,8 +144,8 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
-#ifdef USE_PCAP
 		case 'c':
+#ifdef USE_PCAP
 			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
 			if (pcap_dumpfile == NULL)
 				err(1, "pcap_open_dead: ");
@@ -156,8 +156,10 @@ int main(int argc, char *argv[])
 				pcap_close(pcap_dumpfile);
 				exit(1);
 			}
-			break;
+#else
+			printf("Not compiled with 'USE_PCAP', -c ignored\n");
 #endif // USE_PCAP
+			break;
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {
