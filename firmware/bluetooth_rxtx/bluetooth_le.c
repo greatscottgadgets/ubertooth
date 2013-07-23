@@ -32,36 +32,6 @@ u16 btle_next_hop(le_state_t *le)
 
 u32 received_data = 0;
 
-int btle_find_access_address(u8 *idle_rxbuf)
-{
-	/* Looks for an AA in the stream */
-	u16 count;
-	u8 curr_buf;
-	int i = 0;
-
-	if (received_data == 0) {
-		for (; i<8; i++) {
-			received_data <<= 8;
-			received_data |= idle_rxbuf[i];
-		}
-	}
-	curr_buf = idle_rxbuf[i];
-
-	// Search until we're 32 symbols from the end of the buffer
-	for(count = 0; count < ((8 * DMA_SIZE) - 32); count++)
-	{
-		if (received_data == access_address)
-			return count;
-
-		if (count%8 == 0)
-			curr_buf = idle_rxbuf[++i];
-
-		received_data <<= 1;
-		curr_buf <<= 1;
-	}
-	return -1;
-}
-
 u8 btle_channel_index(u8 channel) {
 	u8 idx;
 	channel /= 2;

@@ -66,13 +66,7 @@ static const u8 hop_interval_lut[] = {
     6, 22, 9, 12, 18, 36,
 };
 
-static const u32 advertising_address = 0x8e89bed6;
-u32 access_address;
-u8 btle_channel;
-u8 hop_increment;
-
 u16 btle_next_hop(le_state_t *le);
-int btle_find_access_address(u8 *idle_rxbuf);
 u8 btle_channel_index(u8 channel);
 u16 btle_channel_index_to_phys(u8 idx);
 u32 btle_calc_crc(u32 crc_init, u8 *data, int len);

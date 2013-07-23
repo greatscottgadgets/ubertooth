@@ -1375,14 +1375,6 @@ void bt_stream_rx()
 						}
 				break;
 
-			case HOP_BTLE:
-				if (btle_find_access_address(idle_rxbuf))
-						if (enqueue(idle_rxbuf)) {
-								RXLED_SET;
-								--rx_pkts;
-						}
-				break;
-
 			default:
 				if (enqueue(idle_rxbuf)) {
 						RXLED_SET;
