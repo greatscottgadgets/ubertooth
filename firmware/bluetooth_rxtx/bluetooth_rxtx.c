@@ -93,6 +93,7 @@ le_state_t le = {
 	.crc_init_reversed = 0xAAAAAA,
 	.crc_verify = 1,
 	.connected = 0,
+	.target_set = 0,
 };
 
 typedef void (*data_cb_t)(char *);
@@ -716,6 +717,11 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 	case UBERTOOTH_BTLE_SLAVE:
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
+		break;
+
+	case UBERTOOTH_BTLE_SET_TARGET:
+		le.target_set = 1;
+		memcpy(le.target, data, 6);
 		break;
 
 	default:
@@ -1911,6 +1917,13 @@ void connection_follow_cb(u8 *packet) {
 
 	// connect packet
 	if (!le.connected && type == 0x05) {
+		// if we have a target, see if InitA or AdvA matches
+		if (le.target_set &&
+			!(memcmp(le.target, &packet[6], 6) == 0 ||
+			  memcmp(le.target, &packet[12], 6) == 0)) {
+			return;
+		}
+
 		le.connected = 1;
 		le.crc_verify = 0; // we will drop many packets if we attempt to filter by CRC
 

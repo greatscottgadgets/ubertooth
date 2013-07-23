@@ -897,3 +897,21 @@ int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address)
 
 	return 0;
 }
+
+int cmd_btle_set_target(struct libusb_device_handle* devh, u8 *mac_address)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SET_TARGET, 0, 0,
+			mac_address, 6, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	return 0;
+}

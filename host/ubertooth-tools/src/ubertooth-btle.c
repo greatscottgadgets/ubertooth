@@ -79,6 +79,7 @@ static void usage(void)
 	printf("\t-p promiscuous: sniff active connections\n");
 	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
 	printf("\t-s<address> faux slave mode, using MAC addr (example: -s22:44:66:88:aa:cc)\n");
+	printf("\t-t<address> set connection following target (example: -t22:44:66:88:aa:cc)\n");
 	printf("\n");
 	printf("    Data source:\n");
 	printf("\t-i<filename> read packets from file\n");
@@ -104,6 +105,7 @@ int main(int argc, char *argv[])
 	int do_crc;
 	int do_adv_index;
 	int do_slave_mode;
+	int do_target;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
 
@@ -115,8 +117,9 @@ int main(int argc, char *argv[])
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 	do_adv_index = 37;
+	do_slave_mode = do_target = 0;
 
-	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::A:s:")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::A:s:t:")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -183,6 +186,14 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			do_slave_mode = 1;
+			r = convert_mac_address(optarg, mac_address);
+			if (!r) {
+				usage();
+				return 1;
+			}
+			break;
+		case 't':
+			do_target = 1;
 			r = convert_mac_address(optarg, mac_address);
 			if (!r) {
 				usage();
@@ -273,6 +284,17 @@ int main(int argc, char *argv[])
 		cmd_set_channel(devh, channel);
 
 		cmd_btle_slave(devh, mac_address);
+	}
+
+	if (do_target) {
+		r = cmd_btle_set_target(devh, mac_address);
+		if (r == 0) {
+			int i;
+			printf("target set to: ");
+			for (i = 0; i < 5; ++i)
+				printf("%02x:", mac_address[i]);
+			printf("%02x\n", mac_address[5]);
+		}
 	}
 
 	return 0;
