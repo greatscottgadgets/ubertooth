@@ -418,7 +418,7 @@ int PacketSource_Ubertooth::handle_header(btbb_packet* pkt) {
 		if (btbb_packet_get_ac_errors(pkt) <= 1) {
 			pn = btbb_piconet_new();
 			piconets[lap] = pn;
-			btbb_piconet_set_lap(pn, lap);
+			btbb_init_piconet(pn, lap);
 		} else
 			return 0;
 	}
