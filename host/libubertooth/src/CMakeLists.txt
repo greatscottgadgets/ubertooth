@@ -70,7 +70,7 @@ if( ${UNIX} )
            COMPONENT sharedlibs
            )
    install(FILES ${c_headers}
-           DESTINATION include/${PROJECT_NAME}
+           DESTINATION include
            COMPONENT headers
            )
 endif( ${UNIX} )
@@ -81,7 +81,7 @@ if( ${WIN32} )
            COMPONENT staticlibs
            )
    install(FILES ${c_headers}
-           DESTINATION include/${PROJECT_NAME}
+           DESTINATION include
            COMPONENT headers
            )
 endif( ${WIN32} )

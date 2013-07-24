@@ -24,9 +24,8 @@ else (LIBUBERTOOTH_INCLUDE_DIR AND LIBUBERTOOTH_LIBRARIES)
   FIND_PATH(LIBUBERTOOTH_INCLUDE_DIR
     NAMES ubertooth.h
     HINTS $ENV{LIBUBERTOOTH_DIR}/include ${PC_LIBUBERTOOTH_INCLUDEDIR}
-    PATHS /usr/include /usr/local/include
-    /usr/include ${CMAKE_SOURCE_DIR}/../libubertooth/src
-    /opt/local/include/libubertooth
+    PATHS /usr/include /usr/local/include /opt/local/include
+    ${CMAKE_SOURCE_DIR}/../libubertooth/src
     ${LIBUBERTOOTH_INCLUDE_DIR}
   )
 
