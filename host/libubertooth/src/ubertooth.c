@@ -145,10 +145,14 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 				}
 			}
 			devh = NULL;
+		} else {
+			ret = libusb_open(usb_list[ubertooth_devs[ubertooth_device]], &devh);
+			if (ret) {
+					show_libusb_error(ret);
+					devh = NULL;
+				}
 		}
-		else
-			libusb_open(usb_list[ubertooth_devs[ubertooth_device]], &devh);
-		}
+	}
 	return devh;
 }
 
