@@ -35,3 +35,10 @@ void cc2400_decode(FILE *fp, int r, unsigned short v, int verbose);
  * Returns register number or -1 if not found
  */
 int cc2400_name2reg(char *name);
+
+/*
+ * r = register number
+ *
+ * Returns register name
+ */
+char *cc2400_reg2name(int r);

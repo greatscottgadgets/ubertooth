@@ -790,10 +790,18 @@ int cc2400_name2reg(char *name)
   int r = -1;
 
   for (i=0; r < 0 && cc2400[i].name; i++)
-    if (strcmp(cc2400[i].name,name) == 0)
+    if (strncmp(cc2400[i].name,name,strlen(cc2400[i].name)) == 0) {
       r = cc2400[i].num;
+      printf("cc2400_name2reg %d %s\n",r,name);
+      break;
+    }
 
   return r;
+}
+
+char *cc2400_reg2name(int r)
+{
+  return cc2400[r].name;
 }
 
 void
