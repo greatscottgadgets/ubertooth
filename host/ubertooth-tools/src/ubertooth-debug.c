@@ -61,7 +61,6 @@ int token_to_int(char *t, int *size)
     else
 	*size = -1;
 
-    printf ("token_to_int %s %d %d\n",t,*size,r);
     return r;
 }
 
