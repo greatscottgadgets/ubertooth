@@ -68,6 +68,6 @@ foreach(tool ${TOOLS})
 endforeach(tool)
 
 # ubertooth-debug is special because of the extra source file
-add_executable(ubertooth-debug ubertooth-debug.c cc2400.c)
+add_executable(ubertooth-debug ubertooth-debug.c cc2400.c arglist.c)
 install(TARGETS ubertooth-debug RUNTIME DESTINATION ${INSTALL_DEFAULT_BINDIR})
 target_link_libraries(ubertooth-debug ${TOOLS_LINK_LIBS})
