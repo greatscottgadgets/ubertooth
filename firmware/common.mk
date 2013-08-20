@@ -53,6 +53,11 @@ UBERTOOTH_OPTS += -DTX_ENABLE
 # automatic git version when working out of git
 GIT_REVISION ?= -D'GIT_REVISION="git-$(shell git log --pretty=format:'%h' -n 1)"'
 
+# compile info
+COMPILE_BY ?= -D'COMPILE_BY="$(shell whoami)"'
+COMPILE_HOST ?= -D'COMPILE_HOST="$(shell hostname -s)"'
+TIMESTAMP ?= -D'TIMESTAMP="$(shell date)"'
+
 # CPU architecture
 CPU = cortex-m3
 
@@ -161,6 +166,9 @@ CFLAGS += -Wa,-alhms=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
 CFLAGS += $(GIT_REVISION)
+CFLAGS += $(COMPILE_BY)
+CFLAGS += $(COMPILE_HOST)
+CFLAGS += $(TIMESTAMP)
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information

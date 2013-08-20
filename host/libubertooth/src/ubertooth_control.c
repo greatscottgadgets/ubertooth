@@ -531,6 +531,30 @@ void cmd_get_rev_num(struct libusb_device_handle* devh, char *version, u8 len)
 	}
 }
 
+void cmd_get_compile_info(struct libusb_device_handle* devh, char *compile_info, u8 len)
+{
+	u8 result[1 + 255];
+	u16 result_ver;
+	int r;
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_COMPILE_INFO, 0, 0,
+			result, sizeof(result), 1000);
+	if (r == LIBUSB_ERROR_PIPE) {
+		fprintf(stderr, "control message unsupported\n");
+		snprintf(compile_info, len - 1, "error: %d", r);
+		compile_info[len-1] = '\0';
+		return;
+	} else if (r < 0) {
+		show_libusb_error(r);
+		snprintf(compile_info, len - 1, "error: %d", r);
+		compile_info[len-1] = '\0';
+		return;
+	}
+
+	len = MIN(r - 1, MIN(len - 1, result[0]));
+	memcpy(compile_info, &result[1], len);
+	compile_info[len] = '\0';
+}
+
 int cmd_get_board_id(struct libusb_device_handle* devh)
 {
 	u8 board_id;

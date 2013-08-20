@@ -56,6 +56,7 @@ static void usage()
 	printf("\t-t intitiate continuous transmit test\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-v get firmware revision number\n");
+	printf("\t-V get compile info\n");
 	printf("\t-z set squelch level\n");
 }
 
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
 	int do_range_test, do_repeater, do_firmware, do_board_id;
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
-	int do_something;
+	int do_something, do_compile_info;
 	char ubertooth_device = -1;
 
 	/* set command states to negative as a starter
@@ -81,9 +82,9 @@ int main(int argc, char *argv[])
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
 	do_range_result= do_all_leds= do_identify= -1;
 	do_set_squelch= -1, do_get_squelch= -1; squelch_level= 0;
-	do_something= 0;
+	do_something= 0; do_compile_info= -1;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9V")) != EOF) {
 		switch(opt) {
 		case 'U': 
 			ubertooth_device = atoi(optarg);
@@ -176,6 +177,9 @@ int main(int argc, char *argv[])
 		case '9':
 			do_something= 1;
 			break;
+		case 'V':
+			do_compile_info = 0;
+			break;
 		case 'h':
 		default:
 			usage();
@@ -234,6 +238,11 @@ int main(int argc, char *argv[])
 		cmd_get_rev_num(devh, version, (u8)sizeof(version));
 		printf("Firmware revision: %s\n", version);
         }
+	if(do_compile_info == 0) {
+		char compile_info[255];
+		cmd_get_compile_info(devh, compile_info, (u8)sizeof(compile_info));
+		puts(compile_info);
+	}
 	if(do_leds == 2)
 		printf("USR LED status: %d\n", r= cmd_get_usrled(devh));
 	if(do_palevel == 0)

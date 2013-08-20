@@ -80,6 +80,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_CLEAR_AFHMAP    = 52,
     UBERTOOTH_READ_REGISTER   = 53,
     UBERTOOTH_BTLE_SLAVE      = 54,
+    UBERTOOTH_GET_COMPILE_INFO = 55,
 };
 
 enum modulations {

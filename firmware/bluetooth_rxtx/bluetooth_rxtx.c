@@ -32,6 +32,10 @@
 #define MIN(x,y)	((x)<(y)?(x):(y))
 #define MAX(x,y)	((x)>(y)?(x):(y))
 
+/* build info */
+const char compile_info[] =
+	"ubertooth " GIT_REVISION " (" COMPILE_BY "@" COMPILE_HOST ") " TIMESTAMP;
+
 /*
  * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
  * 2^15 * 10^5 cycles (about 5.5 minutes) - computed from clkn and timer0 (T0TC)
@@ -556,6 +560,13 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		memcpy(&data[3], GIT_REVISION, length);
 
 		*data_len = 2 + 1 + length;
+		break;
+
+	case UBERTOOTH_GET_COMPILE_INFO:
+		length = (u8)strlen(compile_info);
+		data[0] = length;
+		memcpy(&data[1], compile_info, length);
+		*data_len = 1 + length;
 		break;
 
 	case UBERTOOTH_GET_BOARD_ID:
