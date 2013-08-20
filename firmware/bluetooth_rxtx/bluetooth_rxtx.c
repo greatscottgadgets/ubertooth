@@ -550,10 +550,10 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		data[0] = 0x00;
 		data[1] = 0x00;
 
-		length = (u8)strlen(GIT_DESCRIBE);
+		length = (u8)strlen(GIT_REVISION);
 		data[2] = length;
 
-		memcpy(&data[3], GIT_DESCRIBE, length);
+		memcpy(&data[3], GIT_REVISION, length);
 
 		*data_len = 2 + 1 + length;
 		break;

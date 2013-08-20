@@ -51,7 +51,7 @@ UBERTOOTH_OPTS = -D$(BOARD)
 UBERTOOTH_OPTS += -DTX_ENABLE
 
 # automatic git version when working out of git
-GIT_DESCRIBE ?= -D'GIT_DESCRIBE="$(shell git describe --tags --abbrev=4)"'
+GIT_REVISION ?= -D'GIT_REVISION="git-$(shell git log --pretty=format:'%h' -n 1)"'
 
 # CPU architecture
 CPU = cortex-m3
@@ -160,7 +160,7 @@ CFLAGS += -mfix-cortex-m3-ldrd
 CFLAGS += -Wa,-alhms=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
-CFLAGS += $(GIT_DESCRIBE)
+CFLAGS += $(GIT_REVISION)
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information
