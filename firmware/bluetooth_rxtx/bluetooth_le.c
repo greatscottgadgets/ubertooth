@@ -104,7 +104,7 @@ u16 btle_channel_index_to_phys(u8 idx) {
 //		  { 0x6e, 0xf4, 0x6f }
 //
 u32 btle_calc_crc(u32 crc_init, u8 *data, int len) {
-	u32 state = crc_init;
+	u32 state = crc_init & 0xffffff;
 	u32 lfsr_mask = 0x5a6000; // 010110100110000000000000
 	int i, j;
 
@@ -200,7 +200,7 @@ u32 btle_crcgen_lut(u32 crc_init, u8 *data, int len) {
 	int i;
 	u8 key;
 
-	state = crc_init;
+	state = crc_init & 0xffffff;
 	for (i = 0; i < len; ++i) {
 		key = data[i] ^ (state & 0xff);
 		state = (state >> 8) ^ btle_crc_lut[key];
