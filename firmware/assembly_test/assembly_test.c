@@ -491,10 +491,10 @@ static BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **pp
 		pbData[0] = 0x00;
 		pbData[1] = 0x00;
 
-		length = (u8)strlen(GIT_DESCRIBE);
+		length = (u8)strlen(GIT_REVISION);
 		pbData[2] = length;
 
-		memcpy(&pbData[3], GIT_DESCRIBE, length);
+		memcpy(&pbData[3], GIT_REVISION, length);
 
 		*piLen = 2 + 1 + length;
 		break;
