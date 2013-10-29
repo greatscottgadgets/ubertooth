@@ -19,7 +19,6 @@ setup(
     url         = "https://sourceforge.net/projects/ubertooth/",
     license     = "GPL",
     version     = '',
-    package_dir = { '': '/home/dominicgs/CS/Bluetooth/ubertooth/host/python/specan_ui' },
     packages    = ['specan'],
     scripts     = ['ubertooth-specan-ui'],
     classifiers=[
