@@ -50,8 +50,13 @@ UBERTOOTH_OPTS = -D$(BOARD)
 # comment to disable RF transmission
 UBERTOOTH_OPTS += -DTX_ENABLE
 
+DIRTY = $(shell git status -s --untracked-files=no)
+ifneq ($(DIRTY), )
+	DIRTY_FLAG = *
+endif
+
 # automatic git version when working out of git
-GIT_REVISION ?= -D'GIT_REVISION="git-$(shell git log --pretty=format:'%h' -n 1)"'
+GIT_REVISION ?= -D'GIT_REVISION="git-$(shell git log --pretty=format:'%h' -n 1)$(DIRTY_FLAG)"'
 
 # compile info
 COMPILE_BY ?= -D'COMPILE_BY="$(shell whoami)"'
