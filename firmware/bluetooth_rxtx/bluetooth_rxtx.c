@@ -588,10 +588,10 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		target.address = 0;
 		target.access_code = 0;
 		for(i=0; i < 8; i++) {
-			target.address |= data[i] << 8*i;
+			target.address |= (uint64_t)data[i] << 8*i;
 		}
 		for(i=0; i < 8; i++) {
-			target.access_code |= data[i+8] << 8*i;
+			target.access_code |= (uint64_t)data[i+8] << 8*i;
 		}
 		precalc();
 		break;
