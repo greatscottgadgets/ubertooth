@@ -58,7 +58,7 @@ volatile u32 clkn;                       // clkn 3200 Hz counter
 #define CS_THRESHOLD_DEFAULT (uint8_t)(-120)
 #define CS_HOLD_TIME  2                     // min pkts to send on trig (>=1)
 u8 hop_mode = HOP_NONE;
-u8 do_hop = 0;                              // set by timer interrupt
+volatile u8 do_hop = 0;                     // set by timer interrupt
 u8 le_hop_after = 0;                        // hop after this many 1.25 ms cycles
 u8 cs_no_squelch = 0;                       // rx all packets if set
 int8_t cs_threshold_req=CS_THRESHOLD_DEFAULT; // requested CS threshold in dBm
@@ -89,6 +89,8 @@ u8 *idle_rxbuf = &rxbuf2[0];
 
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
+	.synch = 0x6b7d,                        // bit-reversed adv channel AA
+	.syncl = 0x9171,
 	.crc_init  = 0x555555,                  // advertising channel CRCInit
 	.crc_init_reversed = 0xAAAAAA,
 	.crc_verify = 1,
@@ -135,6 +137,8 @@ typedef struct {
 
 dma_lli rx_dma_lli1;
 dma_lli rx_dma_lli2;
+
+dma_lli le_dma_lli[11]; // 11 x 4 bytes
 
 /* rx terminal count and error interrupt counters */
 volatile u32 rx_tc;
@@ -793,6 +797,8 @@ void TIMER0_IRQHandler()
 				if (le_hop_after > 0 && --le_hop_after == 0) {
 					do_hop = 1;
 					le_hop_after = le.hop_interval;
+				} else {
+					TXLED_CLR; // hack!
 				}
 			}
 		}
@@ -898,6 +904,8 @@ static void dma_init()
 
 static void dma_init_le()
 {
+	int i;
+
 	/* power up GPDMA controller */
 	PCONP |= PCONP_PCGPDMA;
 
@@ -917,20 +925,24 @@ static void dma_init_le()
 	DMACConfig = DMACConfig_E;
 	while (!(DMACConfig & DMACConfig_E));
 
-	// page 607
+	for (i = 0; i < 11; ++i) {
+		le_dma_lli[i].src = (u32)&(DIO_SSP_DR);
+		le_dma_lli[i].dest = (u32)&rxbuf1[4 * i];
+		le_dma_lli[i].next_lli = i < 10 ? (u32)&le_dma_lli[i+1] : 0;
+		le_dma_lli[i].control = 4 |
+				(1 << 12) |        /* source burst size = 4 */
+				(0 << 15) |        /* destination burst size = 1 */
+				(0 << 18) |        /* source width 8 bits */
+				(0 << 21) |        /* destination width 8 bits */
+				DMACCxControl_DI | /* destination increment */
+				DMACCxControl_I;   /* terminal count interrupt enable */
+	}
 
 	/* configure DMA channel 0 */
-	DMACC0SrcAddr = (u32)&(DIO_SSP_DR);
-	DMACC0DestAddr = (u32)&rxbuf1[0];
-	DMACC0LLI = (u32)0;
-	DMACC0Control = (DMA_SIZE) |
-			(1 << 12) |        /* source burst size = 4 */
-			(1 << 15) |        /* destination burst size = 4 */
-			(0 << 18) |        /* source width 8 bits */
-			(0 << 21) |        /* destination width 8 bits */
-			DMACCxControl_DI | /* destination increment */
-			DMACCxControl_I;   /* terminal count interrupt enable */
-
+	DMACC0SrcAddr = le_dma_lli[0].src;
+	DMACC0DestAddr = le_dma_lli[0].dest;
+	DMACC0LLI = le_dma_lli[0].next_lli;
+	DMACC0Control = le_dma_lli[0].control;
 	DMACC0Config =
 			DIO_SSP_SRC |
 			(0x2 << 11) |           /* peripheral to memory */
@@ -1687,8 +1699,6 @@ void bt_le_sync(u8 active_mode)
 	dio_ssp_start();
 	cc2400_rx_sync(0x6b7d9171); // bit-reversed access address
 
-	cs_trigger_enable();
-
 	hold = 0;
 
 	while (requested_mode == active_mode) {
@@ -1709,97 +1719,60 @@ void bt_le_sync(u8 active_mode)
 			requested_channel = 0;
 		}
 
-		if (do_hop) {
-			hop();
-		} else {
-			TXLED_CLR;
-		}
-
 		RXLED_CLR;
 
 		/* Wait for DMA. Meanwhile keep track of RSSI. */
 		rssi_reset();
 		rssi_at_trigger = INT8_MIN;
-		while ((rx_tc == 0) && (rx_err == 0))
-		{
-			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
-			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
-				rssi = MAX(rssi,(cs_threshold_cur+54));
-				rssi_at_trigger = rssi;
-			}
-			rssi_add(rssi);
-		}
-
-		/* Keep buffer swapping in sync with DMA. */
-		if (rx_tc % 2) {
-			/*
-			tmp = active_rxbuf;
-			active_rxbuf = idle_rxbuf;
-			idle_rxbuf = tmp;
-			*/
-			idle_rxbuf = rxbuf1;
-		}
+		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0))
+			;
 
 		if (rx_err) {
 			status |= DMA_ERROR;
 		}
 
+		if (do_hop)
+			goto rx_flush;
+
 		/* No DMA transfer? */
 		if (!rx_tc)
-			goto rx_continue;
+			continue;
 
-		/* Missed a DMA trasfer? */
-		if (rx_tc > 1)
-			status |= DMA_OVERFLOW;
-
-		rssi_iir_update();
-
-		/* Set squelch hold if there was either a CS trigger, squelch
-		 * is disabled, or if the current rssi_max is above the same
-		 * threshold. Currently, this is redundant, but allows for
-		 * per-channel or other rssi triggers in the future. */
-		if (cs_trigger || cs_no_squelch) {
-			status |= CS_TRIGGER;
-			hold = CS_HOLD_TIME;
-			cs_trigger = 0;
-		}
-
-		if (rssi_max >= (cs_threshold_cur + 54)) {
-			status |= RSSI_TRIGGER;
-			hold = CS_HOLD_TIME;
-		}
-
-		/* Send a packet once in a while (6.25 Hz) to keep
-		 * host USB reads from timing out. */
-		if (keepalive_trigger) {
-			if (hold == 0)
-				hold = 1;
-			keepalive_trigger = 0;
-		}
-
-		/* Hold expired? Ignore data. */
-		if (hold == 0) {
-			goto rx_continue;
-		}
-		hold--;
+		/////////////////////
+		// process the packet
 
 		uint32_t packet[48/4+1];
 		u8 *p = (u8 *)packet;
 		packet[0] = le.access_address;
 
 		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
-		// FIXME get rid of this hardcoded 48
-		for (i = 0; i < 48; i+=4) {
-			uint32_t v = idle_rxbuf[i+0] << 24
-					   | idle_rxbuf[i+1] << 16
-				       | idle_rxbuf[i+2] << 8
-					   | idle_rxbuf[i+3] << 0;
+		for (i = 0; i < 4; i+= 4) {
+			uint32_t v = rxbuf1[i+0] << 24
+					   | rxbuf1[i+1] << 16
+					   | rxbuf1[i+2] << 8
+					   | rxbuf1[i+3] << 0;
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
 		unsigned len = (p[5] & 0x3f) + 2;
 		if (len > 39)
 			goto rx_flush;
+
+		// transfer the minimum number of bytes from the CC2400
+		// this allows us enough time to resume RX for subsequent packets on the same channel
+		unsigned total_transfers = (len + 3 - 1) / 4 + 1;
+		while (rx_tc < total_transfers && rx_err == 0)
+			;
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+
+		// unwhiten the rest of the packet
+		for (i = 4; i < 44; i += 4) {
+			uint32_t v = rxbuf1[i+0] << 24
+					   | rxbuf1[i+1] << 16
+				       | rxbuf1[i+2] << 8
+					   | rxbuf1[i+3] << 0;
+			packet[i/4+1] = rbit(v) ^ whit[i/4];
+		}
 
 		if (le.crc_verify) {
 			u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
@@ -1812,6 +1785,9 @@ void bt_le_sync(u8 active_mode)
 
 		enqueue((uint8_t *)packet);
 
+		RXLED_SET;
+		packet_cb((uint8_t *)packet);
+
 	rx_flush:
 		cc2400_strobe(SFSON);
 		while (!(cc2400_status() & FS_LOCK));
@@ -1821,6 +1797,12 @@ void bt_le_sync(u8 active_mode)
 		while (SSP1SR & SSPSR_RNE) {
 			u8 tmp = (u8)DIO_SSP_DR;
 		}
+
+		cc2400_set(SYNCL, le.syncl);
+		cc2400_set(SYNCH, le.synch);
+
+		if (do_hop)
+			hop();
 
 		/* RX mode */
 		dma_init_le();
@@ -1923,20 +1905,22 @@ void connection_follow_cb(u8 *packet) {
 		for (i = 0; i < 4; ++i)
 			le.access_address |= packet[18+i] << (i*8);
 
+		u32 aa_rev = rbit(le.access_address);
+		le.syncl = aa_rev & 0xffff;
+		le.synch = aa_rev >> 16;
+
 #define CRC_INIT (2+4+6+6+4)
 		le.crc_init = (packet[CRC_INIT+2] << 16)
 					| (packet[CRC_INIT+1] << 8)
 					|  packet[CRC_INIT+0];
-		le.crc_init_reversed = 0;
-		for (i = 0; i < 24; ++i)
-			le.crc_init_reversed |= ((le.crc_init >> i) & 1) << (23 - i);
+		le.crc_init_reversed = rbit(le.crc_init);
 
 #define WIN_OFFSET (2+4+6+6+4+3+1)
 		// le_hop_after = idle_rxbuf[WIN_OFFSET]-2;
 		do_hop = 1;
 
 #define HOP_INTERVAL (2+4+6+6+4+3+1+2)
-		le.hop_interval = idle_rxbuf[HOP_INTERVAL];
+		le.hop_interval = packet[HOP_INTERVAL];
 
 #define HOP (2+4+6+6+4+3+1+2+2+2+2+5)
 		le.hop_increment = packet[HOP] & 0x1f;
@@ -1945,12 +1929,14 @@ void connection_follow_cb(u8 *packet) {
 }
 
 void bt_follow_le() {
-	// FIXME: sync mode does not yet follow connections properly
-	// bt_le_sync(MODE_BT_FOLLOW_LE);
+	packet_cb = connection_follow_cb;
+	bt_le_sync(MODE_BT_FOLLOW_LE);
 
+	/* old non-sync mode
 	data_cb = cb_follow_le;
 	packet_cb = connection_follow_cb;
 	bt_generic_le(MODE_BT_FOLLOW_LE);
+	*/
 }
 
 // divide, rounding to the nearest integer: round up at 0.5.

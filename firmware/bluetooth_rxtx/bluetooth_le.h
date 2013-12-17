@@ -27,6 +27,8 @@
 
 typedef struct _le_state_t {
     u32 access_address;         // Access Address to filter by
+    u16 synch;                  // Access address in CC2400 syncword format
+    u16 syncl;                  // lower 16 bits thereof
     u32 crc_init;               // CrcInit: used to calculate CRC
     u32 crc_init_reversed;      // bits-reversed version of the previous
     int crc_verify;             // true to reject packets with bad CRC
