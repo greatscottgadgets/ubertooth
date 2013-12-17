@@ -1092,7 +1092,20 @@ static void cc2400_rx_sync(u32 sync)
 
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
-	cc2400_set(MDMTST0, 0x134b); // without PRNG
+
+	cc2400_set(MDMTST0, 0x124b);
+	// 1      2      4b
+	// 00 0 1 0 0 10 01001011
+	//    | | | | |  +---------> AFC_DELTA = ??
+	//    | | | | +------------> AFC settling = 4 pairs (8 bit preamble)
+	//    | | | +--------------> no AFC adjust on packet
+	//    | | +----------------> do not invert data
+	//    | +------------------> TX IF freq 1 0Hz
+	//    +--------------------> PRNG off
+	//
+	// ref: CC2400 datasheet page 67
+	// AFC settling explained page 41/42
+
 	cc2400_set(GRMDM,   grmdm);
 
 	cc2400_set(SYNCL,   sync & 0xffff);
