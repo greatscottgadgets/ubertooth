@@ -116,7 +116,7 @@ static const u8 dfu_descriptors[] = {
 // configuration
 	0x09,
 	DESC_CONFIGURATION,
-	LE_WORD(0x20),  		// wTotalLength
+	LE_WORD(0x1B),  		// wTotalLength
 	0x01,  				// bNumInterfaces
 	0x01,  				// bConfigurationValue
 	0x00,  				// iConfiguration
