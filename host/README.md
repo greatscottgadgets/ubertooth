@@ -9,12 +9,12 @@ These tools link to libbtbb  (http://libbtbb.sourceforge.net/).
 The versions tend to be matched, git should always work with git and all
 releases should come in matched pairs (until the interface stabilizes).
 Libbtbb can be retrieved from git and built as follows:
-
+```
 $ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
 $ cd libbtbb/
 $ make
 $ sudo make install
-
+```
 This software also requires libusb 1.0 or higher, which can be found at
 http://www.libusb.org or installed from your OS's package repository.
 
@@ -22,12 +22,13 @@ http://www.libusb.org or installed from your OS's package repository.
 Building
 --------
 Build the library and tools using the following steps:
-  $ mkdir build
-  $ cd build
-  $ cmake ..
-  $ make
-  $ make install (may require root privileges)
-
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ make install (may require root privileges)
+```
 
 THE TOOLS
 ---------
@@ -46,7 +47,9 @@ dumped to stderr.
 ubertooth-specan: ouputs signal strength data suitable for feeding into spectrum
 analyser software. e.g.
 
- ubertooth-specan -G -q | feedgnuplot --stream 0.5 --domain --3d 
+```
+ubertooth-specan -G -q | feedgnuplot --stream 0.5 --domain --3d 
+```
 
 will use feedgnuplot to drive gnuplot to draw a realtime animated 3D plot of the
 frequency spectrum.
