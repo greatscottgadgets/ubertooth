@@ -42,7 +42,7 @@ if( ${WIN32} )
 else()
 	# Dynamic library
 	add_library(ubertooth SHARED ${c_sources})
-	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.0 SOVERSION 0)
+	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 0)
 endif()
 
 set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)

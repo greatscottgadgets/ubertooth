@@ -3,31 +3,46 @@ Ubertooth Host
 This is host code for use with bluetooth_rxtx firmware.
 
 
-REQUIRED SOFTWARE
+Required Software
 -----------------
-These tools link to libbtbb  (http://libbtbb.sourceforge.net/).
+These tools link to libbtbb (https://github.com/greatscottgadgets/libbtbb).
 The versions tend to be matched, git should always work with git and all
 releases should come in matched pairs (until the interface stabilizes).
 Libbtbb can be retrieved from git and built as follows:
-
-$ git clone git://git.code.sf.net/p/libbtbb/code libbtbb
+```
+$ git clone https://github.com/greatscottgadgets/libbtbb.git
 $ cd libbtbb/
+$ mkdir build
+$ cd build
+$ cmake ..
 $ make
 $ sudo make install
+```
 
 This software also requires libusb 1.0 or higher, which can be found at
 http://www.libusb.org or installed from your OS's package repository.
 
+An optional, but recommended, dependency is libPcap, which is available from
+http://www.tcpdump.org or can be found in your OS's package repository.
 
 Building
 --------
 Build the library and tools using the following steps:
-  $ mkdir build
-  $ cd build
-  $ cmake ..
-  $ make
-  $ make install (may require root privileges)
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ make install (may require root privileges)
+```
 
+If previous versions of libbtbb or Ubertooth tools are installed they should be
+removed before building the latest release.  A script to do so can be found in
+the libbtbb archive and run as follows:
+```
+$ sudo libbtbb/cmake/cleanup.sh -d
+```
+Running the script without the '-d' option will print the files to be removed.
 
 THE TOOLS
 ---------
@@ -45,8 +60,9 @@ dumped to stderr.
 
 ubertooth-specan: ouputs signal strength data suitable for feeding into spectrum
 analyser software. e.g.
-
+```
  ubertooth-specan -G -q | feedgnuplot --stream 0.5 --domain --3d 
+```
 
 will use feedgnuplot to drive gnuplot to draw a realtime animated 3D plot of the
 frequency spectrum.
@@ -55,8 +71,8 @@ frequency spectrum.
 PRIVLEDGE REDUCTION
 -------------------
 If you desire to run any program which accesses the ubertooth hardware as a user
-you may do so by copying 40-ubertooth.rules to wherever your distro keeps udev
-rules, typically /lib/udev/rules.d
+you may do so by copying libubertooth/40-ubertooth.rules to wherever your distro
+keeps udev rules, typically /lib/udev/rules.d
 
 This action will allow any user in the "usb" group to access the ubertooth
 hardware. If you want to give access to a different group you can easily edit
