@@ -44,7 +44,7 @@ $ sudo libbtbb/cmake/cleanup.sh -d
 ```
 Running the script without the '-d' option will print the files to be removed.
 
-THE TOOLS
+The Tools
 ---------
 ubertooth-util: various utility functions including reboot into bootloader DFU
 mode.
@@ -61,14 +61,14 @@ dumped to stderr.
 ubertooth-specan: ouputs signal strength data suitable for feeding into spectrum
 analyser software. e.g.
 ```
- ubertooth-specan -G -q | feedgnuplot --stream 0.5 --domain --3d 
+ubertooth-specan -G -q | feedgnuplot --stream 0.5 --domain --3d 
 ```
 
 will use feedgnuplot to drive gnuplot to draw a realtime animated 3D plot of the
 frequency spectrum.
 
 
-PRIVLEDGE REDUCTION
+Privledge Reduction
 -------------------
 If you desire to run any program which accesses the ubertooth hardware as a user
 you may do so by copying libubertooth/40-ubertooth.rules to wherever your distro
