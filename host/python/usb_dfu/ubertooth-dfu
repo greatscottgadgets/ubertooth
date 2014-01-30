@@ -54,7 +54,7 @@ def set_flash_mode(vendor=None, product=None):
         if devs:
             for dev in devs:
                 devices.append(dev)
-                print "%d) Found '%s' with address 0x%04x 0x%04x" % (len(devices), device, vendor_id, product_id)
+                print "%d) Found '%s' with USB ID: %04x:%04x" % (len(devices), device, vendor_id, product_id)
     if len(devices):
         value = 0
         while not value:
