@@ -45,9 +45,11 @@ static void usage()
 	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
+#ifdef PCAP_NOT_WORKING // commenting out because pcap support for BR is not ready and this causes confusion
 #ifdef USE_PCAP
 	printf("\t-c<filename> capture packets to PCAP file\n");
 #endif // USE_PCAP
+#endif // PCAP_NOT_WORKING
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
