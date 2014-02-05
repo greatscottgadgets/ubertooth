@@ -442,6 +442,12 @@ static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
 			   rx->channel, clkn);
 
+	/* When reading from file, caller will read
+	 * systime before calling this routine, so do
+	 * not overwrite. Otherwise, get current time. */
+	if ( infile == NULL )
+		systime = time(NULL);
+
 	/* If dumpfile is specified, write out all banks to the
 	 * file. There could be duplicate data in the dump if more
 	 * than one LAP is found within the span of NUM_BANKS. */
@@ -458,12 +464,6 @@ static void cb_rx(void* args, usb_pkt_rx *rx, int bank)
 		}
 	}
 
-	/* When reading from file, caller will read
-	 * systime before calling this routine, so do
-	 * not overwrite. Otherwise, get current time. */
-	if ( infile == NULL )
-		systime = time(NULL);
-	
 	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
 	       (int)systime,
 	       btbb_packet_get_channel(pkt),
