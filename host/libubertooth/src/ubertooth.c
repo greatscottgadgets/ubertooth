@@ -199,8 +199,12 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		return;
 	}
 
-	while (really_full)
+	while (really_full) {
+		/* If we've been killed, the buffer will never get emptied */
+		if(stop_ubertooth)
+			return;
 		fprintf(stderr, "uh oh, full_buf not emptied\n");
+	}
 
 	tmp = full_buf;
 	full_buf = empty_buf;
