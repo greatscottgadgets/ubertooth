@@ -228,7 +228,7 @@ int handle_events_wrapper() {
 		r = libusb_handle_events(NULL);
 		if (r < 0) {
 			if (r != LIBUSB_ERROR_INTERRUPTED) {
-				fprintf(stderr, "libusb_handle_events: %s\n", libusb_error_name(r));
+				show_libusb_error(r);
 				return -1;
 			}
 		} else
