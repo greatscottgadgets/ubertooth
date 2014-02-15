@@ -195,6 +195,8 @@ int main(int argc, char *argv[])
 	if(afh_enabled)
 		cmd_set_afh_map(devh, afh_map);
 	btbb_piconet_set_clk_offset(pn, clock+delay);
+	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
+	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
 	follow_pn = pn;
 	rx_live(devh, pn, 0);
 	ubertooth_stop(devh);
