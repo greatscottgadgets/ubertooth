@@ -1,42 +1,38 @@
-Project Ubertooth 2012-10-R1 Release Notes
+Ubertooth 2014-02-R2 Release Notes
 
-The Ubertooth host utilities in this release require libbtbb-2012.10.R1 or
-greater, it can be found at https://sourceforge.net/projects/libbtbb/files/
+The Ubertooth host utilities in this release require libbtbb-2014-02-R2 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2014-02-R2) or greater.
 
-These are just the highlights.  For a complete list of changes since the
-previous release, see the git log.
+These are just the highlights, for a complete list of changes since the
+previous release, see the git commit log.
 
- - libubertooth
+ * Bluetooth Smart (Low Energy) Support
+  * Promiscuous and follow modes
+  * Pcap format packet logging
+  * Pairing / encryption support when paired with crackle: https://github.com/mikeryan/crackle
+  * Credit for BLE features goes to Mike Ryan
 
-   The core Ubertooth functions are now packaged as a library, which allows us
-   to have some independence between the core ubertooth functions and the tools
-   that use them, such as ubertooth-* and the kismet plugin.  This should also
-   help with future binary packaging.
+ * Unified host tool for monitoring Basic Rate
+  * ubertooth-rx replaces -lap, -uap, -hop tools
+  * Once UAP is discovered, ubertooth-rx automatically tries to find clock values and begin hopping
 
- - Firmware flashing
+ * Survey tool - ubertooth-scan
+  * Combining both Ubertooth and a standard Bluetooth dongle
+  * Ubertooth scans for non-discoverable master devices
+  * Dongle probes devices for piconet information and features
 
-   The ubertooth-dfu tool now attenpts to identify Ubertooth devices and put
-   them in to firmware upgrade mode.  Multiple arguments can also be passed to
-   ubertooth-dfu and will be executed in the order specified ont he commandline.
-   To flash firmware on to an ubertooth device, use the following command:
-     ubertooth-dfu --write <firmware_image.dfu> --detach
+ * Cmake now used for the build system
+  * Improves support for non-Linux operating systems
+  * More sensible handling of dependencies
+  * New build instructions: https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
 
- - Bluetooth Low Energy (Experimental)
+ * Packaging (Experimental)
+  * Early stage support for packaging systems
+  * libbtbb in Homebrew repository, Ubertooth coming soon
+  * MacPorts availability is under test
+  * Release already available in Pentoo
 
-   Bluetooth Low Energy (Bluetooth Smart) sniffing is experimentally supported
-   by the ubertooth-btle tool. The tool can be used to sniff the connection
-   setup procedure between devices; promiscuous sniffing is available but is
-   extremely experimental. Credit for this achievement goes to Mike Ryan.
+ * GitHub migration
+  * libbtbb, Ubertooth and gr-bluetooth all hosted on GitHub
+  * Allows for more open development and collaboration model
+  * Already seeing an increase in issue reporting and pull requests
 
- - Ubertooth-follow
-
-   Ubertooth-follow has been added to the set of Ubertooth commandline tools.
-   It retrieves the clock value from a local device using libbluetooth (bluez)
-   and uses the Ubertooth to hop in time with the piconet.  To build
-   ubertooth-follow use "make clock_debug=true".
-
- - Git
- 
-   Since the last release we have moved the source repository from SVN to Git.
-   This should not affect the released code, but makes life easier for those of
-   us working on the code.
