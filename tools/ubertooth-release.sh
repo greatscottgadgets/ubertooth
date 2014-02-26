@@ -53,17 +53,19 @@ cp assembly_test/assembly_test.hex ${targetdir}/ubertooth-one-firmware-bin/
 cp assembly_test/assembly_test.bin ${targetdir}/ubertooth-one-firmware-bin/
 make clean
 
-export BOARD=UBERTOOTH_ZERO
-mkdir ${targetdir}/ubertooth-zero-firmware-bin
-cd ${targetdir}/firmware/
-make bluetooth_rxtx
-cp bluetooth_rxtx/bluetooth_rxtx.hex ${targetdir}/ubertooth-zero-firmware-bin/
-cp bluetooth_rxtx/bluetooth_rxtx.bin ${targetdir}/ubertooth-zero-firmware-bin/
-cp bluetooth_rxtx/bluetooth_rxtx.dfu ${targetdir}/ubertooth-zero-firmware-bin/
-make bootloader
-cp bootloader/bootloader.hex ${targetdir}/ubertooth-zero-firmware-bin/
-cp bootloader/bootloader.bin ${targetdir}/ubertooth-zero-firmware-bin/
-make clean
+# Ubertooth Zero is no longer supported
+
+#export BOARD=UBERTOOTH_ZERO
+#mkdir ${targetdir}/ubertooth-zero-firmware-bin
+#cd ${targetdir}/firmware/
+#make bluetooth_rxtx
+#cp bluetooth_rxtx/bluetooth_rxtx.hex ${targetdir}/ubertooth-zero-firmware-bin/
+#cp bluetooth_rxtx/bluetooth_rxtx.bin ${targetdir}/ubertooth-zero-firmware-bin/
+#cp bluetooth_rxtx/bluetooth_rxtx.dfu ${targetdir}/ubertooth-zero-firmware-bin/
+#make bootloader
+#cp bootloader/bootloader.hex ${targetdir}/ubertooth-zero-firmware-bin/
+#cp bootloader/bootloader.bin ${targetdir}/ubertooth-zero-firmware-bin/
+#make clean
 
 ############################
 # Hardware
