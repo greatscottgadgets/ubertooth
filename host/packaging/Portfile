@@ -1,0 +1,34 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+PortGroup           github 1.0
+
+github.setup        greatscottgadgets ubertooth 2014-02-R2
+categories          net security
+platforms           darwin
+maintainers         gmail.com:dominicgs
+license             GPL-2+
+
+description         UBertooth tools
+
+long_description \
+    Ubertooth is a 2.4GHz monitor targeter at Bluetooth Basic Rate and Low \
+	Energy.  This package contains a control library and host tools to \
+	interact with Ubertooth devices.
+
+homepage            https://github.com/greatscottgadgets/ubertooth
+
+checksums           sha256  0b5e67434a9dd347fbe41eb1904bec1b9416af0250803f10c19d6c4e88399c32
+
+depends_lib         port:libpcap \
+                    port:libbtbb \
+					port:py-pyusb-devel
+
+configure.dir       ${workpath}/host/build
+build.dir           ${configure.dir}
+
+post-extract {
+    file mkdir ${configure.dir}
+}
