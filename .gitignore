@@ -26,6 +26,8 @@ ubertooth-scan
 ubertooth-specan
 ubertooth-util
 
+host/python/*/build/*
+
 # kismet plugins
 ubertooth.so
 ubertooth_ui.so
