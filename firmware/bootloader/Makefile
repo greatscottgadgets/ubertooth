@@ -239,15 +239,16 @@ PROGDEV ?= /dev/ttyUSB0
 #============================================================================
 
 # Define programs and commands.
-CC = arm-none-eabi-gcc
-LD = arm-none-eabi-gcc -T
-AS = arm-none-eabi-as
-OBJCOPY = arm-none-eabi-objcopy
-OBJDUMP = arm-none-eabi-objdump
-READELF  = arm-none-eabi-readelf
-SIZE = arm-none-eabi-size
-AR = arm-none-eabi-ar -r
-NM = arm-none-eabi-nm
+CROSS_COMPILE ?= arm-none-eabi-
+CC = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)gcc -T
+AS = $(CROSS_COMPILE)as
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+READELF  = $(CROSS_COMPILE)readelf
+SIZE = $(CROSS_COMPILE)size
+AR = $(CROSS_COMPILE)ar -r
+NM = $(CROSS_COMPILE)nm
 REMOVE = rm -f
 
 # Define Messages
