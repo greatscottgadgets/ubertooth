@@ -27,12 +27,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#ifdef USE_PCAP
-#include <pcap.h>
-extern pcap_t *pcap_dumpfile;
-extern pcap_dumper_t *dumper;
-#endif // USE_PCAP
-
 extern FILE *infile;
 extern FILE *dumpfile;
 
@@ -86,12 +80,15 @@ static void usage(void)
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\n");
 	printf("    Misc:\n");
-#ifdef USE_PCAP
-	printf("\t-c<filename> capture packets to PCAP file\n");
-#endif // USE_PCAP
+	printf("\t-r<filename> capture packets to PCAPNG file\n");
+#if defined(USE_PCAP)
+	printf("\t-q<filename> capture packets to PCAP file (DLT_BLUETOOTH_LE_LL_WITH_PHDR)\n");
+	printf("\t-c<filename> capture packets to PCAP file (DLT_PPI)\n");
+#endif
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
+        printf("\t-x<n> allow n access address offenses (default 32)\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -108,6 +105,7 @@ int main(int argc, char *argv[])
 	int do_target;
 	char ubertooth_device = -1;
 	struct libusb_device_handle *devh = NULL;
+	btle_options cb_opts = { .allowed_access_address_errors = 32 };
 
 	int r;
 	u32 access_address;
@@ -119,7 +117,7 @@ int main(int argc, char *argv[])
 	do_adv_index = 37;
 	do_slave_mode = do_target = 0;
 
-	while ((opt=getopt(argc,argv,"a::c:d:hfpi:U:v::A:s:t:")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:d:hfpi:U:v::A:s:t:x:c:q:")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -147,22 +145,38 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
-		case 'c':
-#ifdef USE_PCAP
-			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
-			if (pcap_dumpfile == NULL)
-				err(1, "pcap_open_dead: ");
-			dumper = pcap_dump_open(pcap_dumpfile, optarg);
-			pcap_dump_flush(dumper);
-			if (dumper == NULL) {
-				warn("pcap_dump_open");
-				pcap_close(pcap_dumpfile);
-				exit(1);
+		case 'r':
+			if (!h_pcapng_le) {
+				if (lell_pcapng_create_file(optarg, "Ubertooth", &h_pcapng_le)) {
+					err(1, "lell_pcapng_create_file: ");
+				}
 			}
-#else
-			printf("Not compiled with 'USE_PCAP', -c ignored\n");
-#endif // USE_PCAP
+			else {
+				printf("Ignoring extra capture file: %s\n", optarg);
+			}
 			break;
+#if defined(USE_PCAP)
+		case 'q':
+			if (!h_pcap_le) {
+				if (lell_pcap_create_file(optarg, &h_pcap_le)) {
+					err(1, "lell_pcap_create_file: ");
+				}
+			}
+			else {
+				printf("Ignoring extra capture file: %s\n", optarg);
+			}
+			break;
+		case 'c':
+			if (!h_pcap_le) {
+				if (lell_pcap_ppi_create_file(optarg, 0, &h_pcap_le)) {
+					err(1, "lell_pcap_ppi_create_file: ");
+				}
+			}
+			else {
+				printf("Ignoring extra capture file: %s\n", optarg);
+			}
+			break;
+#endif
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {
@@ -196,6 +210,14 @@ int main(int argc, char *argv[])
 			do_target = 1;
 			r = convert_mac_address(optarg, mac_address);
 			if (!r) {
+				usage();
+				return 1;
+			}
+			break;
+                case 'x':
+			cb_opts.allowed_access_address_errors = (unsigned) atoi(optarg);
+			if (cb_opts.allowed_access_address_errors > 32) {
+				printf("Error: can tolerate 0-32 access address bit errors\n");
 				usage();
 				return 1;
 			}
@@ -245,7 +267,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 			if (r == sizeof(usb_pkt_rx))
-				cb_btle(NULL, &pkt, 0);
+				cb_btle(&cb_opts, &pkt, 0);
 			usleep(500);
 		}
 		ubertooth_stop(devh);

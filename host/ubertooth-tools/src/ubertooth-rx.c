@@ -20,15 +20,10 @@
  */
 
 #include "ubertooth.h"
+#include <err.h>
 #include <getopt.h>
 #include <signal.h>
 #include <stdlib.h>
-
-#ifdef USE_PCAP
-#include <pcap.h>
-extern pcap_t *pcap_dumpfile;
-extern pcap_dumper_t *dumper;
-#endif // USE_PCAP
 
 extern FILE *dumpfile;
 extern FILE *infile;
@@ -45,11 +40,10 @@ static void usage()
 	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
-#ifdef PCAP_NOT_WORKING // commenting out because pcap support for BR is not ready and this causes confusion
-#ifdef USE_PCAP
-	printf("\t-c<filename> capture packets to PCAP file\n");
-#endif // USE_PCAP
-#endif // PCAP_NOT_WORKING
+	printf("\t-r<filename> capture packets to PCAPNG file\n");
+#if defined(USE_PCAP)
+	printf("\t-q<filename> capture packets to PCAP file\n");
+#endif
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
@@ -73,10 +67,10 @@ int main(int argc, char *argv[])
 	char *end;
 	char ubertooth_device = -1;
 	btbb_piconet *pn = NULL;
-	uint32_t lap;
-	uint8_t uap;
+	uint32_t lap = 0;
+	uint8_t uap = 0;
 
-	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:sc:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:r:sq:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -97,22 +91,28 @@ int main(int argc, char *argv[])
 		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
-		case 'c':
-#ifdef USE_PCAP
-			pcap_dumpfile = pcap_open_dead(DLT_PPI, 128);
-			if (pcap_dumpfile == NULL)
-				err(1, "pcap_open_dead: ");
-			dumper = pcap_dump_open(pcap_dumpfile, optarg);
-			pcap_dump_flush(dumper);
-			if (dumper == NULL) {
-				warn("pcap_dump_open");
-				pcap_close(pcap_dumpfile);
-				exit(1);
+		case 'r':
+			if (!h_pcapng_bredr) {
+				if (btbb_pcapng_create_file( optarg, "Ubertooth", &h_pcapng_bredr )) {
+					err(1, "create_bredr_capture_file: ");
+				}
 			}
-#else
-                        printf("Not compiled with 'USE_PCAP', -c ignored\n");
-#endif // USE_PCAP
+			else {
+				printf("Ignoring extra capture file: %s\n", optarg);
+			}
 			break;
+#if defined(USE_PCAP)
+		case 'q':
+			if (!h_pcap_bredr) {
+				if (btbb_pcap_create_file(optarg, &h_pcap_bredr)) {
+					err(1, "btbb_pcap_create_file: ");
+				}
+			}
+			else {
+				printf("Ignoring extra capture file: %s\n", optarg);
+			}
+			break;
+#endif
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {
@@ -138,6 +138,11 @@ int main(int argc, char *argv[])
 		btbb_init_piconet(pn, lap);
 		if (have_uap)
 			btbb_piconet_set_uap(pn, uap);
+		if (h_pcapng_bredr) {
+			btbb_pcapng_record_bdaddr(h_pcapng_bredr,
+						  (((uint32_t)uap)<<24)|lap,
+						  have_uap ? 0xff : 0x00, 0);
+		}
 	} else if (have_uap) {
 		printf("Error: UAP but no LAP specified\n");
 		usage();
