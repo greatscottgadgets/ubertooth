@@ -23,7 +23,6 @@
 
 find_package(BTBB REQUIRED)
 find_package(PCAP)
-find_package(BLUETOOTH)
 
 if(MSVC)
 	include_directories(../getopt)
@@ -55,10 +54,13 @@ endif()
 
 LIST(APPEND TOOLS ubertooth-rx ubertooth-dump ubertooth-util ubertooth-btle)
 
-if ( ${LIBBLUETOOTH_FOUND} )
-	LIST(APPEND TOOLS ubertooth-follow ubertooth-scan)
-	include_directories(${LIBBLUETOOTH_INCLUDE_DIR})
-	LIST(APPEND TOOLS_LINK_LIBS ${LIBBLUETOOTH_LIBRARIES})
+if(USE_BLUEZ)
+	find_package(BLUETOOTH REQUIRED)
+	if ( ${LIBBLUETOOTH_FOUND} )
+		LIST(APPEND TOOLS ubertooth-follow ubertooth-scan)
+		include_directories(${LIBBLUETOOTH_INCLUDE_DIR})
+		LIST(APPEND TOOLS_LINK_LIBS ${LIBBLUETOOTH_LIBRARIES})
+	endif()
 endif()
 
 foreach(tool ${TOOLS})
