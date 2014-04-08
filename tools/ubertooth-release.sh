@@ -21,7 +21,7 @@ top="`pwd`/../release"
 releasename="ubertooth-${branch}"
 targetdir="${top}/${releasename}"
 # Previous release, this is laziness to not have to rebuild the hardware files
-originaldir="${top}/ubertooth-r${1}"
+originaldir="${top}/ubertooth-${1}"
 
 mkdir -p ${targetdir}
 git archive --format=tar  HEAD | (cd ${targetdir} && tar xf -)
@@ -70,26 +70,20 @@ make clean
 ############################
 # Hardware
 ############################
-#mkdir ${targetdir}/pogoprog-hardware
-#mkdir ${targetdir}/pogoprog-hardware/gerbers
+# Do this part by hand if there have been hardware changes since the last release
 cp ${originaldir}/hardware/pogoprog/pogoprog-schematic.pdf ${targetdir}/hardware/pogoprog
 cp ${originaldir}/hardware/pogoprog/pogoprog-assembly.pdf ${targetdir}/hardware/pogoprog
-#cp ${originaldir}/hardware/pogoprog/pogoprog-*.g* ${tagetdir}/hardware/pogoprog/gerbers
-#cp ${originaldir}/hardware/pogoprog/pogoprog.drl ${targetdir}/hardware/pogoprog/gerbers
+cp ${originaldir}/hardware/pogoprog/gerbers ${tagetdir}/hardware/pogoprog/
 cp ${originaldir}/hardware/pogoprog/pogoprog-bom.csv ${targetdir}/hardware/pogoprog/pogoprog-bom.csv
-#mkdir ${targetdir}/ubertooth-one-hardware
-#mkdir ${targetdir}/ubertooth-one-hardware/gerbers
+
 cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-schematic.pdf ${targetdir}/hardware/ubertooth-one
 cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-assembly.pdf ${targetdir}/hardware/ubertooth-one
-#cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-*.g* ${targetdir}/hardware/ubertooth-one/gerbers
-#cp ${originaldir}/hardware/ubertooth-one/ubertooth-one.drl ${targetdir}/hardware/ubertooth-one/gerbers
+cp ${originaldir}/hardware/ubertooth-one/gergers ${targetdir}/hardware/ubertooth-one/
 cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-bom.csv ${targetdir}/hardware/ubertooth-one/ubertooth-one-bom.csv
-#mkdir ${targetdir}/tc13badge-hardware
-#mkdir ${targetdir}/tc13badge-hardware/gerbers
+
 cp ${originaldir}/hardware/tc13badge/tc13badge-schematic.pdf ${targetdir}/hardware/tc13badge/
 cp ${originaldir}/hardware/tc13badge/tc13badge-assembly.pdf ${targetdir}/hardware/tc13badge/
-#cp ${originaldir}/hardware/tc13badge/tc13badge-*.g* ${targetdir}/hardware/tc13badge/gerbers
-#cp ${originaldir}/hardware/tc13badge/tc13badge.drl ${targetdir}/hardware/tc13badge/gerbers
+cp ${originaldir}/hardware/tc13badge/gerbers ${targetdir}/hardware/tc13badge/
 cp ${originaldir}/hardware/tc13badge/tc13badge-bom.csv ${targetdir}/hardware/tc13badge/tc13badge-bom.csv
 
 ############################
