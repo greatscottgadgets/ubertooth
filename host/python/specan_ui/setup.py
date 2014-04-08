@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-dfu setup
+Specan setup
 
 Install script for the Ubertooth spectrum analyzer tool
 
