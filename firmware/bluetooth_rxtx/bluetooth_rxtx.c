@@ -958,8 +958,7 @@ static void dma_init_le()
 	rx_err = 0;
 }
 
-void DMA_IRQHandler()
-{
+void bt_stream_dma_handler(void) {
 	idle_buf_clkn_high = active_buf_clkn_high;
 	active_buf_clkn_high = (clkn >> 20) & 0xff;
 
@@ -979,6 +978,20 @@ void DMA_IRQHandler()
 			DMACIntErrClr = (1 << 0);
 			++rx_err;
 		}
+	}
+}
+
+void DMA_IRQHandler()
+{
+	switch (mode) {
+		case MODE_RX_SYMBOLS:
+		case MODE_SPECAN:
+		case MODE_BT_FOLLOW:
+		case MODE_BT_FOLLOW_LE:
+		case MODE_BT_PROMISC_LE:
+		case MODE_BT_SLAVE_LE:
+			bt_stream_dma_handler();
+			break;
 	}
 }
 
