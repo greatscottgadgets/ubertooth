@@ -1740,7 +1740,6 @@ void bt_generic_le(u8 active_mode)
 	cc2400_idle();
 	dio_ssp_stop();
 	cs_trigger_disable();
-	USRLED_SET;
 }
 
 void bt_le_sync(u8 active_mode)
