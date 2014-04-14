@@ -958,8 +958,7 @@ static void dma_init_le()
 	rx_err = 0;
 }
 
-void DMA_IRQHandler()
-{
+void bt_stream_dma_handler(void) {
 	idle_buf_clkn_high = active_buf_clkn_high;
 	active_buf_clkn_high = (clkn >> 20) & 0xff;
 
@@ -982,6 +981,20 @@ void DMA_IRQHandler()
 	}
 }
 
+void DMA_IRQHandler()
+{
+	switch (mode) {
+		case MODE_RX_SYMBOLS:
+		case MODE_SPECAN:
+		case MODE_BT_FOLLOW:
+		case MODE_BT_FOLLOW_LE:
+		case MODE_BT_PROMISC_LE:
+		case MODE_BT_SLAVE_LE:
+			bt_stream_dma_handler();
+			break;
+	}
+}
+
 static void dio_ssp_start()
 {
 	/* make sure the (active low) slave select signal is not active */
@@ -1001,7 +1014,36 @@ static void dio_ssp_start()
 
 static void dio_ssp_stop()
 {
-	; // TBD
+	// disable CC2400's output (active low)
+	DIO_SSEL_SET;
+
+	// disable DMA on SSP; disable SSP
+	DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+	DIO_SSP_CR1 &= ~SSPCR1_SSE;
+
+
+	// disable DMA engine:
+	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 607
+
+	// disable DMA interrupts
+	ICER0 = ICER0_ICE_DMA;
+
+	// disable active channels
+	DMACC0Config = 0;
+	DMACC1Config = 0;
+	DMACC2Config = 0;
+	DMACC3Config = 0;
+	DMACC4Config = 0;
+	DMACC5Config = 0;
+	DMACC6Config = 0;
+	DMACC7Config = 0;
+	DMACIntTCClear = 0xFF;
+	DMACIntErrClr = 0xFF;
+
+	// Disable the DMA controller by writing 0 to the DMA Enable bit in the DMACConfig
+	// register.
+	DMACConfig &= ~DMACConfig_E;
+	while (DMACConfig & DMACConfig_E);
 }
 
 static void cc2400_idle()
@@ -1553,6 +1595,21 @@ void bt_follow()
 	cs_trigger_disable();
 }
 
+/* reset le state, called by bt_generic_le and bt_le_sync */
+void reset_le() {
+	le.access_address = 0x8e89bed6;        // advertising channel access address
+	le.synch = 0x6b7d;                     // bit-reversed adv channel AA
+	le.syncl = 0x9171;
+	le.crc_init  = 0x555555;               // advertising channel CRCInit
+	le.crc_init_reversed = 0xAAAAAA;
+	le.crc_verify = 1;
+	le.connected = 0;
+	le.target_set = 0;
+
+	le_hop_after = 0;
+	do_hop = 0;
+}
+
 /* generic le mode */
 void bt_generic_le(u8 active_mode)
 {
@@ -1563,6 +1620,8 @@ void bt_generic_le(u8 active_mode)
 
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
+
+	reset_le();
 
 	// enable USB interrupts
 	ISER0 = ISER0_ISE_USB;
@@ -1687,6 +1746,11 @@ void bt_generic_le(u8 active_mode)
 		rx_err = 0;
 	}
 
+	// disable USB interrupts
+	ICER0 = ICER0_ICE_USB;
+
+	// reset the radio completely
+	cc2400_idle();
 	dio_ssp_stop();
 	cs_trigger_disable();
 }
@@ -1700,6 +1764,8 @@ void bt_le_sync(u8 active_mode)
 
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
+
+	reset_le();
 
 	// enable USB interrupts
 	ISER0 = ISER0_ISE_USB;
@@ -1737,8 +1803,12 @@ void bt_le_sync(u8 active_mode)
 		/* Wait for DMA. Meanwhile keep track of RSSI. */
 		rssi_reset();
 		rssi_at_trigger = INT8_MIN;
-		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0))
+		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode)
 			;
+
+		if (requested_mode != active_mode) {
+			goto cleanup;
+		}
 
 		if (rx_err) {
 			status |= DMA_ERROR;
@@ -1827,6 +1897,13 @@ void bt_le_sync(u8 active_mode)
 		rx_err = 0;
 	}
 
+cleanup:
+
+	// disable USB interrupts
+	ICER0 = ICER0_ICE_USB;
+
+	// reset the radio completely
+	cc2400_idle();
 	dio_ssp_stop();
 	cs_trigger_disable();
 }

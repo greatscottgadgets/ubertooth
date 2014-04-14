@@ -31,6 +31,23 @@
 typedef void (*IAP_ENTRY)(u32[], u32[]);
 static IAP_ENTRY iap_entry = (IAP_ENTRY)IAP_LOCATION;
 
+/* operating modes */
+enum operating_modes {
+	MODE_IDLE          = 0,
+	MODE_RX_SYMBOLS    = 1,
+	MODE_TX_SYMBOLS    = 2,
+	MODE_TX_TEST       = 3,
+	MODE_SPECAN        = 4,
+	MODE_RANGE_TEST    = 5,
+	MODE_REPEATER      = 6,
+	MODE_LED_SPECAN    = 7,
+	MODE_BT_FOLLOW     = 8,
+	MODE_BT_FOLLOW_LE  = 9,
+	MODE_BT_PROMISC_LE = 10,
+	MODE_RESET         = 11,
+	MODE_BT_SLAVE_LE   = 12,
+};
+
 /* hardware identification number */
 #define BOARD_ID_UBERTOOTH_ZERO 0
 #define BOARD_ID_UBERTOOTH_ONE  1
