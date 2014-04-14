@@ -221,7 +221,11 @@ def detach(dfu):
         print 'In unexpected state: %s' % dfu.get_state()
 
 def init_dfu(idVendor, idProduct):
-    import usb.core
+    try:
+        import usb.core
+    except ImportError, e:
+        print "Error: cannot import pyUSB. Check that pyUSB and libUSB 1.0 are installed."
+        raise
     dev = usb.core.find(idVendor=idVendor, idProduct=idProduct)
     if dev is None:
         raise RuntimeError('Device not found')
