@@ -24,6 +24,7 @@
 #include <err.h>
 #include <getopt.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -33,6 +34,7 @@ extern pcap_t *pcap_dumpfile;
 extern pcap_dumper_t *dumper;
 #endif // USE_PCAP
 
+struct libusb_device_handle *devh = NULL;
 extern FILE *infile;
 extern FILE *dumpfile;
 
@@ -97,6 +99,16 @@ static void usage(void)
 	printf("In get/set mode no capture occurs.\n");
 }
 
+void cleanup(int sig)
+{
+	sig = sig;
+	if (devh) {
+		cmd_stop(devh);
+		ubertooth_stop(devh);
+	}
+	exit(0);
+}
+
 int main(int argc, char *argv[])
 {
 	int opt;
@@ -107,7 +119,6 @@ int main(int argc, char *argv[])
 	int do_slave_mode;
 	int do_target;
 	char ubertooth_device = -1;
-	struct libusb_device_handle *devh = NULL;
 
 	int r;
 	u32 access_address;
@@ -218,6 +229,12 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+
+	/* Clean up on exit. */
+	signal(SIGINT, cleanup);
+	signal(SIGQUIT, cleanup);
+	signal(SIGTERM, cleanup);
+
 
 	if (do_follow || do_promisc) {
 		usb_pkt_rx pkt;
