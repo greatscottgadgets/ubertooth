@@ -228,7 +228,7 @@ EXTRALIBDIRS = $(LIBS_PATH)
 #    --cref:    add cross reference to  map file
 LDFLAGS = -Wl,-Map=$(TARGET).map
 #LDFLAGS += -Wl,--relax 
-#LDFLAGS += --gc-sections
+LDFLAGS += -Wl,--gc-sections
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += -static
 LDFLAGS += -Wl,--start-group 
