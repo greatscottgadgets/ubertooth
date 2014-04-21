@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'f':
-			fprintf(stderr, "ubertooth-util -f is no longer required - use ubertooth-dfu instead");
+			fprintf(stderr, "ubertooth-util -f is no longer required - use ubertooth-dfu instead\n");
 			do_flash= 0;
 			break;
 		case 'i':
