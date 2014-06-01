@@ -36,7 +36,8 @@
 enum board_ids {
 	BOARD_ID_UBERTOOTH_ZERO = 0,
 	BOARD_ID_UBERTOOTH_ONE  = 1,
-	BOARD_ID_TC13BADGE      = 2
+	BOARD_ID_TC13BADGE      = 2,
+	BOARD_ID_ARTICHOKE      = 3,
 };
 
 typedef void (*rx_callback)(void* args, usb_pkt_rx *rx, int bank);

@@ -43,7 +43,7 @@
 #----------------------------------------------------------------------------
 
 # set to UBERTOOTH_ZERO or UBERTOOTH_ONE
-BOARD  ?= UBERTOOTH_ONE
+BOARD  ?= ARTICHOKE
 
 UBERTOOTH_OPTS = -D$(BOARD)
 

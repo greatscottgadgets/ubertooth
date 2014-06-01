@@ -29,10 +29,10 @@ int main()
 		USRLED_SET;
 		TXLED_SET;
 		RXLED_SET;
-		wait(1);
+		wait(10);
 		USRLED_CLR;
 		TXLED_CLR;
 		RXLED_CLR;
-		wait(1);
+		wait(10);
 	}
 }

@@ -77,7 +77,7 @@ extern "C" {
 #ifdef UBERTOOTH_ZERO
 #define ENTRY_PIN (!(FIO2PIN & (1 << 7)))
 #endif
-#if defined UBERTOOTH_ONE || defined TC13BADGE
+#if defined UBERTOOTH_ONE || defined TC13BADGE || defined ARTICHOKE
 #define ENTRY_PIN (!(FIO0PIN & (1 << 22)))
 #endif
 

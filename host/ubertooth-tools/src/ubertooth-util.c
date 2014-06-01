@@ -20,6 +20,7 @@
  */
 
 #include "ubertooth.h"
+#include <errno.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -28,7 +29,8 @@
 const char* board_names[] = {
 	"Ubertooth Zero",
 	"Ubertooth One",
-	"ToorCon 13 Badge"
+	"ToorCon 13 Badge",
+	"Artichoke",
 };
 
 static void usage()
@@ -321,10 +323,33 @@ int main(int argc, char *argv[])
 		printf("Squelch set to %d\n", (int8_t)r);
 	}
 	if(do_something) {
-		unsigned char buf[4] = { 0x55, 0x55, 0x55, 0x55 };
-		cmd_do_something(devh, NULL, 0);
-		cmd_do_something_reply(devh, buf, 4);
-		printf("%02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3]);
+		int i;
+		unsigned char *bytes;
+		unsigned len;
+
+		if (optind == argc) {
+			printf("Error: please give me hex bytes\n");
+			return 1;
+		}
+
+		len = argc - optind;
+		bytes = malloc(len);
+
+		for (i = 0; i < len; ++i) {
+			errno = 0;
+			bytes[i] = strtoul(argv[optind+i], NULL, 16);
+			if (errno != 0) {
+				printf("Invalid hex byte: %s\n", argv[optind+i]);
+				return 1;
+			}
+		}
+
+		cmd_do_something(devh, bytes, len);
+		cmd_do_something_reply(devh, bytes, len);
+		for (i = 0; i < len; ++i)
+			printf("%02x ", bytes[i]);
+		printf("\n");
+		free(bytes);
 		return 0;
 	}
 

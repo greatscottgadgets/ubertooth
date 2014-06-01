@@ -35,7 +35,8 @@
 const char *board_names[] = {
     "Ubertooth Zero",
     "Ubertooth One",
-    "ToorCon 13 Badge"
+    "ToorCon 13 Badge",
+	"Artichoke",
 };
 
 static void usage()

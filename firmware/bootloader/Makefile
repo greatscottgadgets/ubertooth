@@ -44,7 +44,7 @@
 #----------------------------------------------------------------------------
 
 # set to UBERTOOTH_ZERO or UBERTOOTH_ONE
-BOARD  ?= UBERTOOTH_ONE
+BOARD  ?= ARTICHOKE
 
 # CPU architecture
 CPU = cortex-m3

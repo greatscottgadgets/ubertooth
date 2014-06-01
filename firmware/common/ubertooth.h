@@ -25,6 +25,7 @@
 #include "lpc17.h"
 #include "types.h"
 #include "cc2400.h"
+#include "adf7242.h"
 #include "ubertooth_interface.h"
 
 #define IAP_LOCATION 0x1FFF1FF1
@@ -52,6 +53,7 @@ enum operating_modes {
 #define BOARD_ID_UBERTOOTH_ZERO 0
 #define BOARD_ID_UBERTOOTH_ONE  1
 #define BOARD_ID_TC13BADGE      2
+#define BOARD_ID_ARTICHOKE      3
 
 #ifdef UBERTOOTH_ZERO
 #define BOARD_ID BOARD_ID_UBERTOOTH_ZERO
@@ -61,6 +63,9 @@ enum operating_modes {
 #endif
 #ifdef TC13BADGE
 #define BOARD_ID BOARD_ID_TC13BADGE
+#endif
+#ifdef ARTICHOKE
+#define BOARD_ID BOARD_ID_ARTICHOKE
 #endif
 
 /* GPIO pins */
@@ -123,6 +128,21 @@ enum operating_modes {
 #define PIN_R8C_ACK  (1 << 19) /* P1.19 connects to R8C's P0_0 */
 /* RX, TX, and BT/GR are fixed to ground on TC13BADGE */
 #endif
+#ifdef ARTICHOKE
+#define PIN_USRLED (1 << 1 ) /* P1.1  */
+#define PIN_RXLED  (1 << 4 ) /* P1.4  */
+#define PIN_TXLED  (1 << 8 ) /* P1.8  */
+#define PIN_VBUS   (1 << 30) /* P1.30 */
+#if 0
+#define PIN_RX     (1 << 15) /* P1.15 */
+#define PIN_TX     (1 << 29) /* P4.29 */
+#endif
+#define PIN_CSN    (1 << 2 ) /* P2.2  */
+#define PIN_SCLK   (1 << 0 ) /* P2.0  */
+#define PIN_MOSI   (1 << 1 ) /* P2.1  */
+#define PIN_MISO   (1 << 4 ) /* P2.4  */
+#define PIN_SSEL1  (1 << 28) /* P4.28 */
+#endif
 
 /* indicator LED control */
 #ifdef UBERTOOTH_ZERO
@@ -136,7 +156,7 @@ enum operating_modes {
 #define TXLED_SET  (FIO4SET = PIN_TXLED)
 #define TXLED_CLR  (FIO4CLR = PIN_TXLED)
 #endif
-#ifdef UBERTOOTH_ONE
+#if defined UBERTOOTH_ONE || defined ARTICHOKE
 #define USRLED     (FIO1PIN & PIN_USRLED)
 #define USRLED_SET (FIO1SET = PIN_USRLED)
 #define USRLED_CLR (FIO1CLR = PIN_USRLED)
@@ -177,7 +197,7 @@ enum operating_modes {
 #define DIO_SSEL_SET  (FIO2SET = PIN_SSEL0)
 #define DIO_SSEL_CLR  (FIO2CLR = PIN_SSEL0)
 #endif
-#if defined UBERTOOTH_ONE || defined TC13BADGE
+#if defined UBERTOOTH_ONE || defined TC13BADGE || defined ARTICHOKE
 #define DIO_SSEL_SET  (FIO4SET = PIN_SSEL1)
 #define DIO_SSEL_CLR  (FIO4CLR = PIN_SSEL1)
 #endif
@@ -187,7 +207,7 @@ enum operating_modes {
 #define CC1V8_SET  (FIO1SET = PIN_CC1V8)
 #define CC1V8_CLR  (FIO1CLR = PIN_CC1V8)
 
-/* CC2400 control */
+/* radio (CC2400/ADF7242) control */
 #ifdef UBERTOOTH_ZERO
 #define CC3V3_SET  (FIO1SET = PIN_CC3V3)
 #define CC3V3_CLR  (FIO1CLR = PIN_CC3V3)
@@ -242,6 +262,15 @@ enum operating_modes {
 #define GIO6_CLR   (FIO1CLR = PIN_GIO6)
 #define MISO       (FIO1PIN & PIN_MISO)
 #endif
+#ifdef ARTICHOKE
+#define CSN_SET    (FIO2SET = PIN_CSN)
+#define CSN_CLR    (FIO2CLR = PIN_CSN)
+#define SCLK_SET   (FIO2SET = PIN_SCLK)
+#define SCLK_CLR   (FIO2CLR = PIN_SCLK)
+#define MOSI_SET   (FIO2SET = PIN_MOSI)
+#define MOSI_CLR   (FIO2CLR = PIN_MOSI)
+#define MISO       (FIO2PIN & PIN_MISO)
+#endif
 
 /*
  * DIO_SSP is the SSP assigned to the CC2400's secondary ("un-buffered") serial
@@ -254,7 +283,7 @@ enum operating_modes {
 #define DIO_SSP_DMACR SSP0DMACR
 #define DIO_SSP_SRC   (1 << 1) /* for DMACCxConfig register */
 #endif
-#if defined UBERTOOTH_ONE || defined TC13BADGE
+#if defined UBERTOOTH_ONE || defined TC13BADGE || defined ARTICHOKE
 #define DIO_SSP_CR0   SSP1CR0
 #define DIO_SSP_CR1   SSP1CR1
 #define DIO_SSP_DR    SSP1DR
@@ -318,12 +347,13 @@ void ubertooth_init(void);
 void dio_ssp_init(void);
 void atest_init(void);
 void cc2400_init(void);
-u32 cc2400_spi(u8 len, u32 data);
+u32 radio_spi(u8 len, u32 data);
 u16 cc2400_get(u8 reg);
 void cc2400_set(u8 reg, u16 val);
 u8 cc2400_get8(u8 reg);
 void cc2400_set8(u8 reg, u8 val);
-void cc2400_spi_buf(u8 reg, u8 len, u8 *data);
+void radio_spi_buf(u8 reg, u8 len, u8 *data);
+void adf7242_spi_buf(u8 len, u8 *data);
 u8 cc2400_status(void);
 u8 cc2400_strobe(u8 reg);
 void cc2400_reset(void);
@@ -334,5 +364,11 @@ void cc2400_tune_rx(uint16_t channel);
 void cc2400_tune_tx(uint16_t channel);
 void cc2400_hop_rx(uint16_t channel);
 void cc2400_hop_tx(uint16_t channel);
+
+#ifdef ARTICHOKE
+void adf7242_init();
+u8 adf7242_spi(u8 cmd);
+u8 adf7242_status();
+#endif
 
 #endif /* __UBERTOOTH_H */

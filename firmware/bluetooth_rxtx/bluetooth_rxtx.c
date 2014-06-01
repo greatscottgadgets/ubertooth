@@ -29,6 +29,9 @@
 #include "bluetooth_le.h"
 #include "cc2400_rangetest.h"
 
+u8 spi[1024];
+u16 spi_len = 0;
+
 #define MIN(x,y)	((x)<(y)?(x):(y))
 #define MAX(x,y)	((x)>(y)?(x):(y))
 
@@ -295,16 +298,20 @@ static void cs_threshold_calc_and_set(void)
 static void cs_trigger_enable(void)
 {
 	cs_trigger = 0;
+#ifndef ARTICHOKE
 	ISER0 = ISER0_ISE_EINT3;
 	IO2IntClr = PIN_GIO6;      // Clear pending
 	IO2IntEnF |= PIN_GIO6;     // Enable port 2.2 falling (CS active low)
+#endif
 }
 
 static void cs_trigger_disable(void)
 {
+#ifndef ARTICHOKE
 	IO2IntEnF &= ~PIN_GIO6;    // Disable port 2.2 falling (CS active low)
 	IO2IntClr = PIN_GIO6;      // Clear pending
 	ICER0 = ICER0_ICE_EINT3;
+#endif
 	cs_trigger = 0;
 }
 
@@ -371,15 +378,19 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_GET_1V8:
+#ifndef ARTICHOKE
 		data[0] = (CC1V8) ? 1 : 0;
 		*data_len = 1;
+#endif
 		break;
 
 	case UBERTOOTH_SET_1V8:
+#ifndef ARTICHOKE
 		if (request_params[0])
 			CC1V8_SET;
 		else
 			CC1V8_CLR;
+#endif
 		break;
 
 	case UBERTOOTH_GET_PARTNUM:
@@ -671,14 +682,16 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 
 	case UBERTOOTH_DO_SOMETHING:
 		// do something! just don't commit anything here
+		memcpy(spi, data, *data_len);
+		spi_len = *data_len;
+		adf7242_spi_buf(spi_len, spi);
 		break;
 
 	case UBERTOOTH_DO_SOMETHING_REPLY:
 		// after you do something, tell me what you did!
 		// don't commit here please
-		data[0] = 0x13;
-		data[1] = 0x37;
-		*data_len = 2;
+		memcpy(data, spi, spi_len);
+		*data_len = spi_len;
 		break;
 
 	case UBERTOOTH_GET_CRC_VERIFY:
@@ -819,10 +832,12 @@ void TIMER0_IRQHandler()
 //static volatile u8 txledstate = 1;
 void EINT3_IRQHandler()
 {
+#ifndef ARTICHOKE
 	/* TODO - check specific source of shared interrupt */
 	IO2IntClr = PIN_GIO6;            // clear interrupt
 	cs_trigger = 1;                  // signal trigger
 	cs_timestamp = CLK100NS;         // time at trigger
+#endif
 }
 #endif // TC13BADGE
 
@@ -1178,6 +1193,7 @@ static void cc2400_rx_sync(u32 sync)
  */
 void le_transmit(u32 aa, u8 len, u8 *data)
 {
+#ifndef ARTICHOKE
 	unsigned i, j;
 	int bit;
 	u8 txbuf[64];
@@ -1255,7 +1271,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 		tx_len = len - i;
 		if (tx_len > 16)
 			tx_len = 16;
-		cc2400_spi_buf(FIFOREG, tx_len, txbuf + i);
+		radio_spi_buf(FIFOREG, tx_len, txbuf + i);
 	}
 
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
@@ -1270,6 +1286,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 
 	// reset GIO
 	cc2400_set(IOCFG, gio_save);
+#endif
 }
 
 /* TODO - return whether hop happened, or should caller have to keep

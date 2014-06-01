@@ -94,6 +94,13 @@ void gpio_init()
 	FIO3DIR = 0;
 	FIO4DIR = 0;
 #endif
+#ifdef ARTICHOKE
+	FIO0DIR = PIN_USRLED;
+	FIO1DIR = (PIN_USRLED | PIN_RXLED | PIN_TXLED);
+	FIO2DIR = (PIN_CSN | PIN_SCLK | PIN_MOSI);
+	FIO3DIR = 0;
+	// FIO4DIR = (PIN_RXLED | PIN_TXLED); FIXME SSEL1?
+#endif
 
 	/* set all outputs low */
 	FIO0PIN = 0;
@@ -151,7 +158,12 @@ void all_pins_off(void)
 void ubertooth_init()
 {
 	gpio_init();
+#if defined UBERTOOTH_ZERO || defined UBERTOOTH_ONE || defined TC13BADGE
 	cc2400_init();
+#endif
+#if defined ARTICHOKE
+	adf7242_init();
+#endif
 	clock_start();
 }
 
@@ -171,7 +183,7 @@ void dio_ssp_init()
 	/* set P1.18 as MOSI0 */
 	PINSEL1 = (PINSEL1 & ~(3 << 4)) | (2 << 4);
 #endif
-#if defined UBERTOOTH_ONE || defined TC13BADGE
+#if defined UBERTOOTH_ONE || defined TC13BADGE || defined ARTICHOKE
 	/* set P0.7 as SCK1 */
 	PINSEL0 = (PINSEL0 & ~(3 << 14)) | (2 << 14);
 
@@ -183,6 +195,8 @@ void dio_ssp_init()
 
 	/* set P0.9 as MOSI1 */
 	PINSEL0 = (PINSEL0 & ~(3 << 18)) | (2 << 18);
+#else
+#error Unknown board revision
 #endif
 
 	/*
@@ -214,6 +228,7 @@ void atest_init()
 	PINMODE1 &= ~(0x5 << 18); // no pull-up/pull-down
 }
 
+#if defined UBERTOOTH_ZERO || defined UBERTOOTH_ONE || defined TC13BADGE
 void cc2400_init()
 {
 #ifdef TC13BADGE
@@ -251,6 +266,29 @@ void cc2400_init()
 	/* initialise various cc2400 settings - see datasheet pg63 */
 	cc2400_set(MANAND,  0x7fff);
 }
+#endif
+
+#ifdef ARTICHOKE
+void adf7242_init()
+{
+	/* CSN (slave select) is active low */
+	CSN_SET;
+
+	adf7242_spi(RC_RESET);
+
+	wait_ms(2);
+
+	USRLED_SET;
+	RXLED_SET;
+	TXLED_SET;
+
+	while (!(adf7242_status() & SPI_READY));
+
+	// turn on LED when ready
+	TXLED_CLR;
+}
+
+#endif
 
 /*
  * This is a single SPI transaction of variable length, usually 8 or 24 bits.
@@ -265,7 +303,7 @@ void cc2400_init()
  * 3. The CC2400 needs CSN held low for the entire transaction which the
  *    LPC17xx SPI peripheral won't do without some workaround anyway.
  */
-u32 cc2400_spi(u8 len, u32 data)
+u32 radio_spi(u8 len, u32 data)
 {
 	u32 msb = 1 << (len - 1);
 
@@ -298,7 +336,7 @@ u16 cc2400_get(u8 reg)
 	u32 in;
 
 	u32 out = (reg | 0x80) << 16;
-	in = cc2400_spi(24, out);
+	in = radio_spi(24, out);
 	return in & 0xFFFF;
 }
 
@@ -306,7 +344,7 @@ u16 cc2400_get(u8 reg)
 void cc2400_set(u8 reg, u16 val)
 {
 	u32 out = (reg << 16) | val;
-	cc2400_spi(24, out);
+	radio_spi(24, out);
 }
 
 /* read 8 bit value from a register */
@@ -315,7 +353,7 @@ u8 cc2400_get8(u8 reg)
 	u16 in;
 
 	u16 out = (reg | 0x80) << 8;
-	in = cc2400_spi(16, out);
+	in = radio_spi(16, out);
 	return in & 0xFF;
 }
 
@@ -323,11 +361,11 @@ u8 cc2400_get8(u8 reg)
 void cc2400_set8(u8 reg, u8 val)
 {
 	u32 out = (reg << 8) | val;
-	cc2400_spi(16, out);
+	radio_spi(16, out);
 }
 
 /* write multiple bytes to SPI */
-void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
+void radio_spi_buf(u8 reg, u8 len, u8 *data)
 {
 	u8 msb = 1 << 7;
 	u8 i, j, temp;
@@ -368,16 +406,45 @@ void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
 	CSN_SET;
 }
 
+/* write multiple bytes to SPI */
+void adf7242_spi_buf(u8 len, u8 *data)
+{
+	u8 msb = 1 << 7;
+	u8 i, j;
+
+	/* start transaction by dropping CSN */
+	CSN_CLR;
+
+	for (i = 0; i < len; ++i) {
+		for (j = 0; j < 8; ++j) {
+			if (data[i] & msb)
+				MOSI_SET;
+			else
+				MOSI_CLR;
+			data[i] <<= 1;
+
+			SCLK_SET;
+			if (MISO)
+				data[i] |= 1;
+
+			SCLK_CLR;
+		}
+	}
+
+	/* end transaction by raising CSN */
+	CSN_SET;
+}
+
 /* get the status */
 u8 cc2400_status()
 {
-	return cc2400_spi(8, 0);
+	return radio_spi(8, 0);
 }
 
 /* strobe register, return status */
 u8 cc2400_strobe(u8 reg)
 {
-	return cc2400_spi(8, reg);
+	return radio_spi(8, reg);
 }
 
 /*
@@ -391,6 +458,17 @@ void cc2400_reset()
 	cc2400_set(MAIN, 0x8000);
 	while (cc2400_get(MAIN) != 0x8000);
 }
+
+#ifdef ARTICHOKE
+u8 adf7242_spi(u8 cmd) {
+	return radio_spi(8, cmd);
+}
+
+u8 adf7242_status()
+{
+	return radio_spi(8, SPI_NOP);
+}
+#endif
 
 /* activate the CC2400's 16 MHz oscillator and sync LPC175x to it */
 void clock_start()
@@ -414,11 +492,13 @@ void clock_start()
 	/* temporarily set CPU clock divider to 1 */
 	CCLKCFG = 0;
 
+#if defined UBERTOOTH_ZERO || defined UBERTOOTH_ONE || defined TC13BADGE
 	/* configure CC2400 oscillator, output carrier sense on GIO6 */
 	cc2400_reset();
 	cc2400_set(IOCFG, (GIO_CARRIER_SENSE_N << 9) | (GIO_CLK_16M << 3));
 	cc2400_strobe(SXOSCON);
 	while (!(cc2400_status() & XOSC16M_STABLE));
+#endif
 
 	/* activate main oscillator */
 	SCS = SCS_OSCEN;
