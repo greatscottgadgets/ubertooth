@@ -107,7 +107,7 @@ than git if you prefer.</p>
 host/bluetooth_rxtx directory to compile the tools there. Then make sure your
 Ubertooth One is plugged in and execute:</p>
 
-<code>$ ./ubertooth-lap</code>
+<code>$ ubertooth-rx</code>
 
 <p>You should see various random LAPs detected. Due to uncertainties in
 identifying Bluetooth packets without prior knowledge of an address, it is
@@ -122,6 +122,20 @@ phone or other Bluetooth device to perform an inquiry (usually called
 everything is working properly. An inquiry should produce lots of packets with
 the LAP 0x9e8b33.</p>
 
+<p>Once you have seen a LAP multiple times, you can be confident that it is a
+genuine Bluetooth piconet. To find the next byte of the address, the UAP, we
+can use:</p>
+
+<code>$ ubertooth-rx -l [LAP]</code>
+
+<p>In this mode ubertooth-rx only detects packets from the given piconet and
+uses them to determine the next byte of the address and some of the internal
+clock value.</p>
+
+<p>For more information on this process, and the challenges involved in 
+monitoring Bluetooth connections, please read this 
+<a href="http://ubertooth.blogspot.co.uk/2013/02/motivating-problem.html">blog 
+post</a>
 <h2>Kismet</h2>
 
 <img src="../../images/kismet.png" alt="Kismet-Ubertooth screenshot" />
