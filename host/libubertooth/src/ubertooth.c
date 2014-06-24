@@ -193,16 +193,14 @@ static void cb_xfer(struct libusb_transfer *xfer)
 	uint8_t *tmp;
 
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
-		rx_xfer_status(xfer->status);
+		if(xfer->status != LIBUSB_TRANSFER_CANCELLED)
+			rx_xfer_status(xfer->status);
 		libusb_free_transfer(xfer);
 		rx_xfer = NULL;
 		return;
 	}
 
 	while (really_full) {
-		/* If we've been killed, the buffer will never get emptied */
-		if(stop_ubertooth)
-			return;
 		fprintf(stderr, "uh oh, full_buf not emptied\n");
 	}
 
@@ -210,7 +208,6 @@ static void cb_xfer(struct libusb_transfer *xfer)
 	full_buf = empty_buf;
 	empty_buf = tmp;
 	really_full = 1;
-
 	rx_xfer->buffer = empty_buf;
 
 	while (usb_retry) {
@@ -771,8 +768,9 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
-	/* FIXME make sure xfers are not active */
-	libusb_free_transfer(rx_xfer);
+	/* make sure xfers are not active */
+	libusb_cancel_transfer(rx_xfer);
+	cmd_stop(devh);
 	if (devh != NULL)
 		libusb_release_interface(devh, 0);
 	libusb_close(devh);
