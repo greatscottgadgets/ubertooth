@@ -769,10 +769,12 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 void ubertooth_stop(struct libusb_device_handle *devh)
 {
 	/* make sure xfers are not active */
-	libusb_cancel_transfer(rx_xfer);
-	cmd_stop(devh);
-	if (devh != NULL)
+	if(rx_xfer != NULL)
+		libusb_cancel_transfer(rx_xfer);
+	if (devh != NULL) {
+		cmd_stop(devh);
 		libusb_release_interface(devh, 0);
+	}
 	libusb_close(devh);
 	libusb_exit(NULL);
 }
