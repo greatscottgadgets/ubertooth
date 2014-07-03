@@ -72,8 +72,8 @@ u32 idle_buf_clkn_high;
 u32 active_buf_clkn_high;
 u32 idle_buf_clk100ns;
 u32 active_buf_clk100ns;
-u32 idle_buf_channel = 0;
-u32 active_buf_channel = 0;
+u16 idle_buf_channel = 0;
+u16 active_buf_channel = 0;
 u8 slave_mac_address[6] = { 0, };
 
 /* DMA buffers */
@@ -1512,8 +1512,7 @@ void bt_follow()
 		 * happened before the loop started. */
 		rssi_reset();
 		rssi_at_trigger = INT8_MIN;
-		while ((rx_tc == 0) && (rx_err == 0))
-		{
+		while ((rx_tc == 0) && (rx_err == 0)) {
 			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
 			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
 				rssi = MAX(rssi,(cs_threshold_cur+54));

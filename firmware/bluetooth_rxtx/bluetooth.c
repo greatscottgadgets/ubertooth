@@ -128,7 +128,7 @@ u16 next_hop(u32 clock)
 	u16 d, y2;
 	u32 base_f, f, f_dash;
 
-	clock &= 0xfffffffc;
+	clock &= 0xffffffff;
 	/* Variable names used in Vol 2, Part B, Section 2.6 of the spec */
 	x = (clock >> 2) & 0x1f;
 	y1 = (clock >> 1) & 0x01;
