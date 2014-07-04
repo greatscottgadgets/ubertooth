@@ -20,7 +20,7 @@
  */
 
 #include <string.h>
-
+#include <btbb.h>
 #include "ubertooth_control.h"
 
 void show_libusb_error(int error_code)

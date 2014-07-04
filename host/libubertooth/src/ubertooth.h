@@ -41,6 +41,10 @@ enum board_ids {
 
 typedef void (*rx_callback)(void* args, usb_pkt_rx *rx, int bank);
 
+typedef struct {
+	unsigned allowed_access_address_errors;
+} btle_options;
+
 struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
@@ -57,4 +61,11 @@ void rx_dump(struct libusb_device_handle* devh, int full);
 void rx_btle(struct libusb_device_handle* devh);
 void rx_btle_file(FILE* fp);
 void cb_btle(void* args, usb_pkt_rx *rx, int bank);
+
+#if defined(USE_PCAP)
+extern btbb_pcap_handle * h_pcap_bredr;
+extern lell_pcap_handle * h_pcap_le;
+#endif
+extern btbb_pcapng_handle * h_pcapng_bredr;
+extern lell_pcapng_handle * h_pcapng_le;
 #endif /* __UBERTOOTH_H__ */
