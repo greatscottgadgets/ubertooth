@@ -26,6 +26,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "ubertooth.h"
 #include <btbb.h>
@@ -34,6 +35,8 @@
 extern int max_ac_errors;
 extern btbb_piconet *follow_pn;
 extern FILE *dumpfile;
+
+struct libusb_device_handle *devh = NULL;
 
 static void usage()
 {
@@ -52,6 +55,15 @@ static void usage()
 //	printf("If an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
+void cleanup(int sig)
+{
+	sig = sig;
+	if (devh) {
+		ubertooth_stop(devh);
+	}
+	exit(0);
+}
+
 int main(int argc, char *argv[])
 {
 	int opt, sock, dev_id, lap = 0, uap = 0, delay = 5;
@@ -62,7 +74,6 @@ int main(int argc, char *argv[])
 	char *end, ubertooth_device = -1;
 	char *bt_dev = "hci0";
     char addr[19] = { 0 };
-	struct libusb_device_handle *devh = NULL;
 	uint32_t clock;
 	uint16_t accuracy, handle, offset;
 	bdaddr_t bdaddr;
@@ -187,6 +198,11 @@ int main(int argc, char *argv[])
 			return 1;
 	}
 
+	/* Clean up on exit. */
+	signal(SIGINT,cleanup);
+	signal(SIGQUIT,cleanup);
+	signal(SIGTERM,cleanup);
+	
 	devh = ubertooth_start(ubertooth_device);
 	if (devh == NULL) {
 		usage();
