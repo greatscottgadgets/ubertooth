@@ -262,7 +262,7 @@ static int enqueue(u8 *buf)
 	/* Avoid gcc warning about strict-aliasing */
 	u16 *p3 = (u16 *)f->data;
 	u16 *p4 = (u16 *)buf;
-	p3[48] = p4[48];
+	p3[24] = p4[24];
 
 	f->status = status;
 	status = 0;
