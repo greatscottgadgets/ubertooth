@@ -610,6 +610,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		clkn += clock_offset;
 		hop_mode = HOP_BLUETOOTH;
 		requested_mode = MODE_BT_FOLLOW;
+		precalc();
 		break;
 
 	case UBERTOOTH_SET_CLOCK:
