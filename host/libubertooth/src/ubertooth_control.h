@@ -26,6 +26,8 @@
 
 #if defined __MACH__
 #include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
 #define htobe32 EndianU32_NtoB
 #define be32toh EndianU32_BtoN
 #define le32toh EndianU32_LtoN
