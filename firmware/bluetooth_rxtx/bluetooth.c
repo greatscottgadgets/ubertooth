@@ -39,7 +39,7 @@ uint8_t count_bits(uint64_t n)
 }
 
 /* do all of the one time precalculation */
-void precalc()
+void precalc(void)
 {
 	u8 i, j, chan;
 	u32 address;
