@@ -17,10 +17,10 @@ VERSION := $(shell dpkg-parsechangelog | sed -n 's/^Version: \(.*\)-.*/\1/p')
 	dh $@ --buildsystem cmake
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DCMAKE_INSTALL_LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
+	dh_auto_configure -- -DDISABLE_PYTHON=ON -DCMAKE_INSTALL_LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
 
 override_dh_install:
 	dh_install
 	# check all necessary headers are included
-	$(CC) -c debian/header-check.c -Idebian/ubertooth-dev/usr/include -o /dev/null
+	$(CC) -c debian/header-check.c -Idebian/ubertooth-dev/usr/include `pkg-config --cflags libusb-1.0` -o /dev/null
 
