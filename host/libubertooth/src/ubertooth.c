@@ -568,6 +568,7 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
 	 * i.e. This cannot be rolled in to the above if...else
 	 */
 	if (follow_pn) {
+		cmd_stop(devh);
 		cmd_set_bdaddr(devh, btbb_piconet_get_bdaddr(follow_pn));
 		cmd_start_hopping(devh, btbb_piconet_get_clk_offset(follow_pn));
 		stream_rx_usb(devh, XFER_LEN, 0, cb_br_rx, follow_pn);
