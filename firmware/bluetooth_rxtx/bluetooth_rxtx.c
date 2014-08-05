@@ -96,6 +96,7 @@ le_state_t le = {
 	.crc_verify = 1,
 	.connected = 0,
 	.target_set = 0,
+	.last_packet = 0,
 };
 
 typedef void (*data_cb_t)(char *);
@@ -123,6 +124,7 @@ volatile u8 requested_mode = MODE_IDLE;
 volatile u8 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
 volatile u16 requested_channel = 0;
+volatile u16 saved_request = 0;
 volatile u16 low_freq = 2400;
 volatile u16 high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
@@ -1604,6 +1606,7 @@ void reset_le() {
 	le.crc_verify = 1;
 	le.connected = 0;
 	le.target_set = 0;
+	le.last_packet = 0;
 
 	le_hop_after = 0;
 	do_hop = 0;
@@ -1794,6 +1797,7 @@ void bt_le_sync(u8 active_mode)
 			/* RX mode */
 			cc2400_strobe(SRX);
 
+			saved_request = requested_channel;
 			requested_channel = 0;
 		}
 
@@ -1869,6 +1873,7 @@ void bt_le_sync(u8 active_mode)
 
 		RXLED_SET;
 		packet_cb((uint8_t *)packet);
+		le.last_packet = CLK100NS;
 
 	rx_flush:
 		cc2400_strobe(SFSON);
@@ -1878,6 +1883,22 @@ void bt_le_sync(u8 active_mode)
 		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
 		while (SSP1SR & SSPSR_RNE) {
 			u8 tmp = (u8)DIO_SSP_DR;
+		}
+
+		// timeout - FIXME this is an ugly hack
+		if (le.connected && (CLK100NS - le.last_packet) > 50000000) {
+			reset_le();
+
+			cc2400_strobe(SRFOFF);
+			while ((cc2400_status() & FS_LOCK));
+
+			/* Retune */
+			channel = saved_request != 0 ? saved_request : 2402;
+			cc2400_set(FSDIV, channel - 1);
+
+			/* Wait for lock */
+			cc2400_strobe(SFSON);
+			while (!(cc2400_status() & FS_LOCK));
 		}
 
 		cc2400_set(SYNCL, le.syncl);

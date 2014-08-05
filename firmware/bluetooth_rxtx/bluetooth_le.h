@@ -39,6 +39,7 @@ typedef struct _le_state_t {
 
     u8 target[6];               // target MAC for connection following (byte order reversed)
     int target_set;             // whether a target has been set (default: false)
+    u32 last_packet;            // when was the last packet received
 } le_state_t;
 
 static const u8 advertising_channels[] = {0, 12, 39};
