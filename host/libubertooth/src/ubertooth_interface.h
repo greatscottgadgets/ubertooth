@@ -77,11 +77,12 @@ enum ubertooth_usb_commands {
     UBERTOOTH_POLL            = 49,
     UBERTOOTH_BTLE_PROMISC    = 50,
     UBERTOOTH_SET_AFHMAP      = 51,
-	UBERTOOTH_CLEAR_AFHMAP    = 52,
+    UBERTOOTH_CLEAR_AFHMAP    = 52,
     UBERTOOTH_READ_REGISTER   = 53,
     UBERTOOTH_BTLE_SLAVE      = 54,
     UBERTOOTH_GET_COMPILE_INFO = 55,
     UBERTOOTH_BTLE_SET_TARGET = 56,
+    UBERTOOTH_BTLE_PHY        = 57,
 };
 
 enum modulations {
