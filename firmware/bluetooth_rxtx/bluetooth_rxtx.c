@@ -1846,9 +1846,14 @@ void bt_le_sync(u8 active_mode)
 
 		// transfer the minimum number of bytes from the CC2400
 		// this allows us enough time to resume RX for subsequent packets on the same channel
-		unsigned total_transfers = (len + 3 - 1) / 4 + 1;
-		while (rx_tc < total_transfers && rx_err == 0)
-			;
+		unsigned total_transfers = ((len + 3) + 4 - 1) / 4;
+		if (total_transfers < 11) {
+			while (DMACC0DestAddr < (uint32_t)rxbuf1 + 4 * total_transfers && rx_err == 0)
+				;
+		} else { // max transfers? just wait till DMA's done
+			while (DMACC0Config & DMACCxConfig_E && rx_err == 0)
+				;
+		}
 		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
 
 		// unwhiten the rest of the packet
