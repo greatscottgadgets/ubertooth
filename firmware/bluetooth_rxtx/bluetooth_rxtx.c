@@ -31,6 +31,7 @@
 
 #define MIN(x,y)	((x)<(y)?(x):(y))
 #define MAX(x,y)	((x)>(y)?(x):(y))
+#define ARRAY_SIZE(x)	(sizeof(x)/sizeof(x[0]))
 
 /* build info */
 const char compile_info[] =
@@ -140,7 +141,8 @@ typedef struct {
 dma_lli rx_dma_lli1;
 dma_lli rx_dma_lli2;
 
-dma_lli le_dma_lli[11]; // 11 x 4 bytes
+/* We round down or else we would overflow the destination buffer (rxbuf1) */
+dma_lli le_dma_lli[DMA_SIZE/4];
 
 /* rx terminal count and error interrupt counters */
 volatile u32 rx_tc;
@@ -906,7 +908,7 @@ static void dma_init()
 
 static void dma_init_le()
 {
-	int i;
+	unsigned i;
 
 	/* power up GPDMA controller */
 	PCONP |= PCONP_PCGPDMA;
@@ -927,10 +929,10 @@ static void dma_init_le()
 	DMACConfig = DMACConfig_E;
 	while (!(DMACConfig & DMACConfig_E));
 
-	for (i = 0; i < 11; ++i) {
+	for (i = 0; i < ARRAY_SIZE(le_dma_lli); ++i) {
 		le_dma_lli[i].src = (u32)&(DIO_SSP_DR);
 		le_dma_lli[i].dest = (u32)&rxbuf1[4 * i];
-		le_dma_lli[i].next_lli = i < 10 ? (u32)&le_dma_lli[i+1] : 0;
+		le_dma_lli[i].next_lli = i < ARRAY_SIZE(le_dma_lli) - 1 ? (u32)&le_dma_lli[i+1] : 0;
 		le_dma_lli[i].control = 4 |
 				(1 << 12) |        /* source burst size = 4 */
 				(0 << 15) |        /* destination burst size = 1 */
