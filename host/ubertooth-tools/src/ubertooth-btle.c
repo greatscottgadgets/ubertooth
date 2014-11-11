@@ -96,7 +96,7 @@ static void usage(void)
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
-        printf("\t-x<n> allow n access address offenses (default 32)\n");
+	printf("\t-x<n> allow n access address offenses (default 32)\n");
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 			break;
-                case 'x':
+		case 'x':
 			cb_opts.allowed_access_address_errors = (unsigned) atoi(optarg);
 			if (cb_opts.allowed_access_address_errors > 32) {
 				printf("Error: can tolerate 0-32 access address bit errors\n");

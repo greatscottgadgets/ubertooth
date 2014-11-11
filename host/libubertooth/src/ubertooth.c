@@ -524,6 +524,7 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 				   sizeof(usb_pkt_rx), 1, dumpfile)
 			    != 1) {;}
 		}
+		fflush(dumpfile);
 	}
 
 	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
@@ -618,6 +619,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 		uint32_t systime_be = htobe32(systime);
 		if (fwrite(&systime_be, sizeof(systime_be), 1, dumpfile) != 1) {;}
 		if (fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile) != 1) {;}
+		fflush(dumpfile);
 	}
 
 	lell_allocate_and_decode(rx->data, rx->channel + 2402, rx->clk100ns, &pkt);
@@ -717,6 +719,7 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 	} else {
 		if (fwrite(&time_be, 1, sizeof(time_be), dumpfile) != 1) {;}
 		if (fwrite(buf, sizeof(u8), PKT_LEN, dumpfile) != 1) {;}
+		fflush(dumpfile);
 	}
 }
 
