@@ -55,7 +55,7 @@ include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
 # Conditional libpcap support
-find_package(PCAP)
+#find_package(PCAP)
 if( ${PCAP_FOUND} )
 	include_directories(${PCAP_INCLUDE_DIRS})
 	LIST(APPEND LIBUBERTOOTH_LIBS ${PCAP_LIBRARIES})
@@ -85,3 +85,30 @@ if( ${WIN32} )
            COMPONENT headers
            )
 endif( ${WIN32} )
+
+# Update version.h
+# automatic git version when working out of git
+execute_process(COMMAND git log --pretty=format:%h -n 1
+                OUTPUT_VARIABLE GIT_VERSION)
+				
+MESSAGE(STATUS "Git version set to ${GIT_VERSION}")
+
+execute_process(COMMAND git status -s --untracked-files=no | grep modified
+                RESULT_VARIABLE DIRTY)
+
+if( ${DIRTY} EQUAL "0" )
+	MESSAGE(STATUS "Modifications found since last commit")
+	set(DIRTY_FLAG "*")
+endif( ${DIRTY} EQUAL "0" )
+
+
+set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
+set(RELEASE git-${GIT_VERSION}${DIRTY_FLAG})
+
+CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version/version.h
+@ONLY)
+
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/version/)

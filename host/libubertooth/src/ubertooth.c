@@ -29,6 +29,7 @@
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
+#include "version.h"
 
 /* this stuff should probably be in a struct managed by the calling program */
 static usb_pkt_rx usb_packets[NUM_BANKS];
@@ -57,6 +58,9 @@ lell_pcap_handle * h_pcap_le = NULL;
 btbb_pcapng_handle * h_pcapng_bredr = NULL;
 lell_pcapng_handle * h_pcapng_le = NULL;
 
+void print_version() {
+	printf("libUbertooth version: %s, release: %s\n", VERSION, RELEASE);
+}
 void stop_transfers(int sig) {
 	sig = sig; // Unused parameter
 	stop_ubertooth = 1;

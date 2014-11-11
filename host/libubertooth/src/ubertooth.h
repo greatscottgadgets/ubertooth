@@ -45,6 +45,7 @@ typedef struct {
 	unsigned allowed_access_address_errors;
 } btle_options;
 
+void print_version();
 struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,

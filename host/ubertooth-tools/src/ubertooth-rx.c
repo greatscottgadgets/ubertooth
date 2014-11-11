@@ -36,6 +36,7 @@ static void usage()
 	printf("ubertooth-rx - passive Bluetooth discovery/decode\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
+	printf("\t-V print version information\n");
 	printf("\t-i filename\n");
 	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
 	uint32_t lap = 0;
 	uint8_t uap = 0;
 
-	while ((opt=getopt(argc,argv,"hi:l:u:U:d:e:r:sq:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -125,6 +126,9 @@ int main(int argc, char *argv[])
 		case 's':
 			++reset_scan;
 			break;
+		case 'V':
+			print_version();
+			return 0;
 		case 'h':
 		default:
 			usage();
