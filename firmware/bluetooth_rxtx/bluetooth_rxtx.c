@@ -1077,6 +1077,7 @@ static void cc2400_rx()
 		return;
 	}
 
+	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x134b); // without PRNG
 	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
