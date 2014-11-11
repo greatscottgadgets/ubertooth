@@ -174,30 +174,32 @@ int main(int argc, char *argv[])
 			perror("Reading clock offset failed");
 		}
 		clock += offset;
-
-		//Experimental AFH map reading from remote device
-		if(afh_enabled) {
-			if(hci_read_afh_map(sock, handle, &mode, afh_map, 1000) < 0) {
-				perror("HCI read AFH map request failed");
-				//exit(1);
-			}
-			if(mode == 0x01) {
-				btbb_piconet_set_afh_map(pn, afh_map);
-				btbb_print_afh_map(pn);
-			} else {
-				printf("AFH disabled.\n");
-				afh_enabled = 0;
-			}
-		}
-		if (cc) {
-			usleep(10000);
-			hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-		}
 	} else {
 			usage();
 			return 1;
 	}
-
+	
+	//Experimental AFH map reading from remote device
+	if(afh_enabled) {
+		if(hci_read_afh_map(sock, handle, &mode, afh_map, 1000) < 0) {
+			perror("HCI read AFH map request failed");
+			//exit(1);
+		}
+		if(mode == 0x01) {
+			btbb_piconet_set_afh_map(pn, afh_map);
+			btbb_print_afh_map(pn);
+		} else {
+			printf("AFH disabled.\n");
+			afh_enabled = 0;
+		}
+	} else {
+		printf("Not use AFH\n");
+	}
+	if (cc) {
+		usleep(10000);
+		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+	}
+	
 	/* Clean up on exit. */
 	signal(SIGINT,cleanup);
 	signal(SIGQUIT,cleanup);
@@ -208,6 +210,7 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+	cmd_set_bdaddr(devh, btbb_piconet_get_bdaddr(pn));
 	if(afh_enabled)
 		cmd_set_afh_map(devh, afh_map);
 	btbb_piconet_set_clk_offset(pn, clock+delay);
