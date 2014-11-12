@@ -605,6 +605,35 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	UNUSED(bank);
 
+	// display LE promiscuous mode state changes
+	if (rx->pkt_type == LE_PROMISC) {
+		u8 state = rx->data[0];
+		void *val = &rx->data[1];
+
+		printf("--------------------\n");
+		printf("LE Promisc - ");
+		switch (state) {
+			case 0:
+				printf("Access Address: %08x\n", *(uint32_t *)val);
+				break;
+			case 1:
+				printf("CRC Init: %06x\n", *(uint32_t *)val);
+				break;
+			case 2:
+				printf("Hop interval: %g ms\n", *(uint16_t *)val * 1.25);
+				break;
+			case 3:
+				printf("Hop increment: %u\n", *(uint8_t *)val);
+				break;
+			default:
+				printf("Unknown %u\n", state);
+				break;
+		};
+		printf("\n");
+
+		return;
+	}
+
 	uint64_t nowns = now_ns_from_clk100ns( rx );
 
 	/* Sanity check */
