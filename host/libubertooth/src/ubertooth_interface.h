@@ -96,6 +96,7 @@ enum usb_pkt_types {
 	LE_PACKET  = 1,
 	MESSAGE    = 2,
 	KEEP_ALIVE = 3,
+	SPECAN     = 4,
 };
 
 /*

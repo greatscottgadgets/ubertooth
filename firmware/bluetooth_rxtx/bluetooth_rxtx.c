@@ -222,7 +222,7 @@ static void cs_threshold_set(int8_t level, u8 samples)
 	cs_no_squelch = (level <= -120);
 }
 
-static int enqueue(u8 *buf)
+static int enqueue(u8 type, u8 *buf)
 {
 	usb_pkt_rx *f = usb_enqueue();
 
@@ -232,7 +232,7 @@ static int enqueue(u8 *buf)
 		return 0;
 	}
 
-	f->pkt_type = BR_PACKET;
+	f->pkt_type = type;
 	f->clkn_high = idle_buf_clkn_high;
 	f->clk100ns = idle_buf_clk100ns;
 	f->channel = idle_buf_channel - 2402;
@@ -1439,14 +1439,14 @@ void bt_stream_rx()
 		switch (hop_mode) {
 			case HOP_BLUETOOTH:
 				//if (find_access_code(idle_rxbuf) >= 0)
-						if (enqueue(idle_rxbuf)) {
+						if (enqueue(BR_PACKET, idle_rxbuf)) {
 								RXLED_SET;
 								--rx_pkts;
 						}
 				break;
 
 			default:
-				if (enqueue(idle_rxbuf)) {
+				if (enqueue(BR_PACKET, idle_rxbuf)) {
 						RXLED_SET;
 						--rx_pkts;
 				}
@@ -1577,7 +1577,7 @@ void bt_follow()
 		/* Queue data from DMA buffer. */
 		//if ((packet_offset = find_access_code(idle_rxbuf)) >= 0) {
 		//	clock_trim = 20 - packet_offset;
-			if (enqueue(idle_rxbuf)) {
+			if (enqueue(BR_PACKET, idle_rxbuf)) {
 				RXLED_SET;
 				--rx_pkts;
 			}
@@ -1875,7 +1875,7 @@ void bt_le_sync(u8 active_mode)
 				goto rx_flush;
 		}
 
-		enqueue((uint8_t *)packet);
+		enqueue(LE_PACKET, (uint8_t *)packet);
 
 		RXLED_SET;
 		packet_cb((uint8_t *)packet);
@@ -1979,7 +1979,7 @@ void cb_follow_le() {
 			}
 
 			// send to PC
-			enqueue(idle_rxbuf);
+			enqueue(LE_PACKET, idle_rxbuf);
 			RXLED_SET;
 			--rx_pkts;
 
@@ -2248,7 +2248,7 @@ void cb_le_promisc(char *unpacked) {
 				 (idle_rxbuf[0]);
 		see_aa(aa);
 
-		enqueue(idle_rxbuf);
+		enqueue(LE_PACKET, idle_rxbuf);
 
 	}
 
@@ -2351,8 +2351,7 @@ void specan()
 			buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
 			i++;
 			if (i == 16) {
-				//FIXME ought to use different packet type
-				enqueue(buf);
+				enqueue(SPECAN, buf);
 				i = 0;
 
 				handle_usb(clkn);
