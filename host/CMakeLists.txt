@@ -28,14 +28,34 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 set(INSTALL_DEFAULT_BINDIR "bin" CACHE STRING "Appended to CMAKE_INSTALL_PREFIX")
 
+# automatic git version when working out of git
+execute_process(COMMAND git log --pretty=format:%h -n 1
+                OUTPUT_VARIABLE GIT_VERSION)
+
+MESSAGE(STATUS "Git version set to ${GIT_VERSION}")
+
+execute_process(COMMAND git status -s --untracked-files=no | grep modified
+                RESULT_VARIABLE DIRTY)
+
+if( ${DIRTY} EQUAL "0" )
+	MESSAGE(STATUS "Modifications found since last commit")
+	set(DIRTY_FLAG "*")
+endif( ${DIRTY} EQUAL "0" )
+
+set( VERSION ${MAJOR_VERSION}.${MINOR_VERSION} )
+set( RELEASE git-${GIT_VERSION}${DIRTY_FLAG} )
+
+add_definitions( -DVERSION="${VERSION}" )
+add_definitions( -DRELEASE="${RELEASE}" )
+
+# Comment the following out for releases.
+set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
+
 add_subdirectory(libubertooth)
 add_subdirectory(ubertooth-tools)
 if(NOT DISABLE_PYTHON)
 	add_subdirectory(python)
 endif()
-
-# Comment the following out for releases.
-set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
 
 # Create uninstall target
 configure_file(
