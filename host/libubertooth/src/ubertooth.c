@@ -29,6 +29,14 @@
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
+#include "version.h"
+
+#ifndef RELEASE
+#define RELEASE "unknown"
+#endif
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
 
 /* this stuff should probably be in a struct managed by the calling program */
 static usb_pkt_rx usb_packets[NUM_BANKS];
