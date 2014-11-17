@@ -2096,7 +2096,7 @@ void promisc_recover_hop_increment(u8 *packet) {
 			do_hop = 0;
 
 			// move on to regular connection following!
-			le.channel_idx = (1 + le.hop_interval) % 37;
+			le.channel_idx = (1 + le.hop_increment) % 37;
 			le.connected = 1;
 			le.crc_verify = 0;
 			hop_mode = HOP_BTLE;
