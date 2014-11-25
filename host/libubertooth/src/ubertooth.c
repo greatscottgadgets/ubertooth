@@ -498,20 +498,6 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
 			   rx->channel, clkn);
 
-	/* Dump to PCAP/PCAPNG if specified */
-#if defined(USE_PCAP)
-        if (h_pcap_bredr) {
-		btbb_pcap_append_packet(h_pcap_bredr, nowns,
-					signal_level, noise_level,
-					lap, uap, pkt);
-        }
-#endif
-	if (h_pcapng_bredr) {
-		btbb_pcapng_append_packet(h_pcapng_bredr, nowns, 
-					  signal_level, noise_level,
-					  lap, uap, pkt);
-	}
-
 	/* When reading from file, caller will read
 	 * systime before calling this routine, so do
 	 * not overwrite. Otherwise, get current time. */
@@ -547,6 +533,21 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	       snr);
 
 	i = btbb_process_packet(pkt, pn);
+
+	/* Dump to PCAP/PCAPNG if specified */
+#if defined(USE_PCAP)
+	if (h_pcap_bredr) {
+		btbb_pcap_append_packet(h_pcap_bredr, nowns,
+					signal_level, noise_level,
+					lap, uap, pkt);
+	}
+#endif
+	if (h_pcapng_bredr) {
+		btbb_pcapng_append_packet(h_pcapng_bredr, nowns, 
+					signal_level, noise_level,
+					lap, uap, pkt);
+	}
+	
 	if(i < 0) {
 		follow_pn = pn;
 		stop_ubertooth = 1;
