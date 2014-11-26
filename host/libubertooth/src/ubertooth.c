@@ -485,6 +485,9 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	if (offset < 0)
 		goto out;
 
+	btbb_packet_set_modulation(pkt, BTBB_MOD_GFSK);
+	btbb_packet_set_transport(pkt, BTBB_TRANSPORT_ANY);
+
 	/* Copy out remaining banks of symbols for full analysis. */
 	for (i = 1; i < NUM_BANKS; i++)
 		memcpy(syms + i * BANK_LEN,
