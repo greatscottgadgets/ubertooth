@@ -115,8 +115,17 @@ typedef struct {
 #define DESC_HID_REPORT			0x22
 #define DESC_HID_PHYSICAL		0x23
 
+#define DESC_STRING_OS			0xEE
+
+#define DESC_EXT_OS_FEATURES	4
+#define DESC_EXT_OS_PROPERTIES	5
+
+
 #define GET_DESC_TYPE(x)		(((x)>>8)&0xFF)
 #define GET_DESC_INDEX(x)		((x)&0xFF)
+
+#define GET_OS_DESC_PAGE(x)		(((x)>>8)&0xFF)
+#define GET_OS_DESC_INTERFACE(x)	((x)&0xFF)
 
 #endif /* _USBSTRUCT_H_ */
 

@@ -70,6 +70,12 @@ static TFnHandleRequest *apfnReqHandlers[4] = {NULL, NULL, NULL, NULL};
 /** Array of installed request data pointers */
 static U8				*apbDataStore[4] = {NULL, NULL, NULL, NULL};
 
+
+/** Internal function filtering Vendor requests to handle OS Descriptors */
+BOOL USBFilterOsVendorMessage(TSetupPacket *pSetup, BOOL *pfSuccess, int *piLen, U8 **ppbData);
+
+
+
 /**
 	Local function to handle a request by calling one of the installed
 	request handlers.
@@ -90,6 +96,14 @@ static BOOL _HandleRequest(TSetupPacket *pSetup, int *piLen, U8 **ppbData)
 	int iType;
 	
 	iType = REQTYPE_GET_TYPE(pSetup->bmRequestType);
+	
+	if(iType == REQTYPE_TYPE_VENDOR) {
+		BOOL fFilterStatus = FALSE;
+		if(USBFilterOsVendorMessage(pSetup, &fFilterStatus, piLen, ppbData)) {
+			return fFilterStatus;
+		}
+	}
+	
 	pfnHandler = apfnReqHandlers[iType];
 	if (pfnHandler == NULL) {
 		DBG("No handler for reqtype %d\n", iType);
