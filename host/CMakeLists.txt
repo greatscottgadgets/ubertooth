@@ -36,6 +36,7 @@ set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
 
 add_subdirectory(libubertooth)
 add_subdirectory(ubertooth-tools)
+add_subdirectory(misc)
 if(NOT DISABLE_PYTHON)
 	add_subdirectory(python)
 endif()

@@ -1,0 +1,10 @@
+# Possible Ubertooth DFU
+ATTRS{idVendor}=="ffff", ATTRS{idProduct}=="0004", MODE="0660", GROUP="@UBERTOOTH_GROUP@"
+# Ubertooth Zero
+ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6000", MODE="0660", GROUP="@UBERTOOTH_GROUP@"
+# Ubertooth Zero DFU
+ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6001", MODE="0660", GROUP="@UBERTOOTH_GROUP@"
+# Ubertooth One
+ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6002", MODE="0660", GROUP="@UBERTOOTH_GROUP@"
+# Ubertooth One DFU
+ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6003", MODE="0660", GROUP="@UBERTOOTH_GROUP@"
