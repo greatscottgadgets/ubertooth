@@ -200,12 +200,17 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-	
+
     dev_id = hci_devid(bt_dev);
-    sock = hci_open_dev( dev_id );
-    if (dev_id < 0 || sock < 0) {
-        perror("opening socket");
-        return 1;
+	if (dev_id < 0) {
+		printf("error: No Bluetooth device found. Do you have a Bluetooth dongle?\n");
+		return 1;
+	}
+
+	sock = hci_open_dev( dev_id );
+	if (sock < 0) {
+		perror("problem opening socket");
+		return 1;
 	}
 
 	devh = ubertooth_start(ubertooth_device);
