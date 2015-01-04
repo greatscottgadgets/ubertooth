@@ -25,6 +25,13 @@
 #define ADVERTISING_CHANNELS 3
 #define DATA_CHANNELS 37
 
+typedef enum {
+	LINK_INACTIVE,
+	LINK_LISTENING,
+	LINK_CONN_PENDING,
+	LINK_CONNECTED,
+} link_state_t;
+
 typedef struct _le_state_t {
     u32 access_address;         // Access Address to filter by
     u16 synch;                  // Access address in CC2400 syncword format
@@ -32,10 +39,25 @@ typedef struct _le_state_t {
     u32 crc_init;               // CrcInit: used to calculate CRC
     u32 crc_init_reversed;      // bits-reversed version of the previous
     int crc_verify;             // true to reject packets with bad CRC
-    int connected;              // true if following an LE connection
-    u8 hop_increment;           // amount to hop
+
+    link_state_t link_state;         // current link layer state
+
     u8 channel_idx;             // current channel index
-    u16 hop_interval;           // connection-specific hop interval
+    u8 channel_increment;       // amount to hop
+
+    u32 conn_epoch;             // reference time for the start of the connection
+    u16 volatile interval_timer;// number of intervals remaining before next hop
+    u16 conn_interval;          // connection-specific hop interval
+    u16 volatile conn_count;    // number of intervals since the start of the connection
+
+    u8 win_size;                // window size (max packets per connection)
+    u16 win_offset;             // offset of first window from start of connection
+
+    int update_pending;         // whether a connection update is pending
+    u16 update_instant;         // the connection count when the update takes effect
+    u16 interval_update;        // the new hop_internal
+    u8 win_size_update;         // the new window size
+    u16 win_offset_update;      // the new window offset
 
     u8 target[6];               // target MAC for connection following (byte order reversed)
     int target_set;             // whether a target has been set (default: false)

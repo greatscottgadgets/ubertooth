@@ -27,7 +27,7 @@ extern u8 le_hop_amount;
 u16 btle_next_hop(le_state_t *le)
 {
 	u16 phys = btle_channel_index_to_phys(le->channel_idx);
-	le->channel_idx = (le->channel_idx + le->hop_increment) % 37;
+	le->channel_idx = (le->channel_idx + le->channel_increment) % 37;
 	return phys;
 }
 
