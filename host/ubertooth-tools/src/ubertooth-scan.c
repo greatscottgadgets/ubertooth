@@ -42,6 +42,7 @@ static void usage()
 	printf("ubertooth-scan - active(bluez) device scan and inquiry supported by Ubertooth\n");
 	printf("Usage:\n");
 	printf("\t-h this Help\n");
+	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-s hci Scan - perform HCI scan\n");
 	printf("\t-t scan Time (seconds) - length of time to sniff packets. [Default: 20s]\n");
 	printf("\t-x eXtended scan - retrieve additional information about target devices\n");
@@ -176,8 +177,11 @@ int main(int argc, char *argv[])
 	btbb_piconet *pn;
 	bdaddr_t bdaddr;
 
-	while ((opt=getopt(argc,argv,"ht:xsb:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hU:t:xsb:")) != EOF) {
 		switch(opt) {
+		case 'U':
+			ubertooth_device = atoi(optarg);
+			break;
 		case 'b':
 			bt_dev = optarg;
 			if (bt_dev == NULL) {
