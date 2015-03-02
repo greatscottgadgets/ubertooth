@@ -103,7 +103,7 @@ const u8 abDescriptors[] = {
 	0x01,  					// bConfigurationValue
 	0x00,  					// iConfiguration
 	0x80,  					// bmAttributes
-	0x32,  					// bMaxPower
+	0x6e,  					// bMaxPower (220mA)
 
 // interface
 	0x09,   				
