@@ -151,7 +151,7 @@ u16 next_hop(u32 clock)
 		f_dash = base_f % used_channels;
 		next_channel = afh_bank[(perm + e + f_dash + y2) % used_channels];
 	}
-	return(2402 + next_channel);
+	return (2402 + next_channel);
 
 }
 

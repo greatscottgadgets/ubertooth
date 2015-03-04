@@ -605,7 +605,6 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		for(i=0; i < 8; i++) {
 			target.access_code |= (uint64_t)data[i+8] << 8*i;
 		}
-		precalc();
 		break;
 
 	case UBERTOOTH_START_HOPPING:
@@ -631,7 +630,6 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		}
 		afh_enabled = 1;
 		*data_len = 10;
-		precalc();
 		break;
 
 	case UBERTOOTH_CLEAR_AFHMAP:
@@ -640,7 +638,6 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		}
 		afh_enabled = 0;
 		*data_len = 10;
-		precalc();
 		break;
 
 	case UBERTOOTH_GET_CLOCK:
@@ -1504,6 +1501,8 @@ void bt_follow()
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
+	precalc();
+
 	cc2400_rx_sync((syncword >> 32) & 0xffffffff);
 
 	cs_trigger_enable();

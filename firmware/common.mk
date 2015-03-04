@@ -134,15 +134,15 @@ ADEFS =
 CPPDEFS = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
 
 #---------------- Compiler Options C ----------------
-#  -g*:          generate debugging information
+#  -g:          generate debugging information
 #  -O*:          optimization level
 #  -f...:        tuning, see GCC manual
 #  -Wall...:     warning level
 #  -Wa,...:      tell GCC to pass this to the assembler.
 #    -alhms...: create assembler listing
-CFLAGS = -g$(DEBUG)
+CFLAGS = -g
 CFLAGS += $(CDEFS)
-CFLAGS += -O$(OPT)
+#CFLAGS += -O$(OPT)
 CFLAGS += -Wall
 CFLAGS += -Wno-unused
 CFLAGS += -Wno-comments
