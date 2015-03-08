@@ -73,6 +73,9 @@ class RenderArea(QtGui.QWidget):
         self._frequency_step = 1e6
         self._high_dbm = 0.0
         self._low_dbm = -100.0
+
+        self._mouse_x = None
+        self._mouse_y = None
         
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
@@ -138,10 +141,31 @@ class RenderArea(QtGui.QWidget):
                 
                 # TODO: Wrapped Numpy types with float() to support old (<1.0) PySide API in Ubuntu 10.10
                 path_max.moveTo(float(x_axis[0]), float(y_max[0]))
+                db_tmp = self._low_dbm
                 for i in bins:
                     path_max.lineTo(float(x_axis[i]), float(y_max[i]))
-                
-                painter.setPen(Qt.white)
+                    if self._y_to_dbm(y_max[i]) > db_tmp:
+                        db_tmp = self._y_to_dbm(y_max[i])
+                        max_max = i
+
+                pen = QtGui.QPen()
+                pen.setBrush(Qt.red)
+                pen.setStyle(Qt.DotLine)
+                painter.setPen(pen)
+                painter.drawText(QPointF(x_axis[max_max] + 4, 30), '%.06f' % (self._x_to_hz(x_axis[max_max]) / 1e6))
+                painter.drawText(QPointF(30, y_max[max_max] - 4), '%d' % (self._y_to_dbm(y_max[max_max])))
+                painter.drawLine(QPointF(x_axis[max_max], 0), QPointF(x_axis[max_max], self.height()))
+                painter.drawLine(QPointF(0, y_max[max_max]), QPointF(self.width(), y_max[max_max]))
+                if self._mouse_x:
+                    pen.setBrush(Qt.yellow)
+                    painter.setPen(pen)
+                    painter.drawText(QPointF(self._mouse_x + 4, 44), '%.06f' % (self._x_to_hz(self._mouse_x) / 1e6))
+                    painter.drawText(QPointF(54, self._mouse_y - 4), '%d' % (self._y_to_dbm(self._mouse_y)))
+                    painter.drawLine(QPointF(self._mouse_x, 0), QPointF(self._mouse_x, self.height()))
+                    painter.drawLine(QPointF(0, self._mouse_y), QPointF(self.width(), self._mouse_y))
+                pen.setBrush(Qt.white)
+                pen.setStyle(Qt.SolidLine)
+                painter.setPen(pen)
                 painter.drawPath(path_now)
                 self._path_max = path_max
         finally:
@@ -213,12 +237,24 @@ class RenderArea(QtGui.QWidget):
         range = self._high_frequency - self._low_frequency
         normalized = delta / range
         return normalized * self.width()
+
+    def _x_to_hz(self, x):
+        range = self._high_frequency - self._low_frequency
+        tmp = x / self.width()
+        delta = tmp * range
+        return delta + self._low_frequency
                              
     def _dbm_to_y(self, dbm):
         delta = self._high_dbm - dbm
         range = self._high_dbm - self._low_dbm
         normalized = delta / range
         return normalized * self.height()
+
+    def _y_to_dbm(self, y):
+        range = self._high_dbm - self._low_dbm
+        tmp = y / self.height()
+        delta = tmp * range
+        return self._high_dbm - delta
 
 class Window(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -254,6 +290,40 @@ class Window(QtGui.QWidget):
         self.render_area.stop_thread()
         self._device.close()
         event.accept()
+
+    # handle mouse button clicks
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.render_area._mouse_x = float(event.x())
+            self.render_area._mouse_y = float(event.y())
+        if event.button() == Qt.RightButton:
+            self.render_area._mouse_x = None
+            self.render_area._mouse_y = None
+        event.accept()
+        return
+
+    # handle key presses
+    def keyPressEvent(self, event):
+        try:
+            key= chr(event.key()).upper()
+            event.accept()
+        except:
+            print 'Unknown key pressed: 0x%x' % event.key()
+            event.ignore()
+            return
+        if key == 'H':
+            print 'Key              Action'
+            print
+            print ' <LEFT MOUSE>    Show frequency / signal strength at pointer'
+            print ' <RIGHT MOUSE>   Hide frequency / signal strength at pointer'
+            print ' H               Print this HELP text'
+            print ' Q               Quit'
+            return
+        if key == 'Q':
+            print 'Quit!'
+            self.close()
+            return
+        print 'Unsupported key pressed:', key
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
