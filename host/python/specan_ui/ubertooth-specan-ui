@@ -74,6 +74,7 @@ class RenderArea(QtGui.QWidget):
         self._high_dbm = 0.0
         self._low_dbm = -100.0
 
+        self._hide_markers = False
         self._mouse_x = None
         self._mouse_y = None
         self._mouse_x2 = None
@@ -151,36 +152,36 @@ class RenderArea(QtGui.QWidget):
                         max_max = i
 
                 pen = QtGui.QPen()
-                pen.setBrush(Qt.red)
-                pen.setStyle(Qt.DotLine)
-                painter.setPen(pen)
-                painter.drawText(QPointF(x_axis[max_max] + 4, 30), '%.06f' % (self._x_to_hz(x_axis[max_max]) / 1e6))
-                painter.drawText(QPointF(30, y_max[max_max] - 4), '%d' % (self._y_to_dbm(y_max[max_max])))
-                painter.drawLine(QPointF(x_axis[max_max], 0), QPointF(x_axis[max_max], self.height()))
-                painter.drawLine(QPointF(0, y_max[max_max]), QPointF(self.width(), y_max[max_max]))
-                if self._mouse_x:
-                    pen.setBrush(Qt.yellow)
-                    painter.setPen(pen)
-                    painter.drawText(QPointF(self._mouse_x + 4, 44), '%.06f' % (self._x_to_hz(self._mouse_x) / 1e6))
-                    painter.drawText(QPointF(54, self._mouse_y - 4), '%d' % (self._y_to_dbm(self._mouse_y)))
-                    painter.drawLine(QPointF(self._mouse_x, 0), QPointF(self._mouse_x, self.height()))
-                    painter.drawLine(QPointF(0, self._mouse_y), QPointF(self.width(), self._mouse_y))
-                    if self._mouse_x2:
-                        painter.drawText(QPointF(self._mouse_x2 + 4, 86), '(%.06f)' % ((self._x_to_hz(self._mouse_x) / 1e6) - (self._x_to_hz(self._mouse_x2) / 1e6)))
-                if self._mouse_x2:
-                    pen.setBrush(Qt.magenta)
-                    painter.setPen(pen)
-                    painter.drawText(QPointF(self._mouse_x2 + 4, 72), '%.06f' % (self._x_to_hz(self._mouse_x2) / 1e6))
-                    painter.drawText(QPointF(78, self._mouse_y2 - 4), '%d' % (self._y_to_dbm(self._mouse_y2)))
-                    painter.drawLine(QPointF(self._mouse_x2, 0), QPointF(self._mouse_x2, self.height()))
-                    painter.drawLine(QPointF(0, self._mouse_y2), QPointF(self.width(), self._mouse_y2))
-                    if self._mouse_x:
-                        painter.drawText(QPointF(self._mouse_x + 4, 58), '(%.06f)' % ((self._x_to_hz(self._mouse_x2) / 1e6) - (self._x_to_hz(self._mouse_x) / 1e6)))
                 pen.setBrush(Qt.white)
-                pen.setStyle(Qt.SolidLine)
                 painter.setPen(pen)
                 painter.drawPath(path_now)
                 self._path_max = path_max
+                if not self._hide_markers:
+                    pen.setBrush(Qt.red)
+                    pen.setStyle(Qt.DotLine)
+                    painter.setPen(pen)
+                    painter.drawText(QPointF(x_axis[max_max] + 4, 30), '%.06f' % (self._x_to_hz(x_axis[max_max]) / 1e6))
+                    painter.drawText(QPointF(30, y_max[max_max] - 4), '%d' % (self._y_to_dbm(y_max[max_max])))
+                    painter.drawLine(QPointF(x_axis[max_max], 0), QPointF(x_axis[max_max], self.height()))
+                    painter.drawLine(QPointF(0, y_max[max_max]), QPointF(self.width(), y_max[max_max]))
+                    if self._mouse_x:
+                        pen.setBrush(Qt.yellow)
+                        painter.setPen(pen)
+                        painter.drawText(QPointF(self._mouse_x + 4, 44), '%.06f' % (self._x_to_hz(self._mouse_x) / 1e6))
+                        painter.drawText(QPointF(54, self._mouse_y - 4), '%d' % (self._y_to_dbm(self._mouse_y)))
+                        painter.drawLine(QPointF(self._mouse_x, 0), QPointF(self._mouse_x, self.height()))
+                        painter.drawLine(QPointF(0, self._mouse_y), QPointF(self.width(), self._mouse_y))
+                        if self._mouse_x2:
+                            painter.drawText(QPointF(self._mouse_x2 + 4, 86), '(%.06f)' % ((self._x_to_hz(self._mouse_x) / 1e6) - (self._x_to_hz(self._mouse_x2) / 1e6)))
+                    if self._mouse_x2:
+                        pen.setBrush(Qt.magenta)
+                        painter.setPen(pen)
+                        painter.drawText(QPointF(self._mouse_x2 + 4, 72), '%.06f' % (self._x_to_hz(self._mouse_x2) / 1e6))
+                        painter.drawText(QPointF(78, self._mouse_y2 - 4), '%d' % (self._y_to_dbm(self._mouse_y2)))
+                        painter.drawLine(QPointF(self._mouse_x2, 0), QPointF(self._mouse_x2, self.height()))
+                        painter.drawLine(QPointF(0, self._mouse_y2), QPointF(self.width(), self._mouse_y2))
+                        if self._mouse_x:
+                            painter.drawText(QPointF(self._mouse_x + 4, 58), '(%.06f)' % ((self._x_to_hz(self._mouse_x2) / 1e6) - (self._x_to_hz(self._mouse_x) / 1e6)))
         finally:
             painter.end()
             
@@ -309,14 +310,17 @@ class Window(QtGui.QWidget):
         if event.button() == Qt.LeftButton:
             self.render_area._mouse_x = float(event.x())
             self.render_area._mouse_y = float(event.y())
+            self.render_area._hide_markers = False
         if event.button() == Qt.MidButton:
             self.render_area._mouse_x2 = float(event.x())
             self.render_area._mouse_y2 = float(event.y())
+            self.render_area._hide_markers = False
         if event.button() == Qt.RightButton:
             self.render_area._mouse_x = None
             self.render_area._mouse_y = None
             self.render_area._mouse_x2 = None
             self.render_area._mouse_y2 = None
+            self.render_area._hide_markers = not self.render_area._hide_markers
         event.accept()
         return
 
