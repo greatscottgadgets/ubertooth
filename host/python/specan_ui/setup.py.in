@@ -16,7 +16,7 @@ setup(
     name        = "specan",
     description = "A tool for reading spectrum analyzer data from an Ubertooth device",
     author      = "Jared Boone, Michael Ossmann, Dominic Spill",
-    url         = "https://sourceforge.net/projects/ubertooth/",
+    url         = "https://github.com/greatscottgadgets/ubertooth/",
     license     = "GPL",
     version     = '${PACKAGE_VERSION}',
     package_dir = { '': '${CMAKE_CURRENT_SOURCE_DIR}' },
