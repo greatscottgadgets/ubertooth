@@ -171,7 +171,7 @@ class RenderArea(QtGui.QWidget):
                     pen.setBrush(Qt.magenta)
                     painter.setPen(pen)
                     painter.drawText(QPointF(self._mouse_x2 + 4, 72), '%.06f' % (self._x_to_hz(self._mouse_x2) / 1e6))
-                    painter.drawText(QPointF(54, self._mouse_y2 - 4), '%d' % (self._y_to_dbm(self._mouse_y2)))
+                    painter.drawText(QPointF(78, self._mouse_y2 - 4), '%d' % (self._y_to_dbm(self._mouse_y2)))
                     painter.drawLine(QPointF(self._mouse_x2, 0), QPointF(self._mouse_x2, self.height()))
                     painter.drawLine(QPointF(0, self._mouse_y2), QPointF(self.width(), self._mouse_y2))
                     if self._mouse_x:
