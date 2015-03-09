@@ -338,7 +338,7 @@ class Window(QtGui.QWidget):
             print
             print ' <LEFT MOUSE>    Show frequency / signal strength at pointer'
             print ' <MIDDLE MOUSE>  Show frequency / signal strength at pointer'
-            print ' <RIGHT MOUSE>   Hide frequency / signal strength at pointer'
+            print ' <RIGHT MOUSE>   Toggle frequency / signal strength markers'
             print ' H               Print this HELP text'
             print ' Q               Quit'
             return
