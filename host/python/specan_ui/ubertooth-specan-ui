@@ -145,6 +145,7 @@ class RenderArea(QtGui.QWidget):
                 # TODO: Wrapped Numpy types with float() to support old (<1.0) PySide API in Ubuntu 10.10
                 path_max.moveTo(float(x_axis[0]), float(y_max[0]))
                 db_tmp = self._low_dbm
+                max_max = None
                 for i in bins:
                     path_max.lineTo(float(x_axis[i]), float(y_max[i]))
                     if self._y_to_dbm(y_max[i]) > db_tmp:
@@ -156,7 +157,7 @@ class RenderArea(QtGui.QWidget):
                 painter.setPen(pen)
                 painter.drawPath(path_now)
                 self._path_max = path_max
-                if not self._hide_markers:
+                if not max_max == None and not self._hide_markers:
                     pen.setBrush(Qt.red)
                     pen.setStyle(Qt.DotLine)
                     painter.setPen(pen)
