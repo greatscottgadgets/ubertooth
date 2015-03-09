@@ -76,6 +76,8 @@ class RenderArea(QtGui.QWidget):
 
         self._mouse_x = None
         self._mouse_y = None
+        self._mouse_x2 = None
+        self._mouse_y2 = None
         
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
@@ -163,6 +165,17 @@ class RenderArea(QtGui.QWidget):
                     painter.drawText(QPointF(54, self._mouse_y - 4), '%d' % (self._y_to_dbm(self._mouse_y)))
                     painter.drawLine(QPointF(self._mouse_x, 0), QPointF(self._mouse_x, self.height()))
                     painter.drawLine(QPointF(0, self._mouse_y), QPointF(self.width(), self._mouse_y))
+                    if self._mouse_x2:
+                        painter.drawText(QPointF(self._mouse_x2 + 4, 86), '(%.06f)' % ((self._x_to_hz(self._mouse_x) / 1e6) - (self._x_to_hz(self._mouse_x2) / 1e6)))
+                if self._mouse_x2:
+                    pen.setBrush(Qt.magenta)
+                    painter.setPen(pen)
+                    painter.drawText(QPointF(self._mouse_x2 + 4, 72), '%.06f' % (self._x_to_hz(self._mouse_x2) / 1e6))
+                    painter.drawText(QPointF(54, self._mouse_y2 - 4), '%d' % (self._y_to_dbm(self._mouse_y2)))
+                    painter.drawLine(QPointF(self._mouse_x2, 0), QPointF(self._mouse_x2, self.height()))
+                    painter.drawLine(QPointF(0, self._mouse_y2), QPointF(self.width(), self._mouse_y2))
+                    if self._mouse_x:
+                        painter.drawText(QPointF(self._mouse_x + 4, 58), '(%.06f)' % ((self._x_to_hz(self._mouse_x2) / 1e6) - (self._x_to_hz(self._mouse_x) / 1e6)))
                 pen.setBrush(Qt.white)
                 pen.setStyle(Qt.SolidLine)
                 painter.setPen(pen)
@@ -296,9 +309,14 @@ class Window(QtGui.QWidget):
         if event.button() == Qt.LeftButton:
             self.render_area._mouse_x = float(event.x())
             self.render_area._mouse_y = float(event.y())
+        if event.button() == Qt.MidButton:
+            self.render_area._mouse_x2 = float(event.x())
+            self.render_area._mouse_y2 = float(event.y())
         if event.button() == Qt.RightButton:
             self.render_area._mouse_x = None
             self.render_area._mouse_y = None
+            self.render_area._mouse_x2 = None
+            self.render_area._mouse_y2 = None
         event.accept()
         return
 
@@ -315,6 +333,7 @@ class Window(QtGui.QWidget):
             print 'Key              Action'
             print
             print ' <LEFT MOUSE>    Show frequency / signal strength at pointer'
+            print ' <MIDDLE MOUSE>  Show frequency / signal strength at pointer'
             print ' <RIGHT MOUSE>   Hide frequency / signal strength at pointer'
             print ' H               Print this HELP text'
             print ' Q               Quit'
