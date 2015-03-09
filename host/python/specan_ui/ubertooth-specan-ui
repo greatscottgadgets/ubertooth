@@ -165,6 +165,7 @@ class RenderArea(QtGui.QWidget):
                     painter.drawLine(QPointF(x_axis[max_max], 0), QPointF(x_axis[max_max], self.height()))
                     painter.drawLine(QPointF(0, y_max[max_max]), QPointF(self.width(), y_max[max_max]))
                     if self._mouse_x:
+                        painter.drawText(QPointF(self._mouse_x + 4, 58), '(%.06f)' % ((self._x_to_hz(x_axis[max_max]) / 1e6) - (self._x_to_hz(self._mouse_x) / 1e6)))
                         pen.setBrush(Qt.yellow)
                         painter.setPen(pen)
                         painter.drawText(QPointF(self._mouse_x + 4, 44), '%.06f' % (self._x_to_hz(self._mouse_x) / 1e6))
@@ -172,16 +173,19 @@ class RenderArea(QtGui.QWidget):
                         painter.drawLine(QPointF(self._mouse_x, 0), QPointF(self._mouse_x, self.height()))
                         painter.drawLine(QPointF(0, self._mouse_y), QPointF(self.width(), self._mouse_y))
                         if self._mouse_x2:
-                            painter.drawText(QPointF(self._mouse_x2 + 4, 86), '(%.06f)' % ((self._x_to_hz(self._mouse_x) / 1e6) - (self._x_to_hz(self._mouse_x2) / 1e6)))
+                            painter.drawText(QPointF(self._mouse_x2 + 4, 118), '(%.06f)' % ((self._x_to_hz(self._mouse_x) / 1e6) - (self._x_to_hz(self._mouse_x2) / 1e6)))
                     if self._mouse_x2:
+                        pen.setBrush(Qt.red)
+                        painter.setPen(pen)
+                        painter.drawText(QPointF(self._mouse_x2 + 4, 102), '(%.06f)' % ((self._x_to_hz(x_axis[max_max]) / 1e6) - (self._x_to_hz(self._mouse_x2) / 1e6)))
                         pen.setBrush(Qt.magenta)
                         painter.setPen(pen)
-                        painter.drawText(QPointF(self._mouse_x2 + 4, 72), '%.06f' % (self._x_to_hz(self._mouse_x2) / 1e6))
+                        painter.drawText(QPointF(self._mouse_x2 + 4, 88), '%.06f' % (self._x_to_hz(self._mouse_x2) / 1e6))
                         painter.drawText(QPointF(78, self._mouse_y2 - 4), '%d' % (self._y_to_dbm(self._mouse_y2)))
                         painter.drawLine(QPointF(self._mouse_x2, 0), QPointF(self._mouse_x2, self.height()))
                         painter.drawLine(QPointF(0, self._mouse_y2), QPointF(self.width(), self._mouse_y2))
                         if self._mouse_x:
-                            painter.drawText(QPointF(self._mouse_x + 4, 58), '(%.06f)' % ((self._x_to_hz(self._mouse_x2) / 1e6) - (self._x_to_hz(self._mouse_x) / 1e6)))
+                            painter.drawText(QPointF(self._mouse_x + 4, 74), '(%.06f)' % ((self._x_to_hz(self._mouse_x2) / 1e6) - (self._x_to_hz(self._mouse_x) / 1e6)))
         finally:
             painter.end()
             
@@ -336,9 +340,9 @@ class Window(QtGui.QWidget):
         if key == 'H':
             print 'Key                  Action'
             print
-            print ' <LEFT MOUSE>        Show frequency / signal strength at pointer'
-            print ' <RIGHT MOUSE>       Show frequency / signal strength at pointer'
-            print ' <MIDDLE MOUSE>      Toggle frequency / signal strength markers'
+            print ' <LEFT MOUSE>        Mark LEFT frequency / signal strength at pointer'
+            print ' <RIGHT MOUSE>       Mark RIGHT frequency / signal strength at pointer'
+            print ' <MIDDLE MOUSE>      Toggle visibility of frequency / signal strength markers'
             print ' H                   Print this HELP text'
             print ' M                   Simulate MIDDLE MOUSE click (for those with trackpads)'
             print ' Q                   Quit'
