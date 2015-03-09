@@ -311,11 +311,11 @@ class Window(QtGui.QWidget):
             self.render_area._mouse_x = float(event.x())
             self.render_area._mouse_y = float(event.y())
             self.render_area._hide_markers = False
-        if event.button() == Qt.MidButton:
+        if event.button() == Qt.RightButton:
             self.render_area._mouse_x2 = float(event.x())
             self.render_area._mouse_y2 = float(event.y())
             self.render_area._hide_markers = False
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MidButton:
             self.render_area._mouse_x = None
             self.render_area._mouse_y = None
             self.render_area._mouse_x2 = None
@@ -334,13 +334,21 @@ class Window(QtGui.QWidget):
             event.ignore()
             return
         if key == 'H':
-            print 'Key              Action'
+            print 'Key                  Action'
             print
-            print ' <LEFT MOUSE>    Show frequency / signal strength at pointer'
-            print ' <MIDDLE MOUSE>  Show frequency / signal strength at pointer'
-            print ' <RIGHT MOUSE>   Toggle frequency / signal strength markers'
-            print ' H               Print this HELP text'
-            print ' Q               Quit'
+            print ' <LEFT MOUSE>        Show frequency / signal strength at pointer'
+            print ' <RIGHT MOUSE>       Show frequency / signal strength at pointer'
+            print ' <MIDDLE MOUSE>      Toggle frequency / signal strength markers'
+            print ' H                   Print this HELP text'
+            print ' M                   Simulate MIDDLE MOUSE click (for those with trackpads)'
+            print ' Q                   Quit'
+            return
+        if key == 'M':
+            self.render_area._mouse_x = None
+            self.render_area._mouse_y = None
+            self.render_area._mouse_x2 = None
+            self.render_area._mouse_y2 = None
+            self.render_area._hide_markers = not self.render_area._hide_markers
             return
         if key == 'Q':
             print 'Quit!'
