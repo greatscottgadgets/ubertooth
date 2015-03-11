@@ -58,7 +58,7 @@ if(MSVC)
 	LIST(APPEND TOOLS_LINK_LIBS libgetopt_static)
 endif()
 
-LIST(APPEND TOOLS ubertooth-rx ubertooth-dump ubertooth-util ubertooth-btle)
+LIST(APPEND TOOLS ubertooth-rx ubertooth-dump ubertooth-util ubertooth-btle ubertooth-dfu)
 
 if( USE_BLUEZ AND NOT ${LIBBLUETOOTH_FOUND} )
 	message( FATAL_ERROR
