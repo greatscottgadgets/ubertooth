@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h>  // sleep
 #include "ubertooth.h"
 #include "dfu.h"
 
@@ -53,14 +53,14 @@ int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 	
 	if(suffix->bLength != 16) {
 		fprintf(stderr, "Unknown DFU suffix length: %d\n", suffix->bLength);
-		return -1;
+		return 1;
 	}
 	
 	// We only know about dfu version 1.0/1.1
 	// This needs to be smarter to support other versions if/when they exist
 	if((suffix->bcdDFU != 0x0100) && (suffix->bcdDFU != 0x0101)) {
 		fprintf(stderr, "Unknown DFU version: %04x\n", suffix->bcdDFU);
-		return -1;
+		return 1;
 	}
 	
 	// Suffix bytes are reversed
@@ -68,13 +68,14 @@ int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 		 (suffix->ucDfuSig[1]==0x46) &&
 		 (suffix->ucDfuSig[2]==0x44))) {
 		fprintf(stderr, "DFU Signature mismatch: not a DFU file\n");
-		return -1;
+		return 1;
 	}
 	
 	fseek(signedfile, 0, SEEK_SET);
 	data = malloc(data_length);
 	if(data == NULL) {
 		fprintf(stderr, "Cannot allocate buffer for CRC check\n");
+		return 1;
 	}
 	
 	data_length = fread(data, 1, data_length, signedfile);
@@ -82,7 +83,7 @@ int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 	free(data);
 	if(crc != suffix->dwCRC) {
 		fprintf(stderr, "CRC mismatch: calculated: 0x%x, found: 0x%x\n", crc, suffix->dwCRC);
-		return -1;
+		return 1;
 	}
 	return 0;
 }
@@ -101,7 +102,7 @@ int sign(FILE* infile, FILE* outfile, uint16_t idVendor, uint16_t idProduct) {
 	buffer = malloc(buffer_length);
 	if(buffer == NULL) {
 		fprintf(stderr, "Cannot allocate buffer to calculate CRC\n");
-		return -1;
+		return 1;
 	}
 	
 	fseek(infile, 0, SEEK_SET);
@@ -172,7 +173,7 @@ void stop_device(struct libusb_device_handle *devh)
 #define DFU_IN LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE
 #define DFU_OUT LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE
 
-int get_dfu_state(libusb_device_handle* devh) {
+int dfu_get_state(libusb_device_handle* devh) {
 	int rv;
 	uint8_t state;
 	rv = libusb_control_transfer(devh, DFU_IN, REQ_GETSTATE, 0, 0, &state, 1, 1000);
@@ -186,17 +187,35 @@ int get_dfu_state(libusb_device_handle* devh) {
 	return state;
 }
 
-int upload(libusb_device_handle* devh, FILE* upfile) {
+int dfu_clear_status(libusb_device_handle* devh) {
+	int rv;
+	rv = libusb_control_transfer(devh, DFU_OUT, REQ_CLRSTATUS, 0, 0, NULL, 0, 1000);
+	if (rv < 0) {
+		if (rv == LIBUSB_ERROR_PIPE)
+			fprintf(stderr, "control message unsupported\n");
+		else
+			show_libusb_error(rv);
+		return rv;
+	}
 	return 0;
 }
 
-int download(libusb_device_handle* devh, FILE* downfile) {
+int dfu_abort(libusb_device_handle* devh) {
+	int rv;
+	rv = libusb_control_transfer(devh, DFU_OUT, REQ_ABORT, 0, 0, NULL, 0, 1000);
+	if (rv < 0) {
+		if (rv == LIBUSB_ERROR_PIPE)
+			fprintf(stderr, "control message unsupported\n");
+		else
+			show_libusb_error(rv);
+		return rv;
+	}
 	return 0;
 }
 
 int detach(libusb_device_handle* devh) {
 	int state, rv;
-	state = get_dfu_state(devh);
+	state = dfu_get_state(devh);
 	if(state == STATE_DFU_IDLE) {
 		rv = libusb_control_transfer(devh, DFU_OUT, REQ_DETACH, 0, 0, NULL, 0, 1000);
 		if (rv != LIBUSB_SUCCESS) {
@@ -209,10 +228,99 @@ int detach(libusb_device_handle* devh) {
 			printf("Detached\n");
 	} else {
 		fprintf(stderr, "In unexpected state: %d", state);
-		return -1;
+		return 1;
 	}
 	return 0;
 }
+
+int enter_dfu_mode(libusb_device_handle* devh) {
+	uint8_t state, rv;
+	while(1) {
+        state = dfu_get_state(devh);
+        if(state == STATE_DFU_IDLE)
+            break;
+		switch(state) {
+			case STATE_DFU_DNLOAD_SYNC:
+			case STATE_DFU_DNLOAD_IDLE:
+			case STATE_DFU_MANIFEST_SYNC:
+			case STATE_DFU_UPLOAD_IDLE:
+			case STATE_DFU_MANIFEST:
+				rv = dfu_abort(devh);
+				if(rv < 0) {
+					fprintf(stderr, "Unable to abort transaction from state:%d\n", state);
+					return rv;
+				}
+				break;
+			case STATE_APP_DETACH:
+			case STATE_DFU_DNBUSY:
+			case STATE_DFU_MANIFEST_WAIT_RESET:
+				sleep(1);
+				break;
+			case STATE_APP_IDLE:
+				detach(devh);
+				break;
+			case STATE_DFU_ERROR:
+				dfu_clear_status(devh);
+				break;
+		}
+	}
+	return 0;
+}
+
+int upload(libusb_device_handle* devh, FILE* upfile) {
+	int address, length, block, rv;
+	uint8_t buffer[BLOCK_SIZE];
+	address = BOOTLOADER_OFFSET + BOOTLOADER_SIZE;
+	length = (256 * 1024) - address;
+	block = address / BLOCK_SIZE;
+	
+	rv = enter_dfu_mode(devh);
+	if(rv < 0) {
+		fprintf(stderr, "Upload failed: could not enter DFU mode\n");
+		return rv;
+	}
+    if ((address & (BLOCK_SIZE - 1)) != 0) {
+		fprintf(stderr, "Upload failed: must start at block boundary\n");
+		return -1;
+    }
+	
+	while(length > 0) {
+		rv = libusb_control_transfer(devh, DFU_IN, REQ_UPLOAD, block, 0,
+									 buffer, BLOCK_SIZE, 1000);
+		if (rv < 0) {
+			if (rv == LIBUSB_ERROR_PIPE)
+				fprintf(stderr, "control message unsupported\n");
+			else {
+				show_libusb_error(rv);
+				return rv;
+			}
+		}
+		fprintf(stdout, ".");
+		if(rv == BLOCK_SIZE)
+			fwrite(buffer, 1, BLOCK_SIZE, upfile);
+		else {
+			fprintf(stderr, "Upload failed: did not read full block\n");
+			return -1;
+		}
+		block++;
+		length -= rv;
+	}
+	return 0;
+}
+
+int download(libusb_device_handle* devh, FILE* downfile) {
+	int address, rv;
+	address = BOOTLOADER_OFFSET + BOOTLOADER_SIZE;
+	rv = enter_dfu_mode(devh);
+	if(rv < 0) {
+		fprintf(stderr, "Download failed: could not enter DFU mode\n");
+		return rv;
+	}
+	
+	return 0;
+}
+
+
 
 static void usage()
 {
@@ -297,21 +405,42 @@ int main(int argc, char **argv) {
 			cmd_flash(devh);
 			sleep(1);
 			devh = find_ubertooth_dfu_device(ubertooth_device);
+			if(devh==NULL) {
+				fprintf(stderr, "Unable to find Ubertooth\n");
+				return 1;
+			}
 		}
 		rv = libusb_claim_interface(devh, 0);
 		if (rv < 0) {
 			fprintf(stderr, "usb_claim_interface error %d\n", rv);
+			fprintf(stderr, "Correct permissions to access Ubertooth?\n");
 			stop_device(devh);
 			return 1;
 		}
 	}
 	
 	if(functions & FUNC_UPLOAD) {
-		upload(devh, upfile);
+		int rv;
+		rv = upload(devh, upfile);
+		if(rv) {
+			fprintf(stderr, "Firmware update failed\n");
+			return rv;
+		}
 	}
 	
 	if(functions & FUNC_DOWNLOAD) {
-		download(devh, downfile);
+		int rv;
+		DFU_suffix suffix;
+		rv = check_suffix(downfile, &suffix);
+		if(rv) {
+			fprintf(stderr, "Signature check failed, firmware will not be update\n");
+			return rv;
+		}
+		rv = download(devh, downfile);
+		if(rv) {
+			fprintf(stderr, "Firmware update failed\n");
+			return rv;
+		}
 	}
 	
 	if(functions & FUNC_RESET) {
