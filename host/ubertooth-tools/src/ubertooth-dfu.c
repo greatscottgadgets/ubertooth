@@ -274,15 +274,16 @@ int upload(libusb_device_handle* devh, FILE* upfile) {
 	length = (256 * 1024) - address;
 	block = address / BLOCK_SIZE;
 	
+    if ((address & (BLOCK_SIZE - 1)) != 0) {
+		fprintf(stderr, "Upload failed: must start at block boundary\n");
+		return -1;
+    }
+	
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
 		fprintf(stderr, "Upload failed: could not enter DFU mode\n");
 		return rv;
 	}
-    if ((address & (BLOCK_SIZE - 1)) != 0) {
-		fprintf(stderr, "Upload failed: must start at block boundary\n");
-		return -1;
-    }
 	
 	while(length > 0) {
 		rv = libusb_control_transfer(devh, DFU_IN, REQ_UPLOAD, block, 0,
@@ -308,19 +309,58 @@ int upload(libusb_device_handle* devh, FILE* upfile) {
 	return 0;
 }
 
+int dfu_get_status(libusb_device_handle* devh) {
+	uint8_t buffer[6];
+	int rv;
+	rv = libusb_control_transfer(devh, DFU_IN, REQ_GETSTATUS, 0, 0, buffer, 6, 1000);
+	if (rv < 0) {
+		if (rv == LIBUSB_ERROR_PIPE)
+			fprintf(stderr, "control message unsupported\n");
+		else {
+			show_libusb_error(rv);
+			return rv;
+		}
+	}
+	return 0;
+}
+
 int download(libusb_device_handle* devh, FILE* downfile) {
-	int address, rv;
+	int address, length, block, rv;
+	uint8_t buffer[BLOCK_SIZE];
 	address = BOOTLOADER_OFFSET + BOOTLOADER_SIZE;
+	block = address / BLOCK_SIZE;
+	fseek(downfile, 0, SEEK_SET);
+	
+    if ((address & (SECTOR_SIZE - 1)) != 0) {
+		fprintf(stderr, "Download failed: must start at sector boundary\n");
+		return -1;
+    }
+	
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
 		fprintf(stderr, "Download failed: could not enter DFU mode\n");
 		return rv;
 	}
-	
+	while((length=fread(buffer, 1, BLOCK_SIZE, downfile))) {
+		for(;length<BLOCK_SIZE;length++)
+			buffer[length] = 0xFF;
+		rv = libusb_control_transfer(devh, DFU_OUT, REQ_DNLOAD, block, 0,
+									 buffer, BLOCK_SIZE, 1000);
+		if (rv < 0) {
+			if (rv == LIBUSB_ERROR_PIPE)
+				fprintf(stderr, "control message unsupported\n");
+			else {
+				show_libusb_error(rv);
+				return rv;
+			}
+		}
+		dfu_get_status(devh);
+		fprintf(stdout, ".");
+		fflush(stdout);
+		block++;
+	}
 	return 0;
 }
-
-
 
 static void usage()
 {
@@ -422,6 +462,7 @@ int main(int argc, char **argv) {
 	if(functions & FUNC_UPLOAD) {
 		int rv;
 		rv = upload(devh, upfile);
+		fclose(upfile);
 		if(rv) {
 			fprintf(stderr, "Firmware update failed\n");
 			return rv;
@@ -437,6 +478,7 @@ int main(int argc, char **argv) {
 			return rv;
 		}
 		rv = download(devh, downfile);
+		fclose(downfile);
 		if(rv) {
 			fprintf(stderr, "Firmware update failed\n");
 			return rv;

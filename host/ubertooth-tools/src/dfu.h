@@ -119,3 +119,4 @@ static uint32_t crc_table[] = {
 #define BOOTLOADER_OFFSET 0x0
 #define BOOTLOADER_SIZE 0x4000
 #define BLOCK_SIZE (1<<8)
+#define SECTOR_SIZE (1<<12)
