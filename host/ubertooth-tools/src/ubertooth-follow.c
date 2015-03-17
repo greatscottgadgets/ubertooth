@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <err.h>
 
 #include "ubertooth.h"
 #include <btbb.h>

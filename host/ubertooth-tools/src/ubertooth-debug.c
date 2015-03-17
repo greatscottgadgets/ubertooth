@@ -72,7 +72,6 @@ int main(int argc, char *argv[])
     struct libusb_device_handle *devh = NULL;
     int do_read_register;
     char ubertooth_device = -1;
-    char *endptr;
     int *regList = NULL;
     int regListN = 0;
     int i;

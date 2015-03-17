@@ -21,7 +21,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -45,7 +44,6 @@ static u8 *empty_usb_buf = NULL;
 static u8 *full_usb_buf = NULL;
 static u8 usb_really_full = 0;
 static struct libusb_transfer *rx_xfer = NULL;
-static char Quiet = false;
 static uint32_t systime;
 static u8 usb_retry = 1;
 static u8 stop_ubertooth = 0;
@@ -54,6 +52,7 @@ static uint32_t start_clk100ns = 0;
 static uint64_t last_clk100ns = 0;
 static uint64_t clk100ns_upper = 0;
 
+u8 debug = 0;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 2;
@@ -609,7 +608,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	lell_packet * pkt;
 	btle_options * opts = (btle_options *) args;
 	int i;
-	u32 access_address = 0;
+	// u32 access_address = 0; // Build warning
 
 	static u32 prev_ts = 0;
 	uint32_t refAA;
@@ -774,13 +773,7 @@ void rx_dump(struct libusb_device_handle* devh, int bitstream)
 }
 
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
-		u16 low_freq, u16 high_freq)
-{
-	return do_specan(devh, xfer_size, num_blocks, low_freq, high_freq, false);
-}
-
-int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
-		u16 low_freq, u16 high_freq, char gnuplot)
+		u16 low_freq, u16 high_freq, int gnuplot)
 {
 	u8 buffer[BUFFER_SIZE];
 	int r;
@@ -798,7 +791,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	num_xfers = num_blocks / xfer_blocks;
 	num_blocks = num_xfers * xfer_blocks;
 
-	if(!Quiet)
+	if(debug)
 		fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
 				num_blocks, xfer_size);
 
@@ -815,7 +808,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 			fprintf(stderr, "bad data read size (%d)\n", transferred);
 			return -1;
 		}
-		if(!Quiet)
+		if(debug)
 			fprintf(stderr, "transferred %d bytes\n", transferred);
 
 		/* process each received block */
@@ -824,7 +817,7 @@ int do_specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 					| (buffer[5 + PKT_LEN * i] << 8)
 					| (buffer[6 + PKT_LEN * i] << 16)
 					| (buffer[7 + PKT_LEN * i] << 24);
-			if(!Quiet)
+			if(debug)
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];

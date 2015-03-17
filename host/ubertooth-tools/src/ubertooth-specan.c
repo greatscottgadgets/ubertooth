@@ -20,36 +20,37 @@
  */
 
 #include <getopt.h>
-#include <stdbool.h>
+#include <stdlib.h>
 #include "ubertooth.h"
 
-extern char Quiet;
+extern u8 debug;
 
 static void usage(void)
 {
 	printf("ubertooth-specan - output a continuous stream of signal strengths\n");
 	printf("Usage:\n");
 	printf("\t-h this help\n");
+	printf("\t-d debug (print debug information to stderr)\n");
 	printf("\t-g output suitable for feedgnuplot\n");
 	printf("\t-G output suitable for 3D feedgnuplot\n");
 	printf("\t-l lower frequency (default 2402)\n");
-	printf("\t-q quiet (suppress stderr chatter)\n");
 	printf("\t-u upper frequency (default 2480)\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 }
 
-
 int main(int argc, char *argv[])
 {
-	int opt, gnuplot= false;
+	int opt, gnuplot = 0;
 	int lower= 2402, upper= 2480;
 	char ubertooth_device = -1;
 
 	struct libusb_device_handle *devh = NULL;
 
-
-	while ((opt=getopt(argc,argv,"hgGl::qu::U:")) != EOF) {
+	while ((opt=getopt(argc,argv,"dhgGl::u::U:")) != EOF) {
 		switch(opt) {
+		case 'd':
+			debug++;
+			break;
 		case 'g':
 			gnuplot= GNUPLOT_NORMAL;
 			break;
@@ -61,9 +62,6 @@ int main(int argc, char *argv[])
 				lower= atoi(optarg);
 			else
 				printf("lower: %d\n", lower);
-			break;
-		case 'q':
-			Quiet= true;
 			break;
 		case 'u':
 			if (optarg)
@@ -88,13 +86,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-
 	while (1)
-		/* specan(devh, 512, 0xFFFF, 2268, 2794); */
-		if(gnuplot)
-			do_specan(devh, 512, 0xFFFF, lower, upper, gnuplot);
-		else
-			specan(devh, 512, 0xFFFF, lower, upper);
+		specan(devh, 512, 0xFFFF, lower, upper, gnuplot);
 
 	ubertooth_stop(devh);
 	return 0;
