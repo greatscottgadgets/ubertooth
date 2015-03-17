@@ -21,15 +21,12 @@
 
 import sys
 import threading
-
 import numpy
-
-import usb.core
 
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt, QPointF, QLineF
 
-from specan.Ubertooth import Ubertooth
+from specan import Ubertooth
 
 class SpecanThread(threading.Thread):
     def __init__(self, device, low_frequency, high_frequency, new_frame_callback):
@@ -294,17 +291,8 @@ class Window(QtGui.QWidget):
         return QtCore.QSize(480, 160)
     
     def _open_device(self):
-        ids = [
-            (0x1D50, 0x6002), # UBERTOOTH_ONE
-            (0x1D50, 0x6000), # UBERTOOTH_ZERO
-            (0xFFFF, 0x0004)  # TC13BADGE / Ubertooth with older firmware
-        ]
-        for vendor, product in ids:
-            device = usb.core.find(idVendor=vendor, idProduct=product)
-            if device:
-                return Ubertooth(device)
-        raise Exception('Device not found')
-    
+        return Ubertooth.get_device()
+
     def closeEvent(self, event):
         self.render_area.stop_thread()
         self._device.close()

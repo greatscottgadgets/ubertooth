@@ -27,6 +27,9 @@ import sys
 import time
 from array import array
 import numpy
+import ctypes
+
+libubertooth = ctypes.cdll.LoadLibrary("libubertooth.so")
 
 class Ubertooth(object):
     STATE_IDLE   = 0
@@ -34,15 +37,9 @@ class Ubertooth(object):
     
     def __init__(self, device):
         self._device = device
-        self._device.default_timeout = 3000
-        self._device.set_configuration()
+        #self._device.default_timeout = 3000
+        #self._device.set_configuration()
         self._state = self.STATE_IDLE
-
-    def _cmd_specan(self, low_frequency, high_frequency):
-        low_frequency = int(round(low_frequency / 1e6))
-        high_frequency = int(round(high_frequency / 1e6))
-        self._device.ctrl_transfer(0x40, 27, low_frequency, high_frequency)
-        self._state = self.STATE_ACTIVE
 
     def specan(self, low_frequency, high_frequency):
         spacing_hz = 1e6
@@ -50,7 +47,10 @@ class Ubertooth(object):
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
         frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(len(frequency_axis))))
         
-        self._cmd_specan(low_frequency, high_frequency)
+        low = int(round(low_frequency / 1e6))
+        high = int(round(high_frequency / 1e6))
+        libubertooth.cmd_specan(self._device, low, high)
+        self._state = self.STATE_ACTIVE
         
         default_raw_rssi = -128
         rssi_offset = -54
@@ -58,13 +58,16 @@ class Ubertooth(object):
         rssi_values.fill(default_raw_rssi + rssi_offset)
         
         data = array('B')
+        ByteArray = ctypes.c_ubyte * 512
+        buf = ByteArray()
         last_index = None
         while True:
-            buffer = self._device.read(0x82, 64)
-            data += buffer
+            libubertooth.rx_specan(self._device, buf, 512)
+            data.extend(buf)
             while len(data) >= 64:
                 header, block, data = data[:14], data[14:64], data[64:]
-                pkt_type, status, channel, clkn_high, clk100ns, reserved = struct.unpack('<BBBBI6s', header)
+                pkt_type, status, channel, clkn_high, clk100ns, reserved = \
+                                                struct.unpack('<BBBBI6s', header)
                 clk = (clkn_high << 32) | clk100ns
                 clk_seconds = float(clk) * 100e-9
                 while len(block) >= 3:
@@ -79,21 +82,17 @@ class Ubertooth(object):
                     
     def close(self):
         if self._state != self.STATE_IDLE:
-            self._device.ctrl_transfer(0x40, 21)
+            libubertooth.ubertooth_stop(self._device)
             self._state = self.STATE_IDLE
-    
+
+def get_device():
+    device = libubertooth.ubertooth_start(-1)
+    if device:
+        return Ubertooth(device)
+    raise Exception('Device not found')
+
 if __name__ == '__main__':
-    ids = [
-        (0x1D50, 0x6002), # UBERTOOTH_ONE
-        (0x1D50, 0x6000), # UBERTOOTH_ZERO
-        (0xFFFF, 0x0004)  # TC13BADGE / Ubertooth with older firmware
-    ]
-    for vendor, product in ids:
-        device = usb.core.find(idVendor=vendor, idProduct=product)
-        if device:
-            break
-    else:
-        raise Exception('Device not found')
+    device = get_device()
 
     ubertooth = Ubertooth(device)
     frame_source = ubertooth.specan(2.402e9, 2.480e9)

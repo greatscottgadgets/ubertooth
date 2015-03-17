@@ -772,16 +772,29 @@ void rx_dump(struct libusb_device_handle* devh, int bitstream)
 		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_full, NULL);
 }
 
+/* Split this function out to call from python */
+int rx_specan(struct libusb_device_handle* devh, u8 *buffer, int xfer_size) {
+	int r, transferred;
+	r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
+			&transferred, TIMEOUT);
+	if (r < 0) {
+		fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
+		return r;
+	}
+	if (transferred != xfer_size) {
+		fprintf(stderr, "bad data read size (%d)\n", transferred);
+		return -1;
+	}
+	if(debug)
+		fprintf(stderr, "transferred %d bytes\n", transferred);
+	return 0;
+}
+
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		u16 low_freq, u16 high_freq, int gnuplot)
 {
 	u8 buffer[BUFFER_SIZE];
-	int r;
-	int i, j;
-	int xfer_blocks;
-	int num_xfers;
-	int transferred;
-	int frequency;
+	int r, i, j, xfer_blocks, num_xfers, frequency;
 	u32 time; /* in 100 nanosecond units */
 
 	if (xfer_size > BUFFER_SIZE)
@@ -798,19 +811,10 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	cmd_specan(devh, low_freq, high_freq);
 
 	while (num_xfers--) {
-		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
-				&transferred, TIMEOUT);
-		if (r < 0) {
-			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
-			return -1;
+		r = rx_specan(devh, buffer, xfer_size);
+		if(r < 0) {
+			return r;
 		}
-		if (transferred != xfer_size) {
-			fprintf(stderr, "bad data read size (%d)\n", transferred);
-			return -1;
-		}
-		if(debug)
-			fprintf(stderr, "transferred %d bytes\n", transferred);
-
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
 			time = buffer[4 + PKT_LEN * i]

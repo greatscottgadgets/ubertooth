@@ -48,6 +48,7 @@ typedef struct {
 void print_version();
 struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
+int rx_specan(struct libusb_device_handle* devh, u8 *buffer, int xfer_size);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 	u16 low_freq, u16 high_freq, int gnuplot);
 int cmd_ping(struct libusb_device_handle* devh);
