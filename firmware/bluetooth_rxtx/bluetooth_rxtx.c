@@ -238,8 +238,13 @@ static int enqueue(u8 type, u8 *buf)
 	}
 
 	f->pkt_type = type;
-	f->clkn_high = idle_buf_clkn_high;
-	f->clk100ns = idle_buf_clk100ns;
+	if(type == SPECAN) {
+		f->clkn_high = (clkn >> 20) & 0xff;
+		f->clk100ns = CLK100NS;
+	} else {
+		f->clkn_high = idle_buf_clkn_high;
+		f->clk100ns = idle_buf_clk100ns;
+	}
 	f->channel = idle_buf_channel - 2402;
 	f->rssi_min = rssi_min;
 	f->rssi_max = rssi_max;
