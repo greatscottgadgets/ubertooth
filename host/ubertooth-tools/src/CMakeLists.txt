@@ -22,7 +22,6 @@
 # Based heavily upon the hackrf cmake setup.
 
 find_package(BTBB REQUIRED)
-find_package(PCAP)
 find_package(BLUETOOTH)
 
 if(MSVC)
@@ -42,17 +41,6 @@ endif()
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 
 LIST(APPEND TOOLS_LINK_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
-
-if( USE_PCAP AND NOT ${PCAP_FOUND} )
-	message( FATAL_ERROR
-		"Cannot find libpcap, which is required for USE_PCAP")
-endif()
-
-if( ${PCAP_FOUND} )
-	include_directories(${PCAP_INCLUDE_DIRS})
-	LIST(APPEND TOOLS_LINK_LIBS ${PCAP_LIBRARIES})
-	add_definitions( -DUSE_PCAP )
-endif( ${PCAP_FOUND} )
 
 if(MSVC)
 	LIST(APPEND TOOLS_LINK_LIBS libgetopt_static)

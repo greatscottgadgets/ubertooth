@@ -69,14 +69,6 @@ find_package(USB1 REQUIRED)
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
-# Conditional libpcap support
-find_package(PCAP)
-if( ${PCAP_FOUND} )
-	include_directories(${PCAP_INCLUDE_DIRS})
-	LIST(APPEND LIBUBERTOOTH_LIBS ${PCAP_LIBRARIES})
-	add_definitions( -DUSE_PCAP )
-endif( ${PCAP_FOUND} )
-
 target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
 
 if( ${UNIX} )
