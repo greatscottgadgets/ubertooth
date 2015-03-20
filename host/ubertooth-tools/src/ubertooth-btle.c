@@ -28,7 +28,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#ifdef BTBB_PCAP_ENABLED
+#if (BTBB_PCAP_ENABLED)
 #include <pcap.h>
 extern pcap_t *pcap_dumpfile;
 extern pcap_dumper_t *dumper;
