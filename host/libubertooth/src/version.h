@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Dominic Spill
  *
- * This file is part of libbtbb.
+ * This file is part of Ubertooth.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
