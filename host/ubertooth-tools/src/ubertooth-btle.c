@@ -28,11 +28,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#ifdef USE_PCAP
+#ifdef BTBB_PCAP_ENABLED
 #include <pcap.h>
 extern pcap_t *pcap_dumpfile;
 extern pcap_dumper_t *dumper;
-#endif // USE_PCAP
+#endif // BTBB_PCAP_ENABLED
 
 struct libusb_device_handle *devh = NULL;
 extern FILE *infile;
@@ -89,7 +89,7 @@ static void usage(void)
 	printf("\n");
 	printf("    Misc:\n");
 	printf("\t-r<filename> capture packets to PCAPNG file\n");
-#if defined(USE_PCAP)
+#if (BTBB_PCAP_ENABLED)
 	printf("\t-q<filename> capture packets to PCAP file (DLT_BLUETOOTH_LE_LL_WITH_PHDR)\n");
 	printf("\t-c<filename> capture packets to PCAP file (DLT_PPI)\n");
 #endif
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 				printf("Ignoring extra capture file: %s\n", optarg);
 			}
 			break;
-#if defined(USE_PCAP)
+#if (BTBB_PCAP_ENABLED)
 		case 'q':
 			if (!h_pcap_le) {
 				if (lell_pcap_create_file(optarg, &h_pcap_le)) {
