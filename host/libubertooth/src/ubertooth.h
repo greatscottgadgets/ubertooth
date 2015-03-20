@@ -28,10 +28,14 @@
 /* Mark unused variables to avoid gcc/clang warnings */
 #define UNUSED(x) (void)(x)
 
-/* gnuplot output types
+/* specan output types
  * see https://github.com/dkogan/feedgnuplot for plotter */
-#define GNUPLOT_NORMAL 1
-#define GNUPLOT_3D     2
+enum specan_modes {
+	SPECAN_STDOUT         = 0,
+	SPECAN_GNUPLOT_NORMAL = 1,
+	SPECAN_GNUPLOT_3D     = 2,
+	SPECAN_FILE           = 3
+};
 
 enum board_ids {
 	BOARD_ID_UBERTOOTH_ZERO = 0,
@@ -48,9 +52,8 @@ typedef struct {
 void print_version();
 struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
-int rx_specan(struct libusb_device_handle* devh, u8 *buffer, int xfer_size);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
-	u16 low_freq, u16 high_freq, int gnuplot);
+	u16 low_freq, u16 high_freq, u8 output_mode);
 int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	uint16_t num_blocks, rx_callback cb, void* cb_args);
