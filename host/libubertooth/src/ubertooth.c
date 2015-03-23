@@ -57,7 +57,7 @@ FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 2;
 btbb_piconet *follow_pn = NULL; // currently following this piconet
-#if (BTBB_PCAP_ENABLED)
+#ifdef ENABLE_PCAP
 btbb_pcap_handle * h_pcap_bredr = NULL;
 lell_pcap_handle * h_pcap_le = NULL;
 #endif
@@ -537,7 +537,7 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	i = btbb_process_packet(pkt, pn);
 
 	/* Dump to PCAP/PCAPNG if specified */
-#if (BTBB_PCAP_ENABLED)
+#ifdef ENABLE_PCAP
 	if (h_pcap_bredr) {
 		btbb_pcap_append_packet(h_pcap_bredr, nowns,
 					signal_level, noise_level,
@@ -675,7 +675,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 	/* Dump to PCAP/PCAPNG if specified */
 	refAA = lell_packet_is_data(pkt) ? 0 : 0x8e89bed6;
 	determine_signal_and_noise( rx, &sig, &noise );	
-#if (BTBB_PCAP_ENABLED)
+#ifdef ENABLE_PCAP
 	if (h_pcap_le) {
 		/* only one of these two will succeed, depending on
 		 * whether PCAP was opened with DLT_PPI or not */
@@ -868,7 +868,7 @@ void ubertooth_stop(struct libusb_device_handle *devh)
 	libusb_close(devh);
 	libusb_exit(NULL);
 
-#if (BTBB_PCAP_ENABLED)
+#ifdef ENABLE_PCAP
 	if (h_pcap_bredr) {
 		btbb_pcap_close(h_pcap_bredr);
 		h_pcap_bredr = NULL;

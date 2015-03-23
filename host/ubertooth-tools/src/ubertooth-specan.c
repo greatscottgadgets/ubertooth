@@ -21,10 +21,22 @@
 
 #include <getopt.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "ubertooth.h"
 
 extern u8 debug;
 extern FILE *dumpfile;
+
+struct libusb_device_handle *devh = NULL;
+
+void cleanup(int sig)
+{
+	sig = sig;
+	if (devh) {
+		ubertooth_stop(devh);
+	}
+	exit(0);
+}
 
 static void usage(void)
 {
@@ -46,8 +58,6 @@ int main(int argc, char *argv[])
 	int lower= 2402, upper= 2480;
 	char ubertooth_device = -1;
 
-	struct libusb_device_handle *devh = NULL;
-
 	while ((opt=getopt(argc,argv,"vhgGd:l::u::U:")) != EOF) {
 		switch(opt) {
 		case 'v':
@@ -61,10 +71,14 @@ int main(int argc, char *argv[])
 			break;
 		case 'd':
 			output_mode = SPECAN_FILE;
-			dumpfile = fopen(optarg, "w");
-			if (dumpfile == NULL) {
-				perror(optarg);
-				return 1;
+			if(*optarg == '-') {
+				dumpfile = stdout;
+			} else {
+				dumpfile = fopen(optarg, "w");
+				if (dumpfile == NULL) {
+					perror(optarg);
+					return 1;
+				}
 			}
 			break;
 		case 'l':
@@ -95,7 +109,12 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
-
+	
+	/* Clean up on exit. */
+	signal(SIGINT,cleanup);
+	signal(SIGQUIT,cleanup);
+	signal(SIGTERM,cleanup);
+	
 	while (1)
 		specan(devh, 512, 0xFFFF, lower, upper, output_mode);
 

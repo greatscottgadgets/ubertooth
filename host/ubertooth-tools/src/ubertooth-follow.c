@@ -48,7 +48,7 @@ static void usage()
 	printf("\t-u<UAP> (in hexadecimal)\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\t-r<filename> capture packets to PCAPNG file\n");
-#if (BTBB_PCAP_ENABLED)
+#ifdef ENABLE_PCAP
 	printf("\t-q<filename> capture packets to PCAP file\n");
 #endif
 	printf("\t-e max_ac_errors\n");
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 				printf("Ignoring extra capture file: %s\n", optarg);
 			}
 			break;
-#if (BTBB_PCAP_ENABLED)
+#ifdef ENABLE_PCAP
 		case 'q':
 			if (!h_pcap_bredr) {
 				if (btbb_pcap_create_file(optarg, &h_pcap_bredr)) {

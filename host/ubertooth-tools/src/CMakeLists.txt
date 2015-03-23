@@ -24,10 +24,23 @@
 find_package(BTBB REQUIRED)
 find_package(BLUETOOTH)
 
+# Use pcap only if BTBB supports it and user hasn't explicitly disabled it
+# If user explicitly enables it but BTBB doesn't support it, raise an error
+if( (NOT DEFINED USE_PCAP) OR USE_PCAP )
+	if( USE_PCAP AND (NOT HAVE_BTBB_PCAP) )
+		message( FATAL_ERROR
+			"libbtbb does not support pcap, which is required for USE_PCAP")
+	else()
+		if(HAVE_BTBB_PCAP)
+			add_definitions( -DENABLE_PCAP )
+		endif()
+	endif()
+endif()
+
 if(MSVC)
 	include_directories(../getopt)
 	add_library(libgetopt_static STATIC ../getopt/getopt.c)
-endif()
+endif(MSVC)
 
 if(NOT libubertooth_SOURCE_DIR)
 	find_package(UBERTOOTH REQUIRED)
