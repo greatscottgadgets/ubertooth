@@ -38,23 +38,23 @@ void cleanup(int sig)
 	exit(0);
 }
 
-static void usage(void)
+static void usage(FILE *file)
 {
-	printf("ubertooth-specan - output a continuous stream of signal strengths\n");
-	printf("Usage:\n");
-	printf("\t-h this help\n");
-	printf("\t-v verbose (print debug information to stderr)\n");
-	printf("\t-g output suitable for feedgnuplot\n");
-	printf("\t-G output suitable for 3D feedgnuplot\n");
-	printf("\t-d <filename> output to file\n");
-	printf("\t-l lower frequency (default 2402)\n");
-	printf("\t-u upper frequency (default 2480)\n");
-	printf("\t-U<0-7> set ubertooth device to use\n");
+	fprintf(file, "ubertooth-specan - output a continuous stream of signal strengths\n");
+	fprintf(file, "Usage:\n");
+	fprintf(file, "\t-h this help\n");
+	fprintf(file, "\t-v verbose (print debug information to stderr)\n");
+	fprintf(file, "\t-g output suitable for feedgnuplot\n");
+	fprintf(file, "\t-G output suitable for 3D feedgnuplot\n");
+	fprintf(file, "\t-d <filename> output to file\n");
+	fprintf(file, "\t-l lower frequency (default 2402)\n");
+	fprintf(file, "\t-u upper frequency (default 2480)\n");
+	fprintf(file, "\t-U<0-7> set ubertooth device to use\n");
 }
 
 int main(int argc, char *argv[])
 {
-	int opt, output_mode = SPECAN_STDOUT;
+	int opt, r = 0, output_mode = SPECAN_STDOUT;
 	int lower= 2402, upper= 2480;
 	char ubertooth_device = -1;
 
@@ -97,8 +97,10 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'h':
+			usage(stdout);
+			return 0;
 		default:
-			usage();
+			usage(stderr);
 			return 1;
 		}
 	}
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
 	devh = ubertooth_start(ubertooth_device);
 
 	if (devh == NULL) {
-		usage();
+		usage(stderr);
 		return 1;
 	}
 	
@@ -115,9 +117,13 @@ int main(int argc, char *argv[])
 	signal(SIGQUIT,cleanup);
 	signal(SIGTERM,cleanup);
 	
-	while (1)
-		specan(devh, 512, 0xFFFF, lower, upper, output_mode);
+	while (1) {
+		r = specan(devh, 512, 0xFFFF, lower, upper, output_mode);
+		if(r<0)
+			break;
+	}
 
 	ubertooth_stop(devh);
-	return 0;
+	fprintf(stderr, "Ubertooth stopped\n");
+	return r;
 }

@@ -291,7 +291,7 @@ class Window(QtGui.QWidget):
         return QtCore.QSize(480, 160)
     
     def _open_device(self):
-        return Ubertooth.get_device()
+        return Ubertooth.Ubertooth()
 
     def closeEvent(self, event):
         self.render_area.stop_thread()
