@@ -252,7 +252,7 @@ int detach(libusb_device_handle* devh) {
 	int state, rv;
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
-		fprintf(stderr, "Download failed: could not enter DFU mode\n");
+		fprintf(stderr, "Detach failed: could not enter DFU mode\n");
 		return rv;
 	}
 	state = dfu_get_state(devh);
