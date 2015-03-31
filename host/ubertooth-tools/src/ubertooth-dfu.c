@@ -237,7 +237,8 @@ int enter_dfu_mode(libusb_device_handle* devh) {
 				sleep(1);
 				break;
 			case STATE_APP_IDLE:
-				detach(devh);
+				// We don't support this state in the application
+				//detach(devh);
 				break;
 			case STATE_DFU_ERROR:
 				dfu_clear_status(devh);
@@ -305,12 +306,14 @@ int upload(libusb_device_handle* devh, FILE* upfile) {
 		if(rv == BLOCK_SIZE)
 			fwrite(buffer, 1, BLOCK_SIZE, upfile);
 		else {
+			fprintf(stdout, "\n");
 			fprintf(stderr, "Upload failed: did not read full block\n");
 			return -1;
 		}
 		block++;
 		length -= rv;
 	}
+	fprintf(stdout, "\n");
 	return 0;
 }
 
@@ -364,6 +367,7 @@ int download(libusb_device_handle* devh, FILE* downfile) {
 		fflush(stdout);
 		block++;
 	}
+	fprintf(stdout, "\n");
 	return 0;
 }
 
