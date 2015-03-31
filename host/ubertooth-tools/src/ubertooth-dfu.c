@@ -213,26 +213,6 @@ int dfu_abort(libusb_device_handle* devh) {
 	return 0;
 }
 
-int detach(libusb_device_handle* devh) {
-	int state, rv;
-	state = dfu_get_state(devh);
-	if(state == STATE_DFU_IDLE) {
-		rv = libusb_control_transfer(devh, DFU_OUT, REQ_DETACH, 0, 0, NULL, 0, 1000);
-		if (rv != LIBUSB_SUCCESS) {
-			if (rv == LIBUSB_ERROR_PIPE) {
-				fprintf(stderr, "control message unsupported\n");
-			} else
-				show_libusb_error(rv);
-			return rv;
-		} else
-			printf("Detached\n");
-	} else {
-		fprintf(stderr, "In unexpected state: %d", state);
-		return 1;
-	}
-	return 0;
-}
-
 int enter_dfu_mode(libusb_device_handle* devh) {
 	uint8_t state, rv;
 	while(1) {
@@ -263,6 +243,31 @@ int enter_dfu_mode(libusb_device_handle* devh) {
 				dfu_clear_status(devh);
 				break;
 		}
+	}
+	return 0;
+}
+
+int detach(libusb_device_handle* devh) {
+	int state, rv;
+	rv = enter_dfu_mode(devh);
+	if(rv < 0) {
+		fprintf(stderr, "Download failed: could not enter DFU mode\n");
+		return rv;
+	}
+	state = dfu_get_state(devh);
+	if(state == STATE_DFU_IDLE) {
+		rv = libusb_control_transfer(devh, DFU_OUT, REQ_DETACH, 0, 0, NULL, 0, 1000);
+		if (rv != LIBUSB_SUCCESS) {
+			if (rv == LIBUSB_ERROR_PIPE) {
+				fprintf(stderr, "control message unsupported\n");
+			} else
+				show_libusb_error(rv);
+			return rv;
+		} else
+			printf("Detached\n");
+	} else {
+		fprintf(stderr, "In unexpected state: %d", state);
+		return 1;
 	}
 	return 0;
 }
