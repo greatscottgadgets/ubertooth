@@ -257,10 +257,10 @@ NM = $(CROSS_COMPILE)nm
 REMOVE = rm -f
 
 # 
-ifeq ($(strip $(`which ubertooth-dfu`)),)
-  DFU_TOOL ?= ../../host/python/usb_dfu/ubertooth-dfu
+ifeq ($(strip $(shell which ubertooth-dfu)),)
+  $(error ubertooth-dfu not found!)
 else
-  DFU_TOOL ?= `which ubertooth-dfu`
+  DFU_TOOL ?= $(shell which ubertooth-dfu)
 endif
 
 # Define Messages
@@ -388,7 +388,7 @@ program: $(TARGET).hex
 %.dfu: %.bin
 	@echo
 	@echo $(MSG_DFU) $@
-	$(DFU_TOOL) --sign $(TARGET).bin
+	$(DFU_TOOL) -s $(TARGET).bin
 
 # Create library from object files.
 .SECONDARY : $(TARGET).a
