@@ -83,6 +83,7 @@ enum ubertooth_usb_commands {
     UBERTOOTH_GET_COMPILE_INFO = 55,
     UBERTOOTH_BTLE_SET_TARGET = 56,
     UBERTOOTH_BTLE_PHY        = 57,
+    UBERTOOTH_WRITE_REGISTER  = 58,
 };
 
 enum modulations {

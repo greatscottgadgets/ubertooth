@@ -728,6 +728,10 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		*data_len = 2;
 		break;
 
+	case UBERTOOTH_WRITE_REGISTER:
+		cc2400_set(request_params[0]);
+		break;
+
 	case UBERTOOTH_BTLE_SLAVE:
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
