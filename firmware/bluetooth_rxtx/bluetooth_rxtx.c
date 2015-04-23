@@ -151,9 +151,6 @@ dma_lli le_dma_lli[11]; // 11 x 4 bytes
 volatile u32 rx_tc;
 volatile u32 rx_err;
 
-/* number of rx USB packets to send */
-volatile u32 rx_pkts = 0;
-
 /* status information byte */
 volatile u8 status = 0;
 
@@ -340,9 +337,6 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 
 	case UBERTOOTH_RX_SYMBOLS:
 		requested_mode = MODE_RX_SYMBOLS;
-		rx_pkts += request_params[0];
-		if (rx_pkts == 0)
-			rx_pkts = 0xFFFFFFFF;
 		*data_len = 0;
 		break;
 
@@ -654,9 +648,6 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_BTLE_SNIFFING:
-		rx_pkts += request_params[0];
-		if (rx_pkts == 0)
-			rx_pkts = 0xFFFFFFFF;
 		*data_len = 0;
 
 		do_hop = 0;
@@ -729,7 +720,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_WRITE_REGISTER:
-		cc2400_set(request_params[0]);
+		cc2400_set(request_params[0] & 0xff, request_params[1]);
 		break;
 
 	case UBERTOOTH_BTLE_SLAVE:
@@ -1377,7 +1368,7 @@ void bt_stream_rx()
 
 	hold = 0;
 
-	while (rx_pkts && (requested_mode == MODE_RX_SYMBOLS)) {
+	while (requested_mode == MODE_RX_SYMBOLS) {
 
 		/* If timer says time to hop, do it. TODO - set
 		 * per-channel carrier sense threshold. Set by
@@ -1465,14 +1456,12 @@ void bt_stream_rx()
 				//if (find_access_code(idle_rxbuf) >= 0)
 						if (enqueue(BR_PACKET, idle_rxbuf)) {
 								RXLED_SET;
-								--rx_pkts;
 						}
 				break;
 
 			default:
 				if (enqueue(BR_PACKET, idle_rxbuf)) {
 						RXLED_SET;
-						--rx_pkts;
 				}
 		}
 
@@ -1488,7 +1477,6 @@ void bt_stream_rx()
 	 * starting from scratch? */
 	dio_ssp_stop();
 	cs_trigger_disable();
-	rx_pkts = 0; // Already 0, or requested mode changed
 }
 
 
@@ -1605,7 +1593,6 @@ void bt_follow()
 		//	clock_trim = 20 - packet_offset;
 			if (enqueue(BR_PACKET, idle_rxbuf)) {
 				RXLED_SET;
-				--rx_pkts;
 			}
 		//}
 
@@ -2033,7 +2020,6 @@ int cb_follow_le() {
 			// send to PC
 			enqueue(LE_PACKET, idle_rxbuf);
 			RXLED_SET;
-			--rx_pkts;
 
 			packet_cb(idle_rxbuf);
 
@@ -2572,8 +2558,7 @@ int main()
 					reset();
 					break;
 				case MODE_RX_SYMBOLS:
-					if (rx_pkts)
-						bt_stream_rx();
+					bt_stream_rx();
 					break;
 				case MODE_BT_FOLLOW:
 					bt_follow();
