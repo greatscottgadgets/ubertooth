@@ -67,11 +67,11 @@ int cmd_ping(struct libusb_device_handle* devh)
 	return 0;
 }
 
-int cmd_rx_syms(struct libusb_device_handle* devh, u16 num)
+int cmd_rx_syms(struct libusb_device_handle* devh)
 {
 	int r;
 
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, num, 0,
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_RX_SYMBOLS, 0, 0,
 			NULL, 0, 1000);
 	if (r < 0) {
 		show_libusb_error(r);

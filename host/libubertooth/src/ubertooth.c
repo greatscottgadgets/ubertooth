@@ -222,17 +222,18 @@ static inline int handle_events_wrapper() {
 }
 
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
-		uint16_t num_blocks, rx_callback cb, void* cb_args)
+		rx_callback cb, void* cb_args)
 {
 	int r;
 	int i;
 	int xfer_blocks;
-	int num_xfers;
 	usb_pkt_rx* rx;
 	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
-
+	
+	fprintf(stderr, "xfer_size=%d\n", xfer_size);
+	
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
 	 * payload).  A transfer consists of one or more blocks.  Consecutive
@@ -243,8 +244,9 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		xfer_size = BUFFER_SIZE;
 	xfer_blocks = xfer_size / PKT_LEN;
 	xfer_size = xfer_blocks * PKT_LEN;
-	num_xfers = num_blocks / xfer_blocks;
-	num_blocks = num_xfers * xfer_blocks;
+	fprintf(stderr, "xfer_blocks=%d\n", xfer_blocks);
+	fprintf(stderr, "xfer_size=%d\n", xfer_size);
+	fprintf(stderr, "PKT_LEN=%d\n", PKT_LEN);
 
 	/*
 	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
@@ -258,7 +260,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	libusb_fill_bulk_transfer(rx_xfer, devh, DATA_IN, empty_usb_buf,
 			xfer_size, cb_xfer, NULL, TIMEOUT);
 
-	cmd_rx_syms(devh, num_blocks);
+	cmd_rx_syms(devh);
 
 	r = libusb_submit_transfer(rx_xfer);
 	if (r < 0) {
@@ -576,7 +578,7 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
 	if (follow_pn)
 		cmd_set_clock(devh, 0);
 	else {
-		stream_rx_usb(devh, XFER_LEN, 0, cb_br_rx, pn);
+		stream_rx_usb(devh, XFER_LEN, cb_br_rx, pn);
 		/* Allow pending transfers to finish */
 		sleep(1);
 	}
@@ -587,7 +589,7 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
 		cmd_stop(devh);
 		cmd_set_bdaddr(devh, btbb_piconet_get_bdaddr(follow_pn));
 		cmd_start_hopping(devh, btbb_piconet_get_clk_offset(follow_pn));
-		stream_rx_usb(devh, XFER_LEN, 0, cb_br_rx, follow_pn);
+		stream_rx_usb(devh, XFER_LEN, cb_br_rx, follow_pn);
 	}
 }
 
@@ -767,9 +769,9 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 void rx_dump(struct libusb_device_handle* devh, int bitstream)
 {
 	if (bitstream)
-		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_bitstream, NULL);
+		stream_rx_usb(devh, XFER_LEN, cb_dump_bitstream, NULL);
 	else
-		stream_rx_usb(devh, XFER_LEN, 0, cb_dump_full, NULL);
+		stream_rx_usb(devh, XFER_LEN, cb_dump_full, NULL);
 }
 
 /* Spectrum analyser mode */
