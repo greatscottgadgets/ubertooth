@@ -82,7 +82,7 @@ class Ubertooth(object):
         self.proc = None
 
 if __name__ == '__main__':
-    device = Ubertooth()
+    ubertooth = Ubertooth()
     frame_source = ubertooth.specan(2.402e9, 2.480e9)
 
     try:
