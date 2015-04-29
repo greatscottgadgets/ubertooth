@@ -27,7 +27,7 @@ import time
 import subprocess
 
 class Ubertooth(object):
-    
+
     def __init__(self):
         self.proc = None
 
@@ -36,17 +36,17 @@ class Ubertooth(object):
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
         frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(len(frequency_axis))))
-        
+
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
         args = ["ubertooth-specan", "-d", "-", "-l%d"%low, "-u%d"%high]
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
+
         default_raw_rssi = -128
         rssi_offset = -54
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
         rssi_values.fill(default_raw_rssi + rssi_offset)
-        
+
         data = ''
         last_index = None
         # Give it a chance to time out if it fails to find Ubertooth
@@ -73,7 +73,7 @@ class Ubertooth(object):
                         yield (frequency_axis, rssi_values)
                         rssi_values.fill(default_raw_rssi + rssi_offset)
                     rssi_values[index] = raw_rssi_value + rssi_offset
-                    
+
     def close(self):
         if self.proc and not self.proc.poll():
             self.proc.terminate()
@@ -82,7 +82,7 @@ class Ubertooth(object):
         self.proc = None
 
 if __name__ == '__main__':
-    device = Ubertooth()
+    ubertooth = Ubertooth()
     frame_source = ubertooth.specan(2.402e9, 2.480e9)
 
     try:
