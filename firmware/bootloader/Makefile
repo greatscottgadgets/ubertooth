@@ -462,3 +462,5 @@ $(shell mkdir $(OBJDIR)/ 2>/dev/null)
 .PHONY : all showtarget begin end sizebefore sizeafter \
 gccversion build elf hex eep lss sym program clean \
 clean_list clean_binary doxygen
+
+include ../ctags.mk
