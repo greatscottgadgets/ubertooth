@@ -9,7 +9,7 @@ locally, point your browser to the file:
 output/index.html
 
 Everything below this point other than the output directory is source material
-for automatic generation of the web site.  If would like to contribute to the
+for automatic generation of the web site.  If you would like to contribute to the
 web site, you should learn how to use the nanoc site compiler by going through
 the short tutorial at:
 

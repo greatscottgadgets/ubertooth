@@ -39,3 +39,11 @@ r8c2l.inc
 # web output
 web/output/*
 web/tmp/*
+
+# Source code indexing files.
+tags
+tags.log
+TAGS
+TAGS.log
+cscope*
+ID

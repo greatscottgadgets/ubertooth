@@ -115,7 +115,7 @@ LINKER_SCRIPT ?= LPC17xx_Linker_Script_with_bootloader.ld
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH) ../../host/bluetooth_rxtx/ ../../host/libubertooth/src/
+EXTRAINCDIRS = $(LIBS_PATH) $(LPCUSB_PATH) ../../host/libubertooth/src
 
 # Compiler flag to set the C Standard level.
 #     c89   = "ANSI" C
@@ -483,3 +483,5 @@ $(shell mkdir $(OBJDIR)/ 2>/dev/null)
 .PHONY : all showtarget begin end sizebefore sizeafter \
 gccversion build elf hex eep lss sym program clean \
 clean_list clean_binary doxygen
+
+include ../ctags.mk

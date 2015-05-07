@@ -19,9 +19,9 @@ bootloader that you want it to enter DFU mode:
 1. soft bootloader entry: By setting a flag in RAM, the application firmware
 can instruct the bootloader to enter DFU mode following a reset (without loss
 of power).  For example, with the bluetooth_rxtx firmware running you can
-trigger a reset into DFU mode using 'ubertooth-util -f' (located in
-host/bluetooth_rxtx/).  Soft entry only works on Ubertooth One, not Ubertooth
-Zero.
+update the firmware via DFU mode using the 'ubertooth-dfu' (located in
+host/ubertooth-tools/src/).  Soft entry only works on Ubertooth One, not
+Ubertooth Zero.
 
 2. hard bootloader entry (aka pin entry): By connecting two pins on the
 expansion header with a jumper during reset (either soft or hard boot), you can
@@ -36,7 +36,7 @@ The bootloader indicates DFU mode by flashing the LEDs in a distinctive
 pattern.  It also identifies itself as "usb_bootloader" on USB.
 
 During DFU mode, firmware may be uploaded or downloaded using ubertooth-dfu.
-See host/usb_dfu/README for usage instructions.
+For usage instructions, run 'ubertooth-dfu -h'.
 
 It is possible that soft bootloader entry may be broken by installing a faulty
 application or an application that does not provide a method of triggering soft

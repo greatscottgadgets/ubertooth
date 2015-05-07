@@ -25,10 +25,20 @@ all: $(DIRS)
 
 clean: $(DIRS:%=%_clean)
 
+ctags: $(DIRS:%=%_ctags)
+
+ctags_clean: $(DIRS:%=%_ctags_clean)
+
 $(DIRS):
 	$(MAKE) -C $@
 
 $(DIRS:%=%_clean):
 	$(MAKE) -C $(@:%_clean=%) clean
+
+$(DIRS:%=%_ctags):
+	@$(MAKE) --no-print-directory -C $(@:%_ctags=%) ctags
+
+$(DIRS:%=%_ctags_clean):
+	@$(MAKE) -C $(@:%_ctags_clean=%) ctags_clean
 
 .PHONY : clean all $(DIRS)
