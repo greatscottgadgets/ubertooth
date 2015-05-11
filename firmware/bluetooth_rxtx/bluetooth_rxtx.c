@@ -1829,6 +1829,10 @@ void bt_le_sync(u8 active_mode)
 		if ((le.link_state == LINK_CONNECTED || le.link_state == LINK_CONN_PENDING)
 			&& (CLK100NS - le.last_packet > 50000000))
 		{
+			// go back to promisc if the connection dies
+			if (active_mode == MODE_BT_PROMISC_LE)
+				goto cleanup;
+
 			reset_le();
 			le.link_state = LINK_LISTENING;
 
@@ -2254,23 +2258,29 @@ int cb_le_promisc(char *unpacked) {
 }
 
 void bt_promisc_le() {
-	reset_le_promisc();
+	while (requested_mode == MODE_BT_PROMISC_LE) {
+		reset_le_promisc();
 
-	// jump to a random data channel and turn up the squelch
-	channel = 2440;
+		// jump to a random data channel and turn up the squelch
+		channel = 2440;
 
-	// if the PC hasn't given us AA, determine by listening
-	if (!le.target_set) {
-		cs_threshold_req = -70;
-		cs_threshold_calc_and_set();
-		data_cb = cb_le_promisc;
-		bt_generic_le(MODE_BT_PROMISC_LE);
+		// if the PC hasn't given us AA, determine by listening
+		if (!le.target_set) {
+			// cs_threshold_req = -80;
+			cs_threshold_calc_and_set();
+			data_cb = cb_le_promisc;
+			bt_generic_le(MODE_BT_PROMISC_LE);
+		}
+
+		// could have got mode change in middle of above
+		if (requested_mode != MODE_BT_PROMISC_LE)
+			break;
+
+		le_promisc_state(0, &le.access_address, 4);
+		packet_cb = promisc_follow_cb;
+		le.crc_verify = 0;
+		bt_le_sync(MODE_BT_PROMISC_LE);
 	}
-
-	le_promisc_state(0, &le.access_address, 4);
-	packet_cb = promisc_follow_cb;
-	le.crc_verify = 0;
-	bt_le_sync(MODE_BT_PROMISC_LE);
 }
 
 void bt_slave_le() {
