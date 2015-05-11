@@ -101,6 +101,22 @@ le_state_t le = {
 	.last_packet = 0,
 };
 
+typedef struct _le_promisc_active_aa_t {
+	u32 aa;
+	int count;
+} le_promisc_active_aa_t;
+
+typedef struct _le_promisc_state_t {
+	// LFU cache of recently seen AA's
+	le_promisc_active_aa_t active_aa[32];
+
+	// recovering hop interval
+	u32 smallest_hop_interval;
+	int consec_intervals;
+} le_promisc_state_t;
+le_promisc_state_t le_promisc;
+#define AA_LIST_SIZE (int)(sizeof(le_promisc.active_aa) / sizeof(le_promisc_active_aa_t))
+
 /* set LE access address */
 static void le_set_access_address(u32 aa);
 
@@ -1527,6 +1543,12 @@ void reset_le() {
 	do_hop = 0;
 }
 
+// reset LE Promisc state
+void reset_le_promisc(void) {
+	memset(&le_promisc, 0, sizeof(le_promisc));
+	le_promisc.smallest_hop_interval = 0xffffffff;
+}
+
 /* generic le mode */
 void bt_generic_le(u8 active_mode)
 {
@@ -2065,8 +2087,6 @@ void promisc_recover_hop_increment(u8 *packet) {
 
 void promisc_recover_hop_interval(u8 *packet) {
 	static u32 prev_clk = 0;
-	static u32 smallest_interval = 0xffffffff;
-	static int consec = 0;
 
 	u32 cur_clk = CLK100NS;
 	u32 clk_diff = cur_clk - prev_clk;
@@ -2076,15 +2096,15 @@ void promisc_recover_hop_interval(u8 *packet) {
 	if (clk_diff < 2 * LE_BASECLK)
 		return;
 
-	if (clk_diff < smallest_interval)
-		smallest_interval = clk_diff;
+	if (clk_diff < le_promisc.smallest_hop_interval)
+		le_promisc.smallest_hop_interval = clk_diff;
 
-	obsv_hop_interval = DIVIDE_ROUND(smallest_interval, 37 * LE_BASECLK);
+	obsv_hop_interval = DIVIDE_ROUND(le_promisc.smallest_hop_interval, 37 * LE_BASECLK);
 
 	if (le.conn_interval == obsv_hop_interval) {
 		// 5 consecutive hop intervals: consider it legit and move on
-		++consec;
-		if (consec == 5) {
+		++le_promisc.consec_intervals;
+		if (le_promisc.consec_intervals == 5) {
 			packet_cb = promisc_recover_hop_increment;
 			hop_direct_channel = 2404;
 			hop_mode = HOP_DIRECT;
@@ -2093,7 +2113,7 @@ void promisc_recover_hop_interval(u8 *packet) {
 		}
 	} else {
 		le.conn_interval = obsv_hop_interval;
-		consec = 0;
+		le_promisc.consec_intervals = 0;
 	}
 
 	prev_clk = cur_clk;
@@ -2117,31 +2137,24 @@ void promisc_follow_cb(u8 *packet) {
 	}
 }
 
-// LFU cache of recently seen AA's
-struct active_aa {
-	u32 aa;
-	int freq;
-} active_aa_list[32] = { { 0, 0, }, };
-#define AA_LIST_SIZE (int)(sizeof(active_aa_list) / sizeof(struct active_aa))
-
 // called when we see an AA, add it to the list
 void see_aa(u32 aa) {
 	int i, max = -1, killme = -1;
 	for (i = 0; i < AA_LIST_SIZE; ++i)
-		if (active_aa_list[i].aa == aa) {
-			++active_aa_list[i].freq;
+		if (le_promisc.active_aa[i].aa == aa) {
+			++le_promisc.active_aa[i].count;
 			return;
 		}
 
 	// evict someone
 	for (i = 0; i < AA_LIST_SIZE; ++i)
-		if (active_aa_list[i].freq < max || max < 0) {
+		if (le_promisc.active_aa[i].count < max || max < 0) {
 			killme = i;
-			max = active_aa_list[i].freq;
+			max = le_promisc.active_aa[i].count;
 		}
 
-	active_aa_list[killme].aa = aa;
-	active_aa_list[killme].freq = 1;
+	le_promisc.active_aa[killme].aa = aa;
+	le_promisc.active_aa[killme].count = 1;
 }
 
 /* le promiscuous mode */
@@ -2226,8 +2239,8 @@ int cb_le_promisc(char *unpacked) {
 
 	// once we see an AA 5 times, start following it
 	for (i = 0; i < AA_LIST_SIZE; ++i) {
-		if (active_aa_list[i].freq > 3) {
-			le_set_access_address(active_aa_list[i].aa);
+		if (le_promisc.active_aa[i].count > 3) {
+			le_set_access_address(le_promisc.active_aa[i].aa);
 			data_cb = cb_follow_le;
 			packet_cb = promisc_follow_cb;
 			le.crc_verify = 0;
@@ -2241,6 +2254,8 @@ int cb_le_promisc(char *unpacked) {
 }
 
 void bt_promisc_le() {
+	reset_le_promisc();
+
 	// jump to a random data channel and turn up the squelch
 	channel = 2440;
 
