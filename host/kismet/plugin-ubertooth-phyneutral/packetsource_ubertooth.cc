@@ -187,7 +187,7 @@ void *ubertooth_cap_thread(void *arg)
 	libusb_fill_bulk_transfer(ubertooth->rx_xfer, ubertooth->devh, DATA_IN,
 					ubertooth->empty_buf, xfer_size, cb_xfer, ubertooth, TIMEOUT);
  
-	cmd_rx_syms(ubertooth->devh, 0);
+	cmd_rx_syms(ubertooth->devh);
  
 	r = libusb_submit_transfer(ubertooth->rx_xfer);
 	if (r < 0) {
