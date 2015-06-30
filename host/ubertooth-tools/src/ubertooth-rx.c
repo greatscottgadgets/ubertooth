@@ -48,6 +48,7 @@ static void usage()
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
+	printf("\t-t <SECONDS> sniff timeout - 0 means no timeout [Default: 0]\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
@@ -63,6 +64,7 @@ void cleanup(int sig)
 int main(int argc, char *argv[])
 {
 	int opt, have_lap = 0, have_uap = 0;
+	int timeout = 0;
 	int reset_scan = 0;
 	char *end;
 	char ubertooth_device = -1;
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
 	uint32_t lap = 0;
 	uint8_t uap = 0;
 
-	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -126,6 +128,9 @@ int main(int argc, char *argv[])
 		case 's':
 			++reset_scan;
 			break;
+		case 't':
+			timeout = atoi(optarg);
+			break;
 		case 'V':
 			print_version();
 			return 0;
@@ -135,7 +140,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-	
+
 	if (have_lap) {
 		pn = btbb_piconet_new();
 		btbb_init_piconet(pn, lap);
@@ -171,7 +176,7 @@ int main(int argc, char *argv[])
 		signal(SIGQUIT,cleanup);
 		signal(SIGTERM,cleanup);
 
-		rx_live(devh, pn, 0);
+		rx_live(devh, pn, timeout);
 
 		// Print AFH map from piconet if we have one
 		if (pn)
