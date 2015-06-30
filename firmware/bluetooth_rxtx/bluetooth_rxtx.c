@@ -68,12 +68,12 @@ volatile u8 keepalive_trigger;              // set by timer 1/s
 volatile u32 cs_timestamp;                  // CLK100NS at time of cs_trigger
 u16 hop_direct_channel = 0;                 // for hopping directly to a channel
 int clock_trim = 0;                         // to counteract clock drift
-u32 idle_buf_clkn_high;
-u32 active_buf_clkn_high;
-u32 idle_buf_clk100ns;
-u32 active_buf_clk100ns;
-u16 idle_buf_channel = 0;
-u16 active_buf_channel = 0;
+volatile u32 idle_buf_clkn_high;
+volatile u32 active_buf_clkn_high;
+volatile u32 idle_buf_clk100ns;
+volatile u32 active_buf_clk100ns;
+volatile u16 idle_buf_channel = 0;
+volatile u16 active_buf_channel = 0;
 u8 slave_mac_address[6] = { 0, };
 
 /* DMA buffers */
