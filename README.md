@@ -11,8 +11,7 @@ The latest firmware build can be found on the release page.
 
 This release is paired with [libbtbb 2014-02-R2](https://github.com/greatscottgadgets/libbtbb/releases/tag/2014-02-R2).
 
-Instructions for flashing the firmware can be found on the Wiki page
-[Flashing Firmware](https://github.com/greatscottgadgets/ubertooth/wiki/Flashing-Firmware).
+Instructions for flashing the firmware can be found [on the corresponding Wiki page](https://github.com/greatscottgadgets/ubertooth/wiki/Firmware).
 
 History
 -------
