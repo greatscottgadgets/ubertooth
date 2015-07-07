@@ -37,10 +37,10 @@ if( (NOT DEFINED USE_PCAP) OR USE_PCAP )
 	endif()
 endif()
 
-if(MSVC)
+if(USE_OWN_GNU_GETOPT)
 	include_directories(../getopt)
 	add_library(libgetopt_static STATIC ../getopt/getopt.c)
-endif(MSVC)
+endif(USE_OWN_GNU_GETOPT)
 
 if(NOT libubertooth_SOURCE_DIR)
 	find_package(UBERTOOTH REQUIRED)
@@ -55,9 +55,9 @@ include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 
 LIST(APPEND TOOLS_LINK_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
-if(MSVC)
+if(USE_OWN_GNU_GETOPT)
 	LIST(APPEND TOOLS_LINK_LIBS libgetopt_static)
-endif()
+endif(USE_OWN_GNU_GETOPT)
 
 LIST(APPEND TOOLS ubertooth-rx ubertooth-dump ubertooth-util ubertooth-btle ubertooth-dfu ubertooth-specan)
 
