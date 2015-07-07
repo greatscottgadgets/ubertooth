@@ -24,6 +24,10 @@
 project(ubertooth-tools C)
 set(PACKAGE ubertooth-tools)
 
+if(MSVC OR APPLE)
+    set(USE_OWN_GNU_GETOPT 1)
+endif()
+
 add_subdirectory(src)
 
 # Create uninstall target
