@@ -117,6 +117,10 @@ typedef struct _le_promisc_state_t {
 le_promisc_state_t le_promisc;
 #define AA_LIST_SIZE (int)(sizeof(le_promisc.active_aa) / sizeof(le_promisc_active_aa_t))
 
+/* LE jamming */
+#define JAM_COUNT_DEFAULT 20
+int le_jam_count = 0;
+
 /* set LE access address */
 static void le_set_access_address(u32 aa);
 
@@ -142,6 +146,7 @@ char unpacked[DMA_SIZE*8*2];
 
 volatile u8 mode = MODE_IDLE;
 volatile u8 requested_mode = MODE_IDLE;
+volatile u8 jam_mode = JAM_NONE;
 volatile u8 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
 volatile u16 requested_channel = 0;
@@ -756,6 +761,10 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		le.target_set = 1;
 		break;
 
+	case UBERTOOTH_JAM_MODE:
+		jam_mode = request_params[0];
+		break;
+
 	default:
 		return 0;
 	}
@@ -1306,6 +1315,34 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	cc2400_set(IOCFG, gio_save);
 }
 
+void le_jam(void) {
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
+	cc2400_set(MDMTST0, 0x234b);    // PRNG, 1 MHz offset
+
+	cc2400_set(GRMDM,   0x0c01);
+	// 0 00 01 1 000 00 0 00 0 1
+	//      |  | |   |  +--------> CRC off
+	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+	//      |  | +---------------> 0 preamble bytes of 01010101
+	//      |  +-----------------> packet mode
+	//      +--------------------> buffered mode
+
+	// cc2400_set(FSDIV,   channel);
+	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
+	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	TXLED_SET;
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+#endif
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	cc2400_strobe(STX);
+}
+
 /* TODO - return whether hop happened, or should caller have to keep
  * track of this? */
 void hop(void)
@@ -1700,6 +1737,7 @@ void bt_le_sync(u8 active_mode)
 {
 	int i;
 	int8_t rssi;
+	static int restart_jamming = 0;
 
 	modulation = MOD_BT_LOW_ENERGY;
 	mode = active_mode;
@@ -1826,14 +1864,27 @@ void bt_le_sync(u8 active_mode)
 		}
 
 		// timeout - FIXME this is an ugly hack
-		if ((le.link_state == LINK_CONNECTED || le.link_state == LINK_CONN_PENDING)
+		if  ( // timeout
+			((le.link_state == LINK_CONNECTED || le.link_state == LINK_CONN_PENDING)
 			&& (CLK100NS - le.last_packet > 50000000))
+			// jam finished
+			|| (le_jam_count == 1)
+			)
 		{
+			reset_le();
+			le_jam_count = 0;
+			TXLED_CLR;
+
+			if (jam_mode == JAM_ONCE) {
+				jam_mode = JAM_NONE;
+				requested_mode = MODE_IDLE;
+				goto cleanup;
+			}
+
 			// go back to promisc if the connection dies
 			if (active_mode == MODE_BT_PROMISC_LE)
 				goto cleanup;
 
-			reset_le();
 			le.link_state = LINK_LISTENING;
 
 			cc2400_strobe(SRFOFF);
@@ -1841,11 +1892,7 @@ void bt_le_sync(u8 active_mode)
 
 			/* Retune */
 			channel = saved_request != 0 ? saved_request : 2402;
-			cc2400_set(FSDIV, channel - 1);
-
-			/* Wait for lock */
-			cc2400_strobe(SFSON);
-			while (!(cc2400_status() & FS_LOCK));
+			restart_jamming = 1;
 		}
 
 		cc2400_set(SYNCL, le.syncl);
@@ -1854,12 +1901,23 @@ void bt_le_sync(u8 active_mode)
 		if (do_hop)
 			hop();
 
-		/* RX mode */
-		dma_init_le();
-		dio_ssp_start();
-		cc2400_strobe(SRX);
+		// ♪ you can jam but you keep turning off the light ♪
+		if (le_jam_count > 0) {
+			le_jam();
+			--le_jam_count;
+		} else {
+			/* RX mode */
+			dma_init_le();
+			dio_ssp_start();
 
-	rx_continue:
+			if (restart_jamming) {
+				cc2400_rx_sync(rbit(le.access_address));
+				restart_jamming = 0;
+			} else {
+				cc2400_strobe(SRX);
+			}
+		}
+
 		rx_tc = 0;
 		rx_err = 0;
 	}
@@ -1957,6 +2015,10 @@ void connection_follow_cb(u8 *packet) {
 		le.interval_timer = le.conn_interval - 1;
 		le.conn_count = 0;
 		le.update_pending = 0;
+
+		// hue hue hue
+		if (jam_mode != JAM_NONE)
+			le_jam_count = JAM_COUNT_DEFAULT;
 
 	} else if (le.link_state == LINK_CONNECTED) {
 		u8 llid =  header & 0x03;
@@ -2077,6 +2139,9 @@ void promisc_recover_hop_increment(u8 *packet) {
 			hop_mode = HOP_BTLE;
 			packet_cb = connection_follow_cb;
 			le_promisc_state(3, &le.channel_increment, 1);
+
+			if (jam_mode != JAM_NONE)
+				le_jam_count = JAM_COUNT_DEFAULT;
 
 			return;
 		}

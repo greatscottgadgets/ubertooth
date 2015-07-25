@@ -84,6 +84,13 @@ enum ubertooth_usb_commands {
     UBERTOOTH_BTLE_SET_TARGET = 56,
     UBERTOOTH_BTLE_PHY        = 57,
     UBERTOOTH_WRITE_REGISTER  = 58,
+    UBERTOOTH_JAM_MODE        = 59,
+};
+
+enum jam_modes {
+	JAM_NONE       = 0,
+	JAM_ONCE       = 1,
+	JAM_CONTINUOUS = 2,
 };
 
 enum modulations {

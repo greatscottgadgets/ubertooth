@@ -83,6 +83,10 @@ static void usage(void)
 	printf("\t-s<address> faux slave mode, using MAC addr (example: -s22:44:66:88:aa:cc)\n");
 	printf("\t-t<address> set connection following target (example: -t22:44:66:88:aa:cc)\n");
 	printf("\n");
+	printf("    Jamming (use with -f or -p):\n");
+	printf("\t-j jam one connection and return to idle\n");
+	printf("\t-J jam continuously\n");
+	printf("\n");
 	printf("    Data source:\n");
 	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
@@ -120,6 +124,7 @@ int main(int argc, char *argv[])
 	int do_adv_index;
 	int do_slave_mode;
 	int do_target;
+	enum jam_modes jam_mode = JAM_NONE;
 	char ubertooth_device = -1;
 
 	btle_options cb_opts = { .allowed_access_address_errors = 32 };
@@ -134,7 +139,7 @@ int main(int argc, char *argv[])
 	do_adv_index = 37;
 	do_slave_mode = do_target = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:d:hfpi:U:v::A:s:t:x:c:q:")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:d:hfpi:U:v::A:s:t:x:c:q:jJ")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -239,6 +244,12 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 			break;
+		case 'j':
+			jam_mode = JAM_ONCE;
+			break;
+		case 'J':
+			jam_mode = JAM_CONTINUOUS;
+			break;
 		case 'h':
 		default:
 			usage();
@@ -267,6 +278,11 @@ int main(int argc, char *argv[])
 	if (do_follow || do_promisc) {
 		usb_pkt_rx pkt;
 
+		int r = cmd_set_jam_mode(devh, jam_mode);
+		if (jam_mode != JAM_NONE && r != 0) {
+			printf("Jamming not supported\n");
+			return 1;
+		}
 		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
 
 		if (do_follow) {
