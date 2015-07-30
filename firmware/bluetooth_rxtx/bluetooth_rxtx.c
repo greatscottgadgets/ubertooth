@@ -28,6 +28,7 @@
 #include "bluetooth.h"
 #include "bluetooth_le.h"
 #include "cc2400_rangetest.h"
+#include "ego.h"
 
 #define MIN(x,y)	((x)<(y)?(x):(y))
 #define MAX(x,y)	((x)>(y)?(x):(y))
@@ -271,6 +272,51 @@ static int enqueue(u8 type, u8 *buf)
 	else
 		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
 	f->rssi_count = rssi_count;
+
+	USRLED_SET;
+
+	// Unrolled copy of 50 bytes from buf to fifo
+	u32 *p1 = (u32 *)f->data;
+	u32 *p2 = (u32 *)buf;
+	p1[0] = p2[0];
+	p1[1] = p2[1];
+	p1[2] = p2[2];
+	p1[3] = p2[3];
+	p1[4] = p2[4];
+	p1[5] = p2[5];
+	p1[6] = p2[6];
+	p1[7] = p2[7];
+	p1[8] = p2[8];
+	p1[9] = p2[9];
+	p1[10] = p2[10];
+	p1[11] = p2[11];
+	/* Avoid gcc warning about strict-aliasing */
+	u16 *p3 = (u16 *)f->data;
+	u16 *p4 = (u16 *)buf;
+	p3[24] = p4[24];
+
+	f->status = status;
+	status = 0;
+
+	return 1;
+}
+
+int enqueue_with_ts(u8 type, u8 *buf, u32 ts)
+{
+	usb_pkt_rx *f = usb_enqueue();
+
+	/* fail if queue is full */
+	if (f == NULL) {
+		status |= FIFO_OVERFLOW;
+		return 0;
+	}
+
+	f->clkn_high = 0;
+	f->clk100ns = ts;
+
+	f->channel = channel - 2402;
+	f->rssi_avg = 0;
+	f->rssi_count = 0;
 
 	USRLED_SET;
 
@@ -763,6 +809,10 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 
 	case UBERTOOTH_JAM_MODE:
 		jam_mode = request_params[0];
+		break;
+
+	case UBERTOOTH_EGO_SNIFF:
+		requested_mode = MODE_EGO_RX;
 		break;
 
 	default:
@@ -2560,6 +2610,9 @@ int main()
 					break;
 				case MODE_LED_SPECAN:
 					led_specan();
+					break;
+				case MODE_EGO_RX:
+					ego_rx();
 					break;
 				case MODE_IDLE:
 					cc2400_idle();

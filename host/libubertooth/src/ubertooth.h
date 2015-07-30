@@ -64,6 +64,7 @@ void rx_dump(struct libusb_device_handle* devh, int full);
 void rx_btle(struct libusb_device_handle* devh);
 void rx_btle_file(FILE* fp);
 void cb_btle(void* args, usb_pkt_rx *rx, int bank);
+void cb_ego(void* args, usb_pkt_rx *rx, int bank);
 
 #ifdef ENABLE_PCAP
 extern btbb_pcap_handle * h_pcap_bredr;

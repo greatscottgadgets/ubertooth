@@ -129,5 +129,6 @@ int cmd_read_register(struct libusb_device_handle* devh, u8 reg);
 int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address);
 int cmd_btle_set_target(struct libusb_device_handle* devh, u8 *mac_address);
 int cmd_set_jam_mode(struct libusb_device_handle* devh, int mode);
+int cmd_ego_sniff(struct libusb_device_handle* devh, u16 num);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */

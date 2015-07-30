@@ -717,6 +717,30 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 
 	fflush(stdout);
 }
+/*
+ * Sniff E-GO packets
+ */
+void cb_ego(void* args, usb_pkt_rx *rx, int bank)
+{
+	int i;
+	static u32 prev_ts = 0;
+
+	UNUSED(bank);
+
+	u32 ts_diff = rx->clk100ns - prev_ts;
+	prev_ts = rx->clk100ns;
+	printf("time=%u delta_t=%.06f ms freq=%d \n",
+	       rx->clk100ns, ts_diff / 10000.0,
+	       rx->channel + 2402);
+
+	int len = 36; // FIXME
+
+	for (i = 0; i < len; ++i)
+		printf("%02x ", rx->data[i]);
+	printf("\n\n");
+
+	fflush(stdout);
+}
 
 void rx_btle_file(FILE* fp)
 {

@@ -931,3 +931,20 @@ int cmd_set_jam_mode(struct libusb_device_handle* devh, int mode) {
 
 	return 0;
 }
+
+int cmd_ego_sniff(struct libusb_device_handle* devh, u16 num)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_EGO_SNIFF, num, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+	return 0;
+}
