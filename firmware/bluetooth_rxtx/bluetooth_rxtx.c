@@ -2612,6 +2612,7 @@ int main()
 					led_specan();
 					break;
 				case MODE_EGO_RX:
+					mode = MODE_EGO_RX;
 					ego_rx();
 					break;
 				case MODE_IDLE:

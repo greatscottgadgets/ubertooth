@@ -40,7 +40,7 @@ static void usage(void)
 	printf("\t-s sniff\n");
 	printf("\n");
 	printf("    Options:\n");
-	printf("\t-c <2402-2408> set channel in MHz\n");
+	printf("\t-c <2402-2480> set channel in MHz\n");
 }
 
 void cleanup(int sig)
@@ -55,7 +55,7 @@ void cleanup(int sig)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int do_sniff;
+	int do_sniff = 0;
 	int do_channel = 2418;
 	char ubertooth_device = -1;
 	int r;

@@ -22,6 +22,7 @@
 #include "ego.h"
 
 int enqueue_with_ts(u8 type, u8 *buf, u32 ts);
+#define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
 extern volatile u32 clkn;                       // clkn 3200 Hz counter
 extern volatile u8 requested_mode;
 extern volatile u16 channel;
@@ -98,8 +99,11 @@ void ego_rx(void)
 		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 
 		cc2400_strobe(SRX);
-		while (!(cc2400_status() & SYNC_RECEIVED));
-		rxtime = clkn;
+		while (!(cc2400_status() & SYNC_RECEIVED)) {
+			if (requested_mode != MODE_EGO_RX)
+				goto quit;
+		}
+		rxtime = CLK100NS;
 
 		RXLED_SET;
 
@@ -114,6 +118,7 @@ void ego_rx(void)
 		RXLED_CLR;
 	}
 
+quit:
 	cc2400_strobe(SRFOFF);
 	ssp_stop();
 	ICER0 = ICER0_ICE_USB;
