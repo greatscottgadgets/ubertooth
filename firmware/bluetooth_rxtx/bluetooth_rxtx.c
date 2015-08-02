@@ -119,7 +119,7 @@ le_promisc_state_t le_promisc;
 #define AA_LIST_SIZE (int)(sizeof(le_promisc.active_aa) / sizeof(le_promisc_active_aa_t))
 
 /* LE jamming */
-#define JAM_COUNT_DEFAULT 20
+#define JAM_COUNT_DEFAULT 40
 int le_jam_count = 0;
 
 /* set LE access address */
