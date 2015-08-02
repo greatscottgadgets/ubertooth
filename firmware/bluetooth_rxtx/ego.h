@@ -24,6 +24,12 @@
 
 #include "ubertooth.h"
 
-void ego_rx(void);
+typedef enum _ego_mode_t {
+	EGO_FOLLOW = 0,
+	EGO_CONTINUOUS_RX,
+	EGO_JAM,
+} ego_mode_t;
+
+void ego_main(ego_mode_t mode);
 
 #endif /* __EGO_H */

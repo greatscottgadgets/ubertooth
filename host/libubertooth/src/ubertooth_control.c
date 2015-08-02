@@ -932,11 +932,11 @@ int cmd_set_jam_mode(struct libusb_device_handle* devh, int mode) {
 	return 0;
 }
 
-int cmd_ego_sniff(struct libusb_device_handle* devh, u16 num)
+int cmd_ego(struct libusb_device_handle* devh, int mode)
 {
 	int r;
 
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_EGO_SNIFF, num, 0,
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_EGO, mode, 0,
 			NULL, 0, 1000);
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {

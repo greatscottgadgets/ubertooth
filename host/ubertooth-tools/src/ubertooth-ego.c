@@ -37,10 +37,12 @@ static void usage(void)
 	printf("\t-h this help\n");
 	printf("\n");
 	printf("    Major modes:\n");
-	printf("\t-s sniff\n");
+	printf("\t-f follow connections\n");
+	printf("\t-r continuous rx on a single channel\n");
+	printf("\t-j jam\n");
 	printf("\n");
 	printf("    Options:\n");
-	printf("\t-c <2402-2480> set channel in MHz\n");
+	printf("\t-c <2402-2480> set channel in MHz (for continuous rx)\n");
 }
 
 void cleanup(int sig)
@@ -55,15 +57,21 @@ void cleanup(int sig)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int do_sniff = 0;
+	int do_mode = -1;
 	int do_channel = 2418;
 	char ubertooth_device = -1;
 	int r;
 
-	while ((opt=getopt(argc,argv,"sc:U:h")) != EOF) {
+	while ((opt=getopt(argc,argv,"frjc:U:h")) != EOF) {
 		switch(opt) {
-		case 's':
-			do_sniff = 1;
+		case 'f':
+			do_mode = 0;
+			break;
+		case 'r':
+			do_mode = 1;
+			break;
+		case 'j':
+			do_mode = 2; // TODO take care of these magic numbers
 			break;
 		case 'c':
 			do_channel = atoi(optarg);
@@ -90,13 +98,13 @@ int main(int argc, char *argv[])
 	signal(SIGTERM, cleanup);
 
 
-	if (do_sniff) {
+	if (do_mode >= 0) {
 		usb_pkt_rx pkt;
 
-		if (do_sniff) {
+		if (do_mode == 1) // FIXME magic number!
 			cmd_set_channel(devh, do_channel);
-			cmd_ego_sniff(devh, 2);
-		}
+
+		cmd_ego(devh, do_mode);
 
 		while (1) {
 			int r = cmd_poll(devh, &pkt);

@@ -148,6 +148,7 @@ char unpacked[DMA_SIZE*8*2];
 volatile u8 mode = MODE_IDLE;
 volatile u8 requested_mode = MODE_IDLE;
 volatile u8 jam_mode = JAM_NONE;
+volatile u8 ego_mode = 0;
 volatile u8 modulation = MOD_BT_BASIC_RATE;
 volatile u16 channel = 2441;
 volatile u16 requested_channel = 0;
@@ -811,8 +812,9 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		jam_mode = request_params[0];
 		break;
 
-	case UBERTOOTH_EGO_SNIFF:
-		requested_mode = MODE_EGO_RX;
+	case UBERTOOTH_EGO:
+		requested_mode = MODE_EGO;
+		ego_mode = request_params[0];
 		break;
 
 	default:
@@ -2611,9 +2613,9 @@ int main()
 				case MODE_LED_SPECAN:
 					led_specan();
 					break;
-				case MODE_EGO_RX:
-					mode = MODE_EGO_RX;
-					ego_rx();
+				case MODE_EGO:
+					mode = MODE_EGO;
+					ego_main(ego_mode);
 					break;
 				case MODE_IDLE:
 					cc2400_idle();
