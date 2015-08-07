@@ -2379,7 +2379,8 @@ void bt_promisc_le() {
 		reset_le_promisc();
 
 		// jump to a random data channel and turn up the squelch
-		channel = 2440;
+		if ((channel & 1) == 1)
+			channel = 2440;
 
 		// if the PC hasn't given us AA, determine by listening
 		if (!le.target_set) {
