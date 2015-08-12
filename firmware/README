@@ -9,7 +9,7 @@ This firmware is intended to be compiled with a particular toolchain:
 If you are using a recent Ubuntu or Debian system, the toolchain can be installed
 from their apt repositorities as follows:
 
-    apt-get install gcc-arm-none-eabi
+    apt-get install gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib
 
 The default hardware target is Ubertooth One.  If you are compiling for
 Ubertooth Zero, you must set the environment variable BOARD=UBERTOOTH_ZERO.
