@@ -371,6 +371,20 @@ int download(libusb_device_handle* devh, FILE* downfile) {
 	return 0;
 }
 
+static int get_outfile(char *infile, char **outfile) {
+	char *suffix = strrchr(infile, '.');
+	if (suffix != NULL && strcmp(suffix, ".bin") == 0) {
+		*outfile = strdup(infile);
+		if (*outfile == NULL)
+			return 0;
+		suffix = strrchr(*outfile, '.');
+		strcpy(suffix, ".dfu");
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 static void usage()
 {
 	printf("ubertooth-dfu - Ubertooth firmware update tool\n");
@@ -390,9 +404,11 @@ static void usage()
 
 int main(int argc, char **argv) {
 	FILE *downfile, *upfile, *infile, *outfile;
+	char *outfile_name;
 	libusb_device_handle* devh = NULL;
 	uint8_t functions = 0;
 	int opt, ubertooth_device = -1;
+	int r;
 	
 	while ((opt=getopt(argc,argv,"hd:u:s:rU:")) != EOF) {
 		switch(opt) {
@@ -418,12 +434,17 @@ int main(int argc, char **argv) {
 				perror(optarg);
 				return 1;
 			}
-			strcat(optarg, ".dfu");
-			outfile = fopen(optarg, "w+b");
+			r = get_outfile(optarg, &outfile_name);
+			if (r == 0) {
+				printf("Error: -s requires a .bin\n");
+				return 1;
+			}
+			outfile = fopen(outfile_name, "w+b");
 			if (outfile == NULL) {
 				perror(optarg);
 				return 1;
 			}
+			free(outfile_name);
 			functions |= FUNC_SIGN;
 			break;
 		case 'r':
