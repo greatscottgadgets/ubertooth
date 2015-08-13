@@ -808,11 +808,17 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		le.target_set = 1;
 		break;
 
+#ifdef TX_ENABLE
 	case UBERTOOTH_JAM_MODE:
 		jam_mode = request_params[0];
 		break;
+#endif
 
 	case UBERTOOTH_EGO:
+#ifndef TX_ENABLE
+		if (ego_mode == EGO_JAM)
+			return 0;
+#endif
 		requested_mode = MODE_EGO;
 		ego_mode = request_params[0];
 		break;
@@ -1368,6 +1374,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 }
 
 void le_jam(void) {
+#ifdef TX_ENABLE
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
 	cc2400_set(MDMTST0, 0x234b);    // PRNG, 1 MHz offset
@@ -1393,6 +1400,7 @@ void le_jam(void) {
 #endif
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	cc2400_strobe(STX);
+#endif
 }
 
 /* TODO - return whether hop happened, or should caller have to keep

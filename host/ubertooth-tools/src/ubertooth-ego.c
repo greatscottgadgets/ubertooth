@@ -104,7 +104,14 @@ int main(int argc, char *argv[])
 		if (do_mode == 1) // FIXME magic number!
 			cmd_set_channel(devh, do_channel);
 
-		cmd_ego(devh, do_mode);
+		r = cmd_ego(devh, do_mode);
+		if (r < 0) {
+			if (do_mode == 0 || do_mode == 1)
+				printf("Error: E-GO not supported by this firmware\n");
+			else
+				printf("Error: E-GO not supported by this firmware (or TX not enabled)\n");
+			return 1;
+		}
 
 		while (1) {
 			int r = cmd_poll(devh, &pkt);

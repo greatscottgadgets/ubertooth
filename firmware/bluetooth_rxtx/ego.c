@@ -248,6 +248,7 @@ void jam_cap_state(ego_fsm_state_t *state) {
 }
 
 void start_jamming_state(ego_fsm_state_t *state) {
+#ifdef TX_ENABLE
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x334b); // with PRNG
@@ -276,6 +277,7 @@ void start_jamming_state(ego_fsm_state_t *state) {
 
 	cc2400_strobe(STX);
 	TXLED_SET;
+#endif
 
 	state->state = EGO_ST_JAMMING;
 	state->sleep_until = state->anchor + 2*1000*10;
@@ -352,9 +354,11 @@ void ego_main(ego_mode_t mode) {
 		case EGO_CONTINUOUS_RX:
 			handler = continuous_rx_handler;
 			break;
+#ifdef TX_ENABLE
 		case EGO_JAM:
 			handler = jam_handler;
 			break;
+#endif
 		default: // should never happen
 			requested_mode = MODE_IDLE;
 			return;
