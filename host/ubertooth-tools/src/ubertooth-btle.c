@@ -274,6 +274,10 @@ int main(int argc, char *argv[])
 	signal(SIGQUIT, cleanup);
 	signal(SIGTERM, cleanup);
 
+	if (do_follow && do_promisc) {
+		printf("Error: must choose either -f or -p, one or the other pal\n");
+		return 1;
+	}
 
 	if (do_follow || do_promisc) {
 		usb_pkt_rx pkt;
