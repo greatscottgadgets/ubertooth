@@ -2150,6 +2150,8 @@ void bt_follow_le() {
 	packet_cb = connection_follow_cb;
 	bt_generic_le(MODE_BT_FOLLOW_LE);
 	*/
+
+	mode = MODE_IDLE;
 }
 
 // issue state change message
