@@ -50,7 +50,8 @@ typedef enum _ego_state_t {
 typedef struct _ego_fsm_state_t {
 	ego_state_t state;
 	int channel_index;
-	u32 sleep_until;
+	u32 sleep_start;
+	u32 sleep_duration;
 	int timer_active;
 
 	// used by jamming
@@ -141,6 +142,22 @@ static inline int sync_received(void) {
 	return cc2400_status() & SYNC_RECEIVED;
 }
 
+// sleep for some milliseconds
+static void sleep_ms(ego_fsm_state_t *state, u32 duration) {
+	state->sleep_start = CLK100NS;
+	state->sleep_duration = duration * 1000*10;
+}
+
+// sleep for some milliseconds relative to the current anchor point
+static void sleep_ms_anchor(ego_fsm_state_t *state, u32 duration) {
+	state->sleep_start = state->anchor;
+	state->sleep_duration = duration * 1000*10;
+}
+
+static inline int sleep_elapsed(ego_fsm_state_t *state) {
+	return (CLK100NS - state->sleep_start) >= state->sleep_duration;
+}
+
 
 /////////////
 // states
@@ -166,8 +183,8 @@ void cap_state(ego_fsm_state_t *state) {
 		.rxtime = CLK100NS,
 	};
 
-	if (state->timer_active && CLK100NS >= state->sleep_until) {
-		state->sleep_until = CLK100NS + 4*1000*10; // 4 ms
+	if (sleep_elapsed(state)) {
+		sleep_ms(state, 4);
 		state->state = EGO_ST_SLEEP;
 	}
 
@@ -177,7 +194,7 @@ void cap_state(ego_fsm_state_t *state) {
 		enqueue_with_ts(EGO_PACKET, packet.rxbuf, packet.rxtime);
 		RXLED_CLR;
 
-		state->sleep_until = packet.rxtime + 6*1000*10; // 6 ms
+		sleep_ms(state, 6);
 		state->state = EGO_ST_SLEEP;
 	}
 
@@ -190,13 +207,13 @@ void cap_state(ego_fsm_state_t *state) {
 }
 
 void sleep_state(ego_fsm_state_t *state) {
-	if (CLK100NS >= state->sleep_until) {
+	if (sleep_elapsed(state)) {
 		// change channel
 		state->channel_index = (state->channel_index + 1) % 4;
 		channel = channels[state->channel_index];
 
 		// set 7 ms timeout for RX
-		state->sleep_until = CLK100NS + 7*1000*10; // 7 ms
+		sleep_ms(state, 7);
 		state->timer_active = 1;
 
 		state->state = EGO_ST_START_RX;
@@ -234,10 +251,10 @@ void jam_cap_state(ego_fsm_state_t *state) {
 		state->packet_observed = 1;
 		state->anchor = CLK100NS;
 	}
-	if (state->timer_active && CLK100NS >= state->sleep_until) {
+	if (state->timer_active && sleep_elapsed(state)) {
 		state->state = EGO_ST_START_JAMMING;
 		state->packet_observed = 0;
-		state->anchor += 11*1000*10; // 11 ms hop interval
+		sleep_ms(state, 11); // 11 ms hop interval
 	}
 
 	// state changed, kill radio
@@ -280,11 +297,11 @@ void start_jamming_state(ego_fsm_state_t *state) {
 #endif
 
 	state->state = EGO_ST_JAMMING;
-	state->sleep_until = state->anchor + 2*1000*10;
+	sleep_ms_anchor(state, 2);
 }
 
 void jamming_state(ego_fsm_state_t *state) {
-	if (CLK100NS >= state->sleep_until) {
+	if (sleep_elapsed(state)) {
 		cc2400_strobe(SRFOFF);
 #ifdef UBERTOOTH_ONE
 		PAEN_CLR;
@@ -296,15 +313,15 @@ void jamming_state(ego_fsm_state_t *state) {
 		channel = channels[state->channel_index];
 
 		state->state = EGO_ST_SLEEP;
-		state->sleep_until = state->anchor + 6*1000*10; // 6 ms
+		sleep_ms_anchor(state, 6);
 	}
 }
 
 void jam_sleep_state(ego_fsm_state_t *state) {
-	if (CLK100NS >= state->sleep_until) {
+	if (sleep_elapsed(state)) {
 		state->state = EGO_ST_START_RX;
 		state->timer_active = 1;
-		state->sleep_until = state->anchor + 11*1000*10; // 11 ms
+		sleep_ms_anchor(state, 11);
 	}
 }
 
