@@ -1924,9 +1924,12 @@ void bt_le_sync(u8 active_mode)
 		}
 
 		// timeout - FIXME this is an ugly hack
+		u32 now = CLK100NS;
+		if (now < le.last_packet)
+			now += 3276800000; // handle rollover
 		if  ( // timeout
 			((le.link_state == LINK_CONNECTED || le.link_state == LINK_CONN_PENDING)
-			&& (CLK100NS - le.last_packet > 50000000))
+			&& (now - le.last_packet > 50000000))
 			// jam finished
 			|| (le_jam_count == 1)
 			)
@@ -2184,6 +2187,8 @@ void promisc_recover_hop_increment(u8 *packet) {
 		do_hop = 1;
 	} else if (channel == 2406) {
 		u32 second_ts = CLK100NS;
+		if (second_ts < first_ts)
+			second_ts += 3276800000; // handle rollover
 		// Number of channels hopped between previous and current timestamp.
 		u32 channels_hopped = DIVIDE_ROUND(second_ts - first_ts,
 										   le.conn_interval * LE_BASECLK);
@@ -2220,6 +2225,8 @@ void promisc_recover_hop_interval(u8 *packet) {
 	static u32 prev_clk = 0;
 
 	u32 cur_clk = CLK100NS;
+	if (cur_clk < prev_clk)
+		cur_clk += 3267800000; // handle rollover
 	u32 clk_diff = cur_clk - prev_clk;
 	u16 obsv_hop_interval; // observed hop interval
 
