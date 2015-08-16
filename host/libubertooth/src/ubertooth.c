@@ -697,7 +697,11 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 					  refAA, pkt);
 	}
 
-	u32 ts_diff = rx->clk100ns - prev_ts;
+	// rollover
+	u32 rx_ts = rx->clk100ns;
+	if (rx_ts < prev_ts)
+		rx_ts += 3276800000;
+	u32 ts_diff = rx_ts - prev_ts;
 	prev_ts = rx->clk100ns;
 	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms\n",
 	       systime, rx->channel + 2402, lell_get_access_address(pkt),
