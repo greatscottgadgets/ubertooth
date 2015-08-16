@@ -155,7 +155,10 @@ static void sleep_ms_anchor(ego_fsm_state_t *state, u32 duration) {
 }
 
 static inline int sleep_elapsed(ego_fsm_state_t *state) {
-	return (CLK100NS - state->sleep_start) >= state->sleep_duration;
+	u32 now = CLK100NS;
+	if (now < state->sleep_start)
+		now += 3276800000;
+	return (now - state->sleep_start) >= state->sleep_duration;
 }
 
 
