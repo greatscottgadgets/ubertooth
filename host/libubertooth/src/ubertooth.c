@@ -731,7 +731,10 @@ void cb_ego(void* args, usb_pkt_rx *rx, int bank)
 
 	UNUSED(bank);
 
-	u32 ts_diff = rx->clk100ns - prev_ts;
+	u32 rx_time = rx->clk100ns;
+	if (rx_time < prev_ts)
+		rx_time += 3276800000; // rollover
+	u32 ts_diff = rx_time - prev_ts;
 	prev_ts = rx->clk100ns;
 	printf("time=%u delta_t=%.06f ms freq=%d \n",
 	       rx->clk100ns, ts_diff / 10000.0,
