@@ -35,8 +35,6 @@ extern pcap_dumper_t *dumper;
 #endif // ENABLE_PCAP
 
 struct libusb_device_handle *devh = NULL;
-extern FILE *infile;
-extern FILE *dumpfile;
 
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
@@ -88,7 +86,6 @@ static void usage(void)
 	printf("\t-J jam continuously\n");
 	printf("\n");
 	printf("    Data source:\n");
-	printf("\t-i<filename> read packets from file\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
 	printf("\n");
 	printf("    Misc:\n");
@@ -97,7 +94,6 @@ static void usage(void)
 	printf("\t-q<filename> capture packets to PCAP file (DLT_BLUETOOTH_LE_LL_WITH_PHDR)\n");
 	printf("\t-c<filename> capture packets to PCAP file (DLT_PPI)\n");
 #endif
-	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
@@ -118,7 +114,7 @@ void cleanup(int sig)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int do_follow, do_file, do_promisc;
+	int do_follow, do_promisc;
 	int do_get_aa, do_set_aa;
 	int do_crc;
 	int do_adv_index;
@@ -133,13 +129,13 @@ int main(int argc, char *argv[])
 	u32 access_address;
 	uint8_t mac_address[6] = { 0, };
 
-	do_follow = do_file = 0, do_promisc = 0;
+	do_follow = do_promisc = 0;
 	do_get_aa = do_set_aa = 0;
 	do_crc = -1; // 0 and 1 mean set, 2 means get
 	do_adv_index = 37;
 	do_slave_mode = do_target = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:d:hfpi:U:v::A:s:t:x:c:q:jJ")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:t:x:c:q:jJ")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -154,15 +150,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'p':
 			do_promisc = 1;
-			break;
-		case 'i':
-			do_file = 1;
-			infile = fopen(optarg, "r");
-			if (infile == NULL) {
-				printf("Could not open file %s\n", optarg);
-				usage();
-				return 1;
-			}
 			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -199,13 +186,6 @@ int main(int argc, char *argv[])
 			}
 			break;
 #endif
-		case 'd':
-			dumpfile = fopen(optarg, "w");
-			if (dumpfile == NULL) {
-				perror(optarg);
-				return 1;
-			}
-			break;
 		case 'v':
 			if (optarg)
 				do_crc = atoi(optarg) ? 1 : 0;
@@ -255,12 +235,6 @@ int main(int argc, char *argv[])
 			usage();
 			return 1;
 		}
-	}
-
-	if (do_file) {
-		rx_btle_file(infile);
-		fclose(infile);
-		return 0; // do file is the only command that doesn't open ubertooth
 	}
 
 	devh = ubertooth_start(ubertooth_device);
