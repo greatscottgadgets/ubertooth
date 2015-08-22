@@ -81,9 +81,9 @@ static void usage(void)
 	printf("\t-s<address> faux slave mode, using MAC addr (example: -s22:44:66:88:aa:cc)\n");
 	printf("\t-t<address> set connection following target (example: -t22:44:66:88:aa:cc)\n");
 	printf("\n");
-	printf("    Jamming (use with -f or -p):\n");
-	printf("\t-j jam one connection and return to idle\n");
-	printf("\t-J jam continuously\n");
+	printf("    Interference (use with -f or -p):\n");
+	printf("\t-i interfere with one connection and return to idle\n");
+	printf("\t-I interfere continuously\n");
 	printf("\n");
 	printf("    Data source:\n");
 	printf("\t-U<0-7> set ubertooth device to use\n");
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 	do_adv_index = 37;
 	do_slave_mode = do_target = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:t:x:c:q:jJ")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfpU:v::A:s:t:x:c:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -224,9 +224,11 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 			break;
+		case 'i':
 		case 'j':
 			jam_mode = JAM_ONCE;
 			break;
+		case 'I':
 		case 'J':
 			jam_mode = JAM_CONTINUOUS;
 			break;

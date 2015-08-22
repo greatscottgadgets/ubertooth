@@ -39,7 +39,7 @@ static void usage(void)
 	printf("    Major modes:\n");
 	printf("\t-f follow connections\n");
 	printf("\t-r continuous rx on a single channel\n");
-	printf("\t-j jam\n");
+	printf("\t-i interfere (jamming is illegal)\n");
 	printf("\n");
 	printf("    Options:\n");
 	printf("\t-c <2402-2480> set channel in MHz (for continuous rx)\n");
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	char ubertooth_device = -1;
 	int r;
 
-	while ((opt=getopt(argc,argv,"frjc:U:h")) != EOF) {
+	while ((opt=getopt(argc,argv,"frijc:U:h")) != EOF) {
 		switch(opt) {
 		case 'f':
 			do_mode = 0;
@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
 		case 'r':
 			do_mode = 1;
 			break;
+		case 'i':
 		case 'j':
 			do_mode = 2; // TODO take care of these magic numbers
 			break;
