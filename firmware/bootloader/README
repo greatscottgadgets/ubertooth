@@ -49,3 +49,8 @@ expansion header (J1).
 
 The bootloader is installed at 0x0000.  It installs application firmware at
 0x4000.
+
+To build the bootloader you will need to install libstdc++ for ARM.
+On Debian based systems:
+apt-get install libstdc++-arm-none-eabi-newlib
+

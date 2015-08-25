@@ -233,7 +233,7 @@ LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += -static
 LDFLAGS += -Wl,--start-group 
 #LDFLAGS += -L$(THUMB2GNULIB) -L$(THUMB2GNULIB2)
-LDFLAGS += -lc -lg -lstdc++ -lsupc++ 
+LDFLAGS += -lc -lg
 LDFLAGS += -lgcc -lm 
 LDFLAGS += -Wl,--end-group 
 
