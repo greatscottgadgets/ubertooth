@@ -35,7 +35,10 @@ class Ubertooth(object):
         spacing_hz = 1e6
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
-        frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(len(frequency_axis))))
+        frame_size = len(frequency_axis)
+        buffer_size = frame_size*3
+        frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
+        dt = numpy.dtype([('f1', numpy.uint8), ('f2', numpy.float32)])
 
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
@@ -55,18 +58,14 @@ class Ubertooth(object):
             print "Could not open Ubertooth device"
             print "Failed to run: ", ' '.join(args)
             return
+        buf = bytearray(buffer_size)
         while self.proc.poll() is None:
-            buf = self.proc.stdout.read(512)
+            self.proc.stdout.readinto(buf)
             data += buf
-            while len(data) >= 64:
-                header, block, data = data[:14], data[14:64], data[64:]
-                #pkt_type, status, channel, clkn_high, clk100ns, reserved = \
-                #                                struct.unpack('<BBBBI6s', header)
-                #clk = (clkn_high << 32) | clk100ns
-                #clk_seconds = float(clk) * 100e-9
-                while len(block) >= 3:
-                    item, block = block[:3], block[3:]
-                    frequency, raw_rssi_value = struct.unpack('>Hb', item)
+            while len(data) >= buffer_size:
+                frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
+                data = data[3:]
+                if frequency >= low and frequency <= high:
                     index = frequency_index_map[frequency]
                     if index == 0:
                         # We started a new frame, send the existing frame

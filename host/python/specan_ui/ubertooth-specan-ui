@@ -134,12 +134,10 @@ class RenderArea(QtGui.QWidget):
                 y_now = self._dbm_to_y(rssi_values)
                 y_max = self._dbm_to_y(numpy.amax(self._persisted_frames, axis=0))
                 
-                # TODO: Wrapped Numpy types with float() to support old (<1.0) PySide API in Ubuntu 10.10
                 path_now.moveTo(float(x_axis[0]), float(y_now[0]))
                 for i in bins:
                     path_now.lineTo(float(x_axis[i]), float(y_now[i]))
                 
-                # TODO: Wrapped Numpy types with float() to support old (<1.0) PySide API in Ubuntu 10.10
                 path_max.moveTo(float(x_axis[0]), float(y_max[0]))
                 db_tmp = self._low_dbm
                 max_max = None

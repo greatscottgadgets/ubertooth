@@ -810,7 +810,10 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		u16 low_freq, u16 high_freq, u8 output_mode)
 {
 	u8 buffer[BUFFER_SIZE];
-	int r, i, j, xfer_blocks, num_xfers, frequency, transferred;
+	int frame_length = (high_freq - low_freq) * 3;
+	fprintf(stderr, "Frame length=%d\n", frame_length);
+	u8 frame_buffer[frame_length];
+	int r, i, j, k, xfer_blocks, num_xfers, frequency, transferred;
 	u32 time; /* in 100 nanosecond units */
 
 	if (xfer_size > BUFFER_SIZE)
@@ -835,52 +838,61 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		}
 		if (transferred != xfer_size) {
 			fprintf(stderr, "bad data read size (%d)\n", transferred);
+			fprintf(stderr, "Transferred: %x\n", buffer[0]);
+			if(output_mode==SPECAN_FILE)
+				continue;
 			return -1;
 		}
 		if(debug)
 			fprintf(stderr, "transferred %d bytes\n", transferred);
 
-		if(output_mode==SPECAN_FILE) {
-			r = fwrite(buffer, transferred, 1, dumpfile);
-			if(r != 1) {
-				fprintf(stderr, "Error writing to file (%d)\n", r);
-				return -1;
-			}
-		} else {
-			/* process each received block */
-			for (i = 0; i < xfer_blocks; i++) {
-				time = buffer[4 + PKT_LEN * i]
-						| (buffer[5 + PKT_LEN * i] << 8)
-						| (buffer[6 + PKT_LEN * i] << 16)
-						| (buffer[7 + PKT_LEN * i] << 24);
-				if(debug)
-					fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-				for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
-					frequency = (buffer[j] << 8) | buffer[j + 1];
-					if (buffer[j + 2] > 150) { /* FIXME  */
-						switch(output_mode) {
-							case SPECAN_STDOUT:
-								printf("%f, %d, %d\n", ((double)time)/10000000,
-									frequency, buffer[j + 2]);
-								break;
-							case SPECAN_GNUPLOT_NORMAL:
-								printf("%d %d\n", frequency, buffer[j + 2]);
-								break;
-							case SPECAN_GNUPLOT_3D:
-								printf("%f %d %d\n", ((double)time)/10000000,
-									frequency, buffer[j + 2]);
-								break;
-							default:
-								fprintf(stderr, "Unrecognised output mode (%d)\n",
-										output_mode);
-								return -1;
-								break;
-						}
+		/* process each received block */
+		for (i = 0; i < xfer_blocks; i++) {
+			time = buffer[4 + PKT_LEN * i]
+					| (buffer[5 + PKT_LEN * i] << 8)
+					| (buffer[6 + PKT_LEN * i] << 16)
+					| (buffer[7 + PKT_LEN * i] << 24);
+			if(debug)
+				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
+			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
+				frequency = (buffer[j] << 8) | buffer[j + 1];
+				if (buffer[j + 2] > 150) { /* FIXME  */
+					switch(output_mode) {
+						case SPECAN_FILE:
+							k = 3 * (frequency-low_freq);
+							frame_buffer[k] = buffer[j];
+							frame_buffer[k+1] = buffer[j+1];
+							frame_buffer[k+2] = buffer[j+2];
+							break;
+						case SPECAN_STDOUT:
+							printf("%f, %d, %d\n", ((double)time)/10000000,
+								frequency, buffer[j + 2]);
+							break;
+						case SPECAN_GNUPLOT_NORMAL:
+							printf("%d %d\n", frequency, buffer[j + 2]);
+							break;
+						case SPECAN_GNUPLOT_3D:
+							printf("%f %d %d\n", ((double)time)/10000000,
+								frequency, buffer[j + 2]);
+							break;
+						default:
+							fprintf(stderr, "Unrecognised output mode (%d)\n",
+									output_mode);
+							return -1;
+							break;
 					}
-					if (frequency == high_freq &&
-						(output_mode == SPECAN_GNUPLOT_NORMAL ||
-						output_mode == SPECAN_GNUPLOT_3D))
+				}
+				if(frequency == high_freq) {
+					if(output_mode == SPECAN_GNUPLOT_NORMAL ||
+					output_mode == SPECAN_GNUPLOT_3D)
 						printf("\n");
+					if(output_mode == SPECAN_FILE) {
+						r = fwrite(frame_buffer, frame_length, 1, dumpfile);
+							if(r != 1) {
+								fprintf(stderr, "Error writing to file (%d)\n", r);
+								return -1;
+							}
+					}
 				}
 			}
 		}
