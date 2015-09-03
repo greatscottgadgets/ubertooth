@@ -21,22 +21,12 @@
 
 #include <getopt.h>
 #include <stdlib.h>
-#include <signal.h>
 #include "ubertooth.h"
 
 extern u8 debug;
 extern FILE *dumpfile;
 
 struct libusb_device_handle *devh = NULL;
-
-void cleanup(int sig)
-{
-	sig = sig;
-	if (devh) {
-		ubertooth_stop(devh);
-	}
-	exit(0);
-}
 
 static void usage(FILE *file)
 {
@@ -113,9 +103,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* Clean up on exit. */
-	signal(SIGINT,cleanup);
-	signal(SIGQUIT,cleanup);
-	signal(SIGTERM,cleanup);
+	register_cleanup_handler(devh);
 	
 	while (1) {
 		r = specan(devh, 512, 0xFFFF, lower, upper, output_mode);

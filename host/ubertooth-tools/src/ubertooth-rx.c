@@ -22,7 +22,6 @@
 #include "ubertooth.h"
 #include <err.h>
 #include <getopt.h>
-#include <signal.h>
 #include <stdlib.h>
 
 extern FILE *dumpfile;
@@ -50,15 +49,6 @@ static void usage()
 	printf("\t-s reset channel scanning\n");
 	printf("\t-t <SECONDS> sniff timeout - 0 means no timeout [Default: 0]\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
-}
-
-void cleanup(int sig)
-{
-	sig = sig;
-	if (devh) {
-		ubertooth_stop(devh);
-	}
-	exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -172,9 +162,7 @@ int main(int argc, char *argv[])
 		}
 
 		/* Clean up on exit. */
-		signal(SIGINT,cleanup);
-		signal(SIGQUIT,cleanup);
-		signal(SIGTERM,cleanup);
+		register_cleanup_handler(devh);
 
 		rx_live(devh, pn, timeout);
 

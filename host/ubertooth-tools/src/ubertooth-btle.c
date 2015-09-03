@@ -24,7 +24,6 @@
 #include <err.h>
 #include <getopt.h>
 #include <string.h>
-#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -100,15 +99,6 @@ static void usage(void)
 
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 	printf("In get/set mode no capture occurs.\n");
-}
-
-void cleanup(int sig)
-{
-	sig = sig;
-	if (devh) {
-		ubertooth_stop(devh);
-	}
-	exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -246,9 +236,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Clean up on exit. */
-	signal(SIGINT, cleanup);
-	signal(SIGQUIT, cleanup);
-	signal(SIGTERM, cleanup);
+	register_cleanup_handler(devh);
 
 	if (do_follow && do_promisc) {
 		printf("Error: must choose either -f or -p, one or the other pal\n");

@@ -26,7 +26,6 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <err.h>
 
 #include "ubertooth.h"
@@ -58,15 +57,6 @@ static void usage()
 	printf("\t-w USB delay in 625us timeslots (default:5)\n");
 	printf("\nLAP and UAP are both required, if not given they are read from the local device, in some cases this may give the incorrect address.\n");
 //	printf("If an input file is not specified, an Ubertooth device is used for live capture.\n");
-}
-
-void cleanup(int sig)
-{
-	sig = sig;
-	if (devh) {
-		ubertooth_stop(devh);
-	}
-	exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -234,9 +224,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* Clean up on exit. */
-	signal(SIGINT,cleanup);
-	signal(SIGQUIT,cleanup);
-	signal(SIGTERM,cleanup);
+	register_cleanup_handler(devh);
 	
 	devh = ubertooth_start(ubertooth_device);
 	if (devh == NULL) {
