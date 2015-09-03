@@ -69,7 +69,7 @@ class Ubertooth(object):
                     index = frequency_index_map[frequency]
                     if index == 0:
                         # new frame, pause as a frame limiter!
-                        time.sleep(0.01) # I regret nothing
+                        time.sleep(0.013) # I regret nothing
 
                         # We started a new frame, send the existing frame
                         yield (frequency_axis, rssi_values)
