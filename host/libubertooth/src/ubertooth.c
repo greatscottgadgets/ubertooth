@@ -68,6 +68,26 @@ void print_version() {
 	printf("libubertooth %s (%s), libbtbb %s (%s)\n", VERSION, RELEASE,
 		   btbb_get_version(), btbb_get_release());
 }
+
+struct libusb_device_handle *cleanup_devh = NULL;
+static void cleanup(int sig)
+{
+	sig = sig;
+	if (cleanup_devh) {
+		ubertooth_stop(cleanup_devh);
+	}
+	exit(0);
+}
+
+void register_cleanup_handler(struct libusb_device_handle *devh) {
+	cleanup_devh = devh;
+
+	/* Clean up on exit. */
+	signal(SIGINT, cleanup);
+	signal(SIGQUIT, cleanup);
+	signal(SIGTERM, cleanup);
+}
+
 void stop_transfers(int sig) {
 	sig = sig; // Unused parameter
 	stop_ubertooth = 1;

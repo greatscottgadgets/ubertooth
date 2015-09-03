@@ -90,6 +90,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	/* Clean up on exit. */
+	register_cleanup_handler(devh);
+
 	cmd_set_modulation(devh, modulation);
 	rx_dump(devh, bitstream);
 

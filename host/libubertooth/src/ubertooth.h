@@ -50,6 +50,7 @@ typedef struct {
 } btle_options;
 
 void print_version();
+void register_cleanup_handler(struct libusb_device_handle *devh);
 struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
 int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,

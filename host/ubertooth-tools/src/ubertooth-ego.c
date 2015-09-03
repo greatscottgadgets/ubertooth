@@ -24,7 +24,6 @@
 #include <err.h>
 #include <getopt.h>
 #include <string.h>
-#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -43,15 +42,6 @@ static void usage(void)
 	printf("\n");
 	printf("    Options:\n");
 	printf("\t-c <2402-2480> set channel in MHz (for continuous rx)\n");
-}
-
-void cleanup(int sig)
-{
-	sig = sig;
-	if (devh) {
-		ubertooth_stop(devh);
-	}
-	exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -94,10 +84,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Clean up on exit. */
-	signal(SIGINT, cleanup);
-	signal(SIGQUIT, cleanup);
-	signal(SIGTERM, cleanup);
-
+	register_cleanup_handler(devh);
 
 	if (do_mode >= 0) {
 		usb_pkt_rx pkt;
