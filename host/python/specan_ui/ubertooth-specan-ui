@@ -19,6 +19,7 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
+import signal
 import sys
 import threading
 import numpy
@@ -347,7 +348,13 @@ class Window(QtGui.QWidget):
             return
         print 'Unsupported key pressed:', key
 
+def sigint_handler(*args):
+    """Handler for the SIGINT signal."""
+    QtGui.QApplication.quit()
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, sigint_handler)
+
     app = QtGui.QApplication(sys.argv)
     window = Window()
     window.show()
