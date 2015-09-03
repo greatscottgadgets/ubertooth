@@ -251,7 +251,6 @@ usb_pkt_rx *dequeue()
 
 	/* fail if queue is empty */
 	if (h == t) {
-		USRLED_CLR;
 		return NULL;
 	}
 
