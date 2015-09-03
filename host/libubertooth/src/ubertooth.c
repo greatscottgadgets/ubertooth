@@ -856,7 +856,6 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
 				frequency = (buffer[j] << 8) | buffer[j + 1];
-				if (buffer[j + 2] > 150) { /* FIXME  */
 					switch(output_mode) {
 						case SPECAN_FILE:
 							k = 3 * (frequency-low_freq);
@@ -881,7 +880,6 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 							return -1;
 							break;
 					}
-				}
 				if(frequency == high_freq) {
 					if(output_mode == SPECAN_GNUPLOT_NORMAL ||
 					output_mode == SPECAN_GNUPLOT_3D)
