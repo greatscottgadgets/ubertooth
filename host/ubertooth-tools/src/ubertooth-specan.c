@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	register_cleanup_handler(devh);
 	
 	while (1) {
-		r = specan(devh, 512, 0xFFFF, lower, upper, output_mode);
+		r = specan(devh, 512, lower, upper, output_mode);
 		if(r<0)
 			break;
 	}

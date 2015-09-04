@@ -45,7 +45,6 @@ static u8 *full_usb_buf = NULL;
 static u8 usb_really_full = 0;
 static struct libusb_transfer *rx_xfer = NULL;
 static uint32_t systime;
-static u8 usb_retry = 1;
 static u8 stop_ubertooth = 0;
 static uint64_t abs_start_ns;
 static uint32_t start_clk100ns = 0;
@@ -200,6 +199,12 @@ static void cb_xfer(struct libusb_transfer *xfer)
 	uint8_t *tmp;
 
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
+		if(xfer->status == LIBUSB_TRANSFER_TIMED_OUT) {
+			r = libusb_submit_transfer(rx_xfer);
+			if (r < 0)
+			fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
+			return;
+		}
 		if(xfer->status != LIBUSB_TRANSFER_CANCELLED)
 			rx_xfer_status(xfer->status);
 		libusb_free_transfer(xfer);
@@ -207,14 +212,16 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		return;
 	}
 
-	while (usb_really_full) {
+	if(usb_really_full) {
 		/* This should never happen, but we'd prefer to error and exit
 		 * than to clobber existing data
 		 */
 		fprintf(stderr, "uh oh, full_usb_buf not emptied\n");
 		stop_ubertooth = 1;
-		return;
 	}
+	
+	if(stop_ubertooth)
+		return;
 
 	tmp = full_usb_buf;
 	full_usb_buf = empty_usb_buf;
@@ -222,36 +229,15 @@ static void cb_xfer(struct libusb_transfer *xfer)
 	usb_really_full = 1;
 	rx_xfer->buffer = empty_usb_buf;
 
-	while (usb_retry) {
-		r = libusb_submit_transfer(rx_xfer);
-		if (r < 0)
-			fprintf(stderr, "rx_xfer submission from callback: %d\n", r);
-		else
-			break;
-	}
-}
-
-static inline int handle_events_wrapper() {
-	int r;
-	while (!usb_really_full) {
-		r = libusb_handle_events(NULL);
-		if (r < 0) {
-			if (r != LIBUSB_ERROR_INTERRUPTED) {
-				show_libusb_error(r);
-				return -1;
-			}
-		} else
-			return r;
-	}
-	return 0;
+	r = libusb_submit_transfer(rx_xfer);
+	if (r < 0)
+		fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
 }
 
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		rx_callback cb, void* cb_args)
 {
-	int r;
-	int i;
-	int xfer_blocks;
+	int xfer_blocks, i, r;
 	usb_pkt_rx* rx;
 	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
@@ -284,7 +270,14 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	}
 
 	while (1) {
-		handle_events_wrapper();
+		while (!usb_really_full) {
+			r = libusb_handle_events(NULL);
+			if (r < 0) {
+				if (r == LIBUSB_ERROR_INTERRUPTED)
+					break;
+				show_libusb_error(r);
+			}
+		}
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
@@ -293,11 +286,8 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 				(*cb)(cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
 			if(stop_ubertooth) {
-				stop_ubertooth = 0;
-				usb_really_full = 0;
-				usb_retry = 0;
-				handle_events_wrapper();
-				usb_retry = 1;
+				if(rx_xfer)
+					libusb_cancel_transfer(rx_xfer);
 				return 1;
 			}
 		}
@@ -307,17 +297,11 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 }
 
 /* file should be in full USB packet format (ubertooth-dump -f) */
-int stream_rx_file(FILE* fp, uint16_t num_blocks, rx_callback cb, void* cb_args)
+int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
 {
 	uint8_t bank = 0;
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
-
-	UNUSED(num_blocks);
-
-        /*
-	fprintf(stderr, "reading %d blocks of 64 bytes from file\n", num_blocks);
-	*/
 
 	while(1) {
 		uint32_t systime_be;
@@ -599,6 +583,8 @@ void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
 	 * i.e. This cannot be rolled in to the above if...else
 	 */
 	if (follow_pn) {
+		stop_ubertooth = 0;
+		usb_really_full = 0;
 		cmd_stop(devh);
 		cmd_set_bdaddr(devh, btbb_piconet_get_bdaddr(follow_pn));
 		cmd_start_hopping(devh, btbb_piconet_get_clk_offset(follow_pn));
@@ -612,7 +598,7 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 	int r = btbb_init(max_ac_errors);
 	if (r < 0)
 		return;
-	stream_rx_file(fp, 0, cb_br_rx, pn);
+	stream_rx_file(fp, cb_br_rx, pn);
 }
 
 /*
@@ -764,7 +750,7 @@ void cb_ego(void* args, usb_pkt_rx *rx, int bank)
 
 void rx_btle_file(FILE* fp)
 {
-	stream_rx_file(fp, 0, cb_btle, NULL);
+	stream_rx_file(fp, cb_btle, NULL);
 }
 
 static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
@@ -819,8 +805,8 @@ void rx_dump(struct libusb_device_handle* devh, int bitstream)
 }
 
 /* Spectrum analyser mode */
-int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
-		u16 low_freq, u16 high_freq, u8 output_mode)
+int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
+		   u16 high_freq, u8 output_mode)
 {
 	u8 buffer[BUFFER_SIZE];
 	int frame_length = (high_freq - low_freq) * 3;
@@ -833,12 +819,6 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
 		xfer_size = BUFFER_SIZE;
 	xfer_blocks = xfer_size / PKT_LEN;
 	xfer_size = xfer_blocks * PKT_LEN;
-	num_xfers = num_blocks / xfer_blocks;
-	num_blocks = num_xfers * xfer_blocks;
-
-	if(debug)
-		fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
-				num_blocks, xfer_size);
 
 	cmd_specan(devh, low_freq, high_freq);
 
