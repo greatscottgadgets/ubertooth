@@ -38,7 +38,7 @@ static void usage(void)
 	printf("    Major modes:\n");
 	printf("\t-f follow connections\n");
 	printf("\t-r continuous rx on a single channel\n");
-	printf("\t-i interfere (jamming is illegal)\n");
+	printf("\t-i interfere\n");
 	printf("\n");
 	printf("    Options:\n");
 	printf("\t-c <2402-2480> set channel in MHz (for continuous rx)\n");
