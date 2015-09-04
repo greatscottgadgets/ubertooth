@@ -20,18 +20,19 @@ previous release, see the git commit log.
   * The older btbb format is still produced by the Kismet plugins, they will
     be migrated over to the new format in the next release
 
- * Bluetooth Smart (Low Energy) Improvements
+ * Bluetooth Smart (BLE) Improvements
   * Improved packet reception
-  * Promiscuous sniffing mode is more verbose and more reliable
+  * Promiscuous sniffing mode is more reliable
+  * Promiscuous sniffing reports the recovered parameters to the host
 
  * Skateboard Hacking
-  * Support for hijacking connections of BLE enabled skateboards
-  * Control BLE enabled skateboards from your Ubertooth host
-  * ubertooth-ego takes targets Ego brand skateboards (not Bluetooth)
-  * Always hack responsibly!
+  * Support for interfering with connections of BLE enabled skateboards
+  * ubertooth-ego targets Yuneec E-go (not Bluetooth)
+  * Always hack safely and responsibly!
 
 Build instructions are available from the wiki https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
 
 As always, support is available via the Ubertooth-general mailing list or IRC.
 Issues can also be reported via the GitHub issue tracker and pull requests are
 always welcome.
+
