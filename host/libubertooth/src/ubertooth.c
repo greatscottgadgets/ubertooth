@@ -812,7 +812,7 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
 	int frame_length = (high_freq - low_freq) * 3;
 	fprintf(stderr, "Frame length=%d\n", frame_length);
 	u8 frame_buffer[frame_length];
-	int r, i, j, k, xfer_blocks, num_xfers, frequency, transferred;
+	int r, i, j, k, xfer_blocks, frequency, transferred;
 	u32 time; /* in 100 nanosecond units */
 
 	if (xfer_size > BUFFER_SIZE)
@@ -822,7 +822,7 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
 
 	cmd_specan(devh, low_freq, high_freq);
 
-	while (num_xfers--) {
+	while (1) {
 		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
 				&transferred, TIMEOUT);
 		if (r < 0) {
