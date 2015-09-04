@@ -69,9 +69,8 @@ void print_version() {
 }
 
 struct libusb_device_handle *cleanup_devh = NULL;
-static void cleanup(int sig)
+static void cleanup(int sig __attribute__((unused)))
 {
-	sig = sig;
 	if (cleanup_devh) {
 		ubertooth_stop(cleanup_devh);
 	}
@@ -87,8 +86,7 @@ void register_cleanup_handler(struct libusb_device_handle *devh) {
 	signal(SIGTERM, cleanup);
 }
 
-void stop_transfers(int sig) {
-	sig = sig; // Unused parameter
+void stop_transfers(int sig __attribute__((unused))) {
 	stop_ubertooth = 1;
 }
 
@@ -723,7 +721,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 /*
  * Sniff E-GO packets
  */
-void cb_ego(void* args, usb_pkt_rx *rx, int bank)
+void cb_ego(void* args __attribute__((unused)), usb_pkt_rx *rx, int bank)
 {
 	int i;
 	static u32 prev_ts = 0;

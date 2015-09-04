@@ -35,7 +35,7 @@
 /* CRC32 implementation for DFU suffix */
 uint32_t crc32(uint8_t *data, uint32_t data_len) {
 	uint32_t crc = 0xffffffff;
-	int i;
+	uint32_t i;
 	for(i=0; i<data_len; i++)
 		crc = (crc >> 8) ^ crc_table[(crc ^ data[i]) & 0xff];
 	return crc;
@@ -127,7 +127,7 @@ int sign(FILE* infile, FILE* outfile, uint16_t idVendor, uint16_t idProduct) {
 /*
  * USB helper function - find devices
  */
-static struct libusb_device_handle* find_ubertooth_dfu_device(int ubertooth_device) {
+static struct libusb_device_handle* find_ubertooth_dfu_device(int ubertooth_device __attribute__((unused))) {
 	struct libusb_context *ctx = NULL;
 	struct libusb_device **usb_list = NULL;
 	struct libusb_device_handle *devh = NULL;
