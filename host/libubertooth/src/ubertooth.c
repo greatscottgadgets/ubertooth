@@ -208,7 +208,12 @@ static void cb_xfer(struct libusb_transfer *xfer)
 	}
 
 	while (usb_really_full) {
+		/* This should never happen, but we'd prefer to error and exit
+		 * than to clobber existing data
+		 */
 		fprintf(stderr, "uh oh, full_usb_buf not emptied\n");
+		stop_ubertooth = 1;
+		return;
 	}
 
 	tmp = full_usb_buf;
@@ -227,8 +232,8 @@ static void cb_xfer(struct libusb_transfer *xfer)
 }
 
 static inline int handle_events_wrapper() {
-	int r = LIBUSB_ERROR_INTERRUPTED;
-	while (r == LIBUSB_ERROR_INTERRUPTED) {
+	int r;
+	while (!usb_really_full) {
 		r = libusb_handle_events(NULL);
 		if (r < 0) {
 			if (r != LIBUSB_ERROR_INTERRUPTED) {
@@ -251,9 +256,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
-	
-	fprintf(stderr, "xfer_size=%d\n", xfer_size);
-	
+
 	/*
 	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
 	 * payload).  A transfer consists of one or more blocks.  Consecutive
@@ -264,14 +267,6 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 		xfer_size = BUFFER_SIZE;
 	xfer_blocks = xfer_size / PKT_LEN;
 	xfer_size = xfer_blocks * PKT_LEN;
-	fprintf(stderr, "xfer_blocks=%d\n", xfer_blocks);
-	fprintf(stderr, "xfer_size=%d\n", xfer_size);
-	fprintf(stderr, "PKT_LEN=%d\n", PKT_LEN);
-
-	/*
-	fprintf(stderr, "rx %d blocks of 64 bytes in %d byte transfers\n",
-		num_blocks, xfer_size);
-	*/
 
 	empty_usb_buf = &rx_buf1[0];
 	full_usb_buf = &rx_buf2[0];
@@ -289,9 +284,7 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	}
 
 	while (1) {
-		while (!usb_really_full) {
-			handle_events_wrapper();
-		}
+		handle_events_wrapper();
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
