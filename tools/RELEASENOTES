@@ -1,38 +1,37 @@
-Ubertooth 2014-02-R2 Release Notes
+Ubertooth 2015-09-R1 Release Notes
 
-The Ubertooth host utilities in this release require libbtbb-2014-02-R2 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2014-02-R2) or greater.
+The Ubertooth host utilities in this release require libbtbb-2015-09-R1 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-09-R1) or greater.
 
 These are just the highlights, for a complete list of changes since the
 previous release, see the git commit log.
 
- * Bluetooth Smart (Low Energy) Support
-  * Promiscuous and follow modes
-  * Pcap format packet logging
-  * Pairing / encryption support when paired with crackle: https://github.com/mikeryan/crackle
-  * Credit for BLE features goes to Mike Ryan
+ * Basic Rate Bluetooth Improvements
+  * Stability has improved in performance constrained environments
+  * The "uh oh, buffer not emptied" issue no longer causes the tools to loop
+    indefinitely
+  * AFH support has greatly improved, UAP and CLK values are now found more
+    quickly when AFH is used
 
- * Unified host tool for monitoring Basic Rate
-  * ubertooth-rx replaces -lap, -uap, -hop tools
-  * Once UAP is discovered, ubertooth-rx automatically tries to find clock values and begin hopping
+ * Basic Rate PCAP support
+  * ubertooth-rx and ubertooth-follow support a new PCAP file format
+  * The new PCAP format is also supported with a new Wireshark plugin: btbredr
+  * The PCAP format is still in the early stages, but we hope to have the plugin
+    included in Wireshark later this year
+  * The older btbb format is still produced by the Kismet plugins, they will
+    be migrated over to the new format in the next release
 
- * Survey tool - ubertooth-scan
-  * Combining both Ubertooth and a standard Bluetooth dongle
-  * Ubertooth scans for non-discoverable master devices
-  * Dongle probes devices for piconet information and features
+ * Bluetooth Smart (Low Energy) Improvements
+  * Improved packet reception
+  * Promiscuous sniffing mode is more verbose and more reliable
 
- * Cmake now used for the build system
-  * Improves support for non-Linux operating systems
-  * More sensible handling of dependencies
-  * New build instructions: https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
+ * Skateboard Hacking
+  * Support for hijacking connections of BLE enabled skateboards
+  * Control BLE enabled skateboards from your Ubertooth host
+  * ubertooth-ego takes targets Ego brand skateboards (not Bluetooth)
+  * Always hack responsibly!
 
- * Packaging (Experimental)
-  * Early stage support for packaging systems
-  * libbtbb in Homebrew repository, Ubertooth coming soon
-  * MacPorts availability is under test
-  * Release already available in Pentoo
+Build instructions are available from the wiki https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
 
- * GitHub migration
-  * libbtbb, Ubertooth and gr-bluetooth all hosted on GitHub
-  * Allows for more open development and collaboration model
-  * Already seeing an increase in issue reporting and pull requests
-
+As always, support is available via the Ubertooth-general mailing list or IRC.
+Issues can also be reported via the GitHub issue tracker and pull requests are
+always welcome.
