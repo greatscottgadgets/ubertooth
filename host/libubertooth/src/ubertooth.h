@@ -53,8 +53,8 @@ void print_version();
 void register_cleanup_handler(struct libusb_device_handle *devh);
 struct libusb_device_handle* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(struct libusb_device_handle *devh);
-int specan(struct libusb_device_handle* devh, int xfer_size, u16 num_blocks,
-		   u16 low_freq, u16 high_freq, u8 output_mode);
+int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
+		   u16 high_freq, u8 output_mode);
 int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 				  rx_callback cb, void* cb_args);
