@@ -2,6 +2,10 @@ language: c
 
 cache: apt
 
+compiler:
+  - clang
+  - gcc
+
 before_install:
   - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
   - sudo apt-get update -qq
@@ -19,5 +23,5 @@ before_install:
 script:
   - mkdir host/build
   - cd host/build
-  - cmake ..
+  - CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array" cmake ..
   - make
