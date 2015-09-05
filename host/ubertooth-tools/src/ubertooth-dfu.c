@@ -127,7 +127,7 @@ int sign(FILE* infile, FILE* outfile, uint16_t idVendor, uint16_t idProduct) {
 /*
  * USB helper function - find devices
  */
-static struct libusb_device_handle* find_ubertooth_dfu_device(int ubertooth_device __attribute__((unused))) {
+static struct libusb_device_handle* find_ubertooth_dfu_device() {
 	struct libusb_context *ctx = NULL;
 	struct libusb_device **usb_list = NULL;
 	struct libusb_device_handle *devh = NULL;
@@ -135,10 +135,6 @@ static struct libusb_device_handle* find_ubertooth_dfu_device(int ubertooth_devi
 	int usb_devs, i, r, ret;
 	
 	r = libusb_init(NULL);
-	if (r < 0) {
-		fprintf(stderr, "libusb_init failed (got 1.0?)\n");
-		return NULL;
-	}
 	
 	usb_devs = libusb_get_device_list(ctx, &usb_list);
 	for(i = 0 ; i < usb_devs ; ++i) {
@@ -214,7 +210,8 @@ int dfu_abort(libusb_device_handle* devh) {
 }
 
 int enter_dfu_mode(libusb_device_handle* devh) {
-	uint8_t state, rv;
+	uint8_t state;
+	int rv;
 	while(1) {
         state = dfu_get_state(devh);
         if(state == STATE_DFU_IDLE)
