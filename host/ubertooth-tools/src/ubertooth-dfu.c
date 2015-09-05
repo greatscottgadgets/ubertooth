@@ -466,12 +466,12 @@ int main(int argc, char **argv) {
 	if(functions & (FUNC_UPLOAD|FUNC_DOWNLOAD|FUNC_RESET)) {
 		// Find Ubertooth and switch it to DFU mode
 		int rv, count= 0;
-		devh = find_ubertooth_dfu_device(ubertooth_device);
+		devh = find_ubertooth_dfu_device();
 		if(devh == NULL) {
 			devh = ubertooth_start(ubertooth_device);
 			cmd_flash(devh);
 			fprintf(stdout, "Switching to DFU mode...\n");
-			while(((devh = find_ubertooth_dfu_device(ubertooth_device)) == NULL) && (count++) < 5)
+			while(((devh = find_ubertooth_dfu_device()) == NULL) && (count++) < 5)
 				sleep(1);
 			if(devh==NULL) {
 				fprintf(stderr, "Unable to find Ubertooth\n");
