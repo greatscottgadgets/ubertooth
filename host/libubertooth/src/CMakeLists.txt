@@ -29,10 +29,6 @@ endif()
 
 add_definitions( -DRELEASE="${RELEASE}" )
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.c.in"
-               "${CMAKE_CURRENT_BINARY_DIR}/version.c"
-               @ONLY)
-
 # Targets
 set(c_sources ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.c
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.c

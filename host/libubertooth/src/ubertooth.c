@@ -28,7 +28,6 @@
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
-#include "version.h"
 
 #ifndef RELEASE
 #define RELEASE "unknown"
