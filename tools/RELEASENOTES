@@ -1,6 +1,6 @@
-Ubertooth 2015-09-R1 Release Notes
+Ubertooth 2015-09-R2 Release Notes
 
-The Ubertooth host utilities in this release require libbtbb-2015-09-R1 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-09-R1) or greater.
+The Ubertooth host utilities in this release require libbtbb-2015-09-R2 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-09-R2) or greater.
 
 These are just the highlights, for a complete list of changes since the
 previous release, see the git commit log.
