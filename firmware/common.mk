@@ -47,8 +47,10 @@ BOARD  ?= UBERTOOTH_ONE
 
 UBERTOOTH_OPTS = -D$(BOARD)
 
-# comment to disable RF transmission
-UBERTOOTH_OPTS += -DTX_ENABLE
+ifeq ($(DISABLE_TX), )
+	# comment to disable RF transmission
+	UBERTOOTH_OPTS += -DTX_ENABLE
+endif
 
 DIRTY = $(shell git status -s --untracked-files=no)
 ifneq ($(DIRTY), )
@@ -465,7 +467,7 @@ clean_list:
 	$(REMOVE) $(SRC:.c=.i)
 	$(REMOVE) InvalidEvents.tmp
 	$(REMOVE) $(TARGET).bin
-	$(REMOVE) $(TARGET).dfu
+	$(REMOVE) $(TARGET).bin.dfu
 	$(REMOVE) $(TARGET).srec
 
 doxygen:

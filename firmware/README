@@ -4,7 +4,7 @@ The general purpose firmware including Bluetooth functions is bluetooth_rxtx.
 
 This firmware is intended to be compiled with a particular toolchain:
 
-	https://launchpad.net/gcc-arm-embedded
+    https://launchpad.net/gcc-arm-embedded
 
 If you are using a recent Ubuntu or Debian system, the toolchain can be installed
 from their apt repositorities as follows:
@@ -13,3 +13,15 @@ from their apt repositorities as follows:
 
 The default hardware target is Ubertooth One.  If you are compiling for
 Ubertooth Zero, you must set the environment variable BOARD=UBERTOOTH_ZERO.
+
+
+By default the bluetooth-rxtx firmware has transmit capabilities.  If you wish
+to build firmware without the ability to transmit, you may do so by setting an
+envoronment variable called DISABLE_TX.  For example:
+
+    make clean
+    DISABLE_TX=1 make bluetooth_rxtx
+
+The resulting firmware will still be named bluetooth_rxtx.bin.dfu but will be
+receive only.  It is advisable to make clean first, to clear up any artifacts 
+from previous builds that may have transmit functions enabled.
