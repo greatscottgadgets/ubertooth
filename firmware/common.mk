@@ -467,7 +467,7 @@ clean_list:
 	$(REMOVE) $(SRC:.c=.i)
 	$(REMOVE) InvalidEvents.tmp
 	$(REMOVE) $(TARGET).bin
-	$(REMOVE) $(TARGET).bin.dfu
+	$(REMOVE) $(TARGET).dfu
 	$(REMOVE) $(TARGET).srec
 
 doxygen:
