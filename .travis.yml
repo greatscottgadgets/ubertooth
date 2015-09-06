@@ -25,6 +25,8 @@ script:
   - pushd host/build
   - CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array" cmake ..
   - make
+  - sudo make install
+  - sudo ldconfig
   - popd
   - cd firmware
   - make
