@@ -22,6 +22,9 @@ before_install:
 
 script:
   - mkdir host/build
-  - cd host/build
+  - pushd host/build
   - CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array" cmake ..
+  - make
+  - popd
+  - cd firmware
   - make
