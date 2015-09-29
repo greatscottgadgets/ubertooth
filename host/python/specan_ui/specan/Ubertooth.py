@@ -26,6 +26,7 @@ import numpy
 import time
 import subprocess
 
+
 class Ubertooth(object):
 
     def __init__(self):
@@ -42,7 +43,7 @@ class Ubertooth(object):
 
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
-        args = ["ubertooth-specan", "-d", "-", "-l%d"%low, "-u%d"%high]
+        args = ["ubertooth-specan", "-d", "-", "-l%d" % low, "-u%d" % high]
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         default_raw_rssi = -128
@@ -50,21 +51,18 @@ class Ubertooth(object):
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
         rssi_values.fill(default_raw_rssi + rssi_offset)
 
-        data = ''
         last_index = None
         # Give it a chance to time out if it fails to find Ubertooth
         time.sleep(0.5)
         if self.proc.poll() is not None:
-            print "Could not open Ubertooth device"
-            print "Failed to run: ", ' '.join(args)
+            print("Could not open Ubertooth device")
+            print("Failed to run: ", ' '.join(args))
             return
-        buf = bytearray(buffer_size)
         while self.proc.poll() is None:
-            self.proc.stdout.readinto(buf)
-            data += buf
-            while len(data) >= buffer_size:
-                frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
-                data = data[3:]
+            buf = self.proc.stdout.read(buffer_size)
+            while len(buf) >= 3:
+                frequency, raw_rssi_value = struct.unpack('>Hb', buf[:3])
+                buf = buf[3:]
                 if frequency >= low and frequency <= high:
                     index = frequency_index_map[frequency]
                     if index == 0:

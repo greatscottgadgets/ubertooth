@@ -29,43 +29,45 @@ from PySide.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 
+
 class SpecanThread(threading.Thread):
     def __init__(self, device, low_frequency, high_frequency, new_frame_callback):
         threading.Thread.__init__(self)
         self.daemon = True
-        
+
         self._device = device
         self._low_frequency = low_frequency
         self._high_frequency = high_frequency
         self._new_frame_callback = new_frame_callback
-        self._stop = False
+        self._stopping = False
         self._stopped = False
 
     def run(self):
         frame_source = self._device.specan(self._low_frequency, self._high_frequency)
         for frequency_axis, rssi_values in frame_source:
             self._new_frame_callback(numpy.copy(frequency_axis), numpy.copy(rssi_values))
-            if self._stop:
+            if self._stopping:
                 break
-            
+
     def stop(self):
-        self._stop = True
+        self._stopping = True
         self.join(3.0)
         self._stopped = True
+
 
 class RenderArea(QtGui.QWidget):
     def __init__(self, device, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        
+
         self._graph = None
         self._reticle = None
-        
+
         self._device = device
         self._frame = None
         self._persisted_frames = None
         self._persisted_frames_depth = 350
         self._path_max = None
-        
+
         self._low_frequency = 2.400e9
         self._high_frequency = 2.483e9
         self._frequency_step = 1e6
@@ -77,34 +79,34 @@ class RenderArea(QtGui.QWidget):
         self._mouse_y = None
         self._mouse_x2 = None
         self._mouse_y2 = None
-        
+
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
                                     self._high_frequency,
                                     self._new_frame)
         self._thread.start()
-        
+
     def stop_thread(self):
         self._thread.stop()
-    
+
     def _new_graph(self):
         self._graph = QtGui.QPixmap(self.width(), self.height())
         self._graph.fill(Qt.black)
-    
+
     def _new_reticle(self):
         self._reticle = QtGui.QPixmap(self.width(), self.height())
         self._reticle.fill(Qt.transparent)
-        
+
     def _new_persisted_frames(self, frequency_bins):
         self._persisted_frames = numpy.empty((self._persisted_frames_depth, frequency_bins))
         self._persisted_frames.fill(-128 + -54)
         self._persisted_frames_next_index = 0
-    
+
     def minimumSizeHint(self):
         x_points = round((self._high_frequency - self._low_frequency) / self._frequency_step)
         y_points = round(self._high_dbm - self._low_dbm)
         return QtCore.QSize(x_points * 4, y_points * 1)
-    
+
     def _new_frame(self, frequency_axis, rssi_values):
         self._frame = (frequency_axis, rssi_values)
         if self._persisted_frames is None:
@@ -112,33 +114,33 @@ class RenderArea(QtGui.QWidget):
         self._persisted_frames[self._persisted_frames_next_index] = rssi_values
         self._persisted_frames_next_index = (self._persisted_frames_next_index + 1) % self._persisted_frames.shape[0]
         self.update()
-    
+
     def _draw_graph(self):
         if self._graph is None:
             self._new_graph()
         elif self._graph.size() != self.size():
             self._new_graph()
-        
+
         painter = QtGui.QPainter(self._graph)
         try:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             painter.fillRect(0, 0, self._graph.width(), self._graph.height(), QtGui.QColor(0, 0, 0, 10))
-            
+
             if self._frame:
                 frequency_axis, rssi_values = self._frame
-                
+
                 path_now = QtGui.QPainterPath()
                 path_max = QtGui.QPainterPath()
-                
+
                 bins = range(len(frequency_axis))
                 x_axis = self._hz_to_x(frequency_axis)
                 y_now = self._dbm_to_y(rssi_values)
                 y_max = self._dbm_to_y(numpy.amax(self._persisted_frames, axis=0))
-                
+
                 path_now.moveTo(float(x_axis[0]), float(y_now[0]))
                 for i in bins:
                     path_now.lineTo(float(x_axis[i]), float(y_now[i]))
-                
+
                 path_max.moveTo(float(x_axis[0]), float(y_max[0]))
                 db_tmp = self._low_dbm
                 max_max = None
@@ -153,7 +155,7 @@ class RenderArea(QtGui.QWidget):
                 painter.setPen(pen)
                 painter.drawPath(path_now)
                 self._path_max = path_max
-                if not max_max == None and not self._hide_markers:
+                if max_max is not None and not self._hide_markers:
                     pen.setBrush(Qt.red)
                     pen.setStyle(Qt.DotLine)
                     painter.setPen(pen)
@@ -185,49 +187,49 @@ class RenderArea(QtGui.QWidget):
                             painter.drawText(QPointF(self._hz_to_x(self._mouse_x) + 4, 74), '(%.06f)' % ((self._mouse_x2 / 1e6) - (self._mouse_x / 1e6)))
         finally:
             painter.end()
-            
+
     def _draw_reticle(self):
         if self._reticle is None or (self._reticle.size() != self.size()):
             self._new_reticle()
-            
+
             dbm_lines = [QLineF(self._hz_to_x(self._low_frequency), self._dbm_to_y(dbm),
                                 self._hz_to_x(self._high_frequency), self._dbm_to_y(dbm))
                          for dbm in numpy.arange(self._low_dbm, self._high_dbm, 20.0)]
             dbm_labels = [(dbm, QPointF(self._hz_to_x(self._low_frequency) + 2, self._dbm_to_y(dbm) - 2))
                           for dbm in numpy.arange(self._low_dbm, self._high_dbm, 20.0)]
-            
+
             frequency_lines = [QLineF(self._hz_to_x(frequency), self._dbm_to_y(self._high_dbm),
                                       self._hz_to_x(frequency), self._dbm_to_y(self._low_dbm))
                                for frequency in numpy.arange(self._low_frequency, self._high_frequency, self._frequency_step * 10.0)]
             frequency_labels = [(frequency, QPointF(self._hz_to_x(frequency) + 2, self._dbm_to_y(self._high_dbm) + 10))
                                 for frequency in numpy.arange(self._low_frequency, self._high_frequency, self._frequency_step * 10.0)]
-            
+
             painter = QtGui.QPainter(self._reticle)
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)
-                
+
                 painter.setPen(Qt.blue)
-                
+
                 # TODO: Removed to support old (<1.0) PySide API in Ubuntu 10.10
-                #painter.drawLines(dbm_lines)
+                # painter.drawLines(dbm_lines)
                 for dbm_line in dbm_lines: painter.drawLine(dbm_line)
                 # TODO: Removed to support old (<1.0) PySide API in Ubuntu 10.10
-                #painter.drawLines(frequency_lines)
+                # painter.drawLines(frequency_lines)
                 for frequency_line in frequency_lines: painter.drawLine(frequency_line)
-                
+
                 painter.setPen(Qt.white)
                 for dbm, point in dbm_labels:
                     painter.drawText(point, '%+.0f' % dbm)
                 for frequency, point in frequency_labels:
                     painter.drawText(point, '%.0f' % (frequency / 1e6))
-                    
+
             finally:
                 painter.end()
-    
+
     def paintEvent(self, event):
         self._draw_graph()
         self._draw_reticle()
-        
+
         painter = QtGui.QPainter(self)
         try:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -236,7 +238,7 @@ class RenderArea(QtGui.QWidget):
 
             if self._graph:
                 painter.drawPixmap(0, 0, self._graph)
-            
+
             if self._path_max:
                 painter.setPen(Qt.green)
                 painter.drawPath(self._path_max)
@@ -258,7 +260,7 @@ class RenderArea(QtGui.QWidget):
         tmp = x / self.width()
         delta = tmp * range
         return delta + self._low_frequency
-                             
+
     def _dbm_to_y(self, dbm):
         delta = self._high_dbm - dbm
         range = self._high_dbm - self._low_dbm
@@ -271,24 +273,25 @@ class RenderArea(QtGui.QWidget):
         delta = tmp * range
         return self._high_dbm - delta
 
+
 class Window(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
         self._device = self._open_device()
-        
+
         self.render_area = RenderArea(self._device)
 
         main_layout = QtGui.QGridLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.render_area, 0, 0)
         self.setLayout(main_layout)
-        
+
         self.setWindowTitle("Ubertooth Spectrum Analyzer")
 
     def sizeHint(self):
         return QtCore.QSize(480, 160)
-    
+
     def _open_device(self):
         return Ubertooth.Ubertooth()
 
@@ -319,21 +322,20 @@ class Window(QtGui.QWidget):
     # handle key presses
     def keyPressEvent(self, event):
         try:
-            key= chr(event.key()).upper()
+            key = chr(event.key()).upper()
             event.accept()
         except:
-            print 'Unknown key pressed: 0x%x' % event.key()
+            print('Unknown key pressed: 0x%x' % event.key())
             event.ignore()
             return
         if key == 'H':
-            print 'Key                  Action'
-            print
-            print ' <LEFT MOUSE>        Mark LEFT frequency / signal strength at pointer'
-            print ' <RIGHT MOUSE>       Mark RIGHT frequency / signal strength at pointer'
-            print ' <MIDDLE MOUSE>      Toggle visibility of frequency / signal strength markers'
-            print ' H                   Print this HELP text'
-            print ' M                   Simulate MIDDLE MOUSE click (for those with trackpads)'
-            print ' Q                   Quit'
+            print('Key                  Action\n')
+            print(' <LEFT MOUSE>        Mark LEFT frequency / signal strength at pointer')
+            print(' <RIGHT MOUSE>       Mark RIGHT frequency / signal strength at pointer')
+            print(' <MIDDLE MOUSE>      Toggle visibility of frequency / signal strength markers')
+            print(' H                   Print this HELP text')
+            print(' M                   Simulate MIDDLE MOUSE click (for those with trackpads)')
+            print(' Q                   Quit')
             return
         if key == 'M':
             self.render_area._mouse_x = None
@@ -343,10 +345,11 @@ class Window(QtGui.QWidget):
             self.render_area._hide_markers = not self.render_area._hide_markers
             return
         if key == 'Q':
-            print 'Quit!'
+            print('Quit!')
             self.close()
             return
-        print 'Unsupported key pressed:', key
+        print('Unsupported key pressed:', key)
+
 
 def sigint_handler(*args):
     """Handler for the SIGINT signal."""
