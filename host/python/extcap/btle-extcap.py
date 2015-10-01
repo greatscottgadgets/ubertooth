@@ -96,7 +96,7 @@ def usage():
 
 
 def list_interfaces():
-    proc = Popen(['ubertooth-util', '-s'], stdout=PIPE, stderr=PIPE)
+    proc = Popen(['ubertooth-util', '-s'], stdout=PIPE, stderr=PIPE, universal_newlines=True)
     out = proc.communicate()[0]
     lines = out.split('\n')
 
