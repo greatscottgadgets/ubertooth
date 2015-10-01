@@ -19,8 +19,11 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-import getopt, re, sys
+import getopt
+import re
+import sys
 from subprocess import Popen, PIPE
+
 
 def main():
     try:
@@ -38,7 +41,7 @@ def main():
             ])
     except getopt.GetoptError as err:
         # print help information and exit:
-        print str(err) # will print something like "option -a not recognized"
+        print(str(err))  # will print something like "option -a not recognized"
         usage()
         sys.exit(2)
 
@@ -83,15 +86,17 @@ def main():
         config()
     elif do_capture:
         if fifo is None:
-            print "Must specify fifo!"
+            print("Must specify fifo!")
             exit(1)
         capture(interface, fifo, channel)
 
+
 def usage():
-    print "Usage: %s <--list-interfaces | --list-dlts | --config | --capture>" % sys.argv[0]
+    print("Usage: %s <--list-interfaces | --list-dlts | --config | --capture>" % sys.argv[0])
+
 
 def list_interfaces():
-    proc = Popen(['ubertooth-util', '-s'], stdout=PIPE, stderr=PIPE)
+    proc = Popen(['ubertooth-util', '-s'], stdout=PIPE, stderr=PIPE, universal_newlines=True)
     out = proc.communicate()[0]
     lines = out.split('\n')
 
@@ -108,10 +113,12 @@ def list_interfaces():
             interfaces.append(p[0])
 
     for i in range(len(interfaces)):
-        print "interface {value=ubertooth%d}{display=Ubertooth One %s}" % (i, interfaces[i])
+        print("interface {value=ubertooth%d}{display=Ubertooth One %s}" % (i, interfaces[i]))
+
 
 def list_dlts():
-    print "dlt {number=147}{name=USER0}{display=Bluetooth Low Energy}"
+    print("dlt {number=147}{name=USER0}{display=Bluetooth Low Energy}")
+
 
 def config():
     args = []
@@ -123,10 +130,11 @@ def config():
     values.append((0, "39", "39", "false"))
 
     for arg in args:
-        print "arg {number=%d}{call=%s}{display=%s}{type=%s}" % arg
+        print("arg {number=%d}{call=%s}{display=%s}{type=%s}" % arg)
 
     for value in values:
-        print "value {arg=%d}{value=%s}{display=%s}{default=%s}" % value
+        print("value {arg=%d}{value=%s}{display=%s}{default=%s}" % value)
+
 
 def capture(interface, fifo, channel):
     p = Popen([
