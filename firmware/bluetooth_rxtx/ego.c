@@ -36,7 +36,7 @@ extern volatile u32 clkn; // TODO: replace with timer1
 extern volatile u8 requested_mode;
 extern volatile u16 channel;
 
-uint16_t channels[4] = { 2408, 2418, 2423, 2469 };
+static const uint16_t channels[4] = { 2408, 2418, 2423, 2469 };
 
 typedef enum _ego_state_t {
 	EGO_ST_INIT = 0,
@@ -129,7 +129,7 @@ static void rf_on(void) {
 	cc2400_strobe(SRX);
 }
 
-void do_rx(ego_packet_t *packet) {
+static void do_rx(ego_packet_t *packet) {
 	int i;
 	for (i = 0; i < EGO_PACKET_LEN; i++) {
 		// make sure there are bytes ready
@@ -166,22 +166,22 @@ static inline int sleep_elapsed(ego_fsm_state_t *state) {
 // states
 
 // do nothing
-void nop_state(ego_fsm_state_t *state) {
+static void nop_state(ego_fsm_state_t *state) {
 }
 
 // used in follow and jam mode, override the channel supplied by user
-void init_state(ego_fsm_state_t *state) {
+static void init_state(ego_fsm_state_t *state) {
 	state->channel_index = 0;
 	channel = channels[state->channel_index];
 	state->state = EGO_ST_START_RX;
 }
 
-void start_rf_state(ego_fsm_state_t *state) {
+static void start_rf_state(ego_fsm_state_t *state) {
 	rf_on();
 	state->state = EGO_ST_CAP;
 }
 
-void cap_state(ego_fsm_state_t *state) {
+static void cap_state(ego_fsm_state_t *state) {
 	ego_packet_t packet = {
 		.rxtime = CLK100NS,
 	};
@@ -209,7 +209,7 @@ void cap_state(ego_fsm_state_t *state) {
 	}
 }
 
-void sleep_state(ego_fsm_state_t *state) {
+static void sleep_state(ego_fsm_state_t *state) {
 	if (sleep_elapsed(state)) {
 		// change channel
 		state->channel_index = (state->channel_index + 1) % 4;
@@ -224,11 +224,11 @@ void sleep_state(ego_fsm_state_t *state) {
 }
 
 // continuous cap states (reuses START_RX state)
-void continuous_init_state(ego_fsm_state_t *state) {
+static void continuous_init_state(ego_fsm_state_t *state) {
 	state->state = EGO_ST_START_RX;
 }
 
-void continuous_cap_state(ego_fsm_state_t *state) {
+static void continuous_cap_state(ego_fsm_state_t *state) {
 	ego_packet_t packet = {
 		.rxtime = CLK100NS,
 	};
@@ -248,7 +248,7 @@ void continuous_cap_state(ego_fsm_state_t *state) {
 }
 
 // jammer states
-void jam_cap_state(ego_fsm_state_t *state) {
+static void jam_cap_state(ego_fsm_state_t *state) {
 	if (sync_received()) {
 		state->state = EGO_ST_START_JAMMING;
 		state->packet_observed = 1;
@@ -267,7 +267,7 @@ void jam_cap_state(ego_fsm_state_t *state) {
 	}
 }
 
-void start_jamming_state(ego_fsm_state_t *state) {
+static void start_jamming_state(ego_fsm_state_t *state) {
 #ifdef TX_ENABLE
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
@@ -320,7 +320,7 @@ void jamming_state(ego_fsm_state_t *state) {
 	}
 }
 
-void jam_sleep_state(ego_fsm_state_t *state) {
+static void jam_sleep_state(ego_fsm_state_t *state) {
 	if (sleep_elapsed(state)) {
 		state->state = EGO_ST_START_RX;
 		state->timer_active = 1;
@@ -329,7 +329,7 @@ void jam_sleep_state(ego_fsm_state_t *state) {
 }
 
 void ego_main(ego_mode_t mode) {
-	ego_st_handler *handler; // set depending on mode
+	const ego_st_handler *handler; // set depending on mode
 	ego_fsm_state_t state = {
 		.state = EGO_ST_INIT,
 		.channel_index = 0,
@@ -337,7 +337,7 @@ void ego_main(ego_mode_t mode) {
 	};
 
 	// hopping connection following
-	ego_st_handler follow_handler[] = {
+	static const ego_st_handler follow_handler[] = {
 		init_state,
 		start_rf_state,
 		cap_state,
@@ -348,7 +348,7 @@ void ego_main(ego_mode_t mode) {
 	};
 
 	// continuous rx on a single channel
-	ego_st_handler continuous_rx_handler[] = {
+	static const ego_st_handler continuous_rx_handler[] = {
 		continuous_init_state, // do not override user channel
 		start_rf_state,
 		continuous_cap_state,
@@ -358,7 +358,7 @@ void ego_main(ego_mode_t mode) {
 	};
 
 	// jamming
-	ego_st_handler jam_handler[] = {
+	static const ego_st_handler jam_handler[] = {
 		init_state,
 		start_rf_state,
 		jam_cap_state,
