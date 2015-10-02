@@ -77,7 +77,7 @@
  * atomicity of the operations on head and tail.
  */
 
-const u8 abDescriptors[] = {
+static const u8 abDescriptors[] = {
 
 /* Device descriptor */
 	0x12,              		

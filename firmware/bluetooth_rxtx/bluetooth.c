@@ -30,7 +30,7 @@ u8 afh_bank[CHANNELS];
 u8 used_channels;
 
 /* count the number of 1 bits in a uint64_t */
-uint8_t count_bits(uint64_t n)
+static uint8_t count_bits(uint64_t n)
 {
 	uint8_t i = 0;
 	for (i = 0; n != 0; i++)
@@ -82,7 +82,7 @@ void precalc(void)
 }
 
 /* 5 bit permutation */
-u8 perm5(u8 z, u8 p_high, u16 p_low)
+static u8 perm5(u8 z, u8 p_high, u16 p_low)
 {
 	/* z is constrained to 5 bits, p_high to 5 bits, p_low to 9 bits */
 	z &= 0x1f;
@@ -91,8 +91,8 @@ u8 perm5(u8 z, u8 p_high, u16 p_low)
 
 	int i;
 	u8 tmp, output, z_bit[5], p[14];
-	u8 index1[] = {0, 2, 1, 3, 0, 1, 0, 3, 1, 0, 2, 1, 0, 1};
-	u8 index2[] = {1, 3, 2, 4, 4, 3, 2, 4, 4, 3, 4, 3, 3, 2};
+	static const u8 index1[] = {0, 2, 1, 3, 0, 1, 0, 3, 1, 0, 2, 1, 0, 1};
+	static const u8 index2[] = {1, 3, 2, 4, 4, 3, 2, 4, 4, 3, 4, 3, 3, 2};
 
 	/* bits of p_low and p_high are control signals */
 	for (i = 0; i < 9; i++)
