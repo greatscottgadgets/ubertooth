@@ -27,9 +27,8 @@
 #include "cc2400.h"
 #include "ubertooth_interface.h"
 
-#define IAP_LOCATION 0x1FFF1FF1
 typedef void (*IAP_ENTRY)(u32[], u32[]);
-static IAP_ENTRY iap_entry = (IAP_ENTRY)IAP_LOCATION;
+extern const IAP_ENTRY iap_entry;
 
 /* operating modes */
 enum operating_modes {
