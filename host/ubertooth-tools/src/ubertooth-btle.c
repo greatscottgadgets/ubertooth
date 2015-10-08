@@ -326,5 +326,9 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (!(do_follow || do_promisc || do_get_aa || do_set_aa ||
+				do_crc >= 0 || do_slave_mode || do_target))
+		usage();
+
 	return 0;
 }
