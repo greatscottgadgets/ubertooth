@@ -37,11 +37,6 @@
 
 extern int max_ac_errors;
 
-static char *major_classes[] = {
-	"Miscellaneous", "Computer", "Phone", "LAN Access", "Audio/Video",
-	"Peripheral", "Imaging", "Uncategorized", "Invalid"
-};
-
 static void usage()
 {
 	printf("ubertooth-scan - active(bluez) device scan and inquiry supported by Ubertooth\n");
@@ -256,7 +251,6 @@ int main(int argc, char *argv[])
 		flags = IREQ_CACHE_FLUSH;
 		ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
 		
-		uint8_t lap[] = {0x13, 0xf7, 0x39};
 		num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
 		if( num_rsp < 0 )
 			perror("hci_inquiry");
