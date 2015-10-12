@@ -1,34 +1,14 @@
-Ubertooth 2015-09-R2 Release Notes
+Ubertooth 2015-10-R1 Release Notes
 
-The Ubertooth host utilities in this release require libbtbb-2015-09-R2 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-09-R2) or greater.
+The Ubertooth host utilities in this release require libbtbb-2015-10-R1 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-10-R1) or greater.
 
-These are just the highlights, for a complete list of changes since the
-previous release, see the git commit log.
+This is a minor bugfix and update release, for a complete list of changes
+since the previous release, see the git commit log.
 
- * Basic Rate Bluetooth Improvements
-  * Stability has improved in performance constrained environments
-  * The "uh oh, buffer not emptied" issue no longer causes the tools to loop
-    indefinitely
-  * AFH support has greatly improved, UAP and CLK values are now found more
-    quickly when AFH is used
-
- * Basic Rate PCAP support
-  * ubertooth-rx and ubertooth-follow support a new PCAP file format
-  * The new PCAP format is also supported with a new Wireshark plugin: btbredr
-  * The PCAP format is still in the early stages, but we hope to have the plugin
-    included in Wireshark later this year
-  * The older btbb format is still produced by the Kismet plugins, they will
-    be migrated over to the new format in the next release
-
- * Bluetooth Smart (BLE) Improvements
-  * Improved packet reception
-  * Promiscuous sniffing mode is more reliable
-  * Promiscuous sniffing reports the recovered parameters to the host
-
- * Skateboard Hacking
-  * Support for interfering with connections of BLE enabled skateboards
-  * ubertooth-ego targets Yuneec E-go (not Bluetooth)
-  * Always hack safely and responsibly!
+ * Update ubertooth-scan to provide more consistent output
+ * It is now possible to build receive only firmware
+ * Host code versioning is more reliable
+ * Python tools now support Python 3.  Thanks Hannes!
 
 Build instructions are available from the wiki https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
 
