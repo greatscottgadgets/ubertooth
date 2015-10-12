@@ -6,10 +6,10 @@ suitable for Bluetooth experimentation. Ubertooth ships with a capable
 BLE (Bluetooth Smart) sniffer and can sniff some data from Basic Rate
 (BR) Bluetooth Classic connections.
 
-The latest release is [2015-09-R2](https://github.com/greatscottgadgets/ubertooth/releases/tag/2015-09-R2).
+The latest release is [2015-10-R1](https://github.com/greatscottgadgets/ubertooth/releases/tag/2015-10-R1).
 The latest firmware build can be found on the release page.
 
-This release is paired with [libbtbb 2015-09-R2](https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-09-R2).
+This release is paired with [libbtbb 2015-10-R1](https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-10-R1).
 
 Instructions for flashing the firmware can be found [on the corresponding Wiki page](https://github.com/greatscottgadgets/ubertooth/wiki/Firmware).
 
