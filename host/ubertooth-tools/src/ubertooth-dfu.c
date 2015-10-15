@@ -33,7 +33,7 @@
  */
 
 /* CRC32 implementation for DFU suffix */
-uint32_t crc32(uint8_t *data, uint32_t data_len) {
+static uint32_t crc32(uint8_t *data, uint32_t data_len) {
 	uint32_t crc = 0xffffffff;
 	uint32_t i;
 	for(i=0; i<data_len; i++)
@@ -41,7 +41,7 @@ uint32_t crc32(uint8_t *data, uint32_t data_len) {
 	return crc;
 }
 
-int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
+static int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 	uint8_t *data;
 	uint32_t crc, data_length;
 	
