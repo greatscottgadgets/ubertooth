@@ -64,12 +64,6 @@ typedef struct _le_state_t {
     u32 last_packet;            // when was the last packet received
 } le_state_t;
 
-static const u8 advertising_channels[] = {0, 12, 39};
-static const u8 data_channels[] = {
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16 , 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
-};
-
 static const u8 whitening[] = {
     1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1,
     1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0,

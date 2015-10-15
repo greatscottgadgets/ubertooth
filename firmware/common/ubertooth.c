@@ -20,6 +20,10 @@
  */
 
 #include "ubertooth.h"
+
+#define IAP_LOCATION 0x1FFF1FF1
+const IAP_ENTRY iap_entry = (IAP_ENTRY)IAP_LOCATION;
+
 /* delay a number of seconds while on internal oscillator (4 MHz) */
 void wait(u8 seconds)
 {
