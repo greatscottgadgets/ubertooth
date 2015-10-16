@@ -28,7 +28,7 @@ extern FILE *dumpfile;
 extern FILE *infile;
 extern int max_ac_errors;
 
-struct libusb_device_handle *devh = NULL;
+ubertooth_t* ut = NULL;
 
 static void usage()
 {
@@ -148,8 +148,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		devh = ubertooth_start(ubertooth_device);
-		if (devh == NULL) {
+		ut = ubertooth_start(ubertooth_device);
+		if (ut == NULL) {
 			usage();
 			return 1;
 		}
@@ -158,19 +158,19 @@ int main(int argc, char *argv[])
 		 * ubertooth-utils -c9999. This is necessary after
 		 * following a piconet. */
 		if (reset_scan) {
-			cmd_set_channel(devh, 9999);
+			cmd_set_channel(ut->devh, 9999);
 		}
 
 		/* Clean up on exit. */
-		register_cleanup_handler(devh);
+		register_cleanup_handler(ut);
 
-		rx_live(devh, pn, timeout);
+		rx_live(ut, pn, timeout);
 
 		// Print AFH map from piconet if we have one
 		if (pn)
 			btbb_print_afh_map(pn);
 
-		ubertooth_stop(devh);
+		ubertooth_stop(ut);
 	} else {
 		rx_file(infile, pn);
 		fclose(infile);

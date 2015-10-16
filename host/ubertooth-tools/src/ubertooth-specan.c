@@ -26,7 +26,7 @@
 extern u8 debug;
 extern FILE *dumpfile;
 
-struct libusb_device_handle *devh = NULL;
+ubertooth_t* ut = NULL;
 
 static void usage(FILE *file)
 {
@@ -95,23 +95,23 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	devh = ubertooth_start(ubertooth_device);
+	ut = ubertooth_start(ubertooth_device);
 
-	if (devh == NULL) {
+	if (ut == NULL) {
 		usage(stderr);
 		return 1;
 	}
 	
 	/* Clean up on exit. */
-	register_cleanup_handler(devh);
+	register_cleanup_handler(ut);
 	
 	while (1) {
-		r = specan(devh, 512, lower, upper, output_mode);
+		r = specan(ut, 512, lower, upper, output_mode);
 		if(r<0)
 			break;
 	}
 
-	ubertooth_stop(devh);
+	ubertooth_stop(ut);
 	fprintf(stderr, "Ubertooth stopped\n");
 	return r;
 }

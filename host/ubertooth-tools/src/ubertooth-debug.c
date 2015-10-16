@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     int opt;
     int r = 0;
     int verbose = 1;
-    struct libusb_device_handle *devh = NULL;
+    ubertooth_t* ut = NULL;
     int do_read_register;
     char ubertooth_device = -1;
     int *regList = NULL;
@@ -117,15 +117,15 @@ int main(int argc, char *argv[])
     }
 
     /* initialise device */
-    devh = ubertooth_start(ubertooth_device);
-    if (devh == NULL) {
+    ut = ubertooth_start(ubertooth_device);
+    if (ut == NULL) {
 	usage();
 	return 1;
     }
 
     if (do_read_register >= 0) {
 	for (i = 0; i < regListN; i++) {
-	    r = cmd_read_register(devh, regList[i]);
+	    r = cmd_read_register(ut->devh, regList[i]);
 	    if (r >= 0)
 		cc2400_decode(stdout, regList[i], r, verbose);
 	}

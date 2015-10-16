@@ -33,10 +33,9 @@
 #include <getopt.h>
 
 extern int max_ac_errors;
-extern btbb_piconet *follow_pn;
 extern FILE *dumpfile;
 
-struct libusb_device_handle *devh = NULL;
+ubertooth_t* ut = NULL;
 
 static void usage()
 {
@@ -224,22 +223,22 @@ int main(int argc, char *argv[])
 	}
 	
 	/* Clean up on exit. */
-	register_cleanup_handler(devh);
+	register_cleanup_handler(ut);
 	
-	devh = ubertooth_start(ubertooth_device);
-	if (devh == NULL) {
+	ut = ubertooth_start(ubertooth_device);
+	if (ut == NULL) {
 		usage();
 		return 1;
 	}
-	cmd_set_bdaddr(devh, btbb_piconet_get_bdaddr(pn));
+	cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
 	if(afh_enabled)
-		cmd_set_afh_map(devh, afh_map);
+		cmd_set_afh_map(ut->devh, afh_map);
 	btbb_piconet_set_clk_offset(pn, clock+delay);
 	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
 	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
-	follow_pn = pn;
-	rx_live(devh, pn, 0);
-	ubertooth_stop(devh);
+	ut->follow_pn = pn;
+	rx_live(ut, pn, 0);
+	ubertooth_stop(ut);
 
 	return 0;
 }

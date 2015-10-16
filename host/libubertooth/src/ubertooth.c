@@ -36,25 +36,12 @@
 #define VERSION "unknown"
 #endif
 
-/* this stuff should probably be in a struct managed by the calling program */
-static usb_pkt_rx usb_packets[NUM_BANKS];
-static char br_symbols[NUM_BANKS][BANK_LEN];
-static u8 *empty_usb_buf = NULL;
-static u8 *full_usb_buf = NULL;
-static u8 usb_really_full = 0;
-static struct libusb_transfer *rx_xfer = NULL;
-static uint32_t systime;
-static u8 stop_ubertooth = 0;
-static uint64_t abs_start_ns;
-static uint32_t start_clk100ns = 0;
-static uint64_t last_clk100ns = 0;
-static uint64_t clk100ns_upper = 0;
 
+uint32_t systime;
 u8 debug = 0;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 2;
-btbb_piconet *follow_pn = NULL; // currently following this piconet
 #ifdef ENABLE_PCAP
 btbb_pcap_handle * h_pcap_bredr = NULL;
 lell_pcap_handle * h_pcap_le = NULL;
@@ -67,7 +54,7 @@ void print_version() {
 		   btbb_get_version(), btbb_get_release());
 }
 
-struct libusb_device_handle *cleanup_devh = NULL;
+ubertooth_t* cleanup_devh = NULL;
 static void cleanup(int sig __attribute__((unused)))
 {
 	if (cleanup_devh) {
@@ -76,8 +63,8 @@ static void cleanup(int sig __attribute__((unused)))
 	exit(0);
 }
 
-void register_cleanup_handler(struct libusb_device_handle *devh) {
-	cleanup_devh = devh;
+void register_cleanup_handler(ubertooth_t* ut) {
+	cleanup_devh = ut;
 
 	/* Clean up on exit. */
 	signal(SIGINT, cleanup);
@@ -85,16 +72,19 @@ void register_cleanup_handler(struct libusb_device_handle *devh) {
 	signal(SIGTERM, cleanup);
 }
 
+ubertooth_t* timeout_dev = NULL;
 void stop_transfers(int sig __attribute__((unused))) {
-	stop_ubertooth = 1;
+	if (timeout_dev)
+		timeout_dev->stop_ubertooth = 1;
 }
 
-void set_timeout(int seconds) {
+void set_timeout(ubertooth_t* ut, int seconds) {
 	/* Upon SIGALRM, call stop_transfers() */
 	if (signal(SIGALRM, stop_transfers) == SIG_ERR) {
 	  perror("Unable to catch SIGALRM");
 	  exit(1);
 	}
+	timeout_dev = ut;
 	alarm(seconds);
 }
 
@@ -194,10 +184,11 @@ static void cb_xfer(struct libusb_transfer *xfer)
 {
 	int r;
 	uint8_t *tmp;
+	ubertooth_t* ut = (ubertooth_t*)xfer->user_data;
 
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
 		if(xfer->status == LIBUSB_TRANSFER_TIMED_OUT) {
-			r = libusb_submit_transfer(rx_xfer);
+			r = libusb_submit_transfer(ut->rx_xfer);
 			if (r < 0)
 			fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
 			return;
@@ -205,33 +196,33 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		if(xfer->status != LIBUSB_TRANSFER_CANCELLED)
 			rx_xfer_status(xfer->status);
 		libusb_free_transfer(xfer);
-		rx_xfer = NULL;
+		ut->rx_xfer = NULL;
 		return;
 	}
 
-	if(usb_really_full) {
+	if(ut->usb_really_full) {
 		/* This should never happen, but we'd prefer to error and exit
 		 * than to clobber existing data
 		 */
 		fprintf(stderr, "uh oh, full_usb_buf not emptied\n");
-		stop_ubertooth = 1;
+		ut->stop_ubertooth = 1;
 	}
 	
-	if(stop_ubertooth)
+	if(ut->stop_ubertooth)
 		return;
 
-	tmp = full_usb_buf;
-	full_usb_buf = empty_usb_buf;
-	empty_usb_buf = tmp;
-	usb_really_full = 1;
-	rx_xfer->buffer = empty_usb_buf;
+	tmp = ut->full_usb_buf;
+	ut->full_usb_buf = ut->empty_usb_buf;
+	ut->empty_usb_buf = tmp;
+	ut->usb_really_full = 1;
+	ut->rx_xfer->buffer = ut->empty_usb_buf;
 
-	r = libusb_submit_transfer(rx_xfer);
+	r = libusb_submit_transfer(ut->rx_xfer);
 	if (r < 0)
 		fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
 }
 
-int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
+int stream_rx_usb(ubertooth_t* ut, int xfer_size,
 		rx_callback cb, void* cb_args)
 {
 	int xfer_blocks, i, r;
@@ -251,23 +242,23 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 	xfer_blocks = xfer_size / PKT_LEN;
 	xfer_size = xfer_blocks * PKT_LEN;
 
-	empty_usb_buf = &rx_buf1[0];
-	full_usb_buf = &rx_buf2[0];
-	usb_really_full = 0;
-	rx_xfer = libusb_alloc_transfer(0);
-	libusb_fill_bulk_transfer(rx_xfer, devh, DATA_IN, empty_usb_buf,
-			xfer_size, cb_xfer, NULL, TIMEOUT);
+	ut->empty_usb_buf = &rx_buf1[0];
+	ut->full_usb_buf = &rx_buf2[0];
+	ut->usb_really_full = 0;
+	ut->rx_xfer = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(ut->rx_xfer, ut->devh, DATA_IN, ut->empty_usb_buf,
+			xfer_size, cb_xfer, ut, TIMEOUT);
 
-	cmd_rx_syms(devh);
+	cmd_rx_syms(ut->devh);
 
-	r = libusb_submit_transfer(rx_xfer);
+	r = libusb_submit_transfer(ut->rx_xfer);
 	if (r < 0) {
 		fprintf(stderr, "rx_xfer submission: %d\n", r);
 		return -1;
 	}
 
 	while (1) {
-		while (!usb_really_full) {
+		while (!ut->usb_really_full) {
 			r = libusb_handle_events(NULL);
 			if (r < 0) {
 				if (r == LIBUSB_ERROR_INTERRUPTED)
@@ -278,17 +269,17 @@ int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			rx = (usb_pkt_rx *)(full_usb_buf + PKT_LEN * i);
+			rx = (usb_pkt_rx *)(ut->full_usb_buf + PKT_LEN * i);
 			if(rx->pkt_type != KEEP_ALIVE) 
-				(*cb)(cb_args, rx, bank);
+				(*cb)(ut, cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
-			if(stop_ubertooth) {
-				if(rx_xfer)
-					libusb_cancel_transfer(rx_xfer);
+			if(ut->stop_ubertooth) {
+				if(ut->rx_xfer)
+					libusb_cancel_transfer(ut->rx_xfer);
 				return 1;
 			}
 		}
-		usb_really_full = 0;
+		ut->usb_really_full = 0;
 		fflush(stderr);
 	}
 }
@@ -300,6 +291,10 @@ int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
 
+	ubertooth_t* ut = ubertooth_init();
+	if (ut == NULL)
+		return -1;
+
 	while(1) {
 		uint32_t systime_be;
 		nitems = fread(&systime_be, sizeof(systime_be), 1, fp);
@@ -310,7 +305,7 @@ int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
 		nitems = fread(buf, sizeof(buf[0]), PKT_LEN, fp);
 		if (nitems != PKT_LEN)
 			return 0;
-		(*cb)(cb_args, (usb_pkt_rx *)buf, bank);
+		(*cb)(ut, cb_args, (usb_pkt_rx *)buf, bank);
 		bank = (bank + 1) % NUM_BANKS;
 	}
 }
@@ -402,32 +397,32 @@ static uint64_t now_ns( void )
 #endif
 }
 
-static void track_clk100ns( const usb_pkt_rx *rx )
+static void track_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 {
 	/* track clk100ns */
-	if (!start_clk100ns) {
-		last_clk100ns = start_clk100ns = rx->clk100ns;
-		abs_start_ns = now_ns( );
+	if (!ut->start_clk100ns) {
+		ut->last_clk100ns = ut->start_clk100ns = rx->clk100ns;
+		ut->abs_start_ns = now_ns( );
 	}
 	/* detect clk100ns roll-over */
-	if (rx->clk100ns < last_clk100ns) {
-		clk100ns_upper += 1;
+	if (rx->clk100ns < ut->last_clk100ns) {
+		ut->clk100ns_upper += 1;
 	}
-	last_clk100ns = rx->clk100ns;
+	ut->last_clk100ns = rx->clk100ns;
 }
 
-static uint64_t now_ns_from_clk100ns( const usb_pkt_rx *rx )
+static uint64_t now_ns_from_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 {
-	track_clk100ns( rx );
-	return abs_start_ns + 
-		100ull*(uint64_t)((rx->clk100ns-start_clk100ns)&0xffffffff) +
-		((100ull*clk100ns_upper)<<32);
+	track_clk100ns( ut, rx );
+	return ut->abs_start_ns + 
+		100ull*(uint64_t)((rx->clk100ns-ut->start_clk100ns)&0xffffffff) +
+		((100ull*ut->clk100ns_upper)<<32);
 }
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
  */
-static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
+static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 {
 	btbb_packet *pkt = NULL;
 	btbb_piconet *pn = (btbb_piconet *)args;
@@ -446,13 +441,13 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 		goto out;
 
 	/* Copy packet (for dump) */
-	memcpy(&usb_packets[bank], rx, sizeof(usb_pkt_rx));
+	memcpy(&(ut->usb_packets[bank]), rx, sizeof(usb_pkt_rx));
 
-	unpack_symbols(rx->data, br_symbols[bank]);
+	unpack_symbols(rx->data, ut->br_symbols[bank]);
 
 	/* Do analysis based on oldest packet */
-	rx = &usb_packets[ (bank+1) % NUM_BANKS ];
-	uint64_t nowns = now_ns_from_clk100ns( rx );
+	rx = &(ut->usb_packets[ (bank+1) % NUM_BANKS ]);
+	uint64_t nowns = now_ns_from_clk100ns( ut, rx );
 
 	determine_signal_and_noise( rx, &signal_level, &noise_level );
 	snr = signal_level - noise_level;
@@ -464,7 +459,7 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	 * cross a bank boundary. */
 	for (i = 0; i < 2; i++)
 		memcpy(syms + i * BANK_LEN,
-		       br_symbols[(i + 1 + bank) % NUM_BANKS],
+		       ut->br_symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
 	
 	/* Look for packets with specified LAP, if given. Otherwise
@@ -486,7 +481,7 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	/* Copy out remaining banks of symbols for full analysis. */
 	for (i = 1; i < NUM_BANKS; i++)
 		memcpy(syms + i * BANK_LEN,
-		       br_symbols[(i + 1 + bank) % NUM_BANKS],
+		       ut->br_symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
 
 	/* Once offset is known for a valid packet, copy in symbols
@@ -512,7 +507,7 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 				   sizeof(systime_be), 1,
 				   dumpfile)
 			    != 1) {;}
-			if (fwrite(&usb_packets[(i + 1 + bank) % NUM_BANKS],
+			if (fwrite(&(ut->usb_packets[(i + 1 + bank) % NUM_BANKS]),
 				   sizeof(usb_pkt_rx), 1, dumpfile)
 			    != 1) {;}
 		}
@@ -547,8 +542,8 @@ static void cb_br_rx(void* args, usb_pkt_rx *rx, int bank)
 	}
 	
 	if(i < 0) {
-		follow_pn = pn;
-		stop_ubertooth = 1;
+		ut->follow_pn = pn;
+		ut->stop_ubertooth = 1;
 	}
 
 out:
@@ -560,32 +555,32 @@ out:
  * stream_rx_usb() means that UAP and clocks have been found, and that
  * hopping should be started. A more flexible framework would be
  * nice. */
-void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout)
+void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 {
 	int r = btbb_init(max_ac_errors);
 	if (r < 0)
 		return;
 
 	if (timeout)
-		set_timeout(timeout);
+		set_timeout(ut, timeout);
 
-	if (follow_pn)
-		cmd_set_clock(devh, 0);
+	if (ut->follow_pn)
+		cmd_set_clock(ut->devh, 0);
 	else {
-		stream_rx_usb(devh, XFER_LEN, cb_br_rx, pn);
+		stream_rx_usb(ut, XFER_LEN, cb_br_rx, pn);
 		/* Allow pending transfers to finish */
 		sleep(1);
 	}
 	/* Used when follow_pn is preset OR set by stream_rx_usb above
 	 * i.e. This cannot be rolled in to the above if...else
 	 */
-	if (follow_pn) {
-		stop_ubertooth = 0;
-		usb_really_full = 0;
-		cmd_stop(devh);
-		cmd_set_bdaddr(devh, btbb_piconet_get_bdaddr(follow_pn));
-		cmd_start_hopping(devh, btbb_piconet_get_clk_offset(follow_pn));
-		stream_rx_usb(devh, XFER_LEN, cb_br_rx, follow_pn);
+	if (ut->follow_pn) {
+		ut->stop_ubertooth = 0;
+		ut->usb_really_full = 0;
+		cmd_stop(ut->devh);
+		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(ut->follow_pn));
+		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(ut->follow_pn));
+		stream_rx_usb(ut, XFER_LEN, cb_br_rx, ut->follow_pn);
 	}
 }
 
@@ -601,7 +596,7 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 /*
  * Sniff Bluetooth Low Energy packets.
  */
-void cb_btle(void* args, usb_pkt_rx *rx, int bank)
+void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
 {
 	lell_packet * pkt;
 	btle_options * opts = (btle_options *) args;
@@ -643,7 +638,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 		return;
 	}
 
-	uint64_t nowns = now_ns_from_clk100ns( rx );
+	uint64_t nowns = now_ns_from_clk100ns( ut, rx );
 
 	/* Sanity check */
 	if (rx->channel > (NUM_BREDR_CHANNELS-1))
@@ -720,7 +715,7 @@ void cb_btle(void* args, usb_pkt_rx *rx, int bank)
 /*
  * Sniff E-GO packets
  */
-void cb_ego(void* args __attribute__((unused)), usb_pkt_rx *rx, int bank)
+void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)), usb_pkt_rx *rx, int bank)
 {
 	int i;
 	static u32 prev_ts = 0;
@@ -750,30 +745,30 @@ void rx_btle_file(FILE* fp)
 	stream_rx_file(fp, cb_btle, NULL);
 }
 
-static void cb_dump_bitstream(void* args, usb_pkt_rx *rx, int bank)
+static void cb_dump_bitstream(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
 {
 	int i;
 	char nl = '\n';
 
 	UNUSED(args);
 
-	unpack_symbols(rx->data, br_symbols[bank]);
+	unpack_symbols(rx->data, ut->br_symbols[bank]);
 
 	// convert to ascii
 	for (i = 0; i < BANK_LEN; ++i)
-		br_symbols[bank][i] += 0x30;
+		ut->br_symbols[bank][i] += 0x30;
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	if (dumpfile == NULL) {
-		if (fwrite(br_symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
+		if (fwrite(ut->br_symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
 		fwrite(&nl, sizeof(u8), 1, stdout);
     } else {
-		if (fwrite(br_symbols[bank], sizeof(u8), BANK_LEN, dumpfile) != 1) {;}
+		if (fwrite(ut->br_symbols[bank], sizeof(u8), BANK_LEN, dumpfile) != 1) {;}
 		fwrite(&nl, sizeof(u8), 1, dumpfile);
 	}
 }
 
-static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
+static void cb_dump_full(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
 {
 	uint8_t *buf = (uint8_t*)rx;
 
@@ -793,16 +788,16 @@ static void cb_dump_full(void* args, usb_pkt_rx *rx, int bank)
 }
 
 /* dump received symbols to stdout */
-void rx_dump(struct libusb_device_handle* devh, int bitstream)
+void rx_dump(ubertooth_t* ut, int bitstream)
 {
 	if (bitstream)
-		stream_rx_usb(devh, XFER_LEN, cb_dump_bitstream, NULL);
+		stream_rx_usb(ut, XFER_LEN, cb_dump_bitstream, NULL);
 	else
-		stream_rx_usb(devh, XFER_LEN, cb_dump_full, NULL);
+		stream_rx_usb(ut, XFER_LEN, cb_dump_full, NULL);
 }
 
 /* Spectrum analyser mode */
-int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
+int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
 		   u16 high_freq, u8 output_mode)
 {
 	u8 buffer[BUFFER_SIZE];
@@ -817,10 +812,10 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
 	xfer_blocks = xfer_size / PKT_LEN;
 	xfer_size = xfer_blocks * PKT_LEN;
 
-	cmd_specan(devh, low_freq, high_freq);
+	cmd_specan(ut->devh, low_freq, high_freq);
 
 	while (1) {
-		r = libusb_bulk_transfer(devh, DATA_IN, buffer, xfer_size,
+		r = libusb_bulk_transfer(ut->devh, DATA_IN, buffer, xfer_size,
 				&transferred, TIMEOUT);
 		if (r < 0) {
 			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
@@ -889,16 +884,16 @@ int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
 	return 0;
 }
 
-void ubertooth_stop(struct libusb_device_handle *devh)
+void ubertooth_stop(ubertooth_t* ut)
 {
 	/* make sure xfers are not active */
-	if(rx_xfer != NULL)
-		libusb_cancel_transfer(rx_xfer);
-	if (devh != NULL) {
-		cmd_stop(devh);
-		libusb_release_interface(devh, 0);
+	if(ut->rx_xfer != NULL)
+		libusb_cancel_transfer(ut->rx_xfer);
+	if (ut->devh != NULL) {
+		cmd_stop(ut->devh);
+		libusb_release_interface(ut->devh, 0);
 	}
-	libusb_close(devh);
+	libusb_close(ut->devh);
 	libusb_exit(NULL);
 
 #ifdef ENABLE_PCAP
@@ -921,10 +916,33 @@ void ubertooth_stop(struct libusb_device_handle *devh)
 	}
 }
 
-struct libusb_device_handle* ubertooth_start(int ubertooth_device)
+ubertooth_t* ubertooth_init()
+{
+	ubertooth_t* ut = (ubertooth_t*)malloc(sizeof(ubertooth_t));
+	if(ut == NULL) {
+		fprintf(stderr, "Unable to allocate memory\n");
+	}
+
+	ut->devh = NULL;
+	ut->rx_xfer = NULL;
+	ut->empty_usb_buf = NULL;
+	ut->full_usb_buf = NULL;
+	ut->usb_really_full = 0;
+	ut->usb_retry = 1;
+	ut->stop_ubertooth = 0;
+	ut->abs_start_ns;
+	ut->start_clk100ns = 0;
+	ut->last_clk100ns = 0;
+	ut->clk100ns_upper = 0;
+	ut->follow_pn = NULL;
+
+	return ut;
+}
+
+ubertooth_t* ubertooth_start(int ubertooth_device)
 {
 	int r;
-	struct libusb_device_handle *devh = NULL;
+	ubertooth_t* ut = ubertooth_init();
 
 	r = libusb_init(NULL);
 	if (r < 0) {
@@ -932,19 +950,19 @@ struct libusb_device_handle* ubertooth_start(int ubertooth_device)
 		return NULL;
 	}
 
-	devh = find_ubertooth_device(ubertooth_device);
-	if (devh == NULL) {
+	ut->devh = find_ubertooth_device(ubertooth_device);
+	if (ut->devh == NULL) {
 		fprintf(stderr, "could not open Ubertooth device\n");
-		ubertooth_stop(devh);
+		ubertooth_stop(ut);
 		return NULL;
 	}
 
-	r = libusb_claim_interface(devh, 0);
+	r = libusb_claim_interface(ut->devh, 0);
 	if (r < 0) {
 		fprintf(stderr, "usb_claim_interface error %d\n", r);
-		ubertooth_stop(devh);
+		ubertooth_stop(ut);
 		return NULL;
 	}
 
-	return devh;
+	return ut;
 }

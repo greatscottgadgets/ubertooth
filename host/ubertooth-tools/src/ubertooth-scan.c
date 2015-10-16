@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 	char ubertooth_device = -1;
 	char *bt_dev = "hci0";
     char addr[19] = { 0 };
-	struct libusb_device_handle *devh = NULL;
+	ubertooth_t* ut = NULL;
 	btbb_piconet *pn;
 	bdaddr_t bdaddr;
 
@@ -235,13 +235,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	devh = ubertooth_start(ubertooth_device);
-	if (devh == NULL) {
+	ut = ubertooth_start(ubertooth_device);
+	if (ut == NULL) {
 		usage();
 		return 1;
 	}
 	/* Set sweep mode - otherwise AFH map is useless */
-	cmd_set_channel(devh, 9999);
+	cmd_set_channel(ut->devh, 9999);
 
 	if (scan) {
 		/* Equivalent to "hcitool scan" */
@@ -266,8 +266,8 @@ int main(int argc, char *argv[])
 	/* Now find hidden piconets with Ubertooth */
 	printf("\nUbertooth scan\n");
 	btbb_init_survey();
-	rx_live(devh, NULL, timeout);
-	ubertooth_stop(devh);
+	rx_live(ut, NULL, timeout);
+	ubertooth_stop(ut);
 
 	while((pn=btbb_next_survey_result()) != NULL) {
 		lap = btbb_piconet_get_lap(pn);

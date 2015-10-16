@@ -406,6 +406,7 @@ int main(int argc, char **argv) {
 	uint8_t functions = 0;
 	int opt, ubertooth_device = -1;
 	int r;
+	ubertooth_t* ut = NULL;
 	
 	while ((opt=getopt(argc,argv,"hd:u:s:rU:")) != EOF) {
 		switch(opt) {
@@ -468,7 +469,8 @@ int main(int argc, char **argv) {
 		int rv, count= 0;
 		devh = find_ubertooth_dfu_device();
 		if(devh == NULL) {
-			devh = ubertooth_start(ubertooth_device);
+			ut = ubertooth_start(ubertooth_device);
+			devh = ut->devh;
 			cmd_flash(devh);
 			fprintf(stdout, "Switching to DFU mode...\n");
 			while(((devh = find_ubertooth_dfu_device()) == NULL) && (count++) < 5)
