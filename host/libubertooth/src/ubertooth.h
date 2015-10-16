@@ -44,8 +44,6 @@ enum board_ids {
 typedef struct {
 	/* Ringbuffers for USB and Bluetooth symbols */
 	ringbuffer_t* packets;
-	usb_pkt_rx usb_packets[NUM_BANKS];
-	char br_symbols[NUM_BANKS][BANK_LEN];
 
 	struct libusb_device_handle* devh;
 	struct libusb_transfer* rx_xfer;
