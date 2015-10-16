@@ -23,6 +23,7 @@
 #define __UBERTOOTH_H__
 
 #include "ubertooth_control.h"
+#include "ubertooth_ringbuffer.h"
 #include <btbb.h>
 
 /* specan output types
@@ -41,6 +42,8 @@ enum board_ids {
 };
 
 typedef struct {
+	/* Ringbuffers for USB and Bluetooth symbols */
+	ringbuffer_t* packets;
 	usb_pkt_rx usb_packets[NUM_BANKS];
 	char br_symbols[NUM_BANKS][BANK_LEN];
 
@@ -59,7 +62,7 @@ typedef struct {
 	btbb_piconet* follow_pn;
 } ubertooth_t;
 
-typedef void (*rx_callback)(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
+typedef void (*rx_callback)(ubertooth_t* ut, void* args);
 
 typedef struct {
 	unsigned allowed_access_address_errors;
@@ -81,8 +84,8 @@ void rx_file(FILE* fp, btbb_piconet* pn);
 void rx_dump(ubertooth_t* ut, int full);
 void rx_btle(ubertooth_t* ut);
 void rx_btle_file(FILE* fp);
-void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
-void cb_ego(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
+void cb_btle(ubertooth_t* ut, void* args);
+void cb_ego(ubertooth_t* ut, void* args);
 
 #ifdef ENABLE_PCAP
 extern btbb_pcap_handle * h_pcap_bredr;

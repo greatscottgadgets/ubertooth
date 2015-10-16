@@ -226,7 +226,6 @@ int stream_rx_usb(ubertooth_t* ut, int xfer_size, rx_callback cb, void* cb_args)
 {
 	int xfer_blocks, i, r;
 	usb_pkt_rx* rx;
-	uint8_t bank = 0;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
 
@@ -269,9 +268,10 @@ int stream_rx_usb(ubertooth_t* ut, int xfer_size, rx_callback cb, void* cb_args)
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
 			rx = (usb_pkt_rx *)(ut->full_usb_buf + PKT_LEN * i);
-			if(rx->pkt_type != KEEP_ALIVE)
-				(*cb)(ut, cb_args, rx, bank);
-			bank = (bank + 1) % NUM_BANKS;
+			if(rx->pkt_type != KEEP_ALIVE) {
+				ringbuffer_add(ut->packets, rx);
+				(*cb)(ut, cb_args);
+			}
 			if(ut->stop_ubertooth) {
 				if(ut->rx_xfer)
 					libusb_cancel_transfer(ut->rx_xfer);
@@ -286,7 +286,6 @@ int stream_rx_usb(ubertooth_t* ut, int xfer_size, rx_callback cb, void* cb_args)
 /* file should be in full USB packet format (ubertooth-dump -f) */
 int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
 {
-	uint8_t bank = 0;
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
 
@@ -304,21 +303,8 @@ int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
 		nitems = fread(buf, sizeof(buf[0]), PKT_LEN, fp);
 		if (nitems != PKT_LEN)
 			return 0;
-		(*cb)(ut, cb_args, (usb_pkt_rx *)buf, bank);
-		bank = (bank + 1) % NUM_BANKS;
-	}
-}
-
-static void unpack_symbols(uint8_t* buf, char* unpacked)
-{
-	int i, j;
-
-	for (i = 0; i < SYM_LEN; i++) {
-		/* output one byte for each received symbol (0x00 or 0x01) */
-		for (j = 0; j < 8; j++) {
-			unpacked[i * 8 + j] = (buf[i] & 0x80) >> 7;
-			buf[i] <<= 1;
-		}
+		ringbuffer_add(ut->packets, (usb_pkt_rx*)buf);
+		(*cb)(ut, cb_args);
 	}
 }
 
@@ -342,7 +328,6 @@ static int8_t cc2400_rssi_to_dbm( const int8_t rssi )
 	}
 }
 
-#define NUM_BREDR_CHANNELS 79
 #define RSSI_HISTORY_LEN NUM_BANKS
 
 /* Ignore packets with a SNR lower than this in order to reduce
@@ -414,18 +399,18 @@ static uint64_t now_ns_from_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 {
 	track_clk100ns( ut, rx );
 	return ut->abs_start_ns +
-	       100ull*(uint64_t)((rx->clk100ns-ut->start_clk100ns)&0xffffffff) +
+	       100ull*(uint64_t)((rx->clk100ns - ut->start_clk100ns) & 0xffffffff) +
 	       ((100ull*ut->clk100ns_upper)<<32);
 }
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
  * search for UAP.
  */
-static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
+static void cb_br_rx(ubertooth_t* ut, void* args)
 {
 	btbb_packet *pkt = NULL;
 	btbb_piconet *pn = (btbb_piconet *)args;
-	char syms[BANK_LEN * NUM_BANKS];
+	char syms[NUM_BANKS * BANK_LEN];
 	int i;
 	int8_t signal_level;
 	int8_t noise_level;
@@ -435,17 +420,13 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 	uint32_t lap = LAP_ANY;
 	uint8_t uap = UAP_ANY;
 
+	/* Do analysis based on oldest packet */
+	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
+
 	/* Sanity check */
 	if (rx->channel > (NUM_BREDR_CHANNELS-1))
 		goto out;
 
-	/* Copy packet (for dump) */
-	memcpy(&(ut->usb_packets[bank]), rx, sizeof(usb_pkt_rx));
-
-	unpack_symbols(rx->data, ut->br_symbols[bank]);
-
-	/* Do analysis based on oldest packet */
-	rx = &(ut->usb_packets[ (bank+1) % NUM_BANKS ]);
 	uint64_t nowns = now_ns_from_clk100ns( ut, rx );
 
 	determine_signal_and_noise( rx, &signal_level, &noise_level );
@@ -453,13 +434,6 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 
 	/* WC4: use vm circbuf if target allows. This gets rid of this
 	 * wrapped copy step. */
-
-	/* Copy 2 oldest banks of symbols for analysis. Packet may
-	 * cross a bank boundary. */
-	for (i = 0; i < 2; i++)
-		memcpy(syms + i * BANK_LEN,
-		       ut->br_symbols[(i + 1 + bank) % NUM_BANKS],
-		       BANK_LEN);
 
 	/* Look for packets with specified LAP, if given. Otherwise
 	 * search for any packet.  Also determine if UAP is known. */
@@ -470,7 +444,7 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 
 	/* Pass packet-pointer-pointer so that
 	 * packet can be created in libbtbb. */
-	offset = btbb_find_ac(syms, BANK_LEN, lap, max_ac_errors, &pkt);
+	offset = btbb_find_ac(ringbuffer_bottom_bt(ut->packets), BANK_LEN - 64, lap, max_ac_errors, &pkt);
 	if (offset < 0)
 		goto out;
 
@@ -478,9 +452,9 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 	btbb_packet_set_transport(pkt, BTBB_TRANSPORT_ANY);
 
 	/* Copy out remaining banks of symbols for full analysis. */
-	for (i = 1; i < NUM_BANKS; i++)
+	for (i = 0; i < NUM_BANKS; i++)
 		memcpy(syms + i * BANK_LEN,
-		       ut->br_symbols[(i + 1 + bank) % NUM_BANKS],
+		       ringbuffer_get_bt(ut->packets, i),
 		       BANK_LEN);
 
 	/* Once offset is known for a valid packet, copy in symbols
@@ -502,13 +476,8 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 	if (dumpfile) {
 		for(i = 0; i < NUM_BANKS; i++) {
 			uint32_t systime_be = htobe32(systime);
-			if (fwrite(&systime_be,
-			    sizeof(systime_be), 1,
-			    dumpfile)
-			    != 1) {;}
-			if (fwrite(&(ut->usb_packets[(i + 1 + bank) % NUM_BANKS]),
-			    sizeof(usb_pkt_rx), 1, dumpfile)
-			    != 1) {;}
+			fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
+			fwrite(ringbuffer_get_usb(ut->packets, i), sizeof(usb_pkt_rx), 1, dumpfile);
 		}
 		fflush(dumpfile);
 	}
@@ -524,8 +493,6 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 	       noise_level,
 	       snr);
 
-	i = btbb_process_packet(pkt, pn);
-
 	/* Dump to PCAP/PCAPNG if specified */
 #ifdef ENABLE_PCAP
 	if (h_pcap_bredr) {
@@ -540,6 +507,7 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 		                          lap, uap, pkt);
 	}
 
+	i = btbb_process_packet(pkt, pn);
 	if(i < 0) {
 		ut->follow_pn = pn;
 		ut->stop_ubertooth = 1;
@@ -595,11 +563,12 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 /*
  * Sniff Bluetooth Low Energy packets.
  */
-void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__((unused)))
+void cb_btle(ubertooth_t* ut, void* args)
 {
-	lell_packet * pkt;
-	btle_options * opts = (btle_options *) args;
+	lell_packet* pkt;
+	btle_options* opts = (btle_options*) args;
 	int i;
+	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
 	// u32 access_address = 0; // Build warning
 
 	static u32 prev_ts = 0;
@@ -647,8 +616,8 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__
 	/* Dump to sumpfile if specified */
 	if (dumpfile) {
 		uint32_t systime_be = htobe32(systime);
-		if (fwrite(&systime_be, sizeof(systime_be), 1, dumpfile) != 1) {;}
-		if (fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile) != 1) {;}
+		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
+		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
 
@@ -712,10 +681,11 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__
 /*
  * Sniff E-GO packets
  */
-void cb_ego(ubertooth_t* ut __attribute__((unused)), void* args __attribute__((unused)), usb_pkt_rx *rx, int bank __attribute__((unused)))
+void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)))
 {
 	int i;
 	static u32 prev_ts = 0;
+	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
 
 	u32 rx_time = rx->clk100ns;
 	if (rx_time < prev_ts)
@@ -740,39 +710,41 @@ void rx_btle_file(FILE* fp)
 	stream_rx_file(fp, cb_btle, NULL);
 }
 
-static void cb_dump_bitstream(ubertooth_t* ut, void* args __attribute__((unused)), usb_pkt_rx *rx, int bank)
+static void cb_dump_bitstream(ubertooth_t* ut, void* args __attribute__((unused)))
 {
 	int i;
 	char nl = '\n';
 
-	unpack_symbols(rx->data, ut->br_symbols[bank]);
+	char bitstream[BANK_LEN];
+	memcpy(bitstream, ringbuffer_top_bt(ut->packets), BANK_LEN);
 
 	// convert to ascii
 	for (i = 0; i < BANK_LEN; ++i)
-		ut->br_symbols[bank][i] += 0x30;
+		bitstream[i] += 0x30;
 
-	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
+	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n",
+	        ringbuffer_top_usb(ut->packets)->clk100ns);
 	if (dumpfile == NULL) {
-		if (fwrite(ut->br_symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
+		fwrite(bitstream, sizeof(u8), BANK_LEN, stdout);
 		fwrite(&nl, sizeof(u8), 1, stdout);
 	} else {
-		if (fwrite(ut->br_symbols[bank], sizeof(u8), BANK_LEN, dumpfile) != 1) {;}
+		fwrite(bitstream, sizeof(u8), BANK_LEN, dumpfile);
 		fwrite(&nl, sizeof(u8), 1, dumpfile);
 	}
 }
 
-static void cb_dump_full(ubertooth_t* ut __attribute__((unused)), void* args __attribute__((unused)), usb_pkt_rx *rx, int bank __attribute__((unused)))
+static void cb_dump_full(ubertooth_t* ut, void* args __attribute__((unused)))
 {
-	uint8_t *buf = (uint8_t*)rx;
+	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	uint32_t time_be = htobe32((uint32_t)time(NULL));
 	if (dumpfile == NULL) {
-		if (fwrite(&time_be, 1, sizeof(time_be), stdout) != 1) {;}
-		if (fwrite(buf, sizeof(u8), PKT_LEN, stdout) != 1) {;}
+		fwrite(&time_be, 1, sizeof(time_be), stdout);
+		fwrite((uint8_t*)rx, sizeof(u8), PKT_LEN, stdout);
 	} else {
-		if (fwrite(&time_be, 1, sizeof(time_be), dumpfile) != 1) {;}
-		if (fwrite(buf, sizeof(u8), PKT_LEN, dumpfile) != 1) {;}
+		fwrite(&time_be, 1, sizeof(time_be), dumpfile);
+		fwrite((uint8_t*)rx, sizeof(u8), PKT_LEN, dumpfile);
 		fflush(dumpfile);
 	}
 }
@@ -913,6 +885,10 @@ ubertooth_t* ubertooth_init()
 		fprintf(stderr, "Unable to allocate memory\n");
 		return NULL;
 	}
+
+	ut->packets = ringbuffer_init();
+	if(ut->packets == NULL)
+		fprintf(stderr, "Unable to initialize ringbuffer\n");
 
 	ut->devh = NULL;
 	ut->rx_xfer = NULL;
