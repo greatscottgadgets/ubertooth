@@ -596,7 +596,7 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 /*
  * Sniff Bluetooth Low Energy packets.
  */
-void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
+void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__((unused)))
 {
 	lell_packet * pkt;
 	btle_options * opts = (btle_options *) args;
@@ -606,8 +606,6 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
 	static u32 prev_ts = 0;
 	uint32_t refAA;
 	int8_t sig, noise;
-
-	UNUSED(bank);
 
 	// display LE promiscuous mode state changes
 	if (rx->pkt_type == LE_PROMISC) {
@@ -715,12 +713,10 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
 /*
  * Sniff E-GO packets
  */
-void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)), usb_pkt_rx *rx, int bank)
+void cb_ego(ubertooth_t* ut __attribute__((unused)), void* args __attribute__((unused)), usb_pkt_rx *rx, int bank __attribute__((unused)))
 {
 	int i;
 	static u32 prev_ts = 0;
-
-	UNUSED(bank);
 
 	u32 rx_time = rx->clk100ns;
 	if (rx_time < prev_ts)
@@ -745,12 +741,10 @@ void rx_btle_file(FILE* fp)
 	stream_rx_file(fp, cb_btle, NULL);
 }
 
-static void cb_dump_bitstream(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
+static void cb_dump_bitstream(ubertooth_t* ut, void* args __attribute__((unused)), usb_pkt_rx *rx, int bank)
 {
 	int i;
 	char nl = '\n';
-
-	UNUSED(args);
 
 	unpack_symbols(rx->data, ut->br_symbols[bank]);
 
@@ -768,12 +762,9 @@ static void cb_dump_bitstream(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int b
 	}
 }
 
-static void cb_dump_full(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank)
+static void cb_dump_full(ubertooth_t* ut __attribute__((unused)), void* args __attribute__((unused)), usb_pkt_rx *rx, int bank __attribute__((unused)))
 {
 	uint8_t *buf = (uint8_t*)rx;
-
-	UNUSED(args);
-	UNUSED(bank);
 
 	fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", rx->clk100ns);
 	uint32_t time_be = htobe32((uint32_t)time(NULL));
@@ -930,7 +921,7 @@ ubertooth_t* ubertooth_init()
 	ut->usb_really_full = 0;
 	ut->usb_retry = 1;
 	ut->stop_ubertooth = 0;
-	ut->abs_start_ns;
+	ut->abs_start_ns = 0;
 	ut->start_clk100ns = 0;
 	ut->last_clk100ns = 0;
 	ut->clk100ns_upper = 0;

@@ -25,9 +25,6 @@
 #include "ubertooth_control.h"
 #include <btbb.h>
 
-/* Mark unused variables to avoid gcc/clang warnings */
-#define UNUSED(x) (void)(x)
-
 /* specan output types
  * see https://github.com/dkogan/feedgnuplot for plotter */
 enum specan_modes {
