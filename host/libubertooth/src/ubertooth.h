@@ -71,10 +71,10 @@ ubertooth_t* ubertooth_init();
 ubertooth_t* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(ubertooth_t* ut);
 int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
-		   u16 high_freq, u8 output_mode);
+           u16 high_freq, u8 output_mode);
 int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(ubertooth_t* ut, int xfer_size,
-				  rx_callback cb, void* cb_args);
+                  rx_callback cb, void* cb_args);
 int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args);
 void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_file(FILE* fp, btbb_piconet* pn);

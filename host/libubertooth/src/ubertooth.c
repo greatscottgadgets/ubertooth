@@ -51,7 +51,7 @@ lell_pcapng_handle * h_pcapng_le = NULL;
 
 void print_version() {
 	printf("libubertooth %s (%s), libbtbb %s (%s)\n", VERSION, RELEASE,
-		   btbb_get_version(), btbb_get_release());
+	       btbb_get_version(), btbb_get_release());
 }
 
 ubertooth_t* cleanup_devh = NULL;
@@ -81,8 +81,8 @@ void stop_transfers(int sig __attribute__((unused))) {
 void set_timeout(ubertooth_t* ut, int seconds) {
 	/* Upon SIGALRM, call stop_transfers() */
 	if (signal(SIGALRM, stop_transfers) == SIG_ERR) {
-	  perror("Unable to catch SIGALRM");
-	  exit(1);
+		perror("Unable to catch SIGALRM");
+		exit(1);
 	}
 	timeout_dev = ut;
 	alarm(seconds);
@@ -103,14 +103,14 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 		if(r < 0)
 			fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
 		if ((desc.idVendor == TC13_VENDORID && desc.idProduct == TC13_PRODUCTID)
-			|| (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
-			|| (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
+		    || (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
+		    || (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
 		{
 			ubertooth_devs[ubertooths] = i;
 			ubertooths++;
 		}
 	}
-	if(ubertooths == 1) { 
+	if(ubertooths == 1) {
 		ret = libusb_open(usb_list[ubertooth_devs[0]], &devh);
 		if (ret)
 			show_libusb_error(ret);
@@ -207,7 +207,7 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		fprintf(stderr, "uh oh, full_usb_buf not emptied\n");
 		ut->stop_ubertooth = 1;
 	}
-	
+
 	if(ut->stop_ubertooth)
 		return;
 
@@ -222,8 +222,7 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
 }
 
-int stream_rx_usb(ubertooth_t* ut, int xfer_size,
-		rx_callback cb, void* cb_args)
+int stream_rx_usb(ubertooth_t* ut, int xfer_size, rx_callback cb, void* cb_args)
 {
 	int xfer_blocks, i, r;
 	usb_pkt_rx* rx;
@@ -247,7 +246,7 @@ int stream_rx_usb(ubertooth_t* ut, int xfer_size,
 	ut->usb_really_full = 0;
 	ut->rx_xfer = libusb_alloc_transfer(0);
 	libusb_fill_bulk_transfer(ut->rx_xfer, ut->devh, DATA_IN, ut->empty_usb_buf,
-			xfer_size, cb_xfer, ut, TIMEOUT);
+	                          xfer_size, cb_xfer, ut, TIMEOUT);
 
 	cmd_rx_syms(ut->devh);
 
@@ -270,7 +269,7 @@ int stream_rx_usb(ubertooth_t* ut, int xfer_size,
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
 			rx = (usb_pkt_rx *)(ut->full_usb_buf + PKT_LEN * i);
-			if(rx->pkt_type != KEEP_ALIVE) 
+			if(rx->pkt_type != KEEP_ALIVE)
 				(*cb)(ut, cb_args, rx, bank);
 			bank = (bank + 1) % NUM_BANKS;
 			if(ut->stop_ubertooth) {
@@ -323,7 +322,7 @@ static void unpack_symbols(uint8_t* buf, char* unpacked)
 	}
 }
 
-static int8_t cc2400_rssi_to_dbm( const int8_t rssi ) 
+static int8_t cc2400_rssi_to_dbm( const int8_t rssi )
 {
 	/* models the cc2400 datasheet fig 22 for 1M as piece-wise linear */
 	if (rssi < -48) {
@@ -351,20 +350,20 @@ static int8_t cc2400_rssi_to_dbm( const int8_t rssi )
 
 static int8_t rssi_history[NUM_BREDR_CHANNELS][RSSI_HISTORY_LEN] = {{INT8_MIN}};
 
-static void determine_signal_and_noise( usb_pkt_rx *rx, int8_t * sig, int8_t * noise ) 
+static void determine_signal_and_noise( usb_pkt_rx *rx, int8_t * sig, int8_t * noise )
 {
 	int8_t * channel_rssi_history = rssi_history[rx->channel];
 	int8_t rssi;
 	int i;
 
-        /* Shift rssi max history and append current max */
+	/* Shift rssi max history and append current max */
 	memmove(channel_rssi_history,
-		channel_rssi_history+1,
-		RSSI_HISTORY_LEN-1);
+	        channel_rssi_history+1,
+	        RSSI_HISTORY_LEN-1);
 	channel_rssi_history[RSSI_HISTORY_LEN-1] = rx->rssi_max;
 
 #if 0
-        /* Signal starts in oldest bank, but may cross into second
+	/* Signal starts in oldest bank, but may cross into second
 	 * oldest bank.  Take the max or the 2 maxs. */
 	rssi = MAX(channel_rssi_history[0], channel_rssi_history[1]);
 #else
@@ -414,9 +413,9 @@ static void track_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 static uint64_t now_ns_from_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 {
 	track_clk100ns( ut, rx );
-	return ut->abs_start_ns + 
-		100ull*(uint64_t)((rx->clk100ns-ut->start_clk100ns)&0xffffffff) +
-		((100ull*ut->clk100ns_upper)<<32);
+	return ut->abs_start_ns +
+	       100ull*(uint64_t)((rx->clk100ns-ut->start_clk100ns)&0xffffffff) +
+	       ((100ull*ut->clk100ns_upper)<<32);
 }
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
@@ -461,7 +460,7 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 		memcpy(syms + i * BANK_LEN,
 		       ut->br_symbols[(i + 1 + bank) % NUM_BANKS],
 		       BANK_LEN);
-	
+
 	/* Look for packets with specified LAP, if given. Otherwise
 	 * search for any packet.  Also determine if UAP is known. */
 	if (pn) {
@@ -489,7 +488,7 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
 	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
-			   rx->channel, clkn);
+	                     rx->channel, clkn);
 
 	/* When reading from file, caller will read
 	 * systime before calling this routine, so do
@@ -503,12 +502,12 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 	if (dumpfile) {
 		for(i = 0; i < NUM_BANKS; i++) {
 			uint32_t systime_be = htobe32(systime);
-			if (fwrite(&systime_be, 
-				   sizeof(systime_be), 1,
-				   dumpfile)
+			if (fwrite(&systime_be,
+			    sizeof(systime_be), 1,
+			    dumpfile)
 			    != 1) {;}
 			if (fwrite(&(ut->usb_packets[(i + 1 + bank) % NUM_BANKS]),
-				   sizeof(usb_pkt_rx), 1, dumpfile)
+			    sizeof(usb_pkt_rx), 1, dumpfile)
 			    != 1) {;}
 		}
 		fflush(dumpfile);
@@ -531,16 +530,16 @@ static void cb_br_rx(ubertooth_t* ut, void* args, usb_pkt_rx* rx, int bank)
 #ifdef ENABLE_PCAP
 	if (h_pcap_bredr) {
 		btbb_pcap_append_packet(h_pcap_bredr, nowns,
-					signal_level, noise_level,
-					lap, uap, pkt);
+		                        signal_level, noise_level,
+		                        lap, uap, pkt);
 	}
 #endif
 	if (h_pcapng_bredr) {
-		btbb_pcapng_append_packet(h_pcapng_bredr, nowns, 
-					signal_level, noise_level,
-					lap, uap, pkt);
+		btbb_pcapng_append_packet(h_pcapng_bredr, nowns,
+		                          signal_level, noise_level,
+		                          lap, uap, pkt);
 	}
-	
+
 	if(i < 0) {
 		ut->follow_pn = pn;
 		ut->stop_ubertooth = 1;
@@ -665,7 +664,7 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__
 
 	/* Dump to PCAP/PCAPNG if specified */
 	refAA = lell_packet_is_data(pkt) ? 0 : 0x8e89bed6;
-	determine_signal_and_noise( rx, &sig, &noise );	
+	determine_signal_and_noise( rx, &sig, &noise );
 #ifdef ENABLE_PCAP
 	if (h_pcap_le) {
 		/* only one of these two will succeed, depending on
@@ -674,16 +673,16 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__
 					sig, noise,
 					refAA, pkt);
 		lell_pcap_append_ppi_packet(h_pcap_le, nowns,
-					    rx->clkn_high, 
-					    rx->rssi_min, rx->rssi_max,
-					    rx->rssi_avg, rx->rssi_count,
-					    pkt);
+		                            rx->clkn_high,
+		                            rx->rssi_min, rx->rssi_max,
+		                            rx->rssi_avg, rx->rssi_count,
+		                            pkt);
 	}
 #endif
 	if (h_pcapng_le) {
 		lell_pcapng_append_packet(h_pcapng_le, nowns,
-					  sig, noise,
-					  refAA, pkt);
+		                          sig, noise,
+		                          refAA, pkt);
 	}
 
 	// rollover
@@ -756,7 +755,7 @@ static void cb_dump_bitstream(ubertooth_t* ut, void* args __attribute__((unused)
 	if (dumpfile == NULL) {
 		if (fwrite(ut->br_symbols[bank], sizeof(u8), BANK_LEN, stdout) != 1) {;}
 		fwrite(&nl, sizeof(u8), 1, stdout);
-    } else {
+	} else {
 		if (fwrite(ut->br_symbols[bank], sizeof(u8), BANK_LEN, dumpfile) != 1) {;}
 		fwrite(&nl, sizeof(u8), 1, dumpfile);
 	}
@@ -807,7 +806,7 @@ int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
 
 	while (1) {
 		r = libusb_bulk_transfer(ut->devh, DATA_IN, buffer, xfer_size,
-				&transferred, TIMEOUT);
+		                         &transferred, TIMEOUT);
 		if (r < 0) {
 			fprintf(stderr, "bulk read returned: %d , failed to read\n", r);
 			return r;
@@ -824,10 +823,10 @@ int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
 
 		/* process each received block */
 		for (i = 0; i < xfer_blocks; i++) {
-			time = buffer[4 + PKT_LEN * i]
-					| (buffer[5 + PKT_LEN * i] << 8)
-					| (buffer[6 + PKT_LEN * i] << 16)
-					| (buffer[7 + PKT_LEN * i] << 24);
+			time = (buffer[4 + PKT_LEN * i]) |
+			       (buffer[5 + PKT_LEN * i] << 8) |
+			       (buffer[6 + PKT_LEN * i] << 16) |
+			       (buffer[7 + PKT_LEN * i] << 24);
 			if(debug)
 				fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
 			for (j = PKT_LEN * i + SYM_OFFSET; j < PKT_LEN * i + 62; j += 3) {
@@ -841,18 +840,18 @@ int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
 							break;
 						case SPECAN_STDOUT:
 							printf("%f, %d, %d\n", ((double)time)/10000000,
-								frequency, buffer[j + 2]);
+							       frequency, buffer[j + 2]);
 							break;
 						case SPECAN_GNUPLOT_NORMAL:
 							printf("%d %d\n", frequency, buffer[j + 2]);
 							break;
 						case SPECAN_GNUPLOT_3D:
 							printf("%f %d %d\n", ((double)time)/10000000,
-								frequency, buffer[j + 2]);
+							       frequency, buffer[j + 2]);
 							break;
 						default:
 							fprintf(stderr, "Unrecognised output mode (%d)\n",
-									output_mode);
+							        output_mode);
 							return -1;
 							break;
 					}
@@ -912,6 +911,7 @@ ubertooth_t* ubertooth_init()
 	ubertooth_t* ut = (ubertooth_t*)malloc(sizeof(ubertooth_t));
 	if(ut == NULL) {
 		fprintf(stderr, "Unable to allocate memory\n");
+		return NULL;
 	}
 
 	ut->devh = NULL;
