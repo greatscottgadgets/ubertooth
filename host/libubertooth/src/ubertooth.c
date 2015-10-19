@@ -222,51 +222,49 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
 }
 
-int stream_rx_usb(ubertooth_t* ut, int xfer_size, rx_callback cb, void* cb_args)
+int ubertooth_bulk_init(ubertooth_t* ut)
 {
-	int xfer_blocks, i, r;
-	usb_pkt_rx* rx;
+	int r;
 	uint8_t rx_buf1[BUFFER_SIZE];
 	uint8_t rx_buf2[BUFFER_SIZE];
-
-	/*
-	 * A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
-	 * payload).  A transfer consists of one or more blocks.  Consecutive
-	 * blocks should be approximately 400 microseconds apart (timestamps about
-	 * 4000 apart in units of 100 nanoseconds).
-	 */
-	if (xfer_size > BUFFER_SIZE)
-		xfer_size = BUFFER_SIZE;
-	xfer_blocks = xfer_size / PKT_LEN;
-	xfer_size = xfer_blocks * PKT_LEN;
 
 	ut->empty_usb_buf = &rx_buf1[0];
 	ut->full_usb_buf = &rx_buf2[0];
 	ut->usb_really_full = 0;
 	ut->rx_xfer = libusb_alloc_transfer(0);
 	libusb_fill_bulk_transfer(ut->rx_xfer, ut->devh, DATA_IN, ut->empty_usb_buf,
-	                          xfer_size, cb_xfer, ut, TIMEOUT);
-
-	cmd_rx_syms(ut->devh);
+	                          XFER_LEN, cb_xfer, ut, TIMEOUT);
 
 	r = libusb_submit_transfer(ut->rx_xfer);
 	if (r < 0) {
 		fprintf(stderr, "rx_xfer submission: %d\n", r);
 		return -1;
 	}
+	return 0;
+}
 
-	while (1) {
-		while (!ut->usb_really_full) {
-			r = libusb_handle_events(NULL);
-			if (r < 0) {
-				if (r == LIBUSB_ERROR_INTERRUPTED)
-					break;
-				show_libusb_error(r);
-			}
+void ubertooth_bulk_wait(ubertooth_t* ut)
+{
+	int r;
+
+	while (!ut->usb_really_full) {
+		r = libusb_handle_events(NULL);
+		if (r < 0) {
+			if (r == LIBUSB_ERROR_INTERRUPTED)
+				break;
+			show_libusb_error(r);
 		}
+	}
+}
 
+int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
+{
+	int i;
+	usb_pkt_rx* rx;
+
+	if (ut->usb_really_full) {
 		/* process each received block */
-		for (i = 0; i < xfer_blocks; i++) {
+		for (i = 0; i < PKTS_PER_XFER; i++) {
 			rx = (usb_pkt_rx *)(ut->full_usb_buf + PKT_LEN * i);
 			if(rx->pkt_type != KEEP_ALIVE) {
 				ringbuffer_add(ut->packets, rx);
@@ -280,6 +278,32 @@ int stream_rx_usb(ubertooth_t* ut, int xfer_size, rx_callback cb, void* cb_args)
 		}
 		ut->usb_really_full = 0;
 		fflush(stderr);
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+int stream_rx_usb(ubertooth_t* ut, int xfer_size __attribute__((unused)), rx_callback cb, void* cb_args)
+{
+	int r;
+
+	// init USB transfer
+	r = ubertooth_bulk_init(ut);
+	if (r < 0)
+		return r;
+
+	// tell ubertooth to send packets
+	r = cmd_rx_syms(ut->devh);
+	if (r < 0)
+		return r;
+
+	// receive and process each packet
+	while(1) {
+		ubertooth_bulk_wait(ut);
+		r = ubertooth_bulk_receive(ut, cb, cb_args);
+		if (r == 1)
+			return 1;
 	}
 }
 
