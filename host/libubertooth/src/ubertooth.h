@@ -50,7 +50,6 @@ typedef struct {
 	uint8_t* empty_usb_buf;
 	uint8_t* full_usb_buf;
 	uint8_t usb_really_full;
-	uint8_t usb_retry;
 
 	uint8_t stop_ubertooth;
 	uint64_t abs_start_ns;

@@ -825,7 +825,6 @@ ubertooth_t* ubertooth_init()
 	ut->empty_usb_buf = NULL;
 	ut->full_usb_buf = NULL;
 	ut->usb_really_full = 0;
-	ut->usb_retry = 1;
 	ut->stop_ubertooth = 0;
 	ut->abs_start_ns = 0;
 	ut->start_clk100ns = 0;
