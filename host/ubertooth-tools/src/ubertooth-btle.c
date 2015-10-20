@@ -145,8 +145,8 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'r':
-			if (!h_pcapng_le) {
-				if (lell_pcapng_create_file(optarg, "Ubertooth", &h_pcapng_le)) {
+			if (!ut->h_pcapng_le) {
+				if (lell_pcapng_create_file(optarg, "Ubertooth", &ut->h_pcapng_le)) {
 					err(1, "lell_pcapng_create_file: ");
 				}
 			}
@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
 			break;
 #ifdef ENABLE_PCAP
 		case 'q':
-			if (!h_pcap_le) {
-				if (lell_pcap_create_file(optarg, &h_pcap_le)) {
+			if (!ut->h_pcap_le) {
+				if (lell_pcap_create_file(optarg, &ut->h_pcap_le)) {
 					err(1, "lell_pcap_create_file: ");
 				}
 			}
@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case 'c':
-			if (!h_pcap_le) {
-				if (lell_pcap_ppi_create_file(optarg, 0, &h_pcap_le)) {
+			if (!ut->h_pcap_le) {
+				if (lell_pcap_ppi_create_file(optarg, 0, &ut->h_pcap_le)) {
 					err(1, "lell_pcap_ppi_create_file: ");
 				}
 			}

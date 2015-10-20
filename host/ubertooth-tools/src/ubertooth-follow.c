@@ -96,8 +96,8 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'r':
-			if (!h_pcapng_bredr) {
-				if (btbb_pcapng_create_file( optarg, "Ubertooth", &h_pcapng_bredr )) {
+			if (!ut->h_pcapng_bredr) {
+				if (btbb_pcapng_create_file( optarg, "Ubertooth", &ut->h_pcapng_bredr )) {
 					err(1, "create_bredr_capture_file: ");
 				}
 			}
@@ -107,8 +107,8 @@ int main(int argc, char *argv[])
 			break;
 #ifdef ENABLE_PCAP
 		case 'q':
-			if (!h_pcap_bredr) {
-				if (btbb_pcap_create_file(optarg, &h_pcap_bredr)) {
+			if (!ut->h_pcap_bredr) {
+				if (btbb_pcap_create_file(optarg, &ut->h_pcap_bredr)) {
 					err(1, "btbb_pcap_create_file: ");
 				}
 			}
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 		);
 		str2ba(addr, &bdaddr);
 		printf("Address: %s\n", addr);
-	
+
 		if (hci_devinfo(dev_id, &di) < 0) {
 			perror("Can't get device info");
 			return 1;
@@ -194,13 +194,13 @@ int main(int argc, char *argv[])
 			usage();
 			return 1;
 	}
-	
-	if (h_pcapng_bredr) {
-		btbb_pcapng_record_bdaddr(h_pcapng_bredr,
-								  (((uint32_t)uap)<<24)|lap,
-								  0xff, 0);
+
+	if (ut->h_pcapng_bredr) {
+		btbb_pcapng_record_bdaddr(ut->h_pcapng_bredr,
+		                            (((uint32_t)uap)<<24)|lap,
+		                            0xff, 0);
 	}
-	
+
 	//Experimental AFH map reading from remote device
 	if(afh_enabled) {
 		if(hci_read_afh_map(sock, handle, &mode, afh_map, 1000) < 0) {
@@ -221,10 +221,10 @@ int main(int argc, char *argv[])
 		usleep(10000);
 		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
 	}
-	
+
 	/* Clean up on exit. */
 	register_cleanup_handler(ut);
-	
+
 	ut = ubertooth_start(ubertooth_device);
 	if (ut == NULL) {
 		usage();

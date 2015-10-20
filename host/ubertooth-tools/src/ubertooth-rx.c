@@ -84,8 +84,8 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'r':
-			if (!h_pcapng_bredr) {
-				if (btbb_pcapng_create_file( optarg, "Ubertooth", &h_pcapng_bredr )) {
+			if (!ut->h_pcapng_bredr) {
+				if (btbb_pcapng_create_file( optarg, "Ubertooth", &ut->h_pcapng_bredr )) {
 					err(1, "create_bredr_capture_file: ");
 				}
 			}
@@ -95,8 +95,8 @@ int main(int argc, char *argv[])
 			break;
 #ifdef ENABLE_PCAP
 		case 'q':
-			if (!h_pcap_bredr) {
-				if (btbb_pcap_create_file(optarg, &h_pcap_bredr)) {
+			if (!ut->h_pcap_bredr) {
+				if (btbb_pcap_create_file(optarg, &ut->h_pcap_bredr)) {
 					err(1, "btbb_pcap_create_file: ");
 				}
 			}
@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
 		btbb_init_piconet(pn, lap);
 		if (have_uap)
 			btbb_piconet_set_uap(pn, uap);
-		if (h_pcapng_bredr) {
-			btbb_pcapng_record_bdaddr(h_pcapng_bredr,
+		if (ut->h_pcapng_bredr) {
+			btbb_pcapng_record_bdaddr(ut->h_pcapng_bredr,
 						  (((uint32_t)uap)<<24)|lap,
 						  have_uap ? 0xff : 0x00, 0);
 		}
