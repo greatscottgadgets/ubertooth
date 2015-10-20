@@ -284,7 +284,7 @@ int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 	}
 }
 
-int stream_rx_usb(ubertooth_t* ut, int xfer_size __attribute__((unused)), rx_callback cb, void* cb_args)
+int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
 {
 	int r;
 
@@ -558,7 +558,7 @@ void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 	if (ut->follow_pn)
 		cmd_set_clock(ut->devh, 0);
 	else {
-		stream_rx_usb(ut, XFER_LEN, cb_br_rx, pn);
+		stream_rx_usb(ut, cb_br_rx, pn);
 		/* Allow pending transfers to finish */
 		sleep(1);
 	}
@@ -571,7 +571,7 @@ void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 		cmd_stop(ut->devh);
 		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(ut->follow_pn));
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(ut->follow_pn));
-		stream_rx_usb(ut, XFER_LEN, cb_br_rx, ut->follow_pn);
+		stream_rx_usb(ut, cb_br_rx, ut->follow_pn);
 	}
 }
 
@@ -777,9 +777,9 @@ static void cb_dump_full(ubertooth_t* ut, void* args __attribute__((unused)))
 void rx_dump(ubertooth_t* ut, int bitstream)
 {
 	if (bitstream)
-		stream_rx_usb(ut, XFER_LEN, cb_dump_bitstream, NULL);
+		stream_rx_usb(ut, cb_dump_bitstream, NULL);
 	else
-		stream_rx_usb(ut, XFER_LEN, cb_dump_full, NULL);
+		stream_rx_usb(ut, cb_dump_full, NULL);
 }
 
 /* Spectrum analyser mode */
