@@ -23,10 +23,13 @@
 #include <err.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <string.h>
 
-extern FILE *dumpfile;
-extern FILE *infile;
+extern FILE* dumpfile;
+extern FILE* infile;
 extern int max_ac_errors;
+
+uint8_t calibrated = 0;
 
 static void usage()
 {
@@ -49,14 +52,100 @@ static void usage()
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
-int main(int argc, char *argv[])
+static void cb_rx(ubertooth_t* ut, void* args)
+{
+	btbb_packet* pkt = NULL;
+	btbb_piconet* pn = (btbb_piconet *)args;
+	char syms[NUM_BANKS * BANK_LEN];
+	int offset;
+	uint16_t clk_offset;
+	uint32_t clkn;
+
+	/* Do analysis based on oldest packet */
+	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
+
+	if (rx->status & DISCARD) {
+		goto out;
+	}
+
+	// /* Sanity check */
+	if (rx->channel > (NUM_BREDR_CHANNELS-1))
+		goto out;
+
+	int8_t signal_level = rx->rssi_max;
+	int8_t noise_level = rx->rssi_min;
+	int8_t snr = signal_level - noise_level;
+
+	/* Copy out remaining banks of symbols for full analysis. */
+	for (int i = 0; i < NUM_BANKS; i++)
+		memcpy(syms + i * BANK_LEN,
+		       ringbuffer_get_bt(ut->packets, i),
+		       BANK_LEN);
+
+	/* Pass packet-pointer-pointer so that
+	 * packet can be created in libbtbb. */
+	offset = btbb_find_ac(syms, BANK_LEN, btbb_piconet_get_lap(pn), max_ac_errors, &pkt);
+	if (offset < 0)
+		goto out;
+
+	/* calculate the offset between the first bit of the AC and the rising edge of CLKN */
+	clk_offset = (le32toh(rx->clk100ns) + offset*10 + 6250 - 4000) % 6250;
+
+	btbb_packet_set_modulation(pkt, BTBB_MOD_GFSK);
+	btbb_packet_set_transport(pkt, BTBB_TRANSPORT_ANY);
+
+	/* Once offset is known for a valid packet, copy in symbols
+	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
+	 * btbb library can shift it be CLK1 if needed. */
+	clkn = (le32toh(rx->clkn_high) << 20) + (le32toh(rx->clk100ns) + offset*10 - 4000) / 3125;
+	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
+	                     rx->channel, clkn);
+
+	printf("systime=%u ch=%2d LAP=%06x err=%u clkn=%u clk_offset=%u s=%d n=%d snr=%d\n",
+	       (uint32_t)time(NULL),
+	       btbb_packet_get_channel(pkt),
+	       btbb_packet_get_lap(pkt),
+	       btbb_packet_get_ac_errors(pkt),
+	       clkn,
+	       clk_offset,
+	       signal_level,
+	       noise_level,
+	       snr
+	);
+
+	/* calibrate Ubertooth clock such that the first bit of the AC
+	 * arrives CLK_TUNE_TIME after the rising edge of CLKN */
+	if (!calibrated) {
+		if (clk_offset < CLK_TUNE_TIME) {
+			printf("offset < CLK_TUNE_TIME\n");
+			printf("CLK100ns Trim: %d\n", 6250 + clk_offset - CLK_TUNE_TIME);
+			cmd_trim_clock(ut->devh, 6250 + clk_offset - CLK_TUNE_TIME);
+		} else if (clk_offset > CLK_TUNE_TIME) {
+			printf("offset > CLK_TUNE_TIME\n");
+			printf("CLK100ns Trim: %d\n", clk_offset - CLK_TUNE_TIME);
+			cmd_trim_clock(ut->devh, clk_offset - CLK_TUNE_TIME);
+		}
+		calibrated = 1;
+		goto out;
+	}
+
+	int r = btbb_process_packet(pkt, pn);
+	if(r < 0)
+		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
+
+out:
+	if (pkt)
+		btbb_packet_unref(pkt);
+}
+
+int main(int argc, char* argv[])
 {
 	int opt, have_lap = 0, have_uap = 0;
 	int timeout = 0;
 	int reset_scan = 0;
-	char *end;
+	char* end;
 	char ubertooth_device = -1;
-	btbb_piconet *pn = NULL;
+	btbb_piconet* pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
 
@@ -131,11 +220,19 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	ubertooth_connect(ut, ubertooth_device);
+	if (ut == NULL) {
+		usage();
+		return 1;
+	}
+
 	if (have_lap) {
 		pn = btbb_piconet_new();
 		btbb_init_piconet(pn, lap);
-		if (have_uap)
+		if (have_uap) {
 			btbb_piconet_set_uap(pn, uap);
+			cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
+		}
 		if (ut->h_pcapng_bredr) {
 			btbb_pcapng_record_bdaddr(ut->h_pcapng_bredr,
 						  (((uint32_t)uap)<<24)|lap,
@@ -148,11 +245,6 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		ubertooth_connect(ut, ubertooth_device);
-		if (ut == NULL) {
-			usage();
-			return 1;
-		}
 
 		/* Scan all frequencies. Same effect as
 		 * ubertooth-utils -c9999. This is necessary after
@@ -164,11 +256,28 @@ int main(int argc, char *argv[])
 		/* Clean up on exit. */
 		register_cleanup_handler(ut);
 
-		rx_live(ut, pn, timeout);
+		int r = btbb_init(max_ac_errors);
+		if (r < 0)
+			return r;
 
-		// Print AFH map from piconet if we have one
-		if (pn)
-			btbb_print_afh_map(pn);
+		if (timeout)
+			ubertooth_set_timeout(ut, timeout);
+
+		// init USB transfer
+		r = ubertooth_bulk_init(ut);
+		if (r < 0)
+			return r;
+
+		// tell ubertooth to send packets
+		r = cmd_rx_syms(ut->devh);
+		if (r < 0)
+			return r;
+
+		// receive and process each packet
+		while(!ut->stop_ubertooth) {
+			ubertooth_bulk_wait(ut);
+			ubertooth_bulk_receive(ut, cb_rx, pn);
+		}
 
 		ubertooth_stop(ut);
 	} else {

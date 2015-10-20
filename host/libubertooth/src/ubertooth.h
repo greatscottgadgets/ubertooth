@@ -58,12 +58,12 @@ typedef struct {
 	uint64_t clk100ns_upper;
 
 #ifdef ENABLE_PCAP
-	btbb_pcap_handle * h_pcap_bredr;
-	lell_pcap_handle * h_pcap_le;
+	btbb_pcap_handle* h_pcap_bredr;
+	lell_pcap_handle* h_pcap_le;
 #endif
 
-	btbb_pcapng_handle * h_pcapng_bredr;
-	lell_pcapng_handle * h_pcapng_le;
+	btbb_pcapng_handle* h_pcapng_bredr;
+	lell_pcapng_handle* h_pcapng_le;
 } ubertooth_t;
 
 unsigned int counter_max;

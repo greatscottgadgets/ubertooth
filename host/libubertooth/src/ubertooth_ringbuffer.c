@@ -48,13 +48,6 @@ ringbuffer_t* ringbuffer_init()
 
 int ringbuffer_add(ringbuffer_t* rb, const usb_pkt_rx* rx)
 {
-	if(rx->pkt_type == KEEP_ALIVE)
-		return 1;
-
-	/* Check if channel is valid */
-	if (rx->channel > (NUM_BREDR_CHANNELS-1))
-		return -1;
-
 	rb->current_bank = (rb->current_bank + 1) % NUM_BANKS;
 
 	/* Copy packet (for dump) */
