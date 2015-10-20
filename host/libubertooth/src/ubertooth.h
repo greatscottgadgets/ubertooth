@@ -71,8 +71,6 @@ void register_cleanup_handler(ubertooth_t* ut);
 ubertooth_t* ubertooth_init();
 ubertooth_t* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(ubertooth_t* ut);
-int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
-           u16 high_freq, u8 output_mode);
 
 int ubertooth_bulk_init(ubertooth_t* ut);
 void ubertooth_bulk_wait(ubertooth_t* ut);
