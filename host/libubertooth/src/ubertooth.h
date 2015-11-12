@@ -56,7 +56,6 @@ typedef struct {
 	uint32_t start_clk100ns;
 	uint64_t last_clk100ns;
 	uint64_t clk100ns_upper;
-	btbb_piconet* follow_pn;
 
 #ifdef ENABLE_PCAP
 	btbb_pcap_handle * h_pcap_bredr;
@@ -67,6 +66,8 @@ typedef struct {
 	lell_pcapng_handle * h_pcapng_le;
 } ubertooth_t;
 
+unsigned int counter_max;
+
 typedef void (*rx_callback)(ubertooth_t* ut, void* args);
 
 typedef struct {
@@ -76,15 +77,15 @@ typedef struct {
 void print_version();
 void register_cleanup_handler(ubertooth_t* ut);
 ubertooth_t* ubertooth_init();
+uint8_t ubertooth_connect(ubertooth_t* ut, int ubertooth_device);
 ubertooth_t* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(ubertooth_t* ut);
+void ubertooth_set_timeout(ubertooth_t* ut, int seconds);
 
 int ubertooth_bulk_init(ubertooth_t* ut);
 void ubertooth_bulk_wait(ubertooth_t* ut);
 int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args);
 
-int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args);
-int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args);
 void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_file(FILE* fp, btbb_piconet* pn);
 void rx_dump(ubertooth_t* ut, int full);
@@ -92,5 +93,10 @@ void rx_btle(ubertooth_t* ut);
 void rx_btle_file(FILE* fp);
 void cb_btle(ubertooth_t* ut, void* args);
 void cb_ego(ubertooth_t* ut, void* args);
+void rx_afh(ubertooth_t* ut, btbb_piconet* pn, int timeout);
+void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout);
+void cb_afh_initial(ubertooth_t* ut, void* args);
+void cb_afh_monitor(ubertooth_t* ut, void* args);
+void cb_afh_r(ubertooth_t* ut, void* args);
 
 #endif /* __UBERTOOTH_H__ */

@@ -54,6 +54,14 @@ void show_libusb_error(int error_code)
 	fprintf(stderr,"libUSB Error: %s: %s (%d)\n", error_name, error_hint, error_code);
 }
 
+static void callback(struct libusb_transfer* transfer)
+{
+	if(transfer->status != 0) {
+		show_libusb_error(transfer->status);
+	}
+	libusb_free_transfer(transfer);
+}
+
 int cmd_ping(struct libusb_device_handle* devh)
 {
 	int r;
@@ -705,19 +713,16 @@ int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num)
 	return 0;
 }
 
-int cmd_set_afh_map(struct libusb_device_handle* devh, u8* afh_map)
+int cmd_set_afh_map(struct libusb_device_handle* devh, uint8_t* afh_map)
 {
-	int r;
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_SET_AFHMAP, 0, 0,
-		afh_map, 10, 1000);
-	if (r < 0) {
-		if (r == LIBUSB_ERROR_PIPE) {
-			fprintf(stderr, "control message unsupported\n");
-		} else {
-			show_libusb_error(r);
-		}
-		return r;
-	}
+	uint8_t buffer[LIBUSB_CONTROL_SETUP_SIZE+10];
+	struct libusb_transfer *xfer = libusb_alloc_transfer(0);
+
+	libusb_fill_control_setup(buffer, CTRL_OUT, UBERTOOTH_SET_AFHMAP, 0, 0, 10);
+	memcpy ( &buffer[LIBUSB_CONTROL_SETUP_SIZE], afh_map, 10 );
+	libusb_fill_control_transfer(xfer, devh, buffer, callback, NULL, 1000);
+	libusb_submit_transfer(xfer);
+
 	return 0;
 }
 
@@ -946,5 +951,35 @@ int cmd_ego(struct libusb_device_handle* devh, int mode)
 		}
 		return r;
 	}
+	return 0;
+}
+
+int cmd_afh(struct libusb_device_handle* devh)
+{
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_AFH, 0, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	return 0;
+}
+
+int cmd_hop(struct libusb_device_handle* devh)
+{
+	uint8_t buffer[LIBUSB_CONTROL_SETUP_SIZE];
+	struct libusb_transfer *xfer = libusb_alloc_transfer(0);
+
+	libusb_fill_control_setup(buffer, CTRL_OUT, UBERTOOTH_HOP, 0, 0, 0);
+	libusb_fill_control_transfer(xfer, devh, buffer, callback, NULL, 1000);
+	libusb_submit_transfer(xfer);
+
 	return 0;
 }

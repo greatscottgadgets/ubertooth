@@ -28,8 +28,6 @@ extern FILE *dumpfile;
 extern FILE *infile;
 extern int max_ac_errors;
 
-ubertooth_t* ut = NULL;
-
 static void usage()
 {
 	printf("ubertooth-rx - passive Bluetooth discovery/decode\n");
@@ -61,6 +59,8 @@ int main(int argc, char *argv[])
 	btbb_piconet *pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
+
+	ubertooth_t* ut = ubertooth_init();
 
 	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:")) != EOF) {
 		switch(opt) {
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (infile == NULL) {
-		ut = ubertooth_start(ubertooth_device);
+		ubertooth_connect(ut, ubertooth_device);
 		if (ut == NULL) {
 			usage();
 			return 1;

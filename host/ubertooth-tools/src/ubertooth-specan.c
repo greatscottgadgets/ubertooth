@@ -26,8 +26,6 @@
 uint8_t debug;
 extern FILE *dumpfile;
 
-ubertooth_t* ut = NULL;
-
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 {
 	uint16_t high_freq = (((uint8_t*)args)[0]) |
@@ -93,6 +91,8 @@ int main(int argc, char *argv[])
 	int opt, r = 0, output_mode = SPECAN_STDOUT;
 	int lower= 2402, upper= 2480;
 	char ubertooth_device = -1;
+
+	ubertooth_t* ut = NULL;
 
 	while ((opt=getopt(argc,argv,"vhgGd:l::u::U:")) != EOF) {
 		switch(opt) {

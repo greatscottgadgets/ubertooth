@@ -46,6 +46,7 @@ enum operating_modes {
 	MODE_RESET         = 11,
 	MODE_BT_SLAVE_LE   = 12,
 	MODE_EGO           = 13,
+	MODE_AFH           = 14,
 };
 
 /* hardware identification number */

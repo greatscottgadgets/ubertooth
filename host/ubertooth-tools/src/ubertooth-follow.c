@@ -35,8 +35,6 @@
 extern int max_ac_errors;
 extern FILE *dumpfile;
 
-ubertooth_t* ut = NULL;
-
 static void usage()
 {
 	printf("ubertooth-follow - active(bluez) CLK discovery and follow for a particular UAP/LAP\n");
@@ -75,8 +73,8 @@ int main(int argc, char *argv[])
 	struct hci_dev_info di;
 	int cc = 0;
 
-
 	pn = btbb_piconet_new();
+	ubertooth_t* ut = ubertooth_init();
 
 	while ((opt=getopt(argc,argv,"hl:u:U:e:d:ab:w:r:q:")) != EOF) {
 		switch(opt) {
@@ -225,7 +223,7 @@ int main(int argc, char *argv[])
 	/* Clean up on exit. */
 	register_cleanup_handler(ut);
 
-	ut = ubertooth_start(ubertooth_device);
+	ubertooth_connect(ut, ubertooth_device);
 	if (ut == NULL) {
 		usage();
 		return 1;
@@ -236,7 +234,6 @@ int main(int argc, char *argv[])
 	btbb_piconet_set_clk_offset(pn, clock+delay);
 	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
 	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
-	ut->follow_pn = pn;
 	rx_live(ut, pn, 0);
 	ubertooth_stop(ut);
 

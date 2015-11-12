@@ -62,7 +62,7 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 	struct hci_dev_info di;
 	struct hci_conn_info_req *cr;
 	int i, cc = 0;
-	
+
 	if (hci_devinfo(dev_id, &di) < 0) {
 		perror("Can't get device info");
 		exit(1);
@@ -157,7 +157,7 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 		printf("AFH disabled.\n");
 	}
 	free(cr);
-	
+
 	if (cc) {
 		usleep(10000);
 		hci_disconnect(dd, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 	char *bt_dev = "hci0";
     char addr[19] = { 0 };
 	ubertooth_t* ut = NULL;
-	btbb_piconet *pn;
+	btbb_piconet* pn;
 	bdaddr_t bdaddr;
 
 	while ((opt=getopt(argc,argv,"hU:t:e:xsb:")) != EOF) {
@@ -250,11 +250,11 @@ int main(int argc, char *argv[])
 		max_rsp = 255;
 		flags = IREQ_CACHE_FLUSH;
 		ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
-		
+
 		num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
 		if( num_rsp < 0 )
 			perror("hci_inquiry");
-	
+
 		for (i = 0; i < num_rsp; i++) {
 			ba2str(&(ii+i)->bdaddr, addr);
 			print_name_and_class(dev_handle, dev_id, &(ii+i)->bdaddr, addr,
