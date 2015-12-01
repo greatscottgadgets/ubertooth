@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	int bitstream = 0;
 	int modulation = MOD_BT_BASIC_RATE;
 	char ubertooth_device = -1;
-	struct libusb_device_handle *devh = NULL;
+	ubertooth_t* ut = NULL;
 
 	while ((opt=getopt(argc,argv,"bhclU:d:")) != EOF) {
 		switch(opt) {
@@ -83,19 +83,19 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	devh = ubertooth_start(ubertooth_device);
+	ut = ubertooth_start(ubertooth_device);
 
-	if (devh == NULL) {
+	if (ut == NULL) {
 		usage();
 		return 1;
 	}
 
 	/* Clean up on exit. */
-	register_cleanup_handler(devh);
+	register_cleanup_handler(ut);
 
-	cmd_set_modulation(devh, modulation);
-	rx_dump(devh, bitstream);
+	cmd_set_modulation(ut->devh, modulation);
+	rx_dump(ut, bitstream);
 
-	ubertooth_stop(devh);
+	ubertooth_stop(ut);
 	return 0;
 }

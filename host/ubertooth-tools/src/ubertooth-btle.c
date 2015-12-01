@@ -33,7 +33,7 @@ extern pcap_t *pcap_dumpfile;
 extern pcap_dumper_t *dumper;
 #endif // ENABLE_PCAP
 
-struct libusb_device_handle *devh = NULL;
+ubertooth_t* ut = NULL;
 
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
@@ -229,14 +229,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	devh = ubertooth_start(ubertooth_device);
-	if (devh == NULL) {
+	ut = ubertooth_start(ubertooth_device);
+	if (ut == NULL) {
 		usage();
 		return 1;
 	}
 
 	/* Clean up on exit. */
-	register_cleanup_handler(devh);
+	register_cleanup_handler(ut);
 
 	if (do_follow && do_promisc) {
 		printf("Error: must choose either -f or -p, one or the other pal\n");
@@ -246,12 +246,12 @@ int main(int argc, char *argv[])
 	if (do_follow || do_promisc) {
 		usb_pkt_rx pkt;
 
-		int r = cmd_set_jam_mode(devh, jam_mode);
+		int r = cmd_set_jam_mode(ut->devh, jam_mode);
 		if (jam_mode != JAM_NONE && r != 0) {
 			printf("Jamming not supported\n");
 			return 1;
 		}
-		cmd_set_modulation(devh, MOD_BT_LOW_ENERGY);
+		cmd_set_modulation(ut->devh, MOD_BT_LOW_ENERGY);
 
 		if (do_follow) {
 			u16 channel;
@@ -261,42 +261,42 @@ int main(int argc, char *argv[])
 				channel = 2426;
 			else
 				channel = 2480;
-			cmd_set_channel(devh, channel);
-			cmd_btle_sniffing(devh, 2);
+			cmd_set_channel(ut->devh, channel);
+			cmd_btle_sniffing(ut->devh, 2);
 		} else {
-			cmd_btle_promisc(devh);
+			cmd_btle_promisc(ut->devh);
 		}
 
 		while (1) {
-			int r = cmd_poll(devh, &pkt);
+			int r = cmd_poll(ut->devh, &pkt);
 			if (r < 0) {
 				printf("USB error\n");
 				break;
 			}
 			if (r == sizeof(usb_pkt_rx))
-				cb_btle(&cb_opts, &pkt, 0);
+				cb_btle(ut, &cb_opts, &pkt, 0);
 			usleep(500);
 		}
-		ubertooth_stop(devh);
+		ubertooth_stop(ut);
 	}
 
 	if (do_get_aa) {
-		access_address = cmd_get_access_address(devh);
+		access_address = cmd_get_access_address(ut->devh);
 		printf("Access address: %08x\n", access_address);
 		return 0;
 	}
 
 	if (do_set_aa) {
-		cmd_set_access_address(devh, access_address);
+		cmd_set_access_address(ut->devh, access_address);
 		printf("access address set to: %08x\n", access_address);
 	}
 
 	if (do_crc >= 0) {
 		int r;
 		if (do_crc == 2) {
-			r = cmd_get_crc_verify(devh);
+			r = cmd_get_crc_verify(ut->devh);
 		} else {
-			cmd_set_crc_verify(devh, do_crc);
+			cmd_set_crc_verify(ut->devh, do_crc);
 			r = do_crc;
 		}
 		printf("CRC: %sverify\n", r ? "" : "DO NOT ");
@@ -310,13 +310,13 @@ int main(int argc, char *argv[])
 			channel = 2426;
 		else
 			channel = 2480;
-		cmd_set_channel(devh, channel);
+		cmd_set_channel(ut->devh, channel);
 
-		cmd_btle_slave(devh, mac_address);
+		cmd_btle_slave(ut->devh, mac_address);
 	}
 
 	if (do_target) {
-		r = cmd_btle_set_target(devh, mac_address);
+		r = cmd_btle_set_target(ut->devh, mac_address);
 		if (r == 0) {
 			int i;
 			printf("target set to: ");

@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int r = 0;
-	struct libusb_device_handle *devh= NULL;
+	ubertooth_t* ut = NULL;
 	rangetest_result rr;
 	int do_stop, do_flash, do_isp, do_leds, do_part, do_reset;
 	int do_serial, do_tx, do_palevel, do_channel, do_led_specan;
@@ -188,71 +188,71 @@ int main(int argc, char *argv[])
 	}
 
 	/* initialise device */
-	devh = ubertooth_start(ubertooth_device);
-	if (devh == NULL) {
+	ut = ubertooth_start(ubertooth_device);
+	if (ut == NULL) {
 		usage();
 		return 1;
 	}
 	if(do_reset == 0) {
 		printf("Resetting ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
-		r = cmd_reset(devh);
+		r = cmd_reset(ut->devh);
 		sleep(2);
-		devh = ubertooth_start(ubertooth_device);
+		ut = ubertooth_start(ubertooth_device);
 	}
 	if(do_stop == 0) {
 		printf("Stopping ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
-		r= cmd_stop(devh);
+		r = cmd_stop(ut->devh);
 	}
 
 	/* device configuration actions */
 	if(do_all_leds == 0 || do_all_leds == 1) {
-		cmd_set_usrled(devh, do_all_leds);
-		cmd_set_rxled(devh, do_all_leds);
-		r= cmd_set_txled(devh, do_all_leds);
+		cmd_set_usrled(ut->devh, do_all_leds);
+		cmd_set_rxled(ut->devh, do_all_leds);
+		r= cmd_set_txled(ut->devh, do_all_leds);
 		r = (r >= 0) ? 0 : r;
 	}
 	if(do_channel > 0)
-		r= cmd_set_channel(devh, do_channel);
+		r= cmd_set_channel(ut->devh, do_channel);
 	if(do_leds == 0 || do_leds == 1)
-		r= cmd_set_usrled(devh, do_leds);
+		r= cmd_set_usrled(ut->devh, do_leds);
 	if(do_palevel > 0)
-		r= cmd_set_palevel(devh, do_palevel);
+		r= cmd_set_palevel(ut->devh, do_palevel);
 	
 	/* reporting actions */
 	if(do_all_leds == 2) {
-		printf("USR LED status: %d\n", cmd_get_usrled(devh));
-		printf("RX LED status : %d\n", cmd_get_rxled(devh));
-		printf("TX LED status : %d\n", r= cmd_get_txled(devh));
+		printf("USR LED status: %d\n", cmd_get_usrled(ut->devh));
+		printf("RX LED status : %d\n", cmd_get_rxled(ut->devh));
+		printf("TX LED status : %d\n", r= cmd_get_txled(ut->devh));
 		r = (r >= 0) ? 0 : r;
 	}
 	if(do_board_id == 0) {
-		r= cmd_get_board_id(devh);
+		r= cmd_get_board_id(ut->devh);
 		printf("Board ID Number: %d (%s)\n", r, board_names[r]);
 	}
 	if(do_channel == 0) {
-		r= cmd_get_channel(devh);
+		r= cmd_get_channel(ut->devh);
 		printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 		}
 	if(do_firmware == 0) {
 		char version[255];
-		cmd_get_rev_num(devh, version, (u8)sizeof(version));
+		cmd_get_rev_num(ut->devh, version, (u8)sizeof(version));
 		printf("Firmware revision: %s\n", version);
         }
 	if(do_compile_info == 0) {
 		char compile_info[255];
-		cmd_get_compile_info(devh, compile_info, (u8)sizeof(compile_info));
+		cmd_get_compile_info(ut->devh, compile_info, (u8)sizeof(compile_info));
 		puts(compile_info);
 	}
 	if(do_leds == 2)
-		printf("USR LED status: %d\n", r= cmd_get_usrled(devh));
+		printf("USR LED status: %d\n", r= cmd_get_usrled(ut->devh));
 	if(do_palevel == 0)
-		printf("PA Level: %d\n", r= cmd_get_palevel(devh));
+		printf("PA Level: %d\n", r= cmd_get_palevel(ut->devh));
 	if(do_part == 0) {
-		printf("Part ID: %X\n", r = cmd_get_partnum(devh));
+		printf("Part ID: %X\n", r = cmd_get_partnum(ut->devh));
 		r = (r >= 0) ? 0 : r;
 	}
 	if(do_range_result == 0) {
-		r = cmd_get_rangeresult(devh, &rr);
+		r = cmd_get_rangeresult(ut->devh, &rr);
 		if (r == 0) {
 			if (rr.valid==1) {
 				printf("request PA level : %d\n", rr.request_pa);
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 	}
 	if(do_serial == 0) {
 		u8 serial[17];
-		r= cmd_get_serial(devh, serial);
+		r= cmd_get_serial(ut->devh, serial);
 		if(r==0) {
 			print_serial(serial, NULL);
 		}
@@ -279,51 +279,51 @@ int main(int argc, char *argv[])
 	/* final actions */
 	if(do_flash == 0) {
 		printf("Entering flash programming (DFU) mode\n");
-		return cmd_flash(devh);
+		return cmd_flash(ut->devh);
 	}
 	if(do_identify == 0) {
 		printf("Flashing LEDs on ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		while(42) {
 			do_identify= !do_identify;
-			cmd_set_usrled(devh, do_identify);
-			cmd_set_rxled(devh, do_identify);
-			cmd_set_txled(devh, do_identify);
+			cmd_set_usrled(ut->devh, do_identify);
+			cmd_set_rxled(ut->devh, do_identify);
+			cmd_set_txled(ut->devh, do_identify);
 			sleep(1);
 		}
 	}
 	if(do_isp == 0) {
 		printf("Entering flash programming (ISP) mode\n");
-		return cmd_set_isp(devh);
+		return cmd_set_isp(ut->devh);
 	}
 	if(do_led_specan >= 0) {
 		do_led_specan= do_led_specan ? do_led_specan : 225;
 		printf("Entering LED specan mode (RSSI %d)\n", do_led_specan);
-		return cmd_led_specan(devh, do_led_specan);
+		return cmd_led_specan(ut->devh, do_led_specan);
 	}
 	if(do_range_test == 0) {
 		printf("Starting range test\n");
-		return cmd_range_test(devh);
+		return cmd_range_test(ut->devh);
 	}
 	if(do_repeater == 0) {
 		printf("Starting repeater\n");
-		return cmd_repeater(devh);
+		return cmd_repeater(ut->devh);
 	}
 	if(do_tx == 0) {
 		printf("Starting TX test\n");
-		return cmd_tx_test(devh);
+		return cmd_tx_test(ut->devh);
 	}
 	if(do_set_squelch > 0) {
 		printf("Setting squelch to %d\n", squelch_level);
-		cmd_set_squelch(devh, squelch_level);
+		cmd_set_squelch(ut->devh, squelch_level);
 	}
 	if(do_get_squelch > 0) {
-		r = cmd_get_squelch(devh);
+		r = cmd_get_squelch(ut->devh);
 		printf("Squelch set to %d\n", (int8_t)r);
 	}
 	if(do_something) {
 		unsigned char buf[4] = { 0x55, 0x55, 0x55, 0x55 };
-		cmd_do_something(devh, NULL, 0);
-		cmd_do_something_reply(devh, buf, 4);
+		cmd_do_something(ut->devh, NULL, 0);
+		cmd_do_something_reply(ut->devh, buf, 4);
 		printf("%02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3]);
 		return 0;
 	}

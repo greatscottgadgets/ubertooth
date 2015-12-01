@@ -25,9 +25,6 @@
 #include "ubertooth_control.h"
 #include <btbb.h>
 
-/* Mark unused variables to avoid gcc/clang warnings */
-#define UNUSED(x) (void)(x)
-
 /* specan output types
  * see https://github.com/dkogan/feedgnuplot for plotter */
 enum specan_modes {
@@ -43,29 +40,49 @@ enum board_ids {
 	BOARD_ID_TC13BADGE      = 2
 };
 
-typedef void (*rx_callback)(void* args, usb_pkt_rx *rx, int bank);
+typedef struct {
+	usb_pkt_rx usb_packets[NUM_BANKS];
+	char br_symbols[NUM_BANKS][BANK_LEN];
+
+	struct libusb_device_handle* devh;
+	struct libusb_transfer* rx_xfer;
+	uint8_t* empty_usb_buf;
+	uint8_t* full_usb_buf;
+	uint8_t usb_really_full;
+	uint8_t usb_retry;
+
+	uint8_t stop_ubertooth;
+	uint64_t abs_start_ns;
+	uint32_t start_clk100ns;
+	uint64_t last_clk100ns;
+	uint64_t clk100ns_upper;
+	btbb_piconet* follow_pn;
+} ubertooth_t;
+
+typedef void (*rx_callback)(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
 
 typedef struct {
 	unsigned allowed_access_address_errors;
 } btle_options;
 
 void print_version();
-void register_cleanup_handler(struct libusb_device_handle *devh);
-struct libusb_device_handle* ubertooth_start(int ubertooth_device);
-void ubertooth_stop(struct libusb_device_handle *devh);
-int specan(struct libusb_device_handle* devh, int xfer_size, u16 low_freq,
+void register_cleanup_handler(ubertooth_t* ut);
+ubertooth_t* ubertooth_init();
+ubertooth_t* ubertooth_start(int ubertooth_device);
+void ubertooth_stop(ubertooth_t* ut);
+int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
 		   u16 high_freq, u8 output_mode);
 int cmd_ping(struct libusb_device_handle* devh);
-int stream_rx_usb(struct libusb_device_handle* devh, int xfer_size,
+int stream_rx_usb(ubertooth_t* ut, int xfer_size,
 				  rx_callback cb, void* cb_args);
 int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args);
-void rx_live(struct libusb_device_handle* devh, btbb_piconet* pn, int timeout);
+void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_file(FILE* fp, btbb_piconet* pn);
-void rx_dump(struct libusb_device_handle* devh, int full);
-void rx_btle(struct libusb_device_handle* devh);
+void rx_dump(ubertooth_t* ut, int full);
+void rx_btle(ubertooth_t* ut);
 void rx_btle_file(FILE* fp);
-void cb_btle(void* args, usb_pkt_rx *rx, int bank);
-void cb_ego(void* args, usb_pkt_rx *rx, int bank);
+void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
+void cb_ego(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
 
 #ifdef ENABLE_PCAP
 extern btbb_pcap_handle * h_pcap_bredr;
