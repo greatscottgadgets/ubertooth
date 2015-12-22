@@ -111,7 +111,7 @@ protected:
 
 	// Packet storage, locked with packet_lock
 	vector<btbb_packet *> packet_queue;
-    
+
 	// Pending packet, locked with packet_lock
 	int pending_packet;
 
@@ -125,10 +125,7 @@ protected:
 
 	unsigned int channel;
 
-	uint8_t *empty_buf;
-	uint8_t *full_buf;
-	bool really_full;
-	struct libusb_transfer *rx_xfer;
+	ubertooth_t* ut;
 
 	pthread_mutex_t packet_lock;
 
