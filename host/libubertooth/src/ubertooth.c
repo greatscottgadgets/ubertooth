@@ -692,9 +692,9 @@ void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank __attribute__
 		rx_ts += 3276800000;
 	u32 ts_diff = rx_ts - prev_ts;
 	prev_ts = rx->clk100ns;
-	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms\n",
+	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
 	       systime, rx->channel + 2402, lell_get_access_address(pkt),
-	       ts_diff / 10000.0);
+	       ts_diff / 10000.0, rx->rssi_min - 54);
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;

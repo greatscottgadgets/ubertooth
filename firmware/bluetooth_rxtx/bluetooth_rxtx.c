@@ -1842,6 +1842,9 @@ void bt_le_sync(u8 active_mode)
 		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode)
 			;
 
+		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+		rssi_min = rssi_max = rssi;
+
 		if (requested_mode != active_mode) {
 			goto cleanup;
 		}
