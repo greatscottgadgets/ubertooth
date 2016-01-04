@@ -118,9 +118,6 @@ protected:
 
 	ubertooth_t* ut;
 
-	char symbols[NUM_BANKS][BANK_LEN];
-	int bank;
-
 	unsigned int channel;
 
 	pthread_mutex_t packet_lock;
@@ -136,9 +133,9 @@ protected:
 	void decode_pkt(btbb_packet*, btbb_piconet*);
 
 
-	friend void enqueue(PacketSource_Ubertooth *, btbb_packet *);
-	friend void cb_xfer(struct libusb_transfer *);
-	friend void *ubertooth_cap_thread(void *);
+	friend void enqueue(PacketSource_Ubertooth*, btbb_packet*);
+	friend void cb_xfer(struct libusb_transfer*);
+	friend void* ubertooth_cap_thread(void*);
 };
 
 #endif

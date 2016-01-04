@@ -42,11 +42,10 @@
 #include "packet_btbb.h"
 
 PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, string in_interface,
-									   vector<opt_pair> *in_opts) :
+                                               vector<opt_pair> *in_opts) :
 	KisPacketSource(in_globalreg, in_interface, in_opts) {
 
 	thread_active = 0;
-	devh = NULL;
 
 	fake_fd[0] = -1;
 	fake_fd[1] = -1;
@@ -54,7 +53,6 @@ PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, str
 	pending_packet = 0;
 
 	channel = 39;
-	bank = 0;
 
 	ut = ubertooth_init();
 
@@ -91,41 +89,7 @@ int PacketSource_Ubertooth::AutotypeProbe(string in_device) {
 	return 0;
 }
 
-/* bulk transfer callback for libusb */
-void cb_xfer(struct libusb_transfer *xfer)
-{
-	PacketSource_Ubertooth *ubertooth =
-			(PacketSource_Ubertooth *) xfer->user_data;
-	int r;
-	u8 *tmp;
-
-	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
-		fprintf(stderr, "ut->rx_xfer status: %d\n", xfer->status);
-		libusb_free_transfer(xfer);
-		ubertooth->ut->rx_xfer = NULL;
-		return;
-	}
-
-	while (ubertooth->ut->usb_really_full)
-		fprintf(stderr, "uh oh, ut->full_usb_buf not emptied\n");
-
-	tmp = ubertooth->ut->full_usb_buf;
-	ubertooth->ut->full_usb_buf = ubertooth->ut->empty_usb_buf;
-	ubertooth->ut->empty_usb_buf = tmp;
-	ubertooth->ut->usb_really_full = 1;
-
-	ubertooth->ut->rx_xfer->buffer = ubertooth->ut->empty_usb_buf;
-
-	while (1) {
-		r = libusb_submit_transfer(ubertooth->ut->rx_xfer);
-		if (r < 0)
-			fprintf(stderr, "ut->rx_xfer submission from callback: %d\n", r);
-		else
-			break;
-	}
-}
-
-void enqueue(PacketSource_Ubertooth *ubertooth, btbb_packet *pkt)
+void enqueue(PacketSource_Ubertooth* ubertooth, btbb_packet* pkt)
 {
 	int write_size;
 
@@ -154,107 +118,43 @@ void enqueue(PacketSource_Ubertooth *ubertooth, btbb_packet *pkt)
 	pthread_mutex_unlock(&(ubertooth->packet_lock));
 }
 
-// Capture thread to fake async io
-void *ubertooth_cap_thread(void *arg)
+static void cb_cap(ubertooth_t* ut, void* args)
 {
-	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
-	int i, j, k, m, r, offset;
-	int xfer_size = 512;
-	int xfer_blocks;
-	uint32_t clkn; /* native (local) clock in 625 us */
+	PacketSource_Ubertooth* ubertooth = (PacketSource_Ubertooth*) args;
+	btbb_packet* pkt = NULL;
+	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
 	char syms[BANK_LEN * NUM_BANKS];
-	usb_pkt_rx *rx;
 
-	/*
-	* A block is 64 bytes transferred over USB (includes 50 bytes of rx symbol
-	* payload).  A transfer consists of one or more blocks.  Consecutive
-	* blocks should be approximately 400 microseconds apart (timestamps about
-	* 4000 apart in units of 100 nanoseconds).
-	*/
+	for (int i = 0; i < NUM_BANKS; i++)
+		memcpy(syms + i * BANK_LEN,
+		       ringbuffer_get_bt(ut->packets, i),
+		       BANK_LEN);
 
-	if (xfer_size > BUFFER_SIZE)
-		xfer_size = BUFFER_SIZE;
-	xfer_blocks = xfer_size / 64;
-	xfer_size = xfer_blocks * 64;
-	fprintf(stderr, "rx blocks of 64 bytes in %d byte transfers\n", xfer_size);
+	int offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, 1, &pkt);
+	if (offset >= 0) {
 
-	ubertooth->ut->empty_usb_buf = &(ubertooth->rx_buf1[0]);
-	ubertooth->ut->full_usb_buf = &(ubertooth->rx_buf2[0]);
-	ubertooth->ut->usb_really_full = 0;
-	ubertooth->ut->rx_xfer = libusb_alloc_transfer(0);
-	libusb_fill_bulk_transfer(ubertooth->ut->rx_xfer, ubertooth->devh, DATA_IN,
-					ubertooth->ut->empty_usb_buf, xfer_size, cb_xfer, ubertooth, TIMEOUT);
+		uint32_t clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
 
-	cmd_rx_syms(ubertooth->devh);
+		btbb_packet_set_data(pkt, syms + offset,
+		                     NUM_BANKS * BANK_LEN - offset,
+		                     rx->channel, clkn);
 
-	r = libusb_submit_transfer(ubertooth->ut->rx_xfer);
-	if (r < 0) {
-			fprintf(stderr, "ut->rx_xfer submission: %d\n", r);
-			goto out;
+		enqueue(ubertooth, pkt);
 	}
+}
+
+// Capture thread to fake async io
+void* ubertooth_cap_thread(void* arg)
+{
+	PacketSource_Ubertooth* ubertooth = (PacketSource_Ubertooth*) arg;
+
+	cmd_rx_syms(ubertooth->ut->devh);
 
 	while (ubertooth->thread_active) {
-		while (!ubertooth->ut->usb_really_full) {
-			r = libusb_handle_events(NULL);
-			if (r < 0) {
-				fprintf(stderr, "libusb_handle_events: %d\n", r);
-				goto out;
-			}
-		}
-		/* process each received block */
-		for (i = 0; i < xfer_blocks; i++) {
-			rx = (usb_pkt_rx *)&(ubertooth->ut->full_usb_buf[64 * i]);
-			//fprintf(stderr, "rx block timestamp %u * 100 nanoseconds\n", time);
-			for (j = 0; j < 50; j++) {
-				/* output one byte for each received symbol (0 or 1) */
-				for (k = 0; k < 8; k++) {
-					//printf("%c", (ut->full_usb_buf[j] & 0x80) >> 7 );
-					ubertooth->symbols[ubertooth->bank][j * 8 + k] =
-						(rx->data[j] & 0x80) >> 7;
-					rx->data[j] <<= 1;
-				}
-			}
+		ubertooth_bulk_wait(ubertooth->ut);
+		ubertooth_bulk_receive(ubertooth->ut, cb_cap, ubertooth);
+	}
 
-			/*
-			* Populate syms with enough symbols to run sniff_ac across one
-			* bank (BANK_LEN + AC_LEN).
-			*/
-			m = 0;
-			for (j = 0, k = 0; k < BANK_LEN; k++)
-					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-									% NUM_BANKS][k];
-			for (j = 1, k = 0; k < AC_LEN; k++)
-					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-									% NUM_BANKS][k];
-
-			btbb_packet *pkt;
-			offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, 1, &pkt);
-			if (offset >= 0) {
-				/*
-				* Populate syms with the remaining banks.  We don't know how
-				* long the packet is, so we assume the maximum length.
-				*/
-				for (j = 1, k = AC_LEN; k < BANK_LEN; k++)
-					syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-								% NUM_BANKS][k];
-				for (j = 2; j < NUM_BANKS; j++)
-					for (k = 0; k < BANK_LEN; k++)
-						syms[m++] = ubertooth->symbols[(j + 1 + ubertooth->bank)
-								% NUM_BANKS][k];
-
-				clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset + 1562) / 3125;
-				btbb_packet_set_data(pkt, syms + offset,
-									 NUM_BANKS * BANK_LEN - offset,
-									 rx->channel, clkn);
-				enqueue(ubertooth, pkt);
-			}
-			ubertooth->bank = (ubertooth->bank + 1) % NUM_BANKS;
-		}
-		ubertooth->ut->usb_really_full = 0;
-		fflush(stderr);
-   }
-
-out:
 	ubertooth->thread_active = -1;
 	close(ubertooth->fake_fd[1]);
 	ubertooth->fake_fd[1] = -1;
@@ -269,7 +169,7 @@ int PacketSource_Ubertooth::OpenSource() {
 	}
 
 	/* Set sweep mode on startup */
-	cmd_set_channel(devh, 9999);
+	cmd_set_channel(ut->devh, 9999);
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
@@ -329,13 +229,13 @@ int PacketSource_Ubertooth::SetChannel(unsigned int in_ch) {
 	if (in_ch < 0 || in_ch > 78)
 		return -1;
 
-	if (thread_active <= 0 || devh == NULL)
+	if (thread_active <= 0 || ut->devh == NULL)
 		return 0;
 
 	//FIXME actually set the channel
 
 	printf("Switching channel to %d\n", in_ch);
-	ret = 0; //cmd_set_channel(devh, (u16) in_ch);
+	ret = 0; //cmd_set_channel(ut->devh, (u16) in_ch);
 	printf("cmd_set_channel got return value: %d\n", ret);
 	if (ret) {
 		_MSG("Packet source '" + name + "' failed to set channel "
