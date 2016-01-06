@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (do_follow || do_promisc) {
-		usb_pkt_rx pkt;
+		usb_pkt_rx rx;
 
 		int r = cmd_set_jam_mode(ut->devh, jam_mode);
 		if (jam_mode != JAM_NONE && r != 0) {
@@ -268,13 +268,15 @@ int main(int argc, char *argv[])
 		}
 
 		while (1) {
-			int r = cmd_poll(ut->devh, &pkt);
+			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
 				printf("USB error\n");
 				break;
 			}
-			if (r == sizeof(usb_pkt_rx))
-				cb_btle(ut, &cb_opts, &pkt, 0);
+			if (r == sizeof(usb_pkt_rx)) {
+				ringbuffer_add(ut->packets, &rx);
+				cb_btle(ut, &cb_opts);
+			}
 			usleep(500);
 		}
 		ubertooth_stop(ut);

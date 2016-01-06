@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	register_cleanup_handler(ut);
 
 	if (do_mode >= 0) {
-		usb_pkt_rx pkt;
+		usb_pkt_rx rx;
 
 		if (do_mode == 1) // FIXME magic number!
 			cmd_set_channel(ut->devh, do_channel);
@@ -102,13 +102,15 @@ int main(int argc, char *argv[])
 		}
 
 		while (1) {
-			int r = cmd_poll(ut->devh, &pkt);
+			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
 				printf("USB error\n");
 				break;
 			}
-			if (r == sizeof(usb_pkt_rx))
-				cb_ego(ut, NULL, &pkt, 0);
+			if (r == sizeof(usb_pkt_rx)) {
+				ringbuffer_add(ut->packets, &rx);
+				cb_ego(ut, NULL);
+			}
 			usleep(500);
 		}
 		ubertooth_stop(ut);

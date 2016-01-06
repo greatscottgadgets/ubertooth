@@ -1,19 +1,19 @@
 /* -*- c -*- */
 /*
  * Copyright 2015 Dominic Spill
- * 
+ *
  * This file is part of Project Ubertooth
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with libbtbb; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -44,25 +44,25 @@ static uint32_t crc32(uint8_t *data, uint32_t data_len) {
 static int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 	uint8_t *data;
 	uint32_t crc, data_length;
-	
+
 	printf("Checking firmware signature\n");
 	fseek(signedfile, 0, SEEK_END);
 	data_length = ftell(signedfile) - 4; // Ignore 4 byte CRC
 	fseek(signedfile, -16, SEEK_END); // Start of SFU suffix
 	fread(suffix, 1, 16, signedfile);
-	
+
 	if(suffix->bLength != 16) {
 		fprintf(stderr, "Unknown DFU suffix length: %d\n", suffix->bLength);
 		return 1;
 	}
-	
+
 	// We only know about dfu version 1.0/1.1
 	// This needs to be smarter to support other versions if/when they exist
 	if((suffix->bcdDFU != 0x0100) && (suffix->bcdDFU != 0x0101)) {
 		fprintf(stderr, "Unknown DFU version: %04x\n", suffix->bcdDFU);
 		return 1;
 	}
-	
+
 	// Suffix bytes are reversed
 	if(!((suffix->ucDfuSig[0]==0x55) &&
 		 (suffix->ucDfuSig[1]==0x46) &&
@@ -70,14 +70,14 @@ static int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 		fprintf(stderr, "DFU Signature mismatch: not a DFU file\n");
 		return 1;
 	}
-	
+
 	fseek(signedfile, 0, SEEK_SET);
 	data = malloc(data_length);
 	if(data == NULL) {
 		fprintf(stderr, "Cannot allocate buffer for CRC check\n");
 		return 1;
 	}
-	
+
 	data_length = fread(data, 1, data_length, signedfile);
 	crc = crc32(data, data_length);
 	free(data);
@@ -95,7 +95,7 @@ int sign(FILE* infile, FILE* outfile, uint16_t idVendor, uint16_t idProduct) {
 	DFU_suffix* suffix;
 	uint32_t data_length, buffer_length;
 	uint8_t* buffer;
-	
+
 	fseek(infile, 0, SEEK_END);
 	data_length = ftell(infile);
 	buffer_length = data_length + sizeof(DFU_suffix); // Add suffix
@@ -104,10 +104,10 @@ int sign(FILE* infile, FILE* outfile, uint16_t idVendor, uint16_t idProduct) {
 		fprintf(stderr, "Cannot allocate buffer to calculate CRC\n");
 		return 1;
 	}
-	
+
 	fseek(infile, 0, SEEK_SET);
 	data_length = fread(buffer, 1, data_length, infile);
-	
+
 	suffix = (DFU_suffix *) (buffer + data_length);
 	suffix->idVendor    = idVendor;
 	suffix->idProduct   = idProduct;
@@ -118,7 +118,7 @@ int sign(FILE* infile, FILE* outfile, uint16_t idVendor, uint16_t idProduct) {
 	suffix->ucDfuSig[2] = 0x44;
 	suffix->bLength     = 16;
 	suffix->dwCRC = crc32(buffer, data_length + 12);
-	
+
 	fwrite(buffer, 1, buffer_length, outfile);
 	free(buffer);
 	return 0;
@@ -133,9 +133,9 @@ static struct libusb_device_handle* find_ubertooth_dfu_device() {
 	struct libusb_device_handle *devh = NULL;
 	struct libusb_device_descriptor desc;
 	int usb_devs, i, r, ret;
-	
+
 	r = libusb_init(NULL);
-	
+
 	usb_devs = libusb_get_device_list(ctx, &usb_list);
 	for(i = 0 ; i < usb_devs ; ++i) {
 		r = libusb_get_device_descriptor(usb_list[i], &desc);
@@ -276,18 +276,18 @@ int upload(libusb_device_handle* devh, FILE* upfile) {
 	address = BOOTLOADER_OFFSET + BOOTLOADER_SIZE;
 	length = (256 * 1024) - address;
 	block = address / BLOCK_SIZE;
-	
+
     if ((address & (BLOCK_SIZE - 1)) != 0) {
 		fprintf(stderr, "Upload failed: must start at block boundary\n");
 		return -1;
     }
-	
+
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
 		fprintf(stderr, "Upload failed: could not enter DFU mode\n");
 		return rv;
 	}
-	
+
 	while(length > 0) {
 		rv = libusb_control_transfer(devh, DFU_IN, REQ_UPLOAD, block, 0,
 									 buffer, BLOCK_SIZE, 1000);
@@ -335,12 +335,12 @@ int download(libusb_device_handle* devh, FILE* downfile) {
 	address = BOOTLOADER_OFFSET + BOOTLOADER_SIZE;
 	block = address / BLOCK_SIZE;
 	fseek(downfile, 0, SEEK_SET);
-	
+
     if ((address & (SECTOR_SIZE - 1)) != 0) {
 		fprintf(stderr, "Download failed: must start at sector boundary\n");
 		return -1;
     }
-	
+
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
 		fprintf(stderr, "Download failed: could not enter DFU mode\n");
@@ -407,7 +407,7 @@ int main(int argc, char **argv) {
 	int opt, ubertooth_device = -1;
 	int r;
 	ubertooth_t* ut = NULL;
-	
+
 	while ((opt=getopt(argc,argv,"hd:u:s:rU:")) != EOF) {
 		switch(opt) {
 		case 'd':
@@ -457,13 +457,13 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 	}
-	
+
 	if(functions & FUNC_SIGN) {
 		sign(infile, outfile, U1_DFU_VENDORID, U1_DFU_PRODUCTID);
 		fclose(infile);
 		fclose(outfile);
 	}
-	
+
 	if(functions & (FUNC_UPLOAD|FUNC_DOWNLOAD|FUNC_RESET)) {
 		// Find Ubertooth and switch it to DFU mode
 		int rv, count= 0;
@@ -488,7 +488,7 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 	}
-	
+
 	if(functions & FUNC_UPLOAD) {
 		int rv;
 		rv = upload(devh, upfile);
@@ -498,7 +498,7 @@ int main(int argc, char **argv) {
 			return rv;
 		}
 	}
-	
+
 	if(functions & FUNC_DOWNLOAD) {
 		int rv;
 		DFU_suffix suffix;
@@ -514,11 +514,11 @@ int main(int argc, char **argv) {
 			return rv;
 		}
 	}
-	
+
 	if(functions & FUNC_RESET) {
 		detach(devh);
 	}
-	
+
 	if(functions & (FUNC_UPLOAD|FUNC_DOWNLOAD|FUNC_RESET)) {
 		stop_device(devh);
 	}

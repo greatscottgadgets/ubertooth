@@ -22,7 +22,11 @@
 #ifndef __UBERTOOTH_INTERFACE_H
 #define __UBERTOOTH_INTERFACE_H
 
+#include <stdint.h>
+
 #define DMA_SIZE 50
+
+#define NUM_BREDR_CHANNELS 79
 
 enum ubertooth_usb_commands {
     UBERTOOTH_PING            = 0,

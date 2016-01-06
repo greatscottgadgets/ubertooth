@@ -23,6 +23,7 @@
 #define __UBERTOOTH_H__
 
 #include "ubertooth_control.h"
+#include "ubertooth_ringbuffer.h"
 #include <btbb.h>
 
 /* specan output types
@@ -41,6 +42,8 @@ enum board_ids {
 };
 
 typedef struct {
+	/* Ringbuffers for USB and Bluetooth symbols */
+	ringbuffer_t* packets;
 	usb_pkt_rx usb_packets[NUM_BANKS];
 	char br_symbols[NUM_BANKS][BANK_LEN];
 
@@ -59,7 +62,7 @@ typedef struct {
 	btbb_piconet* follow_pn;
 } ubertooth_t;
 
-typedef void (*rx_callback)(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
+typedef void (*rx_callback)(ubertooth_t* ut, void* args);
 
 typedef struct {
 	unsigned allowed_access_address_errors;
@@ -71,18 +74,18 @@ ubertooth_t* ubertooth_init();
 ubertooth_t* ubertooth_start(int ubertooth_device);
 void ubertooth_stop(ubertooth_t* ut);
 int specan(ubertooth_t* ut, int xfer_size, u16 low_freq,
-		   u16 high_freq, u8 output_mode);
+           u16 high_freq, u8 output_mode);
 int cmd_ping(struct libusb_device_handle* devh);
 int stream_rx_usb(ubertooth_t* ut, int xfer_size,
-				  rx_callback cb, void* cb_args);
+                  rx_callback cb, void* cb_args);
 int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args);
 void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_file(FILE* fp, btbb_piconet* pn);
 void rx_dump(ubertooth_t* ut, int full);
 void rx_btle(ubertooth_t* ut);
 void rx_btle_file(FILE* fp);
-void cb_btle(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
-void cb_ego(ubertooth_t* ut, void* args, usb_pkt_rx *rx, int bank);
+void cb_btle(ubertooth_t* ut, void* args);
+void cb_ego(ubertooth_t* ut, void* args);
 
 #ifdef ENABLE_PCAP
 extern btbb_pcap_handle * h_pcap_bredr;
