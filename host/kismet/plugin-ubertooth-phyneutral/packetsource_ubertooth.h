@@ -104,8 +104,6 @@ protected:
 	// Named USB interface
 	string usb_dev;
 
-	struct libusb_device_handle* devh;
-
 	// FD pipes
 	int fake_fd[2];
 
@@ -118,14 +116,9 @@ protected:
 	// Error from thread
 	string thread_error;
 
-	char symbols[NUM_BANKS][BANK_LEN];
-	int bank;
-	uint8_t rx_buf1[BUFFER_SIZE];
-	uint8_t rx_buf2[BUFFER_SIZE];
+	ubertooth_t* ut;
 
 	unsigned int channel;
-
-	ubertooth_t* ut;
 
 	pthread_mutex_t packet_lock;
 
@@ -140,9 +133,9 @@ protected:
 	void decode_pkt(btbb_packet*, btbb_piconet*);
 
 
-	friend void enqueue(PacketSource_Ubertooth *, btbb_packet *);
-	friend void cb_xfer(struct libusb_transfer *);
-	friend void *ubertooth_cap_thread(void *);
+	friend void enqueue(PacketSource_Ubertooth*, btbb_packet*);
+	friend void cb_xfer(struct libusb_transfer*);
+	friend void* ubertooth_cap_thread(void*);
 };
 
 #endif
