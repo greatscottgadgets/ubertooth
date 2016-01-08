@@ -264,15 +264,15 @@ static int enqueue(u8 type, u8 *buf)
 	} else {
 		f->clkn_high = idle_buf_clkn_high;
 		f->clk100ns = idle_buf_clk100ns;
+		f->channel = idle_buf_channel - 2402;
+		f->rssi_min = rssi_min;
+		f->rssi_max = rssi_max;
+		if (hop_mode != HOP_NONE)
+			f->rssi_avg = (int8_t)((rssi_iir[idle_buf_channel-2402] + 128)/256);
+		else
+			f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
+		f->rssi_count = rssi_count;
 	}
-	f->channel = idle_buf_channel - 2402;
-	f->rssi_min = rssi_min;
-	f->rssi_max = rssi_max;
-	if (hop_mode != HOP_NONE)
-		f->rssi_avg = (int8_t)((rssi_iir[idle_buf_channel-2402] + 128)/256);
-	else
-		f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
-	f->rssi_count = rssi_count;
 
 	USRLED_SET;
 
@@ -611,7 +611,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_SPECAN:
-		if (request_params[0] < 2049 || request_params[0] > 3072 || 
+		if (request_params[0] < 2049 || request_params[0] > 3072 ||
 				request_params[1] < 2049 || request_params[1] > 3072 ||
 				request_params[1] < request_params[0])
 			return 0;
@@ -1103,7 +1103,7 @@ static void dio_ssp_start()
 	/* enable rx DMA on DIO_SSP */
 	DIO_SSP_DMACR |= SSPDMACR_RXDMAE;
 	DIO_SSP_CR1 |= SSPCR1_SSE;
-	
+
 	/* enable DMA */
 	DMACC0Config |= DMACCxConfig_E;
 	ISER0 = ISER0_ISE_DMA;
@@ -1253,7 +1253,7 @@ static void cc2400_rx_sync(u32 sync)
 
 	cc2400_set(SYNCL,   sync & 0xffff);
 	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
-	
+
 	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
 	cc2400_set(MDMCTRL, mdmctrl);
 
@@ -1443,7 +1443,7 @@ void hop(void)
 
 	/* Retune */
 	cc2400_set(FSDIV, channel - 1);
-	
+
 	/* Update CS register if hopping.  */
 	if (hop_mode > 0) {
 		cs_threshold_calc_and_set();
@@ -1452,7 +1452,7 @@ void hop(void)
 	/* Wait for lock */
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
-	
+
 	/* RX mode */
 	cc2400_strobe(SRX);
 
@@ -1467,14 +1467,14 @@ void bt_stream_rx()
 	int i;
 	int16_t packet_offset;
 	int8_t rssi_at_trigger;
-	
+
 	RXLED_CLR;
 
 	queue_init();
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
-	
+
 	if(mode == MODE_BT_FOLLOW) {
 		precalc();
 		cc2400_rx_sync((syncword >> 32) & 0xffffffff);
@@ -1567,7 +1567,7 @@ void bt_stream_rx()
 			goto rx_continue;
 		}
 		hold--;
-		
+
 		/* Queue data from DMA buffer. */
 		switch (hop_mode) {
 			case HOP_BLUETOOTH:
