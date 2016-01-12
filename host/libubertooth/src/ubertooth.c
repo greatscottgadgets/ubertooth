@@ -38,16 +38,9 @@
 
 
 uint32_t systime;
-u8 debug = 0;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 2;
-#ifdef ENABLE_PCAP
-btbb_pcap_handle * h_pcap_bredr = NULL;
-lell_pcap_handle * h_pcap_le = NULL;
-#endif
-btbb_pcapng_handle * h_pcapng_bredr = NULL;
-lell_pcapng_handle * h_pcapng_le = NULL;
 
 void print_version() {
 	printf("libubertooth %s (%s), libbtbb %s (%s)\n", VERSION, RELEASE,
@@ -519,14 +512,14 @@ static void cb_br_rx(ubertooth_t* ut, void* args)
 
 	/* Dump to PCAP/PCAPNG if specified */
 #ifdef ENABLE_PCAP
-	if (h_pcap_bredr) {
-		btbb_pcap_append_packet(h_pcap_bredr, nowns,
+	if (ut->h_pcap_bredr) {
+		btbb_pcap_append_packet(ut->h_pcap_bredr, nowns,
 		                        signal_level, noise_level,
 		                        lap, uap, pkt);
 	}
 #endif
-	if (h_pcapng_bredr) {
-		btbb_pcapng_append_packet(h_pcapng_bredr, nowns,
+	if (ut->h_pcapng_bredr) {
+		btbb_pcapng_append_packet(ut->h_pcapng_bredr, nowns,
 		                          signal_level, noise_level,
 		                          lap, uap, pkt);
 	}
@@ -568,7 +561,7 @@ void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 	if (ut->follow_pn) {
 		ut->stop_ubertooth = 0;
 		ut->usb_really_full = 0;
-		cmd_stop(ut->devh);
+		// cmd_stop(ut->devh);
 		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(ut->follow_pn));
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(ut->follow_pn));
 		stream_rx_usb(ut, cb_br_rx, ut->follow_pn);
@@ -659,21 +652,21 @@ void cb_btle(ubertooth_t* ut, void* args)
 	refAA = lell_packet_is_data(pkt) ? 0 : 0x8e89bed6;
 	determine_signal_and_noise( rx, &sig, &noise );
 #ifdef ENABLE_PCAP
-	if (h_pcap_le) {
+	if (ut->h_pcap_le) {
 		/* only one of these two will succeed, depending on
 		 * whether PCAP was opened with DLT_PPI or not */
-		lell_pcap_append_packet(h_pcap_le, nowns,
+		lell_pcap_append_packet(ut->h_pcap_le, nowns,
 					sig, noise,
 					refAA, pkt);
-		lell_pcap_append_ppi_packet(h_pcap_le, nowns,
+		lell_pcap_append_ppi_packet(ut->h_pcap_le, nowns,
 		                            rx->clkn_high,
 		                            rx->rssi_min, rx->rssi_max,
 		                            rx->rssi_avg, rx->rssi_count,
 		                            pkt);
 	}
 #endif
-	if (h_pcapng_le) {
-		lell_pcapng_append_packet(h_pcapng_le, nowns,
+	if (ut->h_pcapng_le) {
+		lell_pcapng_append_packet(ut->h_pcapng_le, nowns,
 		                          sig, noise,
 		                          refAA, pkt);
 	}
@@ -795,22 +788,23 @@ void ubertooth_stop(ubertooth_t* ut)
 	libusb_exit(NULL);
 
 #ifdef ENABLE_PCAP
-	if (h_pcap_bredr) {
-		btbb_pcap_close(h_pcap_bredr);
-		h_pcap_bredr = NULL;
+	if (ut->h_pcap_bredr) {
+		btbb_pcap_close(ut->h_pcap_bredr);
+		ut->h_pcap_bredr = NULL;
 	}
-	if (h_pcap_le) {
-		lell_pcap_close(h_pcap_le);
-		h_pcap_le = NULL;
+	if (ut->h_pcap_le) {
+		lell_pcap_close(ut->h_pcap_le);
+		ut->h_pcap_le = NULL;
 	}
 #endif
-	if (h_pcapng_bredr) {
-		btbb_pcapng_close(h_pcapng_bredr);
-		h_pcapng_bredr = NULL;
+
+	if (ut->h_pcapng_bredr) {
+		btbb_pcapng_close(ut->h_pcapng_bredr);
+		ut->h_pcapng_bredr = NULL;
 	}
-	if (h_pcapng_le) {
-		lell_pcapng_close(h_pcapng_le);
-		h_pcapng_le = NULL;
+	if (ut->h_pcapng_le) {
+		lell_pcapng_close(ut->h_pcapng_le);
+		ut->h_pcapng_le = NULL;
 	}
 }
 
@@ -831,13 +825,20 @@ ubertooth_t* ubertooth_init()
 	ut->empty_usb_buf = NULL;
 	ut->full_usb_buf = NULL;
 	ut->usb_really_full = 0;
-	ut->usb_retry = 1;
 	ut->stop_ubertooth = 0;
 	ut->abs_start_ns = 0;
 	ut->start_clk100ns = 0;
 	ut->last_clk100ns = 0;
 	ut->clk100ns_upper = 0;
 	ut->follow_pn = NULL;
+
+#ifdef ENABLE_PCAP
+	ut->h_pcap_bredr = NULL;
+	ut->h_pcap_le = NULL;
+#endif
+
+	ut->h_pcapng_bredr = NULL;
+	ut->h_pcapng_le = NULL;
 
 	return ut;
 }

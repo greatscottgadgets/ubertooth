@@ -50,7 +50,6 @@ typedef struct {
 	uint8_t* empty_usb_buf;
 	uint8_t* full_usb_buf;
 	uint8_t usb_really_full;
-	uint8_t usb_retry;
 
 	uint8_t stop_ubertooth;
 	uint64_t abs_start_ns;
@@ -58,6 +57,14 @@ typedef struct {
 	uint64_t last_clk100ns;
 	uint64_t clk100ns_upper;
 	btbb_piconet* follow_pn;
+
+#ifdef ENABLE_PCAP
+	btbb_pcap_handle * h_pcap_bredr;
+	lell_pcap_handle * h_pcap_le;
+#endif
+
+	btbb_pcapng_handle * h_pcapng_bredr;
+	lell_pcapng_handle * h_pcapng_le;
 } ubertooth_t;
 
 typedef void (*rx_callback)(ubertooth_t* ut, void* args);
@@ -86,10 +93,4 @@ void rx_btle_file(FILE* fp);
 void cb_btle(ubertooth_t* ut, void* args);
 void cb_ego(ubertooth_t* ut, void* args);
 
-#ifdef ENABLE_PCAP
-extern btbb_pcap_handle * h_pcap_bredr;
-extern lell_pcap_handle * h_pcap_le;
-#endif
-extern btbb_pcapng_handle * h_pcapng_bredr;
-extern lell_pcapng_handle * h_pcapng_le;
 #endif /* __UBERTOOTH_H__ */
