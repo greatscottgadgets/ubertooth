@@ -20,7 +20,6 @@
  */
 
 #include "ubertooth.h"
-#include "ubertooth_callback.h"
 #include <err.h>
 #include <getopt.h>
 #include <stdlib.h>
