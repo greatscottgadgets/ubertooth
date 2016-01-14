@@ -567,6 +567,7 @@ void cb_afh_monitor(ubertooth_t* ut, void* args)
 	btbb_piconet* pn = (btbb_piconet*)args;
 	btbb_packet* pkt = NULL;
 	uint8_t channel;
+	int i;
 
 	static unsigned long last_seen[79] = {0};
 	static unsigned long counter = 0;
@@ -586,7 +587,7 @@ void cb_afh_monitor(ubertooth_t* ut, void* args)
 	// 	printf("channel %d is already used\n", channel);
 	}
 
-	for(int i=0; i<79; i++) {
+	for(i=0; i<79; i++) {
 		if((counter - last_seen[i] >= counter_max)) {
 			if(btbb_piconet_clear_channel_seen(pn, i)) {
 				printf("- channel %2d is not used any more\n", i);
@@ -606,6 +607,7 @@ void cb_afh_r(ubertooth_t* ut, void* args)
 	btbb_piconet* pn = (btbb_piconet*)args;
 	btbb_packet* pkt = NULL;
 	uint8_t channel;
+	int i;
 
 	static unsigned long last_seen[79] = {0};
 	static unsigned long counter = 0;
@@ -620,7 +622,7 @@ void cb_afh_r(ubertooth_t* ut, void* args)
 
 	btbb_piconet_set_channel_seen(pn, channel);
 
-	for(int i=0; i<79; i++) {
+	for(i=0; i<79; i++) {
 		if((counter - last_seen[i] >= counter_max)) {
 			btbb_piconet_clear_channel_seen(pn, i);
 		}
@@ -697,6 +699,7 @@ void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout __attribute__((unus
 	static uint32_t lasttime;
 
 	int r = btbb_init(max_ac_errors);
+	int i, j;
 	if (r < 0)
 		return;
 
@@ -725,8 +728,8 @@ void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout __attribute__((unus
 			// btbb_print_afh_map(pn);
 
 			uint8_t* afh_map = btbb_piconet_get_afh_map(pn);
-			for (int i=0; i<10; i++)
-				for (int j=0; j<8; j++)
+			for (i=0; i<10; i++)
+				for (j=0; j<8; j++)
 					if (afh_map[i] & (1<<j))
 						printf("1");
 					else
