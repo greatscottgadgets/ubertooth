@@ -95,17 +95,17 @@ LPCUSB_PATH = $(LIBS_PATH)/lpcusb/target
 #     Even though the DOS/Win* filesystem matches both .s and .S the same,
 #     it will preserve the spelling of the filenames, and gcc itself does
 #     care about how the name is spelled on its command-line.
-ASRC = 
+ASRC =
 
 # Object files directory
 #     To put object files in current directory, use a dot (.), do NOT make
 #     this an empty or blank macro!
 OBJDIR = .
 
-# Optimization level, can be [0, 1, 2, 3, s]. 
+# Optimization level, can be [0, 1, 2, 3, s].
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See libc FAQ.)
-OPT = 2
+OPT = s
 
 # Debugging format.
 DEBUG = dwarf-2 -g3
@@ -130,7 +130,7 @@ CSTANDARD = -std=gnu99
 CDEFS  = -D$(LPCUSB_TARGET) $(UBERTOOTH_OPTS) $(COMPILE_OPTS) -Wa,-a,-ad
 
 # Place -D or -U options here for ASM sources
-ADEFS = 
+ADEFS =
 
 # Place -D or -U options here for C++ sources
 CPPDEFS = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
@@ -144,7 +144,7 @@ CPPDEFS = -D$(BOARD) -D$(LPCUSB_TARGET) $(COMPILE_OPTS)
 #    -alhms...: create assembler listing
 CFLAGS = -g
 CFLAGS += $(CDEFS)
-#CFLAGS += -O$(OPT)
+CFLAGS += -O$(OPT)
 CFLAGS += -Wall
 CFLAGS += -Wno-unused
 CFLAGS += -Wno-comments
@@ -152,13 +152,13 @@ CFLAGS += -fmessage-length=0
 CFLAGS += -fno-builtin
 CFLAGS += -ffunction-sections
 CFLAGS += -Wextra
-CFLAGS += -D__thumb2__=1 
-CFLAGS += -msoft-float 
-CFLAGS += -mno-sched-prolog 
-CFLAGS += -fno-hosted 
-CFLAGS += -mtune=cortex-m3 
-CFLAGS += -march=armv7-m 
-CFLAGS += -mfix-cortex-m3-ldrd  
+CFLAGS += -D__thumb2__=1
+CFLAGS += -msoft-float
+CFLAGS += -mno-sched-prolog
+CFLAGS += -fno-hosted
+CFLAGS += -mtune=cortex-m3
+CFLAGS += -march=armv7-m
+CFLAGS += -mfix-cortex-m3-ldrd
 #CFLAGS += -Wundef
 #CFLAGS += -funsigned-char
 #CFLAGS += -funsigned-bitfields
@@ -212,7 +212,7 @@ CPPFLAGS += -Weffc++
 #  -Wa,...:   tell GCC to pass this to the assembler.
 #  -alhms:   create listing
 #  -gstabs:   have the assembler create line number information
-#  -listing-cont-lines: Sets the maximum number of continuation lines of hex 
+#  -listing-cont-lines: Sets the maximum number of continuation lines of hex
 #       dump that will be displayed for a given single line of source input.
 ASFLAGS = -g$(DEBUG) $(ADEFS) -I.  -alhms=$(<:%.S=$(OBJDIR)/%.lst)
 
@@ -229,15 +229,15 @@ EXTRALIBDIRS = $(LIBS_PATH)
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
 LDFLAGS = -Wl,-Map=$(TARGET).map
-#LDFLAGS += -Wl,--relax 
+#LDFLAGS += -Wl,--relax
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += -static
-LDFLAGS += -Wl,--start-group 
+LDFLAGS += -Wl,--start-group
 #LDFLAGS += -L$(THUMB2GNULIB) -L$(THUMB2GNULIB2)
 LDFLAGS += -lc -lg
-LDFLAGS += -lgcc -lm 
-LDFLAGS += -Wl,--end-group 
+LDFLAGS += -lgcc -lm
+LDFLAGS += -Wl,--end-group
 
 #---------------- Programming Options ----------------
 LPCISP  ?= ~/src/lpc21isp/lpc21isp
@@ -265,7 +265,7 @@ DFU_TOOL ?= $(strip $(shell which ubertooth-dfu))
 # English
 MSG_BEGIN = -------- begin --------
 MSG_END = --------  end  --------
-MSG_SIZE_BEFORE = Size before: 
+MSG_SIZE_BEFORE = Size before:
 MSG_SIZE_AFTER = Size after:
 MSG_FLASH = Creating load file for Flash:
 MSG_DFU = Creating DFU firmware file:
@@ -280,10 +280,10 @@ MSG_CLEANING = Cleaning project:
 MSG_CREATING_LIBRARY = Creating library:
 
 # Define all object files.
-OBJ = $(SRC:%.c=$(OBJDIR)/%.o) $(CPPSRC:%.cpp=$(OBJDIR)/%.o) $(ASRC:%.S=$(OBJDIR)/%.o) 
+OBJ = $(SRC:%.c=$(OBJDIR)/%.o) $(CPPSRC:%.cpp=$(OBJDIR)/%.o) $(ASRC:%.S=$(OBJDIR)/%.o)
 
 # Define all listing files.
-LST = $(SRC:%.c=$(OBJDIR)/%.lst) $(CPPSRC:%.cpp=$(OBJDIR)/%.lst) $(ASRC:%.S=$(OBJDIR)/%.lst) 
+LST = $(SRC:%.c=$(OBJDIR)/%.lst) $(CPPSRC:%.cpp=$(OBJDIR)/%.lst) $(ASRC:%.S=$(OBJDIR)/%.lst)
 
 # Compiler flags to generate dependency files.
 GENDEPFLAGS = -MMD -MP -MD
@@ -340,9 +340,9 @@ showtarget:
 	@echo ARM Model: $(CPU)
 	@echo Board:     $(BOARD)
 	@echo --------------------------------------
-	
+
 # Display compiler version information.
-gccversion: 
+gccversion:
 	@$(CC) --version
 
 program: $(TARGET).hex
@@ -408,13 +408,13 @@ program: $(TARGET).hex
 $(OBJDIR)/%.o : %.c
 	@echo
 	@echo $(MSG_COMPILING) $<
-	$(CC) -c $(ALL_CFLAGS) $< -o $@ 
+	$(CC) -c $(ALL_CFLAGS) $< -o $@
 
 # Compile: create object files from C++ source files.
 $(OBJDIR)/%.o : %.cpp
 	@echo
 	@echo $(MSG_COMPILING_CPP) $<
-	$(CC) -c $(ALL_CPPFLAGS) $< -o $@ 
+	$(CC) -c $(ALL_CPPFLAGS) $< -o $@
 
 # Compile: create assembler files from C source files.
 %.s : %.c
@@ -432,14 +432,14 @@ $(OBJDIR)/%.o : %.S
 
 # Create preprocessed source for use in sending a bug report.
 %.i : %.c
-	$(CC) -E -mmcu=$(CPU) -I. $(CFLAGS) $< -o $@ 
+	$(CC) -E -mmcu=$(CPU) -I. $(CFLAGS) $< -o $@
 
 # Target: clean project.
 clean: begin clean_list clean_binary end
 
 clean_binary:
 	$(REMOVE) $(TARGET).hex
-	
+
 clean_list:
 	@echo $(MSG_CLEANING)
 	$(REMOVE) $(TARGET).eep
