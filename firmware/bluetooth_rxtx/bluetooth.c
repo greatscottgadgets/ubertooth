@@ -27,7 +27,6 @@ u16 d1;
 /* frequency register bank */
 u8 bank[CHANNELS];
 u8 afh_bank[CHANNELS];
-u8 used_channels;
 
 /* count the number of 1 bits in a uint64_t */
 static uint8_t count_bits(uint64_t n)

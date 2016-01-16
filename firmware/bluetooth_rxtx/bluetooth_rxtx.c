@@ -46,7 +46,7 @@ const char compile_info[] =
  * slot.
  */
 
-volatile u32 clkn;                       // clkn 3200 Hz counter
+volatile u32 clkn, last_hop;             // clkn 3200 Hz counter
 #define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
 #define LE_BASECLK (12500)               // 1.25 ms in units of 100ns
 
@@ -55,6 +55,7 @@ volatile u32 clkn;                       // clkn 3200 Hz counter
 #define HOP_BLUETOOTH 2
 #define HOP_BTLE      3
 #define HOP_DIRECT    4
+#define HOP_AFH       5
 
 #define CS_THRESHOLD_DEFAULT (uint8_t)(-120)
 #define CS_HOLD_TIME  2                     // min pkts to send on trig (>=1)
@@ -76,6 +77,8 @@ volatile u32 active_buf_clk100ns;
 volatile u16 idle_buf_channel = 0;
 volatile u16 active_buf_channel = 0;
 u8 slave_mac_address[6] = { 0, };
+
+volatile u16 hop_timeout = 158;
 
 /* DMA buffers */
 u8 rxbuf1[DMA_SIZE];
@@ -685,6 +688,21 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		requested_mode = MODE_BT_FOLLOW;
 		break;
 
+	case UBERTOOTH_AFH:
+		hop_mode = HOP_AFH;
+		requested_mode = MODE_AFH;
+
+		for(i=0; i < 10; i++) {
+			afh_map[i] = 0;
+		}
+		used_channels = 0;
+		afh_enabled = 1;
+		break;
+
+	case UBERTOOTH_HOP:
+		do_hop = 1;
+		break;
+
 	case UBERTOOTH_SET_CLOCK:
 		clock = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 		clkn = clock;
@@ -900,6 +918,11 @@ void TIMER0_IRQHandler()
 				} else {
 					TXLED_CLR; // hack!
 				}
+			}
+		}
+		else if (hop_mode == HOP_AFH) {
+			if( (last_hop + hop_timeout) == next ) {
+				do_hop = 1;
 			}
 		}
 
@@ -1408,6 +1431,7 @@ void le_jam(void) {
 void hop(void)
 {
 	do_hop = 0;
+	last_hop = clkn;
 
 	// No hopping, if channel is set correctly, do nothing
 	if (hop_mode == HOP_NONE) {
@@ -1415,11 +1439,27 @@ void hop(void)
 			return;
 	}
 
-	// Slow sweep (100 hops/sec)
+	/* Slow sweep (100 hops/sec)
+	 * only hop to currently used channels if AFH is enabled
+	 */
 	else if (hop_mode == HOP_SWEEP) {
-		channel += 32;
-		if (channel > 2480)
-			channel -= 79;
+		TXLED_SET;
+		do {
+			channel += 32;
+			if (channel > 2480)
+				channel -= 79;
+		} while ( used_channels != 0 && afh_enabled && !( afh_map[(channel-2402)/8] & 0x1<<((channel-2402)%8) ) );
+	}
+
+	/* AFH detection
+	 * only hop to currently unused channesl
+	 */
+	else if (hop_mode == HOP_AFH) {
+		do {
+			channel += 32;
+			if (channel > 2480)
+				channel -= 79;
+		} while( used_channels != 79 && (afh_map[(channel-2402)/8] & 0x1<<((channel-2402)%8)) );
 	}
 
 	else if (hop_mode == HOP_BLUETOOTH) {
@@ -2595,6 +2635,10 @@ int main()
 					/* Allow time for the USB command to return correctly */
 					wait(1);
 					reset();
+					break;
+				case MODE_AFH:
+					mode = MODE_AFH;
+					bt_stream_rx();
 					break;
 				case MODE_RX_SYMBOLS:
 					mode = MODE_RX_SYMBOLS;

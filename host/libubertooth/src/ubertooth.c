@@ -71,7 +71,7 @@ void stop_transfers(int sig __attribute__((unused))) {
 		timeout_dev->stop_ubertooth = 1;
 }
 
-void set_timeout(ubertooth_t* ut, int seconds) {
+void ubertooth_set_timeout(ubertooth_t* ut, int seconds) {
 	/* Upon SIGALRM, call stop_transfers() */
 	if (signal(SIGALRM, stop_transfers) == SIG_ERR) {
 		perror("Unable to catch SIGALRM");
@@ -255,6 +255,7 @@ int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 	int i;
 	usb_pkt_rx* rx;
 
+
 	if (ut->usb_really_full) {
 		/* process each received block */
 		for (i = 0; i < PKTS_PER_XFER; i++) {
@@ -272,17 +273,17 @@ int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 		ut->usb_really_full = 0;
 		fflush(stderr);
 		return 0;
-	} else {
+	}
+
+	else {
 		return -1;
 	}
 }
 
-int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
+static int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
 {
-	int r;
-
 	// init USB transfer
-	r = ubertooth_bulk_init(ut);
+	int r = ubertooth_bulk_init(ut);
 	if (r < 0)
 		return r;
 
@@ -301,7 +302,7 @@ int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
 }
 
 /* file should be in full USB packet format (ubertooth-dump -f) */
-int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
+static int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
 {
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
@@ -425,10 +426,8 @@ static uint64_t now_ns_from_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
  */
 static void cb_br_rx(ubertooth_t* ut, void* args)
 {
-	btbb_packet *pkt = NULL;
-	btbb_piconet *pn = (btbb_piconet *)args;
-	char syms[NUM_BANKS * BANK_LEN];
-	int i;
+	btbb_packet* pkt = NULL;
+	btbb_piconet* pn = (btbb_piconet *)args;
 	int8_t signal_level;
 	int8_t noise_level;
 	int8_t snr;
@@ -438,7 +437,7 @@ static void cb_br_rx(ubertooth_t* ut, void* args)
 	uint8_t uap = UAP_ANY;
 
 	/* Do analysis based on oldest packet */
-	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
+	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
 
 	/* Sanity check */
 	if (rx->channel > (NUM_BREDR_CHANNELS-1))
@@ -449,9 +448,6 @@ static void cb_br_rx(ubertooth_t* ut, void* args)
 	determine_signal_and_noise( rx, &signal_level, &noise_level );
 	snr = signal_level - noise_level;
 
-	/* WC4: use vm circbuf if target allows. This gets rid of this
-	 * wrapped copy step. */
-
 	/* Look for packets with specified LAP, if given. Otherwise
 	 * search for any packet.  Also determine if UAP is known. */
 	if (pn) {
@@ -461,24 +457,18 @@ static void cb_br_rx(ubertooth_t* ut, void* args)
 
 	/* Pass packet-pointer-pointer so that
 	 * packet can be created in libbtbb. */
-	offset = btbb_find_ac(ringbuffer_bottom_bt(ut->packets), BANK_LEN - 64, lap, max_ac_errors, &pkt);
+	offset = btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, lap, max_ac_errors, &pkt);
 	if (offset < 0)
 		goto out;
 
 	btbb_packet_set_modulation(pkt, BTBB_MOD_GFSK);
 	btbb_packet_set_transport(pkt, BTBB_TRANSPORT_ANY);
 
-	/* Copy out remaining banks of symbols for full analysis. */
-	for (i = 0; i < NUM_BANKS; i++)
-		memcpy(syms + i * BANK_LEN,
-		       ringbuffer_get_bt(ut->packets, i),
-		       BANK_LEN);
-
 	/* Once offset is known for a valid packet, copy in symbols
 	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
 	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
-	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
+	btbb_packet_set_data(pkt, ringbuffer_top_bt(ut->packets) + offset, NUM_BANKS * BANK_LEN - offset,
 	                     rx->channel, clkn);
 
 	/* When reading from file, caller will read
@@ -491,11 +481,9 @@ static void cb_br_rx(ubertooth_t* ut, void* args)
 	 * file. There could be duplicate data in the dump if more
 	 * than one LAP is found within the span of NUM_BANKS. */
 	if (dumpfile) {
-		for(i = 0; i < NUM_BANKS; i++) {
-			uint32_t systime_be = htobe32(systime);
-			fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
-			fwrite(ringbuffer_get_usb(ut->packets, i), sizeof(usb_pkt_rx), 1, dumpfile);
-		}
+		uint32_t systime_be = htobe32(systime);
+		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
+		fwrite(ringbuffer_top_usb(ut->packets), sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
 
@@ -524,11 +512,122 @@ static void cb_br_rx(ubertooth_t* ut, void* args)
 		                          lap, uap, pkt);
 	}
 
-	i = btbb_process_packet(pkt, pn);
-	if(i < 0) {
-		ut->follow_pn = pn;
+	int r = btbb_process_packet(pkt, pn);
+	if(r < 0) {
 		ut->stop_ubertooth = 1;
 	}
+
+out:
+	if (pkt)
+		btbb_packet_unref(pkt);
+}
+
+void cb_afh_initial(ubertooth_t* ut, void* args)
+{
+	btbb_piconet* pn = (btbb_piconet*)args;
+	btbb_packet* pkt = NULL;
+	uint8_t channel;
+
+
+	if( btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
+		goto out;
+
+	/* detect AFH map
+	 * set current channel as used channel and send updated AFH
+	 * map to ubertooth */
+	channel = ringbuffer_top_usb(ut->packets)->channel;
+	if(btbb_piconet_set_channel_seen(pn, channel)) {
+
+		/* Don't allow single unused channels */
+		if (!btbb_piconet_get_channel_seen(pn, channel+1) &&
+		    btbb_piconet_get_channel_seen(pn, channel+2))
+		{
+			printf("activating additional channel %d\n", channel+1);
+		    btbb_piconet_set_channel_seen(pn, channel+1);
+		}
+		if (!btbb_piconet_get_channel_seen(pn, channel-1) &&
+		    btbb_piconet_get_channel_seen(pn, channel-2))
+		{
+			printf("activating additional channel %d\n", channel-1);
+			btbb_piconet_set_channel_seen(pn, channel-1);
+		}
+
+		cmd_set_afh_map(ut->devh, btbb_piconet_get_afh_map(pn));
+		btbb_print_afh_map(pn);
+	}
+	cmd_hop(ut->devh);
+
+out:
+	if (pkt)
+		btbb_packet_unref(pkt);
+}
+
+void cb_afh_monitor(ubertooth_t* ut, void* args)
+{
+	btbb_piconet* pn = (btbb_piconet*)args;
+	btbb_packet* pkt = NULL;
+	uint8_t channel;
+	int i;
+
+	static unsigned long last_seen[79] = {0};
+	static unsigned long counter = 0;
+
+
+	if( btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
+		goto out;
+
+	counter++;
+	channel = ringbuffer_top_usb(ut->packets)->channel;
+	last_seen[channel]=counter;
+
+	if(btbb_piconet_set_channel_seen(pn, channel)) {
+		printf("+ channel %2d is used now\n", channel);
+		btbb_print_afh_map(pn);
+	// } else {
+	// 	printf("channel %d is already used\n", channel);
+	}
+
+	for(i=0; i<79; i++) {
+		if((counter - last_seen[i] >= counter_max)) {
+			if(btbb_piconet_clear_channel_seen(pn, i)) {
+				printf("- channel %2d is not used any more\n", i);
+				btbb_print_afh_map(pn);
+			}
+		}
+	}
+	cmd_hop(ut->devh);
+
+out:
+	if (pkt)
+		btbb_packet_unref(pkt);
+}
+
+void cb_afh_r(ubertooth_t* ut, void* args)
+{
+	btbb_piconet* pn = (btbb_piconet*)args;
+	btbb_packet* pkt = NULL;
+	uint8_t channel;
+	int i;
+
+	static unsigned long last_seen[79] = {0};
+	static unsigned long counter = 0;
+
+	if( btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
+		goto out;
+
+
+	counter++;
+	channel = ringbuffer_top_usb(ut->packets)->channel;
+	last_seen[channel]=counter;
+
+	btbb_piconet_set_channel_seen(pn, channel);
+
+	for(i=0; i<79; i++) {
+		if((counter - last_seen[i] >= counter_max)) {
+			btbb_piconet_clear_channel_seen(pn, i);
+		}
+	}
+	cmd_hop(ut->devh);
 
 out:
 	if (pkt)
@@ -546,9 +645,9 @@ void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 		return;
 
 	if (timeout)
-		set_timeout(ut, timeout);
+		ubertooth_set_timeout(ut, timeout);
 
-	if (ut->follow_pn)
+	if (pn != NULL && btbb_piconet_get_flag(pn, BTBB_CLK27_VALID))
 		cmd_set_clock(ut->devh, 0);
 	else {
 		stream_rx_usb(ut, cb_br_rx, pn);
@@ -558,13 +657,87 @@ void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 	/* Used when follow_pn is preset OR set by stream_rx_usb above
 	 * i.e. This cannot be rolled in to the above if...else
 	 */
-	if (ut->follow_pn) {
+	if (pn != NULL && btbb_piconet_get_flag(pn, BTBB_CLK27_VALID)) {
 		ut->stop_ubertooth = 0;
 		ut->usb_really_full = 0;
 		// cmd_stop(ut->devh);
-		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(ut->follow_pn));
-		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(ut->follow_pn));
-		stream_rx_usb(ut, cb_br_rx, ut->follow_pn);
+		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
+		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn));
+		stream_rx_usb(ut, cb_br_rx, pn);
+	}
+}
+
+void rx_afh(ubertooth_t* ut, btbb_piconet* pn, int timeout)
+{
+	int r = btbb_init(max_ac_errors);
+	if (r < 0)
+		return;
+
+	cmd_set_channel(ut->devh, 9999);
+
+	if (timeout) {
+		ubertooth_set_timeout(ut, timeout);
+
+		cmd_afh(ut->devh);
+		stream_rx_usb(ut, cb_afh_initial, pn);
+
+		cmd_stop(ut->devh);
+
+		btbb_print_afh_map(pn);
+	}
+
+	/*
+	 * Monitor changes in AFH channel map
+	 */
+	cmd_clear_afh_map(ut->devh);
+	cmd_afh(ut->devh);
+	stream_rx_usb(ut, cb_afh_monitor, pn);
+}
+
+void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout __attribute__((unused)))
+{
+	static uint32_t lasttime;
+
+	int r = btbb_init(max_ac_errors);
+	int i, j;
+	if (r < 0)
+		return;
+
+	cmd_set_channel(ut->devh, 9999);
+
+	cmd_afh(ut->devh);
+
+	// init USB transfer
+	r = ubertooth_bulk_init(ut);
+	if (r < 0)
+		return;
+
+	// tell ubertooth to send packets
+	r = cmd_rx_syms(ut->devh);
+	if (r < 0)
+		return;
+
+	// receive and process each packet
+	while(1) {
+		// libusb_handle_events(NULL);
+		ubertooth_bulk_wait(ut);
+		r = ubertooth_bulk_receive(ut, cb_afh_r, pn);
+		if(lasttime < time(NULL)) {
+			lasttime = time(NULL);
+			printf("%u ", (uint32_t)time(NULL));
+			// btbb_print_afh_map(pn);
+
+			uint8_t* afh_map = btbb_piconet_get_afh_map(pn);
+			for (i=0; i<10; i++)
+				for (j=0; j<8; j++)
+					if (afh_map[i] & (1<<j))
+						printf("1");
+					else
+						printf("0");
+			printf("\n");
+		}
+		if (r == 1)
+			return;
 	}
 }
 
@@ -830,7 +1003,6 @@ ubertooth_t* ubertooth_init()
 	ut->start_clk100ns = 0;
 	ut->last_clk100ns = 0;
 	ut->clk100ns_upper = 0;
-	ut->follow_pn = NULL;
 
 #ifdef ENABLE_PCAP
 	ut->h_pcap_bredr = NULL;
@@ -843,30 +1015,38 @@ ubertooth_t* ubertooth_init()
 	return ut;
 }
 
-ubertooth_t* ubertooth_start(int ubertooth_device)
+uint8_t ubertooth_connect(ubertooth_t* ut, int ubertooth_device)
 {
-	int r;
-	ubertooth_t* ut = ubertooth_init();
-
-	r = libusb_init(NULL);
+	int r = libusb_init(NULL);
 	if (r < 0) {
 		fprintf(stderr, "libusb_init failed (got 1.0?)\n");
-		return NULL;
+		return -1;
 	}
 
 	ut->devh = find_ubertooth_device(ubertooth_device);
 	if (ut->devh == NULL) {
 		fprintf(stderr, "could not open Ubertooth device\n");
 		ubertooth_stop(ut);
-		return NULL;
+		return -1;
 	}
 
 	r = libusb_claim_interface(ut->devh, 0);
 	if (r < 0) {
 		fprintf(stderr, "usb_claim_interface error %d\n", r);
 		ubertooth_stop(ut);
-		return NULL;
+		return -1;
 	}
+
+	return 1;
+}
+
+ubertooth_t* ubertooth_start(int ubertooth_device)
+{
+	ubertooth_t* ut = ubertooth_init();
+
+	int r = ubertooth_connect(ut, ubertooth_device);
+	if (r < 0)
+		return NULL;
 
 	return ut;
 }

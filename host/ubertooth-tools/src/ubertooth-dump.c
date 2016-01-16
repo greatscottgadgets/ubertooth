@@ -45,7 +45,7 @@ static void usage(void)
  * representing the symbol determined by the demodulator (GnuRadio style)
  */
 
-extern FILE *dumpfile;
+extern FILE* dumpfile;
 
 int main(int argc, char *argv[])
 {
@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
 	int bitstream = 0;
 	int modulation = MOD_BT_BASIC_RATE;
 	char ubertooth_device = -1;
+
 	ubertooth_t* ut = NULL;
 
 	while ((opt=getopt(argc,argv,"bhclU:d:")) != EOF) {

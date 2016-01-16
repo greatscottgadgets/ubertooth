@@ -32,6 +32,7 @@ bdaddr target;
 u64 syncword;
 u8 afh_enabled;
 u8 afh_map[10];
+u8 used_channels;
 
 /* Barker distance/correct gains us very little when sniffing a known AC
 static const u8 ao_barker_distance[] = {
