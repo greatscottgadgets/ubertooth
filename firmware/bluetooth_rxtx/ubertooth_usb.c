@@ -21,7 +21,7 @@
  */
 
 /*
-	LPCUSB, an USB device driver for LPC microcontrollers	
+	LPCUSB, an USB device driver for LPC microcontrollers
 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
 
 	Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -50,6 +50,7 @@
 #include "usbapi.h"
 #include "usbhw_lpc.h"
 #include "ubertooth_usb.h"
+#include <string.h>
 
 #ifdef UBERTOOTH_ZERO
 #define ID_VENDOR 0x1D50
@@ -80,9 +81,9 @@
 static const u8 abDescriptors[] = {
 
 /* Device descriptor */
-	0x12,              		
-	DESC_DEVICE,       		
-	LE_WORD(0x0200),		// bcdUSB	
+	0x12,
+	DESC_DEVICE,
+	LE_WORD(0x0200),		// bcdUSB
 	0xFF,              		// bDeviceClass
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
@@ -106,8 +107,8 @@ static const u8 abDescriptors[] = {
 	0x6e,  					// bMaxPower (220mA)
 
 // interface
-	0x09,   				
-	DESC_INTERFACE, 
+	0x09,
+	DESC_INTERFACE,
 	0x00,  		 			// bInterfaceNumber
 	0x00,   				// bAlternateSetting
 	0x02,   				// bNumEndPoints
@@ -117,20 +118,20 @@ static const u8 abDescriptors[] = {
 	0x00,   				// iInterface
 
 // bulk in
-	0x07,   		
-	DESC_ENDPOINT,   		
+	0x07,
+	DESC_ENDPOINT,
 	BULK_IN_EP,				// bEndpointAddress
 	0x02,   				// bmAttributes = BULK
 	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval   		
+	0,						// bInterval
 
 // bulk out
-	0x07,   		
-	DESC_ENDPOINT,   		
+	0x07,
+	DESC_ENDPOINT,
 	BULK_OUT_EP,			// bEndpointAddress
 	0x02,   				// bmAttributes = BULK
 	LE_WORD(MAX_PACKET_SIZE),// wMaxPacketSize
-	0,						// bInterval 
+	0,						// bInterval
 
 // string descriptors
 	0x04,
@@ -191,11 +192,11 @@ int ubertooth_usb_init(VendorRequestHandler *vendor_req_handler)
 {
 	// initialise stack
 	USBInit();
-	
+
 	// register device descriptors
 	USBRegisterDescriptors(abDescriptors);
 
-	// Request handler 
+	// Request handler
 	v_req_handler = vendor_req_handler;
 
 	// override standard request handler
@@ -226,6 +227,7 @@ void queue_init()
 {
 	head = 0;
 	tail = 0;
+	memset(fifo, 0, sizeof(fifo));
 }
 
 usb_pkt_rx *usb_enqueue()
@@ -241,7 +243,7 @@ usb_pkt_rx *usb_enqueue()
 
 	++tail;
 	return &fifo[t];
-	
+
 }
 
 usb_pkt_rx *dequeue()

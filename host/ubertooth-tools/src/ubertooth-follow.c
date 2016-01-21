@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	uint8_t mode, afh_map[10];
 	char *end, ubertooth_device = -1;
 	char *bt_dev = "hci0";
-    char addr[19] = { 0 };
+	char addr[19] = { 0 };
 	uint32_t clock;
 	uint16_t accuracy, handle, offset;
 	bdaddr_t bdaddr;

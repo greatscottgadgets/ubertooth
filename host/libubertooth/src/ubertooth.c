@@ -28,6 +28,7 @@
 
 #include "ubertooth.h"
 #include "ubertooth_control.h"
+#include "ubertooth_interface.h"
 
 #ifndef RELEASE
 #define RELEASE "unknown"
@@ -41,6 +42,8 @@ uint32_t systime;
 FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 2;
+
+unsigned int packet_counter_max;
 
 void print_version() {
 	printf("libubertooth %s (%s), libbtbb %s (%s)\n", VERSION, RELEASE,
@@ -183,7 +186,7 @@ static void cb_xfer(struct libusb_transfer *xfer)
 		if(xfer->status == LIBUSB_TRANSFER_TIMED_OUT) {
 			r = libusb_submit_transfer(ut->rx_xfer);
 			if (r < 0)
-			fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
+				fprintf(stderr, "Failed to submit USB transfer (%d)\n", r);
 			return;
 		}
 		if(xfer->status != LIBUSB_TRANSFER_CANCELLED)
@@ -252,14 +255,20 @@ void ubertooth_bulk_wait(ubertooth_t* ut)
 
 int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 {
-	int i;
+	int i, r;
 	usb_pkt_rx* rx;
 
+	if (!ut->usb_really_full)
+	{
+		r = libusb_handle_events(NULL);
+		if (r < 0 && r != LIBUSB_ERROR_INTERRUPTED)
+			show_libusb_error(r);
+	}
 
 	if (ut->usb_really_full) {
 		/* process each received block */
 		for (i = 0; i < PKTS_PER_XFER; i++) {
-			rx = (usb_pkt_rx *)(ut->full_usb_buf + PKT_LEN * i);
+			rx = (usb_pkt_rx*)(ut->full_usb_buf + PKT_LEN * i);
 			if(rx->pkt_type != KEEP_ALIVE) {
 				ringbuffer_add(ut->packets, rx);
 				(*cb)(ut, cb_args);
@@ -273,9 +282,7 @@ int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 		ut->usb_really_full = 0;
 		fflush(stderr);
 		return 0;
-	}
-
-	else {
+	} else {
 		return -1;
 	}
 }
@@ -588,7 +595,7 @@ void cb_afh_monitor(ubertooth_t* ut, void* args)
 	}
 
 	for(i=0; i<79; i++) {
-		if((counter - last_seen[i] >= counter_max)) {
+		if((counter - last_seen[i] >= packet_counter_max)) {
 			if(btbb_piconet_clear_channel_seen(pn, i)) {
 				printf("- channel %2d is not used any more\n", i);
 				btbb_print_afh_map(pn);
@@ -623,7 +630,7 @@ void cb_afh_r(ubertooth_t* ut, void* args)
 	btbb_piconet_set_channel_seen(pn, channel);
 
 	for(i=0; i<79; i++) {
-		if((counter - last_seen[i] >= counter_max)) {
+		if((counter - last_seen[i] >= packet_counter_max)) {
 			btbb_piconet_clear_channel_seen(pn, i);
 		}
 	}
@@ -662,7 +669,7 @@ void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 		ut->usb_really_full = 0;
 		// cmd_stop(ut->devh);
 		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
-		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn));
+		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
 		stream_rx_usb(ut, cb_br_rx, pn);
 	}
 }
