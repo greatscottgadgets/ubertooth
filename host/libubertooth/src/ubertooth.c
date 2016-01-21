@@ -43,6 +43,8 @@ FILE *infile = NULL;
 FILE *dumpfile = NULL;
 int max_ac_errors = 2;
 
+unsigned int packet_counter_max;
+
 void print_version() {
 	printf("libubertooth %s (%s), libbtbb %s (%s)\n", VERSION, RELEASE,
 	       btbb_get_version(), btbb_get_release());
@@ -593,7 +595,7 @@ void cb_afh_monitor(ubertooth_t* ut, void* args)
 	}
 
 	for(i=0; i<79; i++) {
-		if((counter - last_seen[i] >= counter_max)) {
+		if((counter - last_seen[i] >= packet_counter_max)) {
 			if(btbb_piconet_clear_channel_seen(pn, i)) {
 				printf("- channel %2d is not used any more\n", i);
 				btbb_print_afh_map(pn);
@@ -628,7 +630,7 @@ void cb_afh_r(ubertooth_t* ut, void* args)
 	btbb_piconet_set_channel_seen(pn, channel);
 
 	for(i=0; i<79; i++) {
-		if((counter - last_seen[i] >= counter_max)) {
+		if((counter - last_seen[i] >= packet_counter_max)) {
 			btbb_piconet_clear_channel_seen(pn, i);
 		}
 	}

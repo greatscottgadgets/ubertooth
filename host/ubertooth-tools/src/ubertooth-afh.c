@@ -27,6 +27,7 @@
 #include <string.h>
 
 extern int max_ac_errors;
+extern unsigned int packet_counter_max;
 
 static void usage()
 {
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
 			max_ac_errors = atoi(optarg);
 			break;
 		case 'm':
-			counter_max = atoi(optarg);
+			packet_counter_max = atoi(optarg);
 			break;
 		case 'V':
 			print_version();
@@ -111,7 +112,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (counter_max == 0) {
+	if (packet_counter_max == 0) {
 		printf("Error: Threshold for unused channels not specified\n");
 		usage();
 		return 1;

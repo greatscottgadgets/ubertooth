@@ -66,8 +66,6 @@ typedef struct {
 	lell_pcapng_handle* h_pcapng_le;
 } ubertooth_t;
 
-unsigned int counter_max;
-
 typedef void (*rx_callback)(ubertooth_t* ut, void* args);
 
 typedef struct {
