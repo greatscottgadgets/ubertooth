@@ -60,6 +60,7 @@ static void cb_rx(ubertooth_t* ut, void* args)
 	int offset;
 	uint16_t clk_offset;
 	uint32_t clkn;
+	int i;
 
 	/* Do analysis based on oldest packet */
 	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
@@ -77,7 +78,7 @@ static void cb_rx(ubertooth_t* ut, void* args)
 	int8_t snr = signal_level - noise_level;
 
 	/* Copy out remaining banks of symbols for full analysis. */
-	for (int i = 0; i < NUM_BANKS; i++)
+	for (i = 0; i < NUM_BANKS; i++)
 		memcpy(syms + i * BANK_LEN,
 		       ringbuffer_get_bt(ut->packets, i),
 		       BANK_LEN);
