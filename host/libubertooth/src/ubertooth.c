@@ -543,7 +543,7 @@ void cb_afh_initial(ubertooth_t* ut, void* args)
 	 * set current channel as used channel and send updated AFH
 	 * map to ubertooth */
 	channel = ringbuffer_top_usb(ut->packets)->channel;
-	if(btbb_piconet_set_channel_seen(pn, channel)) {
+	if(btbb_piconet_get_channel_seen(pn, channel)) {
 
 		/* Don't allow single unused channels */
 		if (!btbb_piconet_get_channel_seen(pn, channel+1) &&
@@ -587,7 +587,7 @@ void cb_afh_monitor(ubertooth_t* ut, void* args)
 	channel = ringbuffer_top_usb(ut->packets)->channel;
 	last_seen[channel]=counter;
 
-	if(btbb_piconet_set_channel_seen(pn, channel)) {
+	if(btbb_piconet_get_channel_seen(pn, channel)) {
 		printf("+ channel %2d is used now\n", channel);
 		btbb_print_afh_map(pn);
 	// } else {
