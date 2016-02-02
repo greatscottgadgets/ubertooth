@@ -33,7 +33,6 @@ extern pcap_t *pcap_dumpfile;
 extern pcap_dumper_t *dumper;
 #endif // ENABLE_PCAP
 
-ubertooth_t* ut = NULL;
 
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
@@ -112,6 +111,7 @@ int main(int argc, char *argv[])
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
 	char ubertooth_device = -1;
+	ubertooth_t* ut = ubertooth_init();
 
 	btle_options cb_opts = { .allowed_access_address_errors = 32 };
 
@@ -229,8 +229,9 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	ut = ubertooth_start(ubertooth_device);
-	if (ut == NULL) {
+
+	r = ubertooth_connect(ut, ubertooth_device);
+	if (r < 0) {
 		usage();
 		return 1;
 	}
@@ -246,7 +247,7 @@ int main(int argc, char *argv[])
 	if (do_follow || do_promisc) {
 		usb_pkt_rx rx;
 
-		int r = cmd_set_jam_mode(ut->devh, jam_mode);
+		r = cmd_set_jam_mode(ut->devh, jam_mode);
 		if (jam_mode != JAM_NONE && r != 0) {
 			printf("Jamming not supported\n");
 			return 1;

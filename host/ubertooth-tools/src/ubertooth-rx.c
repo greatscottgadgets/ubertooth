@@ -142,6 +142,7 @@ out:
 int main(int argc, char* argv[])
 {
 	int opt, have_lap = 0, have_uap = 0;
+	int r;
 	int timeout = 0;
 	int reset_scan = 0;
 	char* end;
@@ -221,8 +222,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	ubertooth_connect(ut, ubertooth_device);
-	if (ut == NULL) {
+	r = ubertooth_connect(ut, ubertooth_device);
+	if (r < 0) {
 		usage();
 		return 1;
 	}
@@ -257,7 +258,7 @@ int main(int argc, char* argv[])
 		/* Clean up on exit. */
 		register_cleanup_handler(ut);
 
-		int r = btbb_init(max_ac_errors);
+		r = btbb_init(max_ac_errors);
 		if (r < 0)
 			return r;
 
