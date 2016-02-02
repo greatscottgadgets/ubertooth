@@ -61,6 +61,8 @@ static void cb_rx(ubertooth_t* ut, void* args)
 	uint16_t clk_offset;
 	uint32_t clkn;
 	int i;
+	uint32_t lap = LAP_ANY;
+	uint8_t uap = UAP_ANY;
 
 	/* Do analysis based on oldest packet */
 	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
@@ -83,9 +85,14 @@ static void cb_rx(ubertooth_t* ut, void* args)
 		       ringbuffer_get_bt(ut->packets, i),
 		       BANK_LEN);
 
+	/* Look for packets with specified LAP, if given. Otherwise
+	 * search for any packet.  Also determine if UAP is known. */
+	lap = btbb_piconet_get_flag(pn, BTBB_LAP_VALID) ? btbb_piconet_get_lap(pn) : LAP_ANY;
+	uap = btbb_piconet_get_flag(pn, BTBB_UAP_VALID) ? btbb_piconet_get_uap(pn) : UAP_ANY;
+
 	/* Pass packet-pointer-pointer so that
 	 * packet can be created in libbtbb. */
-	offset = btbb_find_ac(syms, BANK_LEN, btbb_piconet_get_lap(pn), max_ac_errors, &pkt);
+	offset = btbb_find_ac(syms, BANK_LEN, lap, max_ac_errors, &pkt);
 	if (offset < 0)
 		goto out;
 
@@ -228,8 +235,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	pn = btbb_piconet_new();
 	if (have_lap) {
-		pn = btbb_piconet_new();
 		btbb_init_piconet(pn, lap);
 		if (have_uap) {
 			btbb_piconet_set_uap(pn, uap);
