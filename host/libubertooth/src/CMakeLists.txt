@@ -46,29 +46,25 @@ set(c_headers ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.h
 			  ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_interface.h
 			  CACHE INTERNAL "List of C headers")
 
-# For cygwin just force UNIX OFF and WIN32 ON
-if( ${CYGWIN} )
-	SET(UNIX OFF)
-	SET(WIN32 ON)
-endif( ${CYGWIN} )
-
-# FIXME: This may be a hack
-# perhaps there should be separate ubertooth and ubertooth-static targets?
-if( ${WIN32} )
-	# Static library
-	add_library(ubertooth STATIC ${c_sources})
-	set_target_properties(ubertooth PROPERTIES OUTPUT_NAME "ubertooth_static")
-else()
-	# Dynamic library
-	add_library(ubertooth SHARED ${c_sources})
-	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 0)
-endif()
-
-set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-
 # Include and link to libbtbb and libusb-1.0
 find_package(BTBB REQUIRED)
 find_package(USB1 REQUIRED)
+
+if( ${BUILD_SHARED} )
+	# Shared library
+	message(STATUS "Building shared library")
+	add_library(ubertooth SHARED ${c_sources})
+	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 0)
+	set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+endif( ${BUILD_SHARED} )
+
+if( ${BUILD_STATIC} )
+	# Static library
+	message(STATUS "Building static library")
+	add_library(ubertooth-static STATIC ${c_sources})
+	set_target_properties(ubertooth-static PROPERTIES OUTPUT_NAME "ubertooth")
+	set_target_properties(ubertooth-static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+endif( ${BUILD_STATIC} )
 
 # Use pcap only if BTBB supports it and user hasn't explicitly disabled it
 # If user explicitly enables it but BTBB doesn't support it, raise an error
@@ -86,26 +82,23 @@ endif()
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
-target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
+#target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
 
-if( ${UNIX} )
+if( ${BUILD_SHARED} )
    install(TARGETS ubertooth
            LIBRARY DESTINATION lib${LIB_SUFFIX}
            COMPONENT sharedlibs
            )
-   install(FILES ${c_headers}
-           DESTINATION include
-           COMPONENT headers
-           )
-endif( ${UNIX} )
+endif( ${BUILD_SHARED} )
 
-if( ${WIN32} )
-   install(TARGETS ubertooth
-           DESTINATION bin
+if( ${BUILD_STATIC} )
+   install(TARGETS ubertooth-static
+           DESTINATION lib${LIB_SUFFIX}
            COMPONENT staticlibs
            )
-   install(FILES ${c_headers}
-           DESTINATION include
-           COMPONENT headers
-           )
-endif( ${WIN32} )
+endif( ${BUILD_STATIC} )
+
+install(FILES ${c_headers}
+       DESTINATION include
+       COMPONENT headers
+       )

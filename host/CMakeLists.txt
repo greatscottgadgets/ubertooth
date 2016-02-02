@@ -34,6 +34,19 @@ add_definitions( -DVERSION="${VERSION}" )
 # Comment the following out for releases.
 set(CMAKE_C_FLAGS "$ENV{CFLAGS}")
 
+# Defaults: BUILD_SHARED=ON, BUILD_STATIC=OFF
+# FIXME: Need to find out which version of libbtbb was built
+if( NOT DEFINED BUILD_SHARED )
+	set(BUILD_SHARED ON)
+endif( NOT DEFINED BUILD_SHARED )
+if( NOT DEFINED BUILD_STATIC )
+	set(BUILD_STATIC OFF)
+endif( NOT DEFINED BUILD_STATIC )
+
+if( NOT ${BUILD_SHARED} AND NOT ${BUILD_STATIC} )
+	message( FATAL_ERROR "Not building static or shared library - at least one must be built")
+endif( NOT ${BUILD_SHARED} AND NOT ${BUILD_STATIC} )
+
 add_subdirectory(libubertooth)
 add_subdirectory(ubertooth-tools)
 add_subdirectory(misc)
