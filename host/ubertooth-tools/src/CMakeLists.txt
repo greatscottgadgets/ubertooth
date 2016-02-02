@@ -24,6 +24,11 @@
 find_package(BTBB REQUIRED)
 find_package(BLUETOOTH)
 
+if( ${BUILD_STATIC_BINS} )
+	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+	SET(BUILD_SHARED_LIBRARIES OFF)
+	SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif( ${BUILD_STATIC_BINS} )
 # Use pcap only if BTBB supports it and user hasn't explicitly disabled it
 # If user explicitly enables it but BTBB doesn't support it, raise an error
 if( (NOT DEFINED USE_PCAP) OR USE_PCAP )
