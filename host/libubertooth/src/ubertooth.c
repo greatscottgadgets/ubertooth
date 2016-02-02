@@ -1022,7 +1022,7 @@ ubertooth_t* ubertooth_init()
 	return ut;
 }
 
-uint8_t ubertooth_connect(ubertooth_t* ut, int ubertooth_device)
+int ubertooth_connect(ubertooth_t* ut, int ubertooth_device)
 {
 	int r = libusb_init(NULL);
 	if (r < 0) {
