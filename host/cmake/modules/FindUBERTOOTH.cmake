@@ -29,7 +29,7 @@ else (LIBUBERTOOTH_INCLUDE_DIR AND LIBUBERTOOTH_LIBRARIES)
     ${LIBUBERTOOTH_INCLUDE_DIR}
   )
 
-  set(libubertooth_library_names ubertooth)
+  set(libubertooth_library_names ubertooth ubertooth-static)
 
   FIND_LIBRARY(LIBUBERTOOTH_LIBRARIES
     NAMES ${libubertooth_library_names}

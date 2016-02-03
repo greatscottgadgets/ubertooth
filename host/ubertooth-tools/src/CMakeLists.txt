@@ -19,12 +19,14 @@
 # Boston, MA 02110-1301, USA.
 #
 
-# Based heavily upon the hackrf cmake setup.
+set(INSTALL_DEFAULT_BINDIR "bin" CACHE STRING
+	"Bin install path, relative to CMAKE_INSTALL_PREFIX")
 
 find_package(BTBB REQUIRED)
 find_package(BLUETOOTH)
 
 if( ${BUILD_STATIC_BINS} )
+	find_package(USB1 REQUIRED)
 	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 	SET(BUILD_SHARED_LIBRARIES OFF)
 	SET(CMAKE_EXE_LINKER_FLAGS "-static")
@@ -53,12 +55,12 @@ if(NOT libubertooth_SOURCE_DIR)
 	LIST(APPEND TOOLS_LINK_LIBS ${LIBUBERTOOTH_LIBRARIES})
 else()
 	include_directories(${libubertooth_SOURCE_DIR}/src)
-	if( ${BUILD_SHARED} )
+	if( ${BUILD_SHARED_LIB} )
 		LIST(APPEND TOOLS_LINK_LIBS ubertooth)
-	endif( ${BUILD_SHARED} )
-	if( ${BUILD_STATIC} )
+	endif( ${BUILD_SHARED_LIB} )
+	if( ${BUILD_STATIC_LIB} )
 		LIST(APPEND TOOLS_LINK_LIBS ubertooth-static)
-	endif( ${BUILD_STATIC} )
+	endif( ${BUILD_STATIC_LIB} )
 endif()
 
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
