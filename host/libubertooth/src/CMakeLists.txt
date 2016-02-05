@@ -37,10 +37,12 @@ add_definitions( -DRELEASE="${RELEASE}${DIRTY_FLAG}" )
 
 # Targets
 set(c_sources ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_callback.c
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.c
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_ringbuffer.c
 			  CACHE INTERNAL "List of C sources")
 set(c_headers ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.h
+              ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_callback.h
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_control.h
               ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_ringbuffer.h
 			  ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth_interface.h
