@@ -182,7 +182,7 @@ void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
 int main(int argc, char *argv[])
 {
     inquiry_info *ii = NULL;
-	int i, r, opt, dev_id, dev_handle, len, flags, max_rsp, num_rsp, lap, timeout = 20;
+	int i, opt, dev_id, dev_handle, len, flags, max_rsp, num_rsp, lap, timeout = 20;
 	uint8_t uap, extended = 0;
 	uint8_t scan = 0;
 	char ubertooth_device = -1;
@@ -266,25 +266,7 @@ int main(int argc, char *argv[])
 	/* Now find hidden piconets with Ubertooth */
 	printf("\nUbertooth scan\n");
 	btbb_init_survey();
-
-	// init USB transfer
-	r = ubertooth_bulk_init(ut);
-	if (r < 0)
-		return r;
-
-	// tell ubertooth to send packets
-	r = cmd_rx_syms(ut->devh);
-	if (r < 0)
-		return r;
-
-	if (timeout)
-		ubertooth_set_timeout(ut, timeout);
-
-	// receive and process each packet
-	while(!ut->stop_ubertooth) {
-		ubertooth_bulk_wait(ut);
-		ubertooth_bulk_receive(ut, NULL, NULL);
-	}
+	rx_live(ut, NULL, timeout);
 	ubertooth_stop(ut);
 
 	while((pn=btbb_next_survey_result()) != NULL) {
