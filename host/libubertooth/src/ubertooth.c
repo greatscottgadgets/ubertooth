@@ -271,7 +271,8 @@ int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 			rx = (usb_pkt_rx*)(ut->full_usb_buf + PKT_LEN * i);
 			if(rx->pkt_type != KEEP_ALIVE) {
 				ringbuffer_add(ut->packets, rx);
-				(*cb)(ut, cb_args);
+				if(cb)
+					(*cb)(ut, cb_args);
 			}
 			if(ut->stop_ubertooth) {
 				if(ut->rx_xfer)
