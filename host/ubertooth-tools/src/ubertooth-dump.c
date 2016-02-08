@@ -45,8 +45,6 @@ static void usage(void)
  * representing the symbol determined by the demodulator (GnuRadio style)
  */
 
-extern FILE* dumpfile;
-
 int main(int argc, char *argv[])
 {
 	int opt;

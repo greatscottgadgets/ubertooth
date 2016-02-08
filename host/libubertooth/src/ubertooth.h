@@ -72,6 +72,11 @@ typedef struct {
 	unsigned allowed_access_address_errors;
 } btle_options;
 
+extern uint32_t systime;
+extern FILE* infile;
+extern FILE* dumpfile;
+extern int max_ac_errors;
+
 void print_version();
 void register_cleanup_handler(ubertooth_t* ut);
 ubertooth_t* ubertooth_init();
@@ -89,12 +94,7 @@ void rx_file(FILE* fp, btbb_piconet* pn);
 void rx_dump(ubertooth_t* ut, int full);
 void rx_btle(ubertooth_t* ut);
 void rx_btle_file(FILE* fp);
-void cb_btle(ubertooth_t* ut, void* args);
-void cb_ego(ubertooth_t* ut, void* args);
 void rx_afh(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout);
-void cb_afh_initial(ubertooth_t* ut, void* args);
-void cb_afh_monitor(ubertooth_t* ut, void* args);
-void cb_afh_r(ubertooth_t* ut, void* args);
 
 #endif /* __UBERTOOTH_H__ */

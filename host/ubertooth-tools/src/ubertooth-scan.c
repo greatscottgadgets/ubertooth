@@ -35,8 +35,6 @@
 #include <btbb.h>
 #include <getopt.h>
 
-extern int max_ac_errors;
-
 static void usage()
 {
 	printf("ubertooth-scan - active(bluez) device scan and inquiry supported by Ubertooth\n");

@@ -24,7 +24,6 @@
 #include "ubertooth.h"
 
 uint8_t debug;
-extern FILE *dumpfile;
 
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 {

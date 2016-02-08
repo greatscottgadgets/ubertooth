@@ -32,9 +32,6 @@
 #include <btbb.h>
 #include <getopt.h>
 
-extern int max_ac_errors;
-extern FILE *dumpfile;
-
 static void usage()
 {
 	printf("ubertooth-follow - active(bluez) CLK discovery and follow for a particular UAP/LAP\n");
