@@ -523,8 +523,10 @@ void cb_rx(ubertooth_t* ut, void* args)
 
 	/* Look for packets with specified LAP, if given. Otherwise
 	 * search for any packet. */
-	lap = btbb_piconet_get_flag(pn, BTBB_LAP_VALID) ? btbb_piconet_get_lap(pn) : LAP_ANY;
-	uap = btbb_piconet_get_flag(pn, BTBB_UAP_VALID) ? btbb_piconet_get_uap(pn) : UAP_ANY;
+	if (pn) {
+		lap = btbb_piconet_get_flag(pn, BTBB_LAP_VALID) ? btbb_piconet_get_lap(pn) : LAP_ANY;
+		uap = btbb_piconet_get_flag(pn, BTBB_UAP_VALID) ? btbb_piconet_get_uap(pn) : UAP_ANY;
+	}
 
 	/* Pass packet-pointer-pointer so that
 	 * packet can be created in libbtbb. */

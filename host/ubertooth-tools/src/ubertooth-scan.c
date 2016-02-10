@@ -270,7 +270,6 @@ int main(int argc, char *argv[])
 	while((pn=btbb_next_survey_result()) != NULL) {
 		lap = btbb_piconet_get_lap(pn);
 		if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
-			lap = btbb_piconet_get_lap(pn);
 			uap = btbb_piconet_get_uap(pn);
 			sprintf(addr, "00:00:%02X:%02X:%02X:%02X", uap,
 					(lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);

@@ -44,12 +44,14 @@ static void usage()
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
 	printf("\t-t <SECONDS> sniff timeout - 0 means no timeout [Default: 0]\n");
+	printf("\t-z Survey mode - discover and list piconets (implies -s -t 20)\n");
 	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
 int main(int argc, char* argv[])
 {
 	int opt, have_lap = 0, have_uap = 0;
+	int survey_mode = 0;
 	int r;
 	int timeout = 0;
 	int reset_scan = 0;
@@ -61,7 +63,7 @@ int main(int argc, char* argv[])
 
 	ubertooth_t* ut = ubertooth_init();
 
-	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:z")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -120,6 +122,12 @@ int main(int argc, char* argv[])
 		case 't':
 			timeout = atoi(optarg);
 			break;
+		case 'z':
+			++reset_scan;
+			++survey_mode;
+			if(timeout == 0)
+				timeout = 20;
+			break;
 		case 'V':
 			print_version();
 			return 0;
@@ -130,28 +138,37 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	if(survey_mode && (have_lap || have_uap)) {
+		fprintf(stderr, "No address should be specified for survey mode\n");
+		return 1;
+	}
+	
 	r = ubertooth_connect(ut, ubertooth_device);
 	if (r < 0) {
 		usage();
 		return 1;
 	}
 
-	pn = btbb_piconet_new();
-	if (have_lap) {
-		btbb_init_piconet(pn, lap);
-		if (have_uap) {
-			btbb_piconet_set_uap(pn, uap);
-			cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
+	if(survey_mode) {
+		btbb_init_survey();
+	} else {
+		pn = btbb_piconet_new();
+		if (have_lap) {
+			btbb_init_piconet(pn, lap);
+			if (have_uap) {
+				btbb_piconet_set_uap(pn, uap);
+				cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
+			}
+			if (ut->h_pcapng_bredr) {
+				btbb_pcapng_record_bdaddr(ut->h_pcapng_bredr,
+							  (((uint32_t)uap)<<24)|lap,
+							  have_uap ? 0xff : 0x00, 0);
+			}
+		} else if (have_uap) {
+			fprintf(stderr, "Error: UAP but no LAP specified\n");
+			usage();
+			return 1;
 		}
-		if (ut->h_pcapng_bredr) {
-			btbb_pcapng_record_bdaddr(ut->h_pcapng_bredr,
-						  (((uint32_t)uap)<<24)|lap,
-						  have_uap ? 0xff : 0x00, 0);
-		}
-	} else if (have_uap) {
-		printf("Error: UAP but no LAP specified\n");
-		usage();
-		return 1;
 	}
 
 	if (infile == NULL) {
@@ -193,6 +210,22 @@ int main(int argc, char* argv[])
 	} else {
 		rx_file(infile, pn);
 		fclose(infile);
+	}
+	
+	if(survey_mode) {
+		printf("Survery Results\n");
+		while((pn=btbb_next_survey_result()) != NULL) {
+			lap = btbb_piconet_get_lap(pn);
+			if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
+				uap = btbb_piconet_get_uap(pn);
+				/* Printable version showing that the NAP is unknown */
+				printf("??:??:%02X:%02X:%02X:%02X\n", uap,
+						(lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
+			} else
+				printf("??:??:??:%02X:%02X:%02X\n", (lap >> 16) & 0xFF,
+					   (lap >> 8) & 0xFF, lap & 0xFF);
+			//btbb_print_afh_map(pn);
+		}
 	}
 
 	return 0;
