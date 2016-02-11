@@ -149,6 +149,10 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	r = btbb_init(max_ac_errors);
+	if (r < 0)
+		return r;
+
 	if(survey_mode) {
 		btbb_init_survey();
 	} else {
@@ -182,10 +186,6 @@ int main(int argc, char* argv[])
 		/* Clean up on exit. */
 		register_cleanup_handler(ut);
 
-		r = btbb_init(max_ac_errors);
-		if (r < 0)
-			return r;
-
 		if (timeout)
 			ubertooth_set_timeout(ut, timeout);
 
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 
 		ubertooth_stop(ut);
 	} else {
-		rx_file(infile, pn);
+		stream_rx_file(ut, infile, cb_rx, pn);
 		fclose(infile);
 	}
 
@@ -226,6 +226,8 @@ int main(int argc, char* argv[])
 			//btbb_print_afh_map(pn);
 		}
 	}
+	if(dumpfile != NULL)
+		fclose(dumpfile);
 
 	return 0;
 }

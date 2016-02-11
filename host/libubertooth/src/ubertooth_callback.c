@@ -547,6 +547,12 @@ void cb_rx(ubertooth_t* ut, void* args)
 	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
 	                     rx->channel, clkn);
 
+	/* When reading from file, caller will read
+	 * systime before calling this routine, so do
+	 * not overwrite. Otherwise, get current time. */
+	if (infile == NULL)
+		systime = time(NULL);
+
 	printf("systime=%u ch=%2d LAP=%06x err=%u clkn=%u clk_offset=%u s=%d n=%d snr=%d\n",
 	       (uint32_t)time(NULL),
 	       btbb_packet_get_channel(pkt),
@@ -561,7 +567,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 
 	/* calibrate Ubertooth clock such that the first bit of the AC
 	 * arrives CLK_TUNE_TIME after the rising edge of CLKN */
-	if (!calibrated) {
+	if (infile == NULL && !calibrated) {
 		if (clk_offset < CLK_TUNE_TIME) {
 			printf("offset < CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", 6250 + clk_offset - CLK_TUNE_TIME);
@@ -573,6 +579,16 @@ void cb_rx(ubertooth_t* ut, void* args)
 		}
 		calibrated = 1;
 		goto out;
+	}
+
+	/* If dumpfile is specified, write out all banks to the
+	 * file. There could be duplicate data in the dump if more
+	 * than one LAP is found within the span of NUM_BANKS. */
+	if (dumpfile) {
+		uint32_t systime_be = htobe32(systime);
+		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
+		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
+		fflush(dumpfile);
 	}
 
 	/* Dump to PCAP/PCAPNG if specified */
@@ -590,7 +606,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 	}
 
 	int r = btbb_process_packet(pkt, pn);
-	if(r < 0)
+	if(infile == NULL && r < 0)
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
 
 out:
