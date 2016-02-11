@@ -52,22 +52,6 @@ set(c_headers ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.h
 find_package(BTBB REQUIRED)
 find_package(USB1 REQUIRED)
 
-if( ${BUILD_SHARED_LIB} )
-	# Shared library
-	message(STATUS "Building shared library")
-	add_library(ubertooth SHARED ${c_sources})
-	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 0)
-	set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-endif( ${BUILD_SHARED_LIB} )
-
-if( ${BUILD_STATIC_LIB} )
-	# Static library
-	message(STATUS "Building static library")
-	add_library(ubertooth-static STATIC ${c_sources})
-	set_target_properties(ubertooth-static PROPERTIES OUTPUT_NAME "ubertooth")
-	set_target_properties(ubertooth-static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-endif( ${BUILD_STATIC_LIB} )
-
 # Use pcap only if BTBB supports it and user hasn't explicitly disabled it
 # If user explicitly enables it but BTBB doesn't support it, raise an error
 if( (NOT DEFINED USE_PCAP) OR USE_PCAP )
@@ -84,23 +68,30 @@ endif()
 include_directories(${LIBUSB_INCLUDE_DIR} ${LIBBTBB_INCLUDE_DIR})
 LIST(APPEND LIBUBERTOOTH_LIBS ${LIBUSB_LIBRARIES} ${LIBBTBB_LIBRARIES})
 
-#target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
-
 if( ${BUILD_SHARED_LIB} )
-   install(TARGETS ubertooth
-           LIBRARY DESTINATION lib${LIB_SUFFIX}
-           COMPONENT sharedlibs
-           )
+	# Shared library
+	message(STATUS "Building shared library")
+	add_library(ubertooth SHARED ${c_sources})
+	target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
+	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 0)
+	set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+	install(TARGETS ubertooth
+			LIBRARY DESTINATION lib${LIB_SUFFIX}
+			COMPONENT sharedlibs)
 endif( ${BUILD_SHARED_LIB} )
 
 if( ${BUILD_STATIC_LIB} )
-   install(TARGETS ubertooth-static
-           DESTINATION lib${LIB_SUFFIX}
-           COMPONENT staticlibs
-           )
+	# Static library
+	message(STATUS "Building static library")
+	add_library(ubertooth-static STATIC ${c_sources})
+	target_link_libraries(ubertooth-static ${LIBUBERTOOTH_LIBS})
+	set_target_properties(ubertooth-static PROPERTIES OUTPUT_NAME "ubertooth")
+	set_target_properties(ubertooth-static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+	install(TARGETS ubertooth-static
+			DESTINATION lib${LIB_SUFFIX}
+			COMPONENT staticlibs)
 endif( ${BUILD_STATIC_LIB} )
 
 install(FILES ${c_headers}
-       DESTINATION include
-       COMPONENT headers
-       )
+		DESTINATION include
+		COMPONENT headers)
