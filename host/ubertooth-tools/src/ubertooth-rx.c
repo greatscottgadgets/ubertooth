@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "No address should be specified for survey mode\n");
 		return 1;
 	}
-	
+
 	r = ubertooth_connect(ut, ubertooth_device);
 	if (r < 0) {
 		usage();
@@ -172,7 +172,6 @@ int main(int argc, char* argv[])
 	}
 
 	if (infile == NULL) {
-
 		/* Scan all frequencies. Same effect as
 		 * ubertooth-utils -c9999. This is necessary after
 		 * following a piconet. */
@@ -211,9 +210,9 @@ int main(int argc, char* argv[])
 		rx_file(infile, pn);
 		fclose(infile);
 	}
-	
+
 	if(survey_mode) {
-		printf("Survery Results\n");
+		printf("Survey Results\n");
 		while((pn=btbb_next_survey_result()) != NULL) {
 			lap = btbb_piconet_get_lap(pn);
 			if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
