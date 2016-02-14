@@ -258,12 +258,8 @@ AR = $(CROSS_COMPILE)ar -r
 NM = $(CROSS_COMPILE)nm
 REMOVE = rm -f
 
-# 
-ifeq ($(strip $(shell which ubertooth-dfu)),)
-  $(error ubertooth-dfu not found!)
-else
-  DFU_TOOL ?= $(shell which ubertooth-dfu)
-endif
+# DFU tool should be ubertooth-dfu
+DFU_TOOL ?= $(strip $(shell which ubertooth-dfu))
 
 # Define Messages
 # English
