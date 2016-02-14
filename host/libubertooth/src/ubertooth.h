@@ -89,6 +89,8 @@ int ubertooth_bulk_init(ubertooth_t* ut);
 void ubertooth_bulk_wait(ubertooth_t* ut);
 int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args);
 
+int stream_rx_file(ubertooth_t* ut,FILE* fp, rx_callback cb, void* cb_args);
+
 void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_file(FILE* fp, btbb_piconet* pn);
 void rx_dump(ubertooth_t* ut, int full);

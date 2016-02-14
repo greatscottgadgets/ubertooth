@@ -310,14 +310,10 @@ static int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
 }
 
 /* file should be in full USB packet format (ubertooth-dump -f) */
-static int stream_rx_file(FILE* fp, rx_callback cb, void* cb_args)
+int stream_rx_file(ubertooth_t* ut, FILE* fp, rx_callback cb, void* cb_args)
 {
 	uint8_t buf[BUFFER_SIZE];
 	size_t nitems;
-
-	ubertooth_t* ut = ubertooth_init();
-	if (ut == NULL)
-		return -1;
 
 	while(1) {
 		uint32_t systime_be;
@@ -447,12 +443,21 @@ void rx_file(FILE* fp, btbb_piconet* pn)
 	int r = btbb_init(max_ac_errors);
 	if (r < 0)
 		return;
-	stream_rx_file(fp, cb_br_rx, pn);
+
+	ubertooth_t* ut = ubertooth_init();
+	if (ut == NULL)
+		return;
+
+	stream_rx_file(ut, fp, cb_br_rx, pn);
 }
 
 void rx_btle_file(FILE* fp)
 {
-	stream_rx_file(fp, cb_btle, NULL);
+	ubertooth_t* ut = ubertooth_init();
+	if (ut == NULL)
+		return;
+
+	stream_rx_file(ut, fp, cb_btle, NULL);
 }
 
 static void cb_dump_bitstream(ubertooth_t* ut, void* args __attribute__((unused)))
