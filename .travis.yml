@@ -7,30 +7,29 @@ compiler:
 
 before_script:
   - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2
+  - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip -O /tmp/libbtbb-master.zip
+  - pushd /tmp
   - tar -xf /tmp/gcc-arm.tar.bz2
-  - export PATH=$PWD/gcc-arm-none-eabi-5_2-2015q4/bin:$PATH
-  - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip
-  - unzip master.zip
+  - unzip libbtbb-master.zip
   - mkdir libbtbb-master/build
   - pushd libbtbb-master/build
   - cmake ..
   - make
-  - sudo make install
-  - sudo ldconfig
   - popd
+  - popd
+  - export CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array"
 
 script:
   - mkdir host/build
   - pushd host/build
-  - CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array" cmake ..
+  - cmake -DLIBBTBB_INCLUDE_DIR=/tmp/libbtbb-master/lib/src -DLIBBTBB_LIBRARIES=/tmp/libbtbb-master/build/lib/src/libbtbb.so ..
   - make
-  - sudo make install
-  - sudo ldconfig
   - popd
   - pushd firmware
+  - export PATH=/tmp/gcc-arm-none-eabi-5_2-2015q4/bin:$PATH
   - export CC="arm-none-eabi-gcc"
   - export CXX="arm-none-eabi-g++"
-  - make
+  - CC="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-gcc" CXX="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-g++" make
 
 addons:
   apt:
