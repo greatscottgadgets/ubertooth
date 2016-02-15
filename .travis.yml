@@ -24,11 +24,10 @@ script:
   - mkdir host/build
   - pushd host/build
   - cmake -DLIBBTBB_INCLUDE_DIR=/tmp/libbtbb-master/lib/src -DLIBBTBB_LIBRARIES=/tmp/libbtbb-master/build/lib/src/libbtbb.so ..
-  - make
+  - make VERBOSE=1
   - popd
   - pushd firmware
-#  - export CROSS_COMPILE="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-"
-  - DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
+  - CROSS_COMPILE="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-" DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
 
 addons:
   apt:
