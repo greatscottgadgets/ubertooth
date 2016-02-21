@@ -154,6 +154,8 @@ int main(int argc, char* argv[])
 		return r;
 
 	if(survey_mode) {
+		// auto-flush stdout so that wrapper scripts work
+		setvbuf(stdout, NULL, _IONBF, 0);
 		btbb_init_survey();
 	} else {
 		pn = btbb_piconet_new();
