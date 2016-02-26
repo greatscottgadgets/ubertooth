@@ -226,6 +226,59 @@ out:
 		btbb_packet_unref(pkt);
 }
 
+/* Sniff for LAPs. If a piconet is provided, use the given LAP to
+ * search for UAP.
+ */
+void cb_scan(ubertooth_t* ut, void* args __attribute__((unused)))
+{
+	btbb_packet* pkt = NULL;
+	int8_t signal_level;
+	int8_t noise_level;
+	int8_t snr;
+	int offset;
+	uint32_t clkn;
+
+	/* Do analysis based on oldest packet */
+	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
+
+	/* Sanity check */
+	if (rx->channel > (NUM_BREDR_CHANNELS-1))
+		goto out;
+
+	determine_signal_and_noise( rx, &signal_level, &noise_level );
+	snr = signal_level - noise_level;
+
+	/* Pass packet-pointer-pointer so that
+	 * packet can be created in libbtbb. */
+	offset = btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, LAP_ANY, max_ac_errors, &pkt);
+	if (offset < 0)
+		goto out;
+
+	/* Once offset is known for a valid packet, copy in symbols
+	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
+	 * btbb library can shift it be CLK1 if needed. */
+	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
+	btbb_packet_set_data(pkt, ringbuffer_top_bt(ut->packets) + offset, NUM_BANKS * BANK_LEN - offset,
+	                     rx->channel, clkn);
+
+	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
+	       (int)time(NULL),
+	       btbb_packet_get_channel(pkt),
+	       btbb_packet_get_lap(pkt),
+	       btbb_packet_get_ac_errors(pkt),
+	       rx->clk100ns,
+	       btbb_packet_get_clkn(pkt),
+	       signal_level,
+	       noise_level,
+	       snr);
+
+	btbb_process_packet(pkt, NULL);
+
+out:
+	if (pkt)
+		btbb_packet_unref(pkt);
+}
+
 void cb_afh_initial(ubertooth_t* ut, void* args)
 {
 	btbb_piconet* pn = (btbb_piconet*)args;

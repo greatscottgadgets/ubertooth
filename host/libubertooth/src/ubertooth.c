@@ -54,10 +54,8 @@ void print_version() {
 ubertooth_t* cleanup_devh = NULL;
 static void cleanup(int sig __attribute__((unused)))
 {
-	if (cleanup_devh) {
-		ubertooth_stop(cleanup_devh);
-	}
-	exit(0);
+	if (cleanup_devh)
+		cleanup_devh->stop_ubertooth = 1;
 }
 
 void register_cleanup_handler(ubertooth_t* ut) {
@@ -301,12 +299,13 @@ static int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
 		return r;
 
 	// receive and process each packet
-	while(1) {
+	while(!ut->stop_ubertooth) {
 		ubertooth_bulk_wait(ut);
 		r = ubertooth_bulk_receive(ut, cb, cb_args);
 		if (r == 1)
 			return 1;
 	}
+	return 0;
 }
 
 /* file should be in full USB packet format (ubertooth-dump -f) */

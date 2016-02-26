@@ -33,5 +33,6 @@ void cb_afh_r(ubertooth_t* ut, void* args);
 void cb_btle(ubertooth_t* ut, void* args);
 void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)));
 void cb_rx(ubertooth_t* ut, void* args);
+void cb_scan(ubertooth_t* ut, void* args);
 
 #endif /* __UBERTOOTH_CALLBACK_H__ */
