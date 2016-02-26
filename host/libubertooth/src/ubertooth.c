@@ -54,10 +54,8 @@ void print_version() {
 ubertooth_t* cleanup_devh = NULL;
 static void cleanup(int sig __attribute__((unused)))
 {
-	if (cleanup_devh) {
-		ubertooth_stop(cleanup_devh);
-	}
-	exit(0);
+	if (cleanup_devh)
+		cleanup_devh->stop_ubertooth = 1;
 }
 
 void register_cleanup_handler(ubertooth_t* ut) {

@@ -32,6 +32,7 @@
 #include <sys/ioctl.h>
 
 #include "ubertooth.h"
+#include "ubertooth_callback.h"
 #include <btbb.h>
 #include <getopt.h>
 
@@ -166,7 +167,7 @@ void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
 						  char* printable_addr, uint8_t extended)
 {
-    char name[248] = { 0 };
+	char name[248] = { 0 };
 
 	if (hci_read_remote_name(dev_handle, bdaddr, sizeof(name), name, 0) < 0)
 			strcpy(name, "[unknown]");
@@ -179,13 +180,13 @@ void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
 
 int main(int argc, char *argv[])
 {
-    inquiry_info *ii = NULL;
+	inquiry_info *ii = NULL;
 	int i, opt, dev_id, dev_handle, len, flags, max_rsp, num_rsp, lap, timeout = 20;
 	uint8_t uap, extended = 0;
 	uint8_t scan = 0;
 	char ubertooth_device = -1;
 	char *bt_dev = "hci0";
-    char addr[19] = { 0 };
+	char addr[19] = { 0 };
 	ubertooth_t* ut = NULL;
 	btbb_piconet* pn;
 	bdaddr_t bdaddr;
@@ -221,7 +222,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-    dev_id = hci_devid(bt_dev);
+	dev_id = hci_devid(bt_dev);
 	if (dev_id < 0) {
 		printf("error: Unable to find %s (%d)\n", bt_dev, dev_id);
 		return 1;
@@ -241,6 +242,9 @@ int main(int argc, char *argv[])
 	/* Set sweep mode - otherwise AFH map is useless */
 	cmd_set_channel(ut->devh, 9999);
 
+	/* Clean up on exit. */
+	register_cleanup_handler(ut);
+
 	if (scan) {
 		/* Equivalent to "hcitool scan" */
 		printf("HCI scan\n");
@@ -256,34 +260,51 @@ int main(int argc, char *argv[])
 		for (i = 0; i < num_rsp; i++) {
 			ba2str(&(ii+i)->bdaddr, addr);
 			print_name_and_class(dev_handle, dev_id, &(ii+i)->bdaddr, addr,
-								 extended);
+			                     extended);
 		}
 		free(ii);
 	}
 
 	/* Now find hidden piconets with Ubertooth */
 	printf("\nUbertooth scan\n");
+
+	btbb_init(max_ac_errors);
 	btbb_init_survey();
-	rx_live(ut, NULL, timeout);
+
+	if (timeout)
+		ubertooth_set_timeout(ut, timeout);
+
+	ubertooth_bulk_init(ut);
+
+	// tell ubertooth to send packets
+	cmd_rx_syms(ut->devh);
+
+	// receive and process each packet
+	while(!ut->stop_ubertooth) {
+		ubertooth_bulk_wait(ut);
+		ubertooth_bulk_receive(ut, cb_scan, NULL);
+	}
+
 	ubertooth_stop(ut);
 
+	printf("\nScan results:\n");
 	while((pn=btbb_next_survey_result()) != NULL) {
 		lap = btbb_piconet_get_lap(pn);
 		if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
 			uap = btbb_piconet_get_uap(pn);
 			sprintf(addr, "00:00:%02X:%02X:%02X:%02X", uap,
-					(lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
+			        (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
 			str2ba(addr, &bdaddr);
 			/* Printable version showing that the NAP is unknown */
 			sprintf(addr, "??:??:%02X:%02X:%02X:%02X", uap,
-					(lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
+			        (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
 			print_name_and_class(dev_handle, dev_id, &bdaddr, addr, extended);
 		} else
 			printf("??:??:??:%02X:%02X:%02X\n", (lap >> 16) & 0xFF,
-				   (lap >> 8) & 0xFF, lap & 0xFF);
+			       (lap >> 8) & 0xFF, lap & 0xFF);
 		btbb_print_afh_map(pn);
 	}
 
-    close(dev_handle);
-    return 0;
+	close(dev_handle);
+	return 0;
 }
