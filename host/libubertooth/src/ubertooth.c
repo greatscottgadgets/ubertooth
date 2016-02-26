@@ -299,12 +299,13 @@ static int stream_rx_usb(ubertooth_t* ut, rx_callback cb, void* cb_args)
 		return r;
 
 	// receive and process each packet
-	while(1) {
+	while(!ut->stop_ubertooth) {
 		ubertooth_bulk_wait(ut);
 		r = ubertooth_bulk_receive(ut, cb, cb_args);
 		if (r == 1)
 			return 1;
 	}
+	return 0;
 }
 
 /* file should be in full USB packet format (ubertooth-dump -f) */
