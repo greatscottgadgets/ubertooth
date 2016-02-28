@@ -821,7 +821,7 @@ void DMA_IRQHandler()
 	}
 }
 
-static void cc2400_idle()
+void cc2400_idle()
 {
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
@@ -2002,7 +2002,8 @@ void connection_follow_cb(u8 *packet) {
 void bt_follow_le() {
 	reset_le();
 	packet_cb = connection_follow_cb;
-	bt_le_sync(MODE_BT_FOLLOW_LE);
+	// bt_le_sync(MODE_BT_FOLLOW_LE);
+	le_main(MODE_BT_FOLLOW_LE);
 
 	/* old non-sync mode
 	data_cb = cb_follow_le;

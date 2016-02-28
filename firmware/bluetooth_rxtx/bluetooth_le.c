@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Dominic Spill
+ * Copyright 2012-2017 Mike Ryan
  *
  * This file is part of Project Ubertooth.
  *
@@ -19,7 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <string.h>
+
+#include "ubertooth.h"
+#include "ubertooth_clock.h"
 #include "bluetooth_le.h"
+#include "ubertooth_rssi.h"
+#include "ubertooth_usb.h"
 
 extern u8 le_channel_idx;
 extern u8 le_hop_amount;
@@ -175,4 +181,352 @@ u32 btle_crcgen_lut(u32 crc_init, u8 *data, int len) {
 		state = (state >> 8) ^ btle_crc_lut[key];
 	}
 	return state;
+}
+
+
+
+
+// FIXME put this in a header somewhere
+extern volatile uint8_t mode;
+extern volatile uint8_t modulation;
+extern volatile uint8_t requested_mode;
+extern volatile uint16_t channel;
+extern volatile uint8_t status;
+extern int8_t rssi_max;
+extern int8_t rssi_min;
+extern volatile uint32_t clkn;
+#define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
+
+extern le_state_t le;
+
+typedef struct _le_fsm_state_t le_fsm_state_t;
+typedef void(* le_state_handler_t)(le_fsm_state_t *);
+
+struct _le_fsm_state_t {
+	uint8_t packet[DMA_SIZE];
+	unsigned packet_len;
+
+	const uint8_t *whitening;
+
+	uint32_t clk100ns;
+
+	le_state_handler_t handler;
+	le_state_handler_t next_handler;
+};
+
+
+void le_state_rx(le_fsm_state_t *state);
+void le_state_flush_rx(le_fsm_state_t *state);
+
+void cc2400_idle(void);
+int enqueue_le(uint8_t type, uint8_t *buf, uint32_t ts);
+
+
+static void ssp_start(void) {
+	// make sure the (active low) slave select signal is not active
+	DIO_SSEL_SET;
+
+	// enable SSP + RX DMA
+	DIO_SSP_DMACR |= SSPDMACR_RXDMAE;
+	DIO_SSP_CR1 |= SSPCR1_SSE;
+
+	/* enable DMA */
+	DMACC0Config |= DMACCxConfig_E;
+	// ISER0 |= ISER0_ISE_DMA;
+
+	// activate slave select pin
+	DIO_SSEL_CLR;
+}
+
+static void ssp_stop() {
+	// disable CC2400's output (active low)
+	DIO_SSEL_SET;
+
+	// disable DMA on SSP; disable SSP
+	DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+	DIO_SSP_CR1 &= ~SSPCR1_SSE;
+
+	// disable DMA engine:
+	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 607
+
+	// disable DMA interrupts
+	// ICER0 = ICER0_ICE_DMA;
+
+	// disable active channels
+	DMACC0Config = 0;
+	DMACC1Config = 0;
+	DMACC2Config = 0;
+	DMACC3Config = 0;
+	DMACC4Config = 0;
+	DMACC5Config = 0;
+	DMACC6Config = 0;
+	DMACC7Config = 0;
+	DMACIntTCClear = 0xFF;
+	DMACIntErrClr = 0xFF;
+
+	// Disable the DMA controller by writing 0 to the DMA Enable bit in the DMACConfig
+	// register.
+	DMACConfig &= ~DMACConfig_E;
+	while (DMACConfig & DMACConfig_E);
+}
+
+static void dma_init_bytes(void *packet_buf) {
+	/* DMA linked list items */
+	typedef struct {
+		u32 src;
+		u32 dest;
+		u32 next_lli;
+		u32 control;
+	} dma_lli;
+
+	static dma_lli le_dma_lli[LE_MAX_LENGTH];
+
+	int i;
+
+	/* power up GPDMA controller */
+	PCONP |= PCONP_PCGPDMA;
+
+	/* zero out channel configs and clear interrupts */
+	DMACC0Config = 0;
+	DMACC1Config = 0;
+	DMACC2Config = 0;
+	DMACC3Config = 0;
+	DMACC4Config = 0;
+	DMACC5Config = 0;
+	DMACC6Config = 0;
+	DMACC7Config = 0;
+	DMACIntTCClear = 0xFF;
+	DMACIntErrClr = 0xFF;
+
+	/* enable DMA globally */
+	DMACConfig = DMACConfig_E;
+	while (!(DMACConfig & DMACConfig_E));
+
+	for (i = 0; i < LE_MAX_LENGTH; ++i) {
+		le_dma_lli[i].src = (u32)&(DIO_SSP_DR);
+		le_dma_lli[i].dest = (u32)packet_buf + i;
+		le_dma_lli[i].next_lli = i < (LE_MAX_LENGTH - 1) ? (u32)&le_dma_lli[i+1] : 0;
+		le_dma_lli[i].control = 1 |
+				(0 << 12) |        /* source burst size = 1 */
+				(0 << 15) |        /* destination burst size = 1 */
+				(0 << 18) |        /* source width 8 bits */
+				(0 << 21) |        /* destination width 8 bits */
+				DMACCxControl_DI ; /* destination increment */
+	}
+
+	/* configure DMA channel 0 */
+	DMACC0SrcAddr = le_dma_lli[0].src;
+	DMACC0DestAddr = le_dma_lli[0].dest;
+	DMACC0LLI = le_dma_lli[0].next_lli;
+	DMACC0Control = le_dma_lli[0].control;
+	DMACC0Config = DIO_SSP_SRC | (0x2 << 11) ; /* peripheral to memory */
+}
+
+static void le_init_radio(u32 sync) {
+	u16 grmdm, mdmctrl;
+
+	mdmctrl = 0x0040; // 250 kHz frequency deviation
+	grmdm = 0x0561; // un-buffered mode, packet w/ sync word detection
+	// 0 00 00 1 010 11 0 00 0 1
+	//   |  |  | |   |  +--------> CRC off
+	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
+	//   |  |  | +---------------> 2 preamble bytes of 01010101
+	//   |  |  +-----------------> packet mode
+	//   |  +--------------------> un-buffered mode
+	//   +-----------------------> sync error bits: 0
+
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);
+
+	cc2400_set(MDMTST0, 0x124b);
+	// 1      2      4b
+	// 00 0 1 0 0 10 01001011
+	//    | | | | |  +---------> AFC_DELTA = ??
+	//    | | | | +------------> AFC settling = 4 pairs (8 bit preamble)
+	//    | | | +--------------> no AFC adjust on packet
+	//    | | +----------------> do not invert data
+	//    | +------------------> TX IF freq 1 0Hz
+	//    +--------------------> PRNG off
+	//
+	// ref: CC2400 datasheet page 67
+	// AFC settling explained page 41/42
+
+	cc2400_set(GRMDM,   grmdm);
+
+	cc2400_set(SYNCL,   sync & 0xffff);
+	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
+
+	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
+	cc2400_set(MDMCTRL, mdmctrl);
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+}
+
+void le_state_wait_fs(le_fsm_state_t *state) {
+	if (cc2400_status() & FS_LOCK)
+		state->handler = state->next_handler;
+}
+
+void le_state_start_rx(le_fsm_state_t *state) {
+	RXLED_CLR;
+
+	cc2400_strobe(SRX);
+	memset(state->packet, 0, sizeof(state->packet));
+	state->packet_len = 0;
+        memcpy(&state->packet[0], &le.access_address, 4);
+	state->whitening = whitening_byte[btle_channel_index(channel - 2402)];
+	rssi_reset();
+
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	HGM_SET;
+#endif
+	state->handler = le_state_rx;
+}
+
+void le_state_rx(le_fsm_state_t *state) {
+	int8_t rssi;
+	uint32_t v;
+	unsigned i;
+
+	// wait until we've received at least one byte
+	if (DMACC0DestAddr >= (uint32_t)state->packet + 4) {
+		// wait until we have at least the length
+		while (DMACC0DestAddr < (uint32_t)state->packet + 4 + 2)
+			;
+
+		state->clk100ns = CLK100NS;
+
+		// reverse the bits and dewhiten first two bytes
+		for (i = 0; i < 2; ++i) {
+			v = state->packet[4+i] << 24;
+			state->packet[4+i] = rbit(v) ^ state->whitening[i];
+		}
+
+		state->packet_len = (state->packet[4+1] & 0x3f) + 2 + 3;
+
+		// abort receive on excessively long packets
+		if (state->packet_len > 37 + 2 + 3) {
+			state->handler = le_state_flush_rx;
+			return;
+		}
+
+		// FIXME fold rssi into state?
+		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+		rssi_min = rssi < rssi_min ? rssi : rssi_min;
+		rssi_max = rssi > rssi_max ? rssi : rssi_max;
+
+		// probably a good packet: set RX LED
+		RXLED_SET;
+
+		// wait for rest of packet bytes
+		// TODO update RSSI in meantime
+		if (state->packet_len < LE_MAX_LENGTH) {
+			while (DMACC0DestAddr < (uint32_t)state->packet + 4 + state->packet_len)
+				;
+		} else {
+			while (DMACC0Config & DMACCxConfig_E)
+				;
+		}
+
+		// reset the radio while we process the reset of the packet
+		cc2400_strobe(SFSON);
+
+		// dewhiten the rest of the packet
+		for (i = 2; i < state->packet_len; ++i) {
+			v = state->packet[4+i] << 24;
+			state->packet[4+i] = rbit(v) ^ state->whitening[i];
+		}
+
+		enqueue_le(LE_PACKET, state->packet, state->clk100ns);
+		state->handler = le_state_flush_rx;
+	}
+}
+
+void le_state_flush_rx(le_fsm_state_t *state) {
+	uint8_t tmp;
+
+	// TODO is it safe to do this twice?
+	cc2400_strobe(SFSON);
+
+	ssp_stop();
+
+	// flush any excess bytes from the SSP's buffer
+	while (SSP1SR & SSPSR_RNE)
+		tmp = (uint8_t)DIO_SSP_DR;
+
+	dma_init_bytes(state->packet + 4);
+	ssp_start();
+
+	state->handler = le_state_wait_fs;
+	state->next_handler = le_state_start_rx;
+}
+
+void le_init(le_fsm_state_t *state, uint8_t active_mode) {
+	modulation = MOD_BT_LOW_ENERGY;
+	mode = active_mode;
+
+	le.link_state = LINK_LISTENING;
+
+	// enable USB interrupts
+	ISER0 = ISER0_ISE_USB;
+
+        clkn_start();
+
+	queue_init();
+	dio_ssp_init();
+	dma_init_bytes(state->packet + 4);
+	ssp_start();
+}
+
+void le_deinit(void) {
+	// disable USB interrupts
+	ICER0 = ICER0_ICE_USB;
+
+	// reset the radio completely
+	cc2400_idle();
+	ssp_stop();
+        clkn_stop();
+}
+
+void le_main(uint8_t active_mode) {
+	le_fsm_state_t state = { 0, };
+
+	le_init(&state, active_mode);
+
+	le_init_radio(rbit(le.access_address));
+	state.handler = le_state_wait_fs;
+	state.next_handler = le_state_start_rx;
+
+	while (requested_mode == active_mode)
+		state.handler(&state);
+
+	le_deinit();
+}
+
+int enqueue_le(uint8_t type, uint8_t *buf, uint32_t ts) {
+	usb_pkt_rx *f = usb_enqueue();
+
+	/* fail if queue is full */
+	if (f == NULL) {
+		status |= FIFO_OVERFLOW;
+		return 0;
+	}
+
+	f->clkn_high = 0;
+	f->clk100ns = ts;
+
+	f->channel = channel - 2402;
+	f->rssi_min = rssi_min;
+	f->rssi_max = rssi_max;
+	f->rssi_avg = (rssi_max + rssi_min) / 2; // FIXME
+	f->rssi_count = 2;
+
+	memcpy(f->data, buf, DMA_SIZE);
+
+	f->status = status;
+	status = 0;
+
+	return 1;
 }
