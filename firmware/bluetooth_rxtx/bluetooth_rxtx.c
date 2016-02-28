@@ -174,7 +174,7 @@ int8_t rssi_min = INT8_MIN;
 uint8_t rssi_count = 0;
 int32_t rssi_sum = 0;
 
-static void rssi_reset(void)
+void rssi_reset(void)
 {
 	rssi_count = 0;
 	rssi_sum = 0;
@@ -281,6 +281,33 @@ int enqueue_with_ts(u8 type, u8 *buf, u32 ts)
 	f->channel = channel - 2402;
 	f->rssi_avg = 0;
 	f->rssi_count = 0;
+
+	memcpy(f->data, buf, DMA_SIZE);
+
+	f->status = status;
+	status = 0;
+
+	return 1;
+}
+
+int enqueue_le(u8 type, u8 *buf, u32 clkn, u32 ts)
+{
+	usb_pkt_rx *f = usb_enqueue();
+
+	/* fail if queue is full */
+	if (f == NULL) {
+		status |= FIFO_OVERFLOW;
+		return 0;
+	}
+
+	f->clkn_high = 0;
+	f->clk100ns = ts;
+
+	f->channel = channel - 2402;
+	f->rssi_min = rssi_min;
+	f->rssi_max = rssi_max;
+	f->rssi_avg = (rssi_max + rssi_min) / 2; // FIXME
+	f->rssi_count = 2;
 
 	memcpy(f->data, buf, DMA_SIZE);
 
@@ -964,7 +991,7 @@ static void dma_init()
 	rx_err = 0;
 }
 
-static void dma_init_le()
+void dma_init_le()
 {
 	int i;
 
@@ -1109,7 +1136,7 @@ static void dio_ssp_stop()
 	while (DMACConfig & DMACConfig_E);
 }
 
-static void cc2400_idle()
+void cc2400_idle()
 {
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
@@ -2082,7 +2109,8 @@ void connection_follow_cb(u8 *packet) {
 void bt_follow_le() {
 	reset_le();
 	packet_cb = connection_follow_cb;
-	bt_le_sync(MODE_BT_FOLLOW_LE);
+	// bt_le_sync(MODE_BT_FOLLOW_LE);
+	le_main(MODE_BT_FOLLOW_LE);
 
 	/* old non-sync mode
 	data_cb = cb_follow_le;
