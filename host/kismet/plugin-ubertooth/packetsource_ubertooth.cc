@@ -67,14 +67,15 @@ PacketSource_Ubertooth::~PacketSource_Ubertooth() {
 
 
 int PacketSource_Ubertooth::ParseOptions(vector<opt_pair> *in_opts) {
-	// Fixme = allow multiple ubertooth devices, etc
-	//if (FetchOpt("device", in_opts) != "") {
-		//usb_dev = FetchOpt("usbdev", in_opts);
-		//_MSG("Ubertooth Bluetooth using USB device '" + usb_dev + "'", MSGFLAG_INFO);
-	//} else {
+
+	if (FetchOpt("device", in_opts) != "") {
+		usb_dev = FetchOpt("device", in_opts);
+		_MSG("Ubertooth Bluetooth using USB device '" + usb_dev + "'", MSGFLAG_INFO);
+	} else {
+		usb_dev = -1;
 		_MSG("Ubertooth using first USB device that looks like a Ubertooth",
 			 MSGFLAG_INFO);
-	//}
+	}
 
 	return 1;
 }
@@ -164,7 +165,7 @@ void* ubertooth_cap_thread(void* arg)
 }
 
 int PacketSource_Ubertooth::OpenSource() {
-	if ((ut = ubertooth_start(-1)) == NULL) {
+	if ((ut = ubertooth_start(atoi(usb_dev.c_str()))) == NULL) {
 		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev +
 			 "': " + string(strerror(errno)), MSGFLAG_ERROR);
 		return 0;
