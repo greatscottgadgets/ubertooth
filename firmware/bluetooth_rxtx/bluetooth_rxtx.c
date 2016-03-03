@@ -90,7 +90,7 @@ le_state_t le = {
 	.syncl = 0x9171,
 	.crc_init  = 0x555555,                  // advertising channel CRCInit
 	.crc_init_reversed = 0xAAAAAA,
-	.crc_verify = 1,
+	.crc_verify = 0,
 
 	.link_state = LINK_INACTIVE,
 	.conn_epoch = 0,
@@ -1554,7 +1554,7 @@ void reset_le() {
 	le_set_access_address(0x8e89bed6);     // advertising channel access address
 	le.crc_init  = 0x555555;               // advertising channel CRCInit
 	le.crc_init_reversed = 0xAAAAAA;
-	le.crc_verify = 1;
+	le.crc_verify = 0;
 	le.last_packet = 0;
 
 	le.link_state = LINK_INACTIVE;
