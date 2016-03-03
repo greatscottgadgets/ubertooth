@@ -1817,6 +1817,9 @@ void bt_le_sync(u8 active_mode)
 		}
 		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
 
+		// strobe SFSON to allow the resync to occur while we process the packet
+		cc2400_strobe(SFSON);
+
 		// unwhiten the rest of the packet
 		for (i = 4; i < 44; i += 4) {
 			uint32_t v = rxbuf1[i+0] << 24
@@ -1842,8 +1845,8 @@ void bt_le_sync(u8 active_mode)
 		le.last_packet = CLK100NS;
 
 	rx_flush:
+		// this might happen twice, but it's safe to do so
 		cc2400_strobe(SFSON);
-		while (!(cc2400_status() & FS_LOCK));
 
 		// flush any excess bytes from the SSP's buffer
 		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
@@ -1905,6 +1908,8 @@ void bt_le_sync(u8 active_mode)
 				cc2400_rx_sync(rbit(le.access_address));
 				restart_jamming = 0;
 			} else {
+				// wait till we're in FSLOCK before strobing RX
+				while (!(cc2400_status() & FS_LOCK));
 				cc2400_strobe(SRX);
 			}
 		}
