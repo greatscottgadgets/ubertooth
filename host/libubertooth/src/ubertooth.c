@@ -627,6 +627,11 @@ int ubertooth_check_api(ubertooth_t *ut) {
 		ubertooth_stop(ut);
 		return -1;
 	}
+	else if (r > UBERTOOTH_API_VERSION) {
+		fprintf(stderr, "Ubertooth API version %d found, newer than that supported by libubertooth (%d).\n",
+				r, UBERTOOTH_API_VERSION);
+		fprintf(stderr, "Things will still work, but you might want to update your host tools.\n");
+	}
 
 	return 0;
 }
