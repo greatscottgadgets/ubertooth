@@ -996,6 +996,19 @@ int cmd_hop(struct libusb_device_handle* devh)
 	return 0;
 }
 
+int32_t cmd_api_version(struct libusb_device_handle* devh) {
+	unsigned char data[4];
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_API_VERSION, 0, 0,
+			data, 4, 3000);
+	if (r < 0) {
+		show_libusb_error(r);
+		return r;
+	}
+	return data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+}
+
 int ubertooth_cmd_sync(struct libusb_device_handle* devh,
                        uint8_t type,
                        uint8_t command,

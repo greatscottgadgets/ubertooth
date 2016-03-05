@@ -24,6 +24,9 @@
 
 #include <stdint.h>
 
+// increment on every API change
+#define UBERTOOTH_API_VERSION 0
+
 #define DMA_SIZE 50
 
 #define NUM_BREDR_CHANNELS 79
@@ -100,6 +103,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_AFH                = 61,
 	UBERTOOTH_HOP                = 62,
 	UBERTOOTH_TRIM_CLOCK         = 63,
+	UBERTOOTH_GET_API_VERSION    = 64,
 };
 
 enum jam_modes {

@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
 	char ubertooth_device = -1;
 
 	ubertooth_t* ut = NULL;
+	int r;
 
 	while ((opt=getopt(argc,argv,"bhclU:d:")) != EOF) {
 		switch(opt) {
@@ -88,6 +89,10 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
 
 	/* Clean up on exit. */
 	register_cleanup_handler(ut);

@@ -787,6 +787,12 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		ego_mode = request_params[0];
 		break;
 
+	case UBERTOOTH_GET_API_VERSION:
+		for (int i = 0; i < 4; ++i)
+			data[i] = (UBERTOOTH_API_VERSION >> (8*i)) & 0xff;
+		*data_len = 4;
+		break;
+
 	default:
 		return 0;
 	}

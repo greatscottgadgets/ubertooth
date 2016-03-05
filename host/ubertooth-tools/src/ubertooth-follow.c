@@ -225,6 +225,11 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
+
 	cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
 	if(afh_enabled)
 		cmd_set_afh_map(ut->devh, afh_map);

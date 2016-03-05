@@ -609,3 +609,24 @@ ubertooth_t* ubertooth_start(int ubertooth_device)
 
 	return ut;
 }
+
+int ubertooth_check_api(ubertooth_t *ut) {
+	int r;
+
+	r = cmd_api_version(ut->devh);
+	if (r < 0) {
+		fprintf(stderr, "Ubertooth running very old firmware found.\n");
+		fprintf(stderr, "Please upgrade to latest released firmware.\n");
+		ubertooth_stop(ut);
+		return -1;
+	}
+	else if (r < UBERTOOTH_API_VERSION) {
+		fprintf(stderr, "Ubertooth API version %d found, libubertooth requires %d.\n",
+				r, UBERTOOTH_API_VERSION);
+		fprintf(stderr, "Please upgrade to latest released firmware.\n");
+		ubertooth_stop(ut);
+		return -1;
+	}
+
+	return 0;
+}

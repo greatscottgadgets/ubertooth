@@ -239,6 +239,10 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
+
 	/* Set sweep mode - otherwise AFH map is useless */
 	cmd_set_channel(ut->devh, 9999);
 

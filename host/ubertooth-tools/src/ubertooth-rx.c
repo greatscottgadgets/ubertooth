@@ -149,6 +149,10 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
+
 	r = btbb_init(max_ac_errors);
 	if (r < 0)
 		return r;

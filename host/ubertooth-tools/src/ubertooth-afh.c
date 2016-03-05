@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
 	uint8_t use_r_format = 0;
 
 	ubertooth_t* ut = NULL;
+	int r;
 
 	while ((opt=getopt(argc,argv,"rhVl:u:U:e:a:t:m:")) != EOF) {
 		switch(opt) {
@@ -123,6 +124,10 @@ int main(int argc, char* argv[])
 		usage();
 		return 1;
 	}
+
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
 
 	/* Clean up on exit. */
 	register_cleanup_handler(ut);

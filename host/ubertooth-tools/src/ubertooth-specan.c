@@ -147,6 +147,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
+
 	/* Clean up on exit. */
 	register_cleanup_handler(ut);
 
