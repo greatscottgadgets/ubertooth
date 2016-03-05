@@ -143,7 +143,6 @@ int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address);
 int cmd_btle_set_target(struct libusb_device_handle* devh, u8 *mac_address);
 int cmd_set_jam_mode(struct libusb_device_handle* devh, int mode);
 int cmd_ego(struct libusb_device_handle* devh, int mode);
-int cmd_ping(struct libusb_device_handle* devh);
 int cmd_afh(struct libusb_device_handle* devh);
 int cmd_hop(struct libusb_device_handle* devh);
 
