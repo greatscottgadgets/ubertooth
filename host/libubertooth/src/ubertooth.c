@@ -519,7 +519,6 @@ void ubertooth_stop(ubertooth_t* ut)
 	libusb_close(ut->devh);
 	libusb_exit(NULL);
 
-#ifdef ENABLE_PCAP
 	if (ut->h_pcap_bredr) {
 		btbb_pcap_close(ut->h_pcap_bredr);
 		ut->h_pcap_bredr = NULL;
@@ -528,7 +527,6 @@ void ubertooth_stop(ubertooth_t* ut)
 		lell_pcap_close(ut->h_pcap_le);
 		ut->h_pcap_le = NULL;
 	}
-#endif
 
 	if (ut->h_pcapng_bredr) {
 		btbb_pcapng_close(ut->h_pcapng_bredr);
@@ -563,11 +561,8 @@ ubertooth_t* ubertooth_init()
 	ut->last_clk100ns = 0;
 	ut->clk100ns_upper = 0;
 
-#ifdef ENABLE_PCAP
 	ut->h_pcap_bredr = NULL;
 	ut->h_pcap_le = NULL;
-#endif
-
 	ut->h_pcapng_bredr = NULL;
 	ut->h_pcapng_le = NULL;
 

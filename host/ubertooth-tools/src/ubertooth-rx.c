@@ -37,9 +37,7 @@ static void usage()
 	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
 	printf("\t-r<filename> capture packets to PCAPNG file\n");
-#ifdef ENABLE_PCAP
 	printf("\t-q<filename> capture packets to PCAP file\n");
-#endif
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-s reset channel scanning\n");
@@ -94,7 +92,6 @@ int main(int argc, char* argv[])
 				printf("Ignoring extra capture file: %s\n", optarg);
 			}
 			break;
-#ifdef ENABLE_PCAP
 		case 'q':
 			if (!ut->h_pcap_bredr) {
 				if (btbb_pcap_create_file(optarg, &ut->h_pcap_bredr)) {
@@ -105,7 +102,6 @@ int main(int argc, char* argv[])
 				printf("Ignoring extra capture file: %s\n", optarg);
 			}
 			break;
-#endif
 		case 'd':
 			dumpfile = fopen(optarg, "w");
 			if (dumpfile == NULL) {
