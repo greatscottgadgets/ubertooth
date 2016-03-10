@@ -1,5 +1,5 @@
 /*
- * Copyright 2010, 2011 Michael Ossmann
+ * Copyright 2012-2016 Michael Ryan
  *
  * This file is part of Project Ubertooth.
  *
@@ -27,13 +27,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-
-#ifdef ENABLE_PCAP
-#include <pcap.h>
-extern pcap_t *pcap_dumpfile;
-extern pcap_dumper_t *dumper;
-#endif // ENABLE_PCAP
-
 
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
@@ -89,10 +82,8 @@ static void usage(void)
 	printf("\n");
 	printf("    Misc:\n");
 	printf("\t-r<filename> capture packets to PCAPNG file\n");
-#ifdef ENABLE_PCAP
 	printf("\t-q<filename> capture packets to PCAP file (DLT_BLUETOOTH_LE_LL_WITH_PHDR)\n");
 	printf("\t-c<filename> capture packets to PCAP file (DLT_PPI)\n");
-#endif
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
@@ -155,7 +146,6 @@ int main(int argc, char *argv[])
 				printf("Ignoring extra capture file: %s\n", optarg);
 			}
 			break;
-#ifdef ENABLE_PCAP
 		case 'q':
 			if (!ut->h_pcap_le) {
 				if (lell_pcap_create_file(optarg, &ut->h_pcap_le)) {
@@ -176,7 +166,6 @@ int main(int argc, char *argv[])
 				printf("Ignoring extra capture file: %s\n", optarg);
 			}
 			break;
-#endif
 		case 'v':
 			if (optarg)
 				do_crc = atoi(optarg) ? 1 : 0;
