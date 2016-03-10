@@ -55,7 +55,7 @@ static void usage()
 
 int main(int argc, char *argv[])
 {
-	int opt, sock, dev_id, lap = 0, uap = 0, delay = 5;
+	int opt, sock, dev_id, rv, lap = 0, uap = 0, delay = 5;
 	int have_lap = 0;
 	int have_uap = 0;
 	int afh_enabled = 0;
@@ -226,8 +226,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	r = ubertooth_check_api(ut);
-	if (r < 0)
+	rv = ubertooth_check_api(ut);
+	if (rv < 0)
 		return 1;
 
 	cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));

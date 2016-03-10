@@ -181,7 +181,8 @@ void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
 int main(int argc, char *argv[])
 {
 	inquiry_info *ii = NULL;
-	int i, opt, dev_id, dev_handle, len, flags, max_rsp, num_rsp, lap, timeout = 20;
+	int i, rv, opt, dev_id, dev_handle, len, flags;
+	int max_rsp, num_rsp, lap, timeout = 20;
 	uint8_t uap, extended = 0;
 	uint8_t scan = 0;
 	char ubertooth_device = -1;
@@ -239,8 +240,8 @@ int main(int argc, char *argv[])
 		usage();
 		return 1;
 	}
-	r = ubertooth_check_api(ut);
-	if (r < 0)
+	rv = ubertooth_check_api(ut);
+	if (rv < 0)
 		return 1;
 
 	/* Set sweep mode - otherwise AFH map is useless */
