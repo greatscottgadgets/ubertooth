@@ -139,15 +139,17 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	r = ubertooth_connect(ut, ubertooth_device);
-	if (r < 0) {
-		usage();
-		return 1;
+	if (infile == NULL) {
+		r = ubertooth_connect(ut, ubertooth_device);
+		if (r < 0) {
+			usage();
+			return 1;
+		}
+	
+		r = ubertooth_check_api(ut);
+		if (r < 0)
+			return 1;
 	}
-
-	r = ubertooth_check_api(ut);
-	if (r < 0)
-		return 1;
 
 	r = btbb_init(max_ac_errors);
 	if (r < 0)
