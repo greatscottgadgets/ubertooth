@@ -202,21 +202,20 @@ void cb_br_rx(ubertooth_t* ut, void* args)
 	       noise_level,
 	       snr);
 
+	int r = btbb_process_packet(pkt, pn);
+	
 	/* Dump to PCAP/PCAPNG if specified */
-#ifdef ENABLE_PCAP
 	if (ut->h_pcap_bredr) {
 		btbb_pcap_append_packet(ut->h_pcap_bredr, nowns,
 		                        signal_level, noise_level,
 		                        lap, uap, pkt);
 	}
-#endif
 	if (ut->h_pcapng_bredr) {
 		btbb_pcapng_append_packet(ut->h_pcapng_bredr, nowns,
 		                          signal_level, noise_level,
 		                          lap, uap, pkt);
 	}
 
-	int r = btbb_process_packet(pkt, pn);
 	if(r < 0) {
 		ut->stop_ubertooth = 1;
 	}
@@ -466,7 +465,7 @@ void cb_btle(ubertooth_t* ut, void* args)
 	/* Dump to PCAP/PCAPNG if specified */
 	refAA = lell_packet_is_data(pkt) ? 0 : 0x8e89bed6;
 	determine_signal_and_noise( rx, &sig, &noise );
-#ifdef ENABLE_PCAP
+
 	if (ut->h_pcap_le) {
 		/* only one of these two will succeed, depending on
 		 * whether PCAP was opened with DLT_PPI or not */
@@ -479,7 +478,6 @@ void cb_btle(ubertooth_t* ut, void* args)
 		                            rx->rssi_avg, rx->rssi_count,
 		                            pkt);
 	}
-#endif
 	if (ut->h_pcapng_le) {
 		lell_pcapng_append_packet(ut->h_pcapng_le, nowns,
 		                          sig, noise,
@@ -643,22 +641,21 @@ void cb_rx(ubertooth_t* ut, void* args)
 		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
+	
+	int r = btbb_process_packet(pkt, pn);
 
 	/* Dump to PCAP/PCAPNG if specified */
-#ifdef ENABLE_PCAP
 	if (ut->h_pcap_bredr) {
 		btbb_pcap_append_packet(ut->h_pcap_bredr, nowns,
 		                        signal_level, noise_level,
 		                        lap, uap, pkt);
 	}
-#endif
 	if (ut->h_pcapng_bredr) {
 		btbb_pcapng_append_packet(ut->h_pcapng_bredr, nowns,
 		                          signal_level, noise_level,
 		                          lap, uap, pkt);
 	}
 
-	int r = btbb_process_packet(pkt, pn);
 	if(infile == NULL && r < 0)
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
 
