@@ -165,7 +165,8 @@ int main(int argc, char* argv[])
 			btbb_init_piconet(pn, lap);
 			if (have_uap) {
 				btbb_piconet_set_uap(pn, uap);
-				cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
+				if (infile == NULL)
+					cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
 			}
 			if (ut->h_pcapng_bredr) {
 				btbb_pcapng_record_bdaddr(ut->h_pcapng_bredr,
