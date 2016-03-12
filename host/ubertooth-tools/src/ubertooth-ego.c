@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	/* Clean up on exit. */
-	register_cleanup_handler(ut);
+	register_cleanup_handler(ut, 1);
 
 	if (do_mode >= 0) {
 		usb_pkt_rx rx;

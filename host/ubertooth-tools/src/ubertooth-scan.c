@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 	cmd_set_channel(ut->devh, 9999);
 
 	/* Clean up on exit. */
-	register_cleanup_handler(ut);
+	register_cleanup_handler(ut, 0);
 
 	if (scan) {
 		/* Equivalent to "hcitool scan" */

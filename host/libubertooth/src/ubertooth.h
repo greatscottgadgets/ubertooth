@@ -75,7 +75,7 @@ extern FILE* dumpfile;
 extern int max_ac_errors;
 
 void print_version();
-void register_cleanup_handler(ubertooth_t* ut);
+void register_cleanup_handler(ubertooth_t* ut, int do_exit);
 ubertooth_t* ubertooth_init();
 int ubertooth_connect(ubertooth_t* ut, int ubertooth_device);
 ubertooth_t* ubertooth_start(int ubertooth_device);

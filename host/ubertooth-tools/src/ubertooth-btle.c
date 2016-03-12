@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	/* Clean up on exit. */
-	register_cleanup_handler(ut);
+	register_cleanup_handler(ut, 1);
 
 	if (do_follow && do_promisc) {
 		printf("Error: must choose either -f or -p, one or the other pal\n");

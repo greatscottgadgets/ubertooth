@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 		}
 
 		/* Clean up on exit. */
-		register_cleanup_handler(ut);
+		register_cleanup_handler(ut, 1);
 
 		if (timeout)
 			ubertooth_set_timeout(ut, timeout);

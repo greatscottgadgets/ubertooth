@@ -58,13 +58,26 @@ static void cleanup(int sig __attribute__((unused)))
 		cleanup_devh->stop_ubertooth = 1;
 }
 
-void register_cleanup_handler(ubertooth_t* ut) {
+static void cleanup_exit(int sig __attribute__((unused)))
+{
+	if (cleanup_devh)
+		ubertooth_stop(cleanup_devh);
+	exit(0);
+}
+
+void register_cleanup_handler(ubertooth_t* ut, int do_exit) {
 	cleanup_devh = ut;
 
-	/* Clean up on exit. */
-	signal(SIGINT, cleanup);
-	signal(SIGQUIT, cleanup);
-	signal(SIGTERM, cleanup);
+	/* Clean up on ctrl-C. */
+	if (do_exit) {
+		signal(SIGINT, cleanup_exit);
+		signal(SIGQUIT, cleanup_exit);
+		signal(SIGTERM, cleanup_exit);
+	} else {
+		signal(SIGINT, cleanup);
+		signal(SIGQUIT, cleanup);
+		signal(SIGTERM, cleanup);
+	}
 }
 
 ubertooth_t* timeout_dev = NULL;

@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Clean up on exit. */
-	register_cleanup_handler(ut);
+	register_cleanup_handler(ut, 1);
 
 	ubertooth_connect(ut, ubertooth_device);
 	if (ut == NULL) {
