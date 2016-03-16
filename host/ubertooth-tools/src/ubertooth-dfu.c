@@ -65,8 +65,8 @@ static int check_suffix(FILE* signedfile, DFU_suffix* suffix) {
 
 	// Suffix bytes are reversed
 	if(!((suffix->ucDfuSig[0]==0x55) &&
-		 (suffix->ucDfuSig[1]==0x46) &&
-		 (suffix->ucDfuSig[2]==0x44))) {
+	     (suffix->ucDfuSig[1]==0x46) &&
+	     (suffix->ucDfuSig[2]==0x44))) {
 		fprintf(stderr, "DFU Signature mismatch: not a DFU file\n");
 		return 1;
 	}
@@ -142,7 +142,7 @@ static struct libusb_device_handle* find_ubertooth_dfu_device() {
 		if(r < 0)
 			fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
 		if ((desc.idVendor == TC13_VENDORID && desc.idProduct == TC13_PRODUCTID) ||
-			(desc.idVendor == U1_DFU_VENDORID && desc.idProduct == U1_DFU_PRODUCTID))
+		    (desc.idVendor == U1_DFU_VENDORID && desc.idProduct == U1_DFU_PRODUCTID))
 		{
 			// FOUND AN UBERTOOTH
 			ret = libusb_open(usb_list[i], &devh);
@@ -213,9 +213,9 @@ int enter_dfu_mode(libusb_device_handle* devh) {
 	uint8_t state;
 	int rv;
 	while(1) {
-        state = dfu_get_state(devh);
-        if(state == STATE_DFU_IDLE)
-            break;
+		state = dfu_get_state(devh);
+		if(state == STATE_DFU_IDLE)
+			break;
 		switch(state) {
 			case STATE_DFU_DNLOAD_SYNC:
 			case STATE_DFU_DNLOAD_IDLE:
@@ -277,10 +277,10 @@ int upload(libusb_device_handle* devh, FILE* upfile) {
 	length = (256 * 1024) - address;
 	block = address / BLOCK_SIZE;
 
-    if ((address & (BLOCK_SIZE - 1)) != 0) {
+	if ((address & (BLOCK_SIZE - 1)) != 0) {
 		fprintf(stderr, "Upload failed: must start at block boundary\n");
 		return -1;
-    }
+	}
 
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
@@ -290,7 +290,7 @@ int upload(libusb_device_handle* devh, FILE* upfile) {
 
 	while(length > 0) {
 		rv = libusb_control_transfer(devh, DFU_IN, REQ_UPLOAD, block, 0,
-									 buffer, BLOCK_SIZE, 1000);
+		                             buffer, BLOCK_SIZE, 1000);
 		if (rv < 0) {
 			if (rv == LIBUSB_ERROR_PIPE)
 				fprintf(stderr, "control message unsupported\n");
@@ -336,10 +336,10 @@ int download(libusb_device_handle* devh, FILE* downfile) {
 	block = address / BLOCK_SIZE;
 	fseek(downfile, 0, SEEK_SET);
 
-    if ((address & (SECTOR_SIZE - 1)) != 0) {
+	if ((address & (SECTOR_SIZE - 1)) != 0) {
 		fprintf(stderr, "Download failed: must start at sector boundary\n");
 		return -1;
-    }
+	}
 
 	rv = enter_dfu_mode(devh);
 	if(rv < 0) {
@@ -350,7 +350,7 @@ int download(libusb_device_handle* devh, FILE* downfile) {
 		for(;length<BLOCK_SIZE;length++)
 			buffer[length] = 0xFF;
 		rv = libusb_control_transfer(devh, DFU_OUT, REQ_DNLOAD, block, 0,
-									 buffer, BLOCK_SIZE, 1000);
+		                             buffer, BLOCK_SIZE, 1000);
 		if (rv < 0) {
 			if (rv == LIBUSB_ERROR_PIPE)
 				fprintf(stderr, "control message unsupported\n");
@@ -470,6 +470,10 @@ int main(int argc, char **argv) {
 		devh = find_ubertooth_dfu_device();
 		if(devh == NULL) {
 			ut = ubertooth_start(ubertooth_device);
+			if(ut == NULL) {
+				fprintf(stderr, "Unable to find Ubertooth\n");
+				return 1;
+			}
 			devh = ut->devh;
 			cmd_flash(devh);
 			fprintf(stdout, "Switching to DFU mode...\n");
