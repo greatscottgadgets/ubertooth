@@ -36,6 +36,7 @@ static void usage()
 	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	printf("Usage:\n");
 	printf("\t-a[0-7] get/set power amplifier level\n");
+	printf("\t-A check Ubertooth API version\n");
 	printf("\t-b get hardware board id number\n");
 	printf("\t-c[2400-2483] get/set channel in MHz\n");
 	printf("\t-C[0-78] get/set channel\n");
@@ -86,7 +87,7 @@ int main(int argc, char *argv[])
 
 	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9VA")) != EOF) {
 		switch(opt) {
-		case 'U': 
+		case 'U':
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'f':
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
 				do_channel= atoi(optarg) +2402;
 			else
 				do_channel= 0;
-			break;	
+			break;
 		case 'c':
 			if (optarg)
 				do_channel= atoi(optarg);
@@ -220,7 +221,7 @@ int main(int argc, char *argv[])
 		r= cmd_set_usrled(ut->devh, do_leds);
 	if(do_palevel > 0)
 		r= cmd_set_palevel(ut->devh, do_palevel);
-	
+
 	/* reporting actions */
 	if(do_all_leds == 2) {
 		printf("USR LED status: %d\n", cmd_get_usrled(ut->devh));
@@ -240,7 +241,7 @@ int main(int argc, char *argv[])
 		char version[255];
 		cmd_get_rev_num(ut->devh, version, (u8)sizeof(version));
 		printf("Firmware revision: %s\n", version);
-        }
+	}
 	if(do_compile_info == 0) {
 		char compile_info[255];
 		cmd_get_compile_info(ut->devh, compile_info, (u8)sizeof(compile_info));
