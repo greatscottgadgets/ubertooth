@@ -25,6 +25,10 @@
 #include "ubertooth.h"
 #include "ubertooth_usb.h"
 #include "ubertooth_interface.h"
+#include "ubertooth_rssi.h"
+#include "ubertooth_cs.h"
+#include "ubertooth_dma.h"
+#include "ubertooth_clock.h"
 #include "bluetooth.h"
 #include "bluetooth_le.h"
 #include "cc2400_rangetest.h"
@@ -37,52 +41,37 @@
 const char compile_info[] =
 	"ubertooth " GIT_REVISION " (" COMPILE_BY "@" COMPILE_HOST ") " TIMESTAMP;
 
-/*
- * CLK100NS is a free-running clock with a period of 100 ns.  It resets every
- * 2^15 * 10^5 cycles (about 5.5 minutes) - computed from clkn and timer0 (T0TC)
- *
- * clkn is the native (local) clock as defined in the Bluetooth specification.
- * It advances 3200 times per second.  Two clkn periods make a Bluetooth time
- * slot.
- */
-
-volatile uint32_t clkn = 0;                   // clkn 3200 Hz counter
-volatile uint32_t last_hop = 0;
-#define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
-#define LE_BASECLK (12500)                    // 1.25 ms in units of 100ns
-volatile uint32_t clkn_offset = 0;
-volatile uint16_t clk100ns_offset = 0;
-
-#define CS_THRESHOLD_DEFAULT (uint8_t)(-120)
-#define CS_HOLD_TIME  2                       // min pkts to send on trig (>=1)
-volatile uint8_t hop_mode = HOP_NONE;
-volatile uint8_t do_hop = 0;                  // set by timer interrupt
-
-volatile uint8_t dma_discard = 0;
-uint8_t cs_no_squelch = 0;                    // rx all packets if set
-int8_t cs_threshold_req=CS_THRESHOLD_DEFAULT; // requested CS threshold in dBm
-int8_t cs_threshold_cur=CS_THRESHOLD_DEFAULT; // current CS threshold in dBm
-volatile uint8_t cs_trigger;                  // set by intr on P2.2 falling (CS)
-volatile uint16_t hop_direct_channel = 0;     // for hopping directly to a channel
-
-volatile uint8_t  idle_buf_clkn_high;
-volatile uint32_t idle_buf_clk100ns;
-volatile uint16_t idle_buf_channel = 0;
-
-uint8_t slave_mac_address[6] = { 0, };
-
+/* hopping stuff */
+volatile uint8_t  hop_mode = HOP_NONE;
+volatile uint8_t  do_hop = 0;                  // set by timer interrupt
+volatile uint16_t channel = 2441;
+volatile uint16_t hop_direct_channel = 0;      // for hopping directly to a channel
 volatile uint16_t hop_timeout = 158;
+volatile uint16_t requested_channel = 0;
+volatile uint16_t saved_request = 0;
 
-/* DMA buffers */
-volatile uint8_t rxbuf1[DMA_SIZE];
-volatile uint8_t rxbuf2[DMA_SIZE];
+/* bulk USB stuff */
+volatile uint8_t  idle_buf_clkn_high = 0;
+volatile uint32_t idle_buf_clk100ns = 0;
+volatile uint16_t idle_buf_channel = 0;
+volatile uint8_t  dma_discard = 0;
+volatile uint8_t  status = 0;
 
-/*
- * The active buffer is the one with an active DMA transfer.
- * The idle buffer is the one we can read/write between transfers.
- */
-volatile uint8_t* volatile active_rxbuf = &rxbuf1[0];
-volatile uint8_t* volatile idle_rxbuf = &rxbuf2[0];
+/* operation mode */
+volatile uint8_t mode = MODE_IDLE;
+volatile uint8_t requested_mode = MODE_IDLE;
+volatile uint8_t jam_mode = JAM_NONE;
+volatile uint8_t ego_mode = EGO_FOLLOW;
+
+volatile uint8_t modulation = MOD_BT_BASIC_RATE;
+
+/* specan stuff */
+volatile uint16_t low_freq = 2400;
+volatile uint16_t high_freq = 2483;
+volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
+
+/* le stuff */
+uint8_t slave_mac_address[6] = { 0, };
 
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
@@ -127,108 +116,8 @@ data_cb_t data_cb = NULL;
 typedef void (*packet_cb_t)(u8 *);
 packet_cb_t packet_cb = NULL;
 
-/* Moving average (IIR) of average RSSI of packets as scaled integers (x256). */
-int16_t rssi_iir[79] = {0};
-#define RSSI_IIR_ALPHA 3       // 3/256 = .012
-
 /* Unpacked symbol buffers (two rxbufs) */
 char unpacked[DMA_SIZE*8*2];
-
-volatile uint8_t mode = MODE_IDLE;
-volatile uint8_t requested_mode = MODE_IDLE;
-volatile uint8_t jam_mode = JAM_NONE;
-volatile uint8_t ego_mode = 0;
-volatile uint8_t modulation = MOD_BT_BASIC_RATE;
-volatile uint16_t channel = 2441;
-volatile uint16_t requested_channel = 0;
-volatile uint16_t saved_request = 0;
-volatile uint16_t low_freq = 2400;
-volatile uint16_t high_freq = 2483;
-volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
-
-/* DMA linked list items */
-typedef struct {
-	u32 src;
-	u32 dest;
-	u32 next_lli;
-	u32 control;
-} dma_lli;
-
-dma_lli rx_dma_lli1;
-dma_lli rx_dma_lli2;
-
-dma_lli le_dma_lli[11]; // 11 x 4 bytes
-
-/* rx terminal count and error interrupt counters */
-volatile u32 rx_tc;
-volatile u32 rx_err;
-
-/* status information byte */
-volatile u8 status = 0;
-
-/*
- * RSSI
- */
-int8_t rssi_max = INT8_MAX;
-int8_t rssi_min = INT8_MIN;
-uint8_t rssi_count = 0;
-int32_t rssi_sum = 0;
-
-static void rssi_reset(void)
-{
-	rssi_count = 0;
-	rssi_sum = 0;
-	rssi_max = INT8_MIN;
-	rssi_min = INT8_MAX;
-}
-
-static void rssi_add(int8_t v)
-{
-	rssi_max = (v > rssi_max) ? v : rssi_max;
-	rssi_min = (v < rssi_min) ? v : rssi_min;
-	rssi_sum += ((int32_t)v * 256);  // scaled int math (x256)
-	rssi_count += 1;
-}
-
-/* For sweep mode, update IIR per channel. Otherwise, use single value. */
-static void rssi_iir_update(void)
-{
-	int i;
-	int32_t avg;
-	int32_t rssi_iir_acc;
-
-	/* Use array to track 79 Bluetooth channels, or just first
-	 * slot of array if not sweeping. */
-	if (hop_mode > 0)
-		i = channel - 2402;
-	else
-		i = 0;
-
-	// IIR using scaled int math (x256)
-	if (rssi_count != 0)
-		avg = (rssi_sum  + 128) / rssi_count;
-	else
-		avg = 0; // really an error
-	rssi_iir_acc = rssi_iir[i] * (256-RSSI_IIR_ALPHA);
-	rssi_iir_acc += avg * RSSI_IIR_ALPHA;
-	rssi_iir[i] = (int16_t)((rssi_iir_acc + 128) / 256);
-}
-
-#define CS_SAMPLES_1 1
-#define CS_SAMPLES_2 2
-#define CS_SAMPLES_4 3
-#define CS_SAMPLES_8 4
-/* Set CC2400 carrier sense threshold and store value to
- * global. CC2400 RSSI is determined by 54dBm + level. CS threshold is
- * in 4dBm steps, so the provided level is rounded to the nearest
- * multiple of 4 by adding 56. Useful range is -100 to -20. */
-static void cs_threshold_set(int8_t level, u8 samples)
-{
-	level = MIN(MAX(level,-120),(-20));
-	cc2400_set(RSSI, (uint8_t)((level + 56) & (0x3f << 2)) | (samples&3));
-	cs_threshold_cur = level;
-	cs_no_squelch = (level <= -120);
-}
 
 static int enqueue(uint8_t type, uint8_t* buf)
 {
@@ -247,13 +136,10 @@ static int enqueue(uint8_t type, uint8_t* buf)
 	} else {
 		f->clkn_high = idle_buf_clkn_high;
 		f->clk100ns = idle_buf_clk100ns;
-		f->channel = idle_buf_channel - 2402;
+		f->channel = (uint8_t)((idle_buf_channel - 2402) & 0xff);
 		f->rssi_min = rssi_min;
 		f->rssi_max = rssi_max;
-		if (hop_mode != HOP_NONE)
-			f->rssi_avg = (int8_t)((rssi_iir[idle_buf_channel-2402] + 128)/256);
-		else
-			f->rssi_avg = (int8_t)((rssi_iir[0] + 128)/256);
+		f->rssi_avg = rssi_get_avg(idle_buf_channel);
 		f->rssi_count = rssi_count;
 	}
 
@@ -265,9 +151,9 @@ static int enqueue(uint8_t type, uint8_t* buf)
 	return 1;
 }
 
-int enqueue_with_ts(u8 type, u8 *buf, u32 ts)
+int enqueue_with_ts(uint8_t type, uint8_t* buf, uint32_t ts)
 {
-	usb_pkt_rx *f = usb_enqueue();
+	usb_pkt_rx* f = usb_enqueue();
 
 	/* fail if queue is full */
 	if (f == NULL) {
@@ -278,7 +164,7 @@ int enqueue_with_ts(u8 type, u8 *buf, u32 ts)
 	f->clkn_high = 0;
 	f->clk100ns = ts;
 
-	f->channel = channel - 2402;
+	f->channel = (uint8_t)((channel - 2402) & 0xff);
 	f->rssi_avg = 0;
 	f->rssi_count = 0;
 
@@ -290,54 +176,15 @@ int enqueue_with_ts(u8 type, u8 *buf, u32 ts)
 	return 1;
 }
 
-static void cs_threshold_calc_and_set(void)
+static int vendor_request_handler(uint8_t request, uint16_t* request_params, uint8_t* data, int* data_len)
 {
-	int8_t level;
-
-	/* If threshold is max/avg based (>0), reset here while rx is
-	 * off.  TODO - max-to-iir only works in SWEEP mode, where the
-	 * channel is known to be in the BT band, i.e., rssi_iir has a
-	 * value for it. */
-	if ((hop_mode > 0) && (cs_threshold_req > 0)) {
-		int8_t rssi = (int8_t)((rssi_iir[channel-2402] + 128)/256);
-		level = rssi - 54 + cs_threshold_req;
-	}
-	else {
-		level = cs_threshold_req;
-	}
-	cs_threshold_set(level, CS_SAMPLES_4);
-}
-
-/* CS comes from CC2400 GIO6, which is LPC P2.2, active low. GPIO
- * triggers EINT3, which could be used for other things (but is not
- * currently). TODO - EINT3 should be managed globally, not turned on
- * and off here. */
-static void cs_trigger_enable(void)
-{
-	cs_trigger = 0;
-	ISER0 = ISER0_ISE_EINT3;
-	IO2IntClr = PIN_GIO6;      // Clear pending
-	IO2IntEnF |= PIN_GIO6;     // Enable port 2.2 falling (CS active low)
-}
-
-static void cs_trigger_disable(void)
-{
-	IO2IntEnF &= ~PIN_GIO6;    // Disable port 2.2 falling (CS active low)
-	IO2IntClr = PIN_GIO6;      // Clear pending
-	ICER0 = ICER0_ICE_EINT3;
-	cs_trigger = 0;
-}
-
-static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int *data_len)
-{
-	u32 command[5];
-	u32 result[5];
-	u64 ac_copy;
-	u32 clock;
-	int clock_offset;
-	u8 length; // string length
-	usb_pkt_rx *p = NULL;
-	u16 reg_val;
+	uint32_t command[5];
+	uint32_t result[5];
+	uint64_t ac_copy;
+	uint32_t clock;
+	size_t length; // string length
+	usb_pkt_rx* p = NULL;
+	uint16_t reg_val;
 
 	switch (request) {
 
@@ -537,7 +384,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 
 			/* CS threshold is mode-dependent. Update it after
 			 * possible mode change. TODO - kludgy. */
-			cs_threshold_calc_and_set();
+			cs_threshold_calc_and_set(channel);
 		}
 		break;
 
@@ -597,7 +444,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 
 	case UBERTOOTH_SET_SQUELCH:
 		cs_threshold_req = (int8_t)request_params[0];
-		cs_threshold_calc_and_set();
+		cs_threshold_calc_and_set(channel);
 		break;
 
 	case UBERTOOTH_GET_SQUELCH:
@@ -648,7 +495,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 	case UBERTOOTH_SET_CLOCK:
 		clock = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 		clkn = clock;
-		cs_threshold_calc_and_set();
+		cs_threshold_calc_and_set(channel);
 		break;
 
 	case UBERTOOTH_SET_AFHMAP:
@@ -687,7 +534,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		requested_mode = MODE_BT_FOLLOW_LE;
 
 		queue_init();
-		cs_threshold_calc_and_set();
+		cs_threshold_calc_and_set(channel);
 		break;
 
 	case UBERTOOTH_GET_ACCESS_ADDRESS:
@@ -741,7 +588,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		requested_mode = MODE_BT_PROMISC_LE;
 
 		queue_init();
-		cs_threshold_calc_and_set();
+		cs_threshold_calc_and_set(channel);
 		break;
 
 	case UBERTOOTH_READ_REGISTER:
@@ -799,40 +646,6 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 	return 1;
 }
 
-static void clkn_init()
-{
-	/*
-	 * Because these are reset defaults, we're assuming TIMER0 is powered on
-	 * and in timer mode.  The TIMER0 peripheral clock should have been set by
-	 * clock_start().
-	 */
-
-	/* stop and reset the timer to zero */
-	T0TCR = TCR_Counter_Reset;
-	clkn = 0;
-
-#ifdef TC13BADGE
-	/*
-	 * The peripheral clock has a period of 33.3ns.  3 pclk periods makes one
-	 * CLK100NS period (100 ns).
-	 */
-	T0PR = 2;
-#else
-	/*
-	 * The peripheral clock has a period of 20ns.  5 pclk periods
-	 * makes one CLK100NS period (100 ns).
-	 */
-	T0PR = 4;
-#endif
-	/* 3125 * 100 ns = 312.5 us, the Bluetooth clock (CLKN). */
-	T0MR0 = 3124;
-	T0MCR = TMCR_MR0R | TMCR_MR0I;
-	ISER0 = ISER0_ISE_TIMER0;
-
-	/* start timer */
-	T0TCR = TCR_Counter_Enable;
-}
-
 /* Update CLKN. */
 void TIMER0_IRQHandler()
 {
@@ -885,7 +698,6 @@ void TIMER0_IRQHandler()
 
 /* EINT3 handler is also defined in ubertooth.c for TC13BADGE. */
 #ifndef TC13BADGE
-//static volatile u8 txledstate = 1;
 void EINT3_IRQHandler()
 {
 	/* TODO - check specific source of shared interrupt */
@@ -907,212 +719,39 @@ static void msleep(uint32_t millis)
 	do { } while (clkn < stop_at);                   // TODO: handle wrapping
 }
 
-static void dma_init()
-{
-	/* power up GPDMA controller */
-	PCONP |= PCONP_PCGPDMA;
-
-	/* zero out channel configs and clear interrupts */
-	DMACC0Config = 0;
-	DMACC1Config = 0;
-	DMACC2Config = 0;
-	DMACC3Config = 0;
-	DMACC4Config = 0;
-	DMACC5Config = 0;
-	DMACC6Config = 0;
-	DMACC7Config = 0;
-	DMACIntTCClear = 0xFF;
-	DMACIntErrClr = 0xFF;
-
-	/* DMA linked lists */
-	rx_dma_lli1.src = (u32)&(DIO_SSP_DR);
-	rx_dma_lli1.dest = (u32)&rxbuf1[0];
-	rx_dma_lli1.next_lli = (u32)&rx_dma_lli2;
-	rx_dma_lli1.control = (DMA_SIZE) |
-			(1 << 12) |        /* source burst size = 4 */
-			(1 << 15) |        /* destination burst size = 4 */
-			(0 << 18) |        /* source width 8 bits */
-			(0 << 21) |        /* destination width 8 bits */
-			DMACCxControl_DI | /* destination increment */
-			DMACCxControl_I;   /* terminal count interrupt enable */
-
-	rx_dma_lli2.src = (u32)&(DIO_SSP_DR);
-	rx_dma_lli2.dest = (u32)&rxbuf2[0];
-	rx_dma_lli2.next_lli = (u32)&rx_dma_lli1;
-	rx_dma_lli2.control = (DMA_SIZE) |
-			(1 << 12) |        /* source burst size = 4 */
-			(1 << 15) |        /* destination burst size = 4 */
-			(0 << 18) |        /* source width 8 bits */
-			(0 << 21) |        /* destination width 8 bits */
-			DMACCxControl_DI | /* destination increment */
-			DMACCxControl_I;   /* terminal count interrupt enable */
-
-	/* disable DMA interrupts */
-	ICER0 = ICER0_ICE_DMA;
-
-	/* enable DMA globally */
-	DMACConfig = DMACConfig_E;
-	while (!(DMACConfig & DMACConfig_E));
-
-	/* configure DMA channel 1 */
-	DMACC0SrcAddr = rx_dma_lli1.src;
-	DMACC0DestAddr = rx_dma_lli1.dest;
-	DMACC0LLI = rx_dma_lli1.next_lli;
-	DMACC0Control = rx_dma_lli1.control;
-	DMACC0Config =
-			DIO_SSP_SRC |
-			(0x2 << 11) |           /* peripheral to memory */
-			DMACCxConfig_IE |       /* allow error interrupts */
-			DMACCxConfig_ITC;       /* allow terminal count interrupts */
-
-	/* reset interrupt counters */
-	rx_tc = 0;
-	rx_err = 0;
-}
-
-static void dma_init_le()
-{
-	int i;
-
-	/* power up GPDMA controller */
-	PCONP |= PCONP_PCGPDMA;
-
-	/* zero out channel configs and clear interrupts */
-	DMACC0Config = 0;
-	DMACC1Config = 0;
-	DMACC2Config = 0;
-	DMACC3Config = 0;
-	DMACC4Config = 0;
-	DMACC5Config = 0;
-	DMACC6Config = 0;
-	DMACC7Config = 0;
-	DMACIntTCClear = 0xFF;
-	DMACIntErrClr = 0xFF;
-
-	/* enable DMA globally */
-	DMACConfig = DMACConfig_E;
-	while (!(DMACConfig & DMACConfig_E));
-
-	for (i = 0; i < 11; ++i) {
-		le_dma_lli[i].src = (u32)&(DIO_SSP_DR);
-		le_dma_lli[i].dest = (u32)&rxbuf1[4 * i];
-		le_dma_lli[i].next_lli = i < 10 ? (u32)&le_dma_lli[i+1] : 0;
-		le_dma_lli[i].control = 4 |
-				(1 << 12) |        /* source burst size = 4 */
-				(0 << 15) |        /* destination burst size = 1 */
-				(0 << 18) |        /* source width 8 bits */
-				(0 << 21) |        /* destination width 8 bits */
-				DMACCxControl_DI | /* destination increment */
-				DMACCxControl_I;   /* terminal count interrupt enable */
-	}
-
-	/* configure DMA channel 0 */
-	DMACC0SrcAddr = le_dma_lli[0].src;
-	DMACC0DestAddr = le_dma_lli[0].dest;
-	DMACC0LLI = le_dma_lli[0].next_lli;
-	DMACC0Control = le_dma_lli[0].control;
-	DMACC0Config =
-			DIO_SSP_SRC |
-			(0x2 << 11) |           /* peripheral to memory */
-			DMACCxConfig_IE |       /* allow error interrupts */
-			DMACCxConfig_ITC;       /* allow terminal count interrupts */
-
-	/* reset interrupt counters */
-	rx_tc = 0;
-	rx_err = 0;
-}
-
-void bt_stream_dma_handler(void)
-{
-	/* interrupt on channel 0 */
-	if (DMACIntStat & (1 << 0)) {
-		if (DMACIntTCStat & (1 << 0)) {
-			DMACIntTCClear = (1 << 0);
-
-			if (hop_mode == HOP_BLUETOOTH)
-				DIO_SSEL_SET;
-
-			idle_buf_clk100ns  = CLK100NS;
-			idle_buf_clkn_high = (clkn >> 20) & 0xff;
-			idle_buf_channel   = channel;
-
-			/* Keep buffer swapping in sync with DMA. */
-			volatile uint8_t* tmp = active_rxbuf;
-			active_rxbuf = idle_rxbuf;
-			idle_rxbuf = tmp;
-
-			++rx_tc;
-		}
-		if (DMACIntErrStat & (1 << 0)) {
-			DMACIntErrClr = (1 << 0);
-			++rx_err;
-		}
-	}
-}
-
 void DMA_IRQHandler()
 {
-	switch (mode) {
-		case MODE_RX_SYMBOLS:
-		case MODE_SPECAN:
-		case MODE_BT_FOLLOW:
-		case MODE_BT_FOLLOW_LE:
-		case MODE_BT_PROMISC_LE:
-		case MODE_BT_SLAVE_LE:
-			bt_stream_dma_handler();
-			break;
+	if ( mode == MODE_RX_SYMBOLS
+	   || mode == MODE_SPECAN
+	   || mode == MODE_BT_FOLLOW_LE
+	   || mode == MODE_BT_PROMISC_LE
+	   || mode == MODE_BT_SLAVE_LE)
+	{
+		/* interrupt on channel 0 */
+		if (DMACIntStat & (1 << 0)) {
+			if (DMACIntTCStat & (1 << 0)) {
+				DMACIntTCClear = (1 << 0);
+
+				if (hop_mode == HOP_BLUETOOTH)
+					DIO_SSEL_SET;
+
+				idle_buf_clk100ns  = CLK100NS;
+				idle_buf_clkn_high = (clkn >> 20) & 0xff;
+				idle_buf_channel   = channel;
+
+				/* Keep buffer swapping in sync with DMA. */
+				volatile uint8_t* tmp = active_rxbuf;
+				active_rxbuf = idle_rxbuf;
+				idle_rxbuf = tmp;
+
+				++rx_tc;
+			}
+			if (DMACIntErrStat & (1 << 0)) {
+				DMACIntErrClr = (1 << 0);
+				++rx_err;
+			}
+		}
 	}
-}
-
-static void dio_ssp_start()
-{
-	/* make sure the (active low) slave select signal is not active */
-	DIO_SSEL_SET;
-
-	/* enable rx DMA on DIO_SSP */
-	DIO_SSP_DMACR |= SSPDMACR_RXDMAE;
-	DIO_SSP_CR1 |= SSPCR1_SSE;
-
-	/* enable DMA */
-	DMACC0Config |= DMACCxConfig_E;
-	ISER0 = ISER0_ISE_DMA;
-
-	/* activate slave select pin */
-	DIO_SSEL_CLR;
-}
-
-static void dio_ssp_stop()
-{
-	// disable CC2400's output (active low)
-	DIO_SSEL_SET;
-
-	// disable DMA on SSP; disable SSP
-	DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
-	DIO_SSP_CR1 &= ~SSPCR1_SSE;
-
-
-	// disable DMA engine:
-	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 607
-
-	// disable DMA interrupts
-	ICER0 = ICER0_ICE_DMA;
-
-	// disable active channels
-	DMACC0Config = 0;
-	DMACC1Config = 0;
-	DMACC2Config = 0;
-	DMACC3Config = 0;
-	DMACC4Config = 0;
-	DMACC5Config = 0;
-	DMACC6Config = 0;
-	DMACC7Config = 0;
-	DMACIntTCClear = 0xFF;
-	DMACIntErrClr = 0xFF;
-
-	// Disable the DMA controller by writing 0 to the DMA Enable bit in the DMACConfig
-	// register.
-	DMACConfig &= ~DMACConfig_E;
-	while (DMACConfig & DMACConfig_E);
 }
 
 static void cc2400_idle()
@@ -1128,7 +767,44 @@ static void cc2400_idle()
 	RXLED_CLR;
 	TXLED_CLR;
 	USRLED_CLR;
+
+	clkn_stop();
+	dio_ssp_stop();
+	cs_reset();
+	rssi_reset();
+
+	/* hopping stuff */
+	hop_mode = HOP_NONE;
+	do_hop = 0;
+	channel = 2441;
+	hop_direct_channel = 0;
+	hop_timeout = 158;
+	requested_channel = 0;
+	saved_request = 0;
+
+
+	/* bulk USB stuff */
+	idle_buf_clkn_high = 0;
+	idle_buf_clk100ns = 0;
+	idle_buf_channel = 0;
+	dma_discard = 0;
+	status = 0;
+
+	/* operation mode */
 	mode = MODE_IDLE;
+	requested_mode = MODE_IDLE;
+	jam_mode = JAM_NONE;
+	ego_mode = EGO_FOLLOW;
+
+	modulation = MOD_BT_BASIC_RATE;
+
+	/* specan stuff */
+	low_freq = 2400;
+	high_freq = 2483;
+	rssi_threshold = -30;
+
+	target.address = 0;
+	target.access_code = 0;
 }
 
 /* start un-buffered rx */
@@ -1158,7 +834,9 @@ static void cc2400_rx()
 	cc2400_set(MDMCTRL, mdmctrl);
 
 	// Set up CS register
-	cs_threshold_calc_and_set();
+	cs_threshold_calc_and_set(channel);
+
+	clkn_start();
 
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
@@ -1227,7 +905,9 @@ static void cc2400_rx_sync(u32 sync)
 	cc2400_set(MDMCTRL, mdmctrl);
 
 	// Set up CS register
-	cs_threshold_calc_and_set();
+	cs_threshold_calc_and_set(channel);
+
+	clkn_start();
 
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
@@ -1423,7 +1103,7 @@ void hop(void)
 		channel = hop_direct_channel;
 	}
 
-        /* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
+	/* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
 
@@ -1432,7 +1112,7 @@ void hop(void)
 
 	/* Update CS register if hopping.  */
 	if (hop_mode > 0) {
-		cs_threshold_calc_and_set();
+		cs_threshold_calc_and_set(channel);
 	}
 
 	/* Wait for lock */
@@ -1514,7 +1194,7 @@ void bt_stream_rx()
 			dma_discard = 0;
 		}
 
-		rssi_iir_update();
+		rssi_iir_update(channel);
 
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same
@@ -1531,7 +1211,7 @@ void bt_stream_rx()
 
 		enqueue(BR_PACKET, (uint8_t*)idle_rxbuf);
 
-	rx_continue:
+rx_continue:
 		handle_usb(clkn);
 		rx_tc = 0;
 		rx_err = 0;
@@ -1671,7 +1351,7 @@ void bt_generic_le(u8 active_mode)
 		if (rx_tc > 1)
 			status |= DMA_OVERFLOW;
 
-		rssi_iir_update();
+		rssi_iir_update(channel);
 
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same
@@ -1800,10 +1480,10 @@ void bt_le_sync(u8 active_mode)
 
 		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
 		for (i = 0; i < 4; i+= 4) {
-			uint32_t v = rxbuf1[i+0] << 24
-					   | rxbuf1[i+1] << 16
-					   | rxbuf1[i+2] << 8
-					   | rxbuf1[i+3] << 0;
+			uint32_t v = active_rxbuf[i+0] << 24
+					   | active_rxbuf[i+1] << 16
+					   | active_rxbuf[i+2] << 8
+					   | active_rxbuf[i+3] << 0;
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
@@ -1815,7 +1495,7 @@ void bt_le_sync(u8 active_mode)
 		// this allows us enough time to resume RX for subsequent packets on the same channel
 		unsigned total_transfers = ((len + 3) + 4 - 1) / 4;
 		if (total_transfers < 11) {
-			while (DMACC0DestAddr < (uint32_t)rxbuf1 + 4 * total_transfers && rx_err == 0)
+			while (DMACC0DestAddr < (uint32_t)active_rxbuf + 4 * total_transfers && rx_err == 0)
 				;
 		} else { // max transfers? just wait till DMA's done
 			while (DMACC0Config & DMACCxConfig_E && rx_err == 0)
@@ -1828,10 +1508,10 @@ void bt_le_sync(u8 active_mode)
 
 		// unwhiten the rest of the packet
 		for (i = 4; i < 44; i += 4) {
-			uint32_t v = rxbuf1[i+0] << 24
-					   | rxbuf1[i+1] << 16
-					   | rxbuf1[i+2] << 8
-					   | rxbuf1[i+3] << 0;
+			uint32_t v = active_rxbuf[i+0] << 24
+					   | active_rxbuf[i+1] << 16
+					   | active_rxbuf[i+2] << 8
+					   | active_rxbuf[i+3] << 0;
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
@@ -2341,7 +2021,7 @@ void bt_promisc_le() {
 		// if the PC hasn't given us AA, determine by listening
 		if (!le.target_set) {
 			// cs_threshold_req = -80;
-			cs_threshold_calc_and_set();
+			cs_threshold_calc_and_set(channel);
 			data_cb = cb_le_promisc;
 			bt_generic_le(MODE_BT_PROMISC_LE);
 		}
@@ -2519,12 +2199,13 @@ int main()
 	ubertooth_init();
 	clkn_init();
 	ubertooth_usb_init(vendor_request_handler);
+	cc2400_idle();
 
 	while (1) {
 		handle_usb(clkn);
 		if(requested_mode != mode) {
 			switch (requested_mode) {
-				 case MODE_RESET:
+				case MODE_RESET:
 					/* Allow time for the USB command to return correctly */
 					wait(1);
 					reset();
