@@ -2090,6 +2090,7 @@ void specan()
 	RXLED_SET;
 
 	queue_init();
+	clkn_start();
 
 #ifdef UBERTOOTH_ONE
 	PAEN_SET;
