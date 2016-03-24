@@ -688,6 +688,9 @@ void TIMER0_IRQHandler()
 			}
 		}
 
+		if(clk100ns_offset > 3124)
+			clkn += 2;
+
 		T0MR0 = 3124 + clk100ns_offset;
 		clk100ns_offset = 0;
 
