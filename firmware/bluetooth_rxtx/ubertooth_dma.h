@@ -23,6 +23,10 @@
 #define __UBERTOOTH_DMA_H value
 
 #include "inttypes.h"
+#include "ubertooth.h"
+
+volatile uint8_t rxbuf1[DMA_SIZE];
+volatile uint8_t rxbuf2[DMA_SIZE];
 
 /*
  * The active buffer is the one with an active DMA transfer.

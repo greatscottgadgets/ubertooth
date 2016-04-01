@@ -21,8 +21,6 @@
 
 #include "ubertooth_dma.h"
 
-#include "ubertooth.h"
-
 /* DMA linked list items */
 typedef struct {
 	uint32_t src;
@@ -35,9 +33,6 @@ dma_lli rx_dma_lli1;
 dma_lli rx_dma_lli2;
 
 dma_lli le_dma_lli[11]; // 11 x 4 bytes
-
-volatile uint8_t rxbuf1[DMA_SIZE];
-volatile uint8_t rxbuf2[DMA_SIZE];
 
 
 static void dma_enable(void)

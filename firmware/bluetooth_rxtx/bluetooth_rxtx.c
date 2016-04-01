@@ -1483,10 +1483,10 @@ void bt_le_sync(u8 active_mode)
 
 		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
 		for (i = 0; i < 4; i+= 4) {
-			uint32_t v = active_rxbuf[i+0] << 24
-					   | active_rxbuf[i+1] << 16
-					   | active_rxbuf[i+2] << 8
-					   | active_rxbuf[i+3] << 0;
+			uint32_t v = rxbuf1[i+0] << 24
+					   | rxbuf1[i+1] << 16
+					   | rxbuf1[i+2] << 8
+					   | rxbuf1[i+3] << 0;
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
@@ -1498,7 +1498,7 @@ void bt_le_sync(u8 active_mode)
 		// this allows us enough time to resume RX for subsequent packets on the same channel
 		unsigned total_transfers = ((len + 3) + 4 - 1) / 4;
 		if (total_transfers < 11) {
-			while (DMACC0DestAddr < (uint32_t)active_rxbuf + 4 * total_transfers && rx_err == 0)
+			while (DMACC0DestAddr < (uint32_t)rxbuf1 + 4 * total_transfers && rx_err == 0)
 				;
 		} else { // max transfers? just wait till DMA's done
 			while (DMACC0Config & DMACCxConfig_E && rx_err == 0)
@@ -1511,10 +1511,10 @@ void bt_le_sync(u8 active_mode)
 
 		// unwhiten the rest of the packet
 		for (i = 4; i < 44; i += 4) {
-			uint32_t v = active_rxbuf[i+0] << 24
-					   | active_rxbuf[i+1] << 16
-					   | active_rxbuf[i+2] << 8
-					   | active_rxbuf[i+3] << 0;
+			uint32_t v = rxbuf1[i+0] << 24
+					   | rxbuf1[i+1] << 16
+					   | rxbuf1[i+2] << 8
+					   | rxbuf1[i+3] << 0;
 			packet[i/4+1] = rbit(v) ^ whit[i/4];
 		}
 
