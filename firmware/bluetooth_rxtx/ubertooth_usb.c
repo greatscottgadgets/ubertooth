@@ -49,6 +49,7 @@
 
 #include "usbapi.h"
 #include "usbhw_lpc.h"
+#include "ubertooth.h"
 #include "ubertooth_usb.h"
 #include <string.h>
 
@@ -78,7 +79,7 @@
  * atomicity of the operations on head and tail.
  */
 
-static const u8 abDescriptors[] = {
+static u8 abDescriptors[] = {
 
 /* Device descriptor */
 	0x12,
@@ -155,14 +156,18 @@ static const u8 abDescriptors[] = {
 	'r', 0, 'x', 0, 't', 0, 'x', 0,
 
 	// serial number string
-	0x12,
+	0x42,
 	DESC_STRING,
+	'0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,
+	'0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,
+	'0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,
 	'0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '1', 0,
 
 	// terminator
 	0
 };
 
+#define USB_SERIAL_OFFSET 178
 
 u8 abVendorReqData[258];
 
@@ -188,11 +193,31 @@ BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
 	return (BOOL) (rv==1);
 }
 
+
+void set_serial_descriptor(u8 *descriptors) {
+	u8 buf[17], *desc, nibble;
+	int len, i;
+	get_device_serial(buf, &len);
+	if(buf[0] == 0) { /* IAP success */
+		desc = descriptors + USB_SERIAL_OFFSET;
+		for(i=0; i<=16; i++) {
+			nibble  = (buf[i+1]>>4) & 0xF;
+			desc[i * 4] = (nibble > 9) ? ('a' + nibble - 10) : ('0' + nibble);
+			desc[1+ i * 4] = 0;
+			nibble = buf[i+1]&0xF;
+			desc[2 + i * 4] = (nibble > 9) ? ('a' + nibble - 10) : ('0' + nibble);
+			desc[3 + i * 4] = 0;
+		}
+	}
+}
+
 int ubertooth_usb_init(VendorRequestHandler *vendor_req_handler)
 {
 	// initialise stack
 	USBInit();
 
+	set_serial_descriptor(abDescriptors);
+	
 	// register device descriptors
 	USBRegisterDescriptors(abDescriptors);
 

@@ -113,7 +113,7 @@ BOOL USBHandleStandardRequest(TSetupPacket *pSetup, int *piLen, U8 **ppbData);
 void USBHandleControlTransfer(U8 bEP, U8 bEPStat);
 
 /** Descriptor handling */
-void USBRegisterDescriptors(const U8 *pabDescriptors);
+void USBRegisterDescriptors(U8 *pabDescriptors);
 BOOL USBGetDescriptor(U16 wTypeIndex, U16 wLangID, int *piLen, U8 **ppbData);
 
 

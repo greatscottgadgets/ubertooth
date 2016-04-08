@@ -330,8 +330,6 @@ static void cs_trigger_disable(void)
 
 static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int *data_len)
 {
-	u32 command[5];
-	u32 result[5];
 	u64 ac_copy;
 	u32 clock;
 	int clock_offset;
@@ -399,14 +397,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_GET_PARTNUM:
-		command[0] = 54; /* read part number */
-		iap_entry(command, result);
-		data[0] = result[0] & 0xFF; /* status */
-		data[1] = result[1] & 0xFF;
-		data[2] = (result[1] >> 8) & 0xFF;
-		data[3] = (result[1] >> 16) & 0xFF;
-		data[4] = (result[1] >> 24) & 0xFF;
-		*data_len = 5;
+		get_part_num(data, data_len);
 		break;
 
 	case UBERTOOTH_RESET:
@@ -414,26 +405,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_GET_SERIAL:
-		command[0] = 58; /* read device serial number */
-		iap_entry(command, result);
-		data[0] = result[0] & 0xFF; /* status */
-		data[1] = result[1] & 0xFF;
-		data[2] = (result[1] >> 8) & 0xFF;
-		data[3] = (result[1] >> 16) & 0xFF;
-		data[4] = (result[1] >> 24) & 0xFF;
-		data[5] = result[2] & 0xFF;
-		data[6] = (result[2] >> 8) & 0xFF;
-		data[7] = (result[2] >> 16) & 0xFF;
-		data[8] = (result[2] >> 24) & 0xFF;
-		data[9] = result[3] & 0xFF;
-		data[10] = (result[3] >> 8) & 0xFF;
-		data[11] = (result[3] >> 16) & 0xFF;
-		data[12] = (result[3] >> 24) & 0xFF;
-		data[13] = result[4] & 0xFF;
-		data[14] = (result[4] >> 8) & 0xFF;
-		data[15] = (result[4] >> 16) & 0xFF;
-		data[16] = (result[4] >> 24) & 0xFF;
-		*data_len = 17;
+		get_device_serial(data, data_len);
 		break;
 
 #ifdef UBERTOOTH_ONE
@@ -542,8 +514,7 @@ static int vendor_request_handler(u8 request, u16 *request_params, u8 *data, int
 		break;
 
 	case UBERTOOTH_SET_ISP:
-		command[0] = 57;
-		iap_entry(command, result);
+		set_isp();
 		*data_len = 0; /* should never return */
 		break;
 

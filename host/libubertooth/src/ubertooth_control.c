@@ -274,19 +274,14 @@ int cmd_get_partnum(struct libusb_device_handle* devh)
 
 void print_serial(u8 *serial, FILE *fileptr)
 {
-	if(fileptr != NULL) {
-		fprintf(fileptr, "Serial No: ");
-		fprintf(fileptr, "%08x", serial[1] | (serial[2] << 8) | (serial[3] << 16) | (serial[4] << 24));
-		fprintf(fileptr, "%08x", serial[5] | (serial[6] << 8) | (serial[7] << 16) | (serial[8] << 24));
-		fprintf(fileptr, "%08x", serial[9] | (serial[10] << 8) | (serial[11] << 16) | (serial[12] << 24));
-		fprintf(fileptr, "%08x\n", serial[13] | (serial[14] << 8) | (serial[15] << 16) | (serial[16] << 24));
-	} else {
-		printf("Serial No: ");
-		printf("%08x", serial[1] | (serial[2] << 8) | (serial[3] << 16) | (serial[4] << 24));
-		printf("%08x", serial[5] | (serial[6] << 8) | (serial[7] << 16) | (serial[8] << 24));
-		printf("%08x", serial[9] | (serial[10] << 8) | (serial[11] << 16) | (serial[12] << 24));
-		printf("%08x\n", serial[13] | (serial[14] << 8) | (serial[15] << 16) | (serial[16] << 24));
-	}
+	int i;
+	if(fileptr == NULL)
+		fileptr = stdout;
+
+	fprintf(fileptr, "Serial No: ");
+	for(i=1; i<17; i++)
+		fprintf(fileptr, "%02x", serial[i]);
+	fprintf(fileptr, "\n");
 }
 
 int cmd_get_serial(struct libusb_device_handle* devh, u8 *serial)

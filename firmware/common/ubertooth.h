@@ -335,5 +335,8 @@ void cc2400_tune_rx(uint16_t channel);
 void cc2400_tune_tx(uint16_t channel);
 void cc2400_hop_rx(uint16_t channel);
 void cc2400_hop_tx(uint16_t channel);
+void get_part_num(uint8_t *buffer, int *len);
+void get_device_serial(uint8_t *buffer, int *len);
+void set_isp(void);
 
 #endif /* __UBERTOOTH_H */

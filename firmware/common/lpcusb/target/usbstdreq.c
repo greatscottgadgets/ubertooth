@@ -255,7 +255,7 @@ BOOL USBGetOsStringDescriptor(int *piLen, U8 **ppbData)
 
 	@param [in]	pabDescriptors	The descriptor byte array
  */
-void USBRegisterDescriptors(const U8 *pabDescriptors)
+void USBRegisterDescriptors(U8 *pabDescriptors)
 {
 	pabDescrip = pabDescriptors;
 }

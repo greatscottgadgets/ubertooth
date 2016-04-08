@@ -544,7 +544,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 	int offset;
 	uint16_t clk_offset;
 	uint32_t clkn;
-	int i;
+	int i, r;
 	uint32_t lap = LAP_ANY;
 	uint8_t uap = UAP_ANY;
 
@@ -604,6 +604,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 	if (infile == NULL)
 		systime = time(NULL);
 
+	printf("\n");
 	printf("systime=%u ch=%2d LAP=%06x err=%u clkn=%u clk_offset=%u s=%d n=%d snr=%d\n",
 	       (uint32_t)time(NULL),
 	       btbb_packet_get_channel(pkt),
@@ -632,17 +633,20 @@ void cb_rx(ubertooth_t* ut, void* args)
 		goto out;
 	}
 
+	r = btbb_process_packet(pkt, pn);
+	r = btbb_packet_get_type(pkt);
+	
 	/* If dumpfile is specified, write out all banks to the
 	 * file. There could be duplicate data in the dump if more
 	 * than one LAP is found within the span of NUM_BANKS. */
-	if (dumpfile) {
+	if (dumpfile && r==3) {
 		uint32_t systime_be = htobe32(systime);
 		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
 		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
 	
-	int r = btbb_process_packet(pkt, pn);
+	
 
 	/* Dump to PCAP/PCAPNG if specified */
 	if (ut->h_pcap_bredr) {

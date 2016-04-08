@@ -63,7 +63,7 @@ static U8 rxdata[VCOM_FIFO_SIZE];
 static fifo_t txfifo;
 static fifo_t rxfifo;
 
-static const U8 abDescriptors[] = {
+static U8 abDescriptors[] = {
 
 // device descriptor
 	0x12,

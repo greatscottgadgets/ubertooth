@@ -574,5 +574,54 @@ void cc2400_hop_tx(uint16_t channel)
 	cc2400_strobe(SRX);
 }
 
+void get_part_num(uint8_t *buffer, int *len)
+{
+	u32 command[5];
+	u32 result[5];
+	command[0] = 54; /* read part number */
+	iap_entry(command, result);
+	buffer[0] = result[0] & 0xFF; /* status */
+	buffer[1] = result[1] & 0xFF;
+	buffer[2] = (result[1] >> 8) & 0xFF;
+	buffer[3] = (result[1] >> 16) & 0xFF;
+	buffer[4] = (result[1] >> 24) & 0xFF;
+	*len = 5;
+	
+}
+
+void get_device_serial(uint8_t *buffer, int *len)
+{
+	u32 command[5];
+	u32 result[5];
+	command[0] = 58; /* read device serial number */
+	iap_entry(command, result);
+	buffer[0] = result[0] & 0xFF; /* status */
+	buffer[1] = (result[1] >> 24) & 0xFF;
+	buffer[2] = (result[1] >> 16) & 0xFF;
+	buffer[3] = (result[1] >> 8) & 0xFF;
+	buffer[4] = result[1] & 0xFF;
+	buffer[5] = (result[2] >> 24) & 0xFF;
+	buffer[6] = (result[2] >> 16) & 0xFF;
+	buffer[7] = (result[2] >> 8) & 0xFF;
+	buffer[8] = result[2] & 0xFF;
+	buffer[9] = (result[3] >> 24) & 0xFF;
+	buffer[10] = (result[3] >> 16) & 0xFF;
+	buffer[11] = (result[3] >> 8) & 0xFF;
+	buffer[12] = result[3] & 0xFF;
+	buffer[13] = (result[4] >> 24) & 0xFF;
+	buffer[14] = (result[4] >> 16) & 0xFF;
+	buffer[15] = (result[4] >> 8) & 0xFF;
+	buffer[16] = result[4] & 0xFF;
+	*len = 17;
+}
+
+void set_isp(void)
+{
+	u32 command[5];
+	u32 result[5];
+	command[0] = 57;
+	iap_entry(command, result);
+}
+
 //FIXME ssp
 //FIXME tx/rx
