@@ -330,7 +330,7 @@ int dfu_get_status(libusb_device_handle* devh) {
 }
 
 int download(libusb_device_handle* devh, FILE* downfile) {
-	int address, length, block, rv;
+	int address, length, block, rv, block_count=1;
 	uint8_t buffer[BLOCK_SIZE];
 	address = BOOTLOADER_OFFSET + BOOTLOADER_SIZE;
 	block = address / BLOCK_SIZE;
@@ -361,8 +361,12 @@ int download(libusb_device_handle* devh, FILE* downfile) {
 		}
 		dfu_get_status(devh);
 		fprintf(stdout, ".");
-		fflush(stdout);
+		if(block_count % 40)
+			fflush(stdout);
+		else
+			fprintf(stdout, "\n");
 		block++;
+		block_count++;
 	}
 	fprintf(stdout, "\n");
 	return 0;
