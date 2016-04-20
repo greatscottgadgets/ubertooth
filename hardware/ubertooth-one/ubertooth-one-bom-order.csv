@@ -1,45 +1,44 @@
-ref,amount,value,brand,Manufacturer name,description,comment 1,comment 2,Mouser Part Number,Price 1,Stock,Suggested Replacement,Min\Mult Order Qty,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C1,1,2p2,Murata,GRM1555C1H2R2BZ01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 2.2pF 50volts C0G +/-0.1pF,,,81-GRM36C2R2B50,,,81-GRM1555C1H2R2BA1D,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"C15, C20, C23",3,68pF,AVX,04025A680JAT2A,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 68pF 50volts C0G 5%,,,581-04025A680J,$0.10,"34,031",581-04025A680JAT4A,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"C16, C24, C25",3,100nF,Murata,GRM155R71C104KA88D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.1uF 16volts X7R 10%,,,81-GRM155R71C104KA88,$0.10,"5,854,158",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C17,1,10nF,Murata,GRM155R71E103KA01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 0.01uF 25volts X7R 10%,,,81-GRM36X103K25,$0.10,"555,464",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"C18, C32",2,2.2µF,TDK,C1608X5R1C225K,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 16volts 2.2uF X5R 10%,,,810-C1608X5R1C225K,$0.17,"31,506",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"C19, C21",2,27pF,TDK,C1608C0G1H270J080AA,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 27pF 50volts C0G 5%,,,810-C1608C0G1H270J,$0.10,"36,214",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"C2, C6, C12, C14",4,1nF,Murata,GRM1555C1H102JA01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1000pF 50volts C0G 5%,,,81-GRM1555C1H102JA1D,$0.10,"361,599",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C22,1,1µF,TDK,C1608X5R1C105K080AA,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 1uF 16volts X5R 10%,,,810-C1608X5R1C105K,$0.10,"53,748",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"C26, C27, C28, C30, C33, C34",6,100nF,TDK,C1608X7R1H104K080AA,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.1uF 50volts X7R 10%,,,810-C1608X7R1H104K,$0.10,"120,743",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C29,1,220pF,TDK,C1608X7R1H221K,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 220pF 50volts X7R 10%,,,810-C1608X7R1H221K,,,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C3,1,1pF,Murata,GRM1555C1H1R0BZ01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 1.0pF 50volts C0G +/-0.1pF,,,81-GRM36C010B50,,,81-GRM1555C1H1R0BA1D,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C31,1,100pF,TDK,C1608C0G1H101J080AA,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 100pF 50volts C0G 5%,,,810-C1608C0G1H101J,$0.10,"134,650",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C35,1,10nF,Murata,GRM188R71H103KA01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 0.01uF 50volts X7R 10%,,,81-GRM39X103K50D,$0.10,"682,844",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C36,1,15pF,Murata,GRM1885C1H150JA01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0603 15pF 50volts C0G 5%,,,81-GRM39C150J50,$0.10,"25,930",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C4,1,18pF,Murata,GRM1555C1H180JZ01J,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 18pF 50volts C0G 5%,,,81-GRM155C1H180JZ01J,,,81-GRM1555C1H180JA1J,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C5,1,6p8,Murata,GRM1555C1H6R8CZ01D,Multilayer Ceramic Capacitors (MLCC) - SMD/SMT 0402 6.8pF 50volts 0.1pF,,,81-GRM1555C1H6R8CZ01,,,81-GRM1555C1H6R8CA1D,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-C9,1,10pF,Murata,GJM1555C1H100JB01D,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 10pF 50Volts C0G 5%,,,81-GJM1555C1H100JB01,$0.12,"86,662",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-D1,1,1V8LED,Kingbright,APT1608SGC,Standard LED - SMD GREEN WATER CLEAR,,,604-APT1608SGC,$0.14,"78,760",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-D2,1,TXLED,OSRAM,LY L29K-H1K2-26-Z,Standard LED - SMD Yellow,587nm 28mcd,2mA,720-LYL29KH1K226Z,$0.37,"26,602",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-D3,1,RXLED,OSRAM,LO L29K-J2L1-24-Z,Standard LED - SMD Orange,606nm 14mcd,2mA,720-LOL29KJ2L124Z,$0.32,"14,473",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"D4, D6",2,USRLED,Kingbright,APT1608EC,Standard LED - SMD HI EFF RED WTR CLR,,,604-APT1608EC,$0.13,"18,925",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-D5,1,RSTLED,Kingbright,APT1608SGC,Standard LED - SMD GREEN WATER CLEAR,,,604-APT1608SGC,$0.14,"78,760",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-FB5,1,FILTER,Murata,BLM18TG601TN1D,EMI/RFI Suppressors & Ferrites 600 Ohm 25%,,,81-BLM18TG601TN1D,$0.10,"10,040",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-J1,1,USB-DEVICE,Molex,48037-1000,USB & Firewire Connectors TYPE A RA SHLDED PLG SMT AU,,,538-48037-1000,$1.19,"21,743",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-L1,1,3nH,Murata,LQG15HN3N0S02D,RF Inductor,,,81-LQG15HN3N0S02D,$0.10,"9,653",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-L2,1,2n2,Murata,LQW15AN2N2C10D,Power Inductors 2.2 NH +-.2NH,,,81-LQW15AN2N2C10D,$0.20,"37,650",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-P1,1,SMA-CONN,Connector City,CONREVSMA003.062,RF Connectors RP-SMA Fml Edge Mnt for 0.062 Thick Brd,,,712-CONREVSMA003.062,$3.60,900,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-Q1,1,BC856,NXP,BC856AT,115,PNP general purpose transistor,,583-BC856A-T,$0.06,985,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-R1,1,4k3,KOA Speer,RK73H1ETTP4301F,Thick Film Resistors - SMD 0402 1/16watt 4.3Kohms 1%,,,660-RK73H1ETTP4301F,$0.10,"19,269",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-R11,1,2k2,Bourns,CR0603-JW-222ELF,Thick Film Resistors - SMD 0603 2.2KOHMS 5% 1/10WATT,,,652-CR0603-JW-222ELF,$0.10,"107,832",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"R12, R13",2,33,Vishay/Dale,CRCW060333R0FKEA,Thick Film Resistors - SMD 0603 1/16watt 33ohms 1% 100ppm,,,71-CRCW0603-33-E3,$0.10,"150,184",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-R16,1,1k5,Bourns,CR0603-JW-152ELF,Thick Film Resistors - SMD 0603 1.5KOHMS 5% 1/10WATT,,,652-CR0603-JW-152ELF,$0.10,"69,319",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-R18,1,49.9k,Panasonic,ERJ-3EKF4992V,Thick Film Resistors - SMD Thick Film Chip Res 0603 1% Precision,,,667-ERJ-3EKF4992V,$0.10,"162,884",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-R19,1,30.1k,Panasonic,ERJ-3EKF3012V,Thick Film Resistors - SMD Thick Film Chip Res 0603 1% Precision,,,667-ERJ-3EKF3012V,$0.10,"65,319",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-R2,1,43k,KOA Speer,RK73H1ETTP4302F,Thick Film Resistors - SMD 0402 1/16watts 43Kohms 1%,,,660-RK73H1ETTP4302F,$0.10,"22,212",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"R3, R9, R10, R14, R17",5,10k,Bourns,CR0603-JW-103ELF,Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT,,,652-CR0603-JW-103ELF,$0.10,"52,697",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"R4, R7, R8, R15",4,330,Bourns,CR0603-JW-331ELF,Thick Film Resistors - SMD 0603 330OHMS 5% 1/10WATT,,,652-CR0603-JW-331ELF,$0.10,"15,315",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-"R5, R6",2,470,Bourns,CR0603-JW-471ELF,Thick Film Resistors - SMD 0603 470OHMS 5% 1/10WATT,,,652-CR0603JW-471ELF,$0.10,"60,136",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-U1,1,CC2591,Texas Instruments,CC2591RGVR,RF Front End 2.4 GHz,,,595-CC2591RGVR,$4.86,"2,215",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-U3,1,CC2400,Texas Instruments,CC2400-RTB1,RF Receiver Lo-Pwr Sgl-Chip 2.4 GHz ISM Band Trnscvr,,,595-CC2400-RTB1,$9.77,,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-U4,1,LPC175X,NXP,LPC1754FBD80,551,Microcontrollers (MCU) ARM Cortex M3 Micro Controller,,771-LPC1754FBD80551,$7.85,296,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-U6,1,IP4220CZ6,NXP,IP4220CZ6,125,ESD Suppressors USB2.0 ESD PROTECT DUAL,,771-IP4220CZ6-T/R,$0.41,"27,603",,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-U7,1,TPS71219,Texas Instruments,TPS71219DRCT,Low Dropout (LDO) Regulators Dual 250 mA Output UltraLow Noise,,,595-TPS71219DRCT,$2.52,665,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-X1,1,ABMM2,Abracon,ABMM2-16.000MHZ-E2-T,Crystals +/-20PPM 16MHz,,,815-ABMM2-16-E2T,$1.16,,,1\1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Customer Part #,Mouser #,Mfr. #,Manufacturer,Desc.,RoHS,Lifecycle,Order Qty.,Price (USD),Ext.: (USD)
+C29,581-06035C221K,06035C221KAT2A,AVX,Multilayer Ceramic Capacitors MLCC - SMD/SMT 50volts 220pF 10% X7R,RoHS Compliant By Exemption,,1,$0.15,$0.15
+C1,81-GRM1555C1H2R2BA1D,GRM1555C1H2R2BA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 2.2pF 50volts C0G +/-0.1pF,RoHS Compliant,,1,$0.10,$0.10
+"C15, C20, C23",581-04025A680J,04025A680JAT2A,AVX,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 68pF 50volts C0G 5%,RoHS Compliant,,3,$0.10,$0.30
+"C16, C24, C25",81-GRM155R71C104KA88,GRM155R71C104KA88D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 0.1uF 16volts X7R 10%,RoHS Compliant,,3,$0.10,$0.30
+C17,81-GRM36X103K25,GRM155R71E103KA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 0.01uF 25volts X7R 10%,RoHS Compliant,,1,$0.10,$0.10
+"C18, C32",810-C1608X5R1C225K,C1608X5R1C225K,TDK,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 16volts 2.2uF X5R 10%,RoHS Compliant,,2,$0.17,$0.34
+"C19, C21",810-C1608C0G1H270J,C1608C0G1H270J080AA,TDK,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 27pF 50volts C0G 5%,RoHS Compliant,,2,$0.10,$0.20
+"C2, C6, C12, C14",81-GRM1555C1H102JA1D,GRM1555C1H102JA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 1000pF 50volts C0G 5%,RoHS Compliant,,4,$0.10,$0.40
+C22,810-C1608X5R1C105K,C1608X5R1C105K080AA,TDK,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 1uF 16volts X5R 10%,RoHS Compliant,,1,$0.10,$0.10
+"C26, C27, C28, C30, C",810-C1608X7R1H104K,C1608X7R1H104K080AA,TDK,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 0.1uF 50volts X7R 10%,RoHS Compliant,,6,$0.10,$0.60
+C3,81-GRM1555C1H1R0BA1D,GRM1555C1H1R0BA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 1.0pF 50volts C0G +/-0.1pF,RoHS Compliant,,1,$0.10,$0.10
+C31,810-C1608C0G1H101J,C1608C0G1H101J080AA,TDK,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 100pF 50volts C0G 5%,RoHS Compliant,,1,$0.10,$0.10
+C35,81-GRM39X103K50D,GRM188R71H103KA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 0.01uF 50volts X7R 10%,RoHS Compliant,,1,$0.10,$0.10
+C36,81-GRM39C150J50,GRM1885C1H150JA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0603 15pF 50volts C0G 5%,RoHS Compliant,,1,$0.10,$0.10
+C4,81-GRM1555C1H180JA1J,GRM1555C1H180JA01J,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 18pF 50volts C0G 5%,RoHS Compliant,,1,$0.14,$0.14
+C5,81-GRM1555C1H6R8CA1D,GRM1555C1H6R8CA01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 6.8pF 50volts C0G +/-0.25pF,RoHS Compliant,,1,$0.10,$0.10
+C9,81-GJM1555C1H100JB01,GJM1555C1H100JB01D,Murata,Multilayer Ceramic Capacitors MLCC - SMD/SMT 0402 10pF 50Volts C0G 5%,RoHS Compliant,,1,$0.12,$0.12
+D2,720-LYL29KH1K226Z,LY L29K-H1K2-26-Z,Osram Opto Semiconductor,"Standard LEDs - SMD Yellow, 587nm 28mcd, 2mA",RoHS Compliant,,1,$0.37,$0.37
+D3,720-LOL29KJ2L124Z,LO L29K-J2L1-24-Z,Osram Opto Semiconductor,"Standard LEDs - SMD Orange, 606nm 14mcd, 2mA",RoHS Compliant,,1,$0.32,$0.32
+"D4, D6",604-APT1608EC,APT1608EC,Kingbright,Standard LEDs - SMD HI EFF RED WTR CLR,RoHS Compliant,,2,$0.13,$0.26
+D5,604-APT1608SGC,APT1608SGC,Kingbright,Standard LEDs - SMD GREEN WATER CLEAR,RoHS Compliant,,2,$0.14,$0.28
+FB5,81-BLM18TG601TN1D,BLM18TG601TN1D,Murata,"EMI Filter Beads, Chips & Arrays 600 Ohm 25%",RoHS Compliant,,1,$0.10,$0.10
+J1,538-48037-1000,48037-1000,Molex,USB Connectors TYPE A RA SHLDED PLG SMT AU,RoHS Compliant,,1,$1.19,$1.19
+L1,81-LQG15HN3N0S02D,LQG15HN3N0S02D,Murata,Fixed Inductors 0402 3.0nH +/-0.3nH Chip Inductor,RoHS Compliant,,1,$0.10,$0.10
+L2,81-LQW15AN2N2C10D,LQW15AN2N2C10D,Murata,Fixed Inductors 2.2 NH +-.2NH,RoHS Compliant,,1,$0.20,$0.20
+P1,712-CONREVSMA003.062,CONREVSMA003.062,Linx Technologies,"RF Connectors / Coaxial Connectors RP-SMA Fml Edge Mnt for 0.062"" Thick Brd",RoHS Compliant,,1,$3.60,$3.60
+Q1,583-BC856A-T,BC856A-T,Rectron,Bipolar Transistors - BJT Transistor PNP,RoHS Compliant,,1,$0.06,$0.06
+R1,660-RK73H1ETTP4301F,RK73H1ETTP4301F,KOA Speer,Thick Film Resistors - SMD 1/16watt 4.3Kohms 1%,RoHS Compliant By Exemption,,1,$0.10,$0.10
+R11,652-CR0603-JW-222ELF,CR0603-JW-222ELF,Bourns,Thick Film Resistors - SMD 0603 2.2KOHMS 5% 1/10WATT,RoHS Compliant By Exemption,,1,$0.10,$0.10
+"R12, R13",71-CRCW0603-33-E3,CRCW060333R0FKEA,Vishay,Thick Film Resistors - SMD 1/10watt 33ohms 1%,RoHS Compliant By Exemption,,2,$0.10,$0.20
+R16,652-CR0603-JW-152ELF,CR0603-JW-152ELF,Bourns,Thick Film Resistors - SMD 0603 1.5KOHMS 5% 1/10WATT,RoHS Compliant By Exemption,,1,$0.10,$0.10
+R18,667-ERJ-3EKF4992V,ERJ-3EKF4992V,Panasonic,Thick Film Resistors - SMD 0603 49.9Kohms 1% AEC-Q200,RoHS Compliant By Exemption,,1,$0.10,$0.10
+R19,667-ERJ-3EKF3012V,ERJ-3EKF3012V,Panasonic,Thick Film Resistors - SMD 0603 30.1Kohms 1% AEC-Q200,RoHS Compliant By Exemption,,1,$0.10,$0.10
+R2,660-RK73H1ETTP4302F,RK73H1ETTP4302F,KOA Speer,Thick Film Resistors - SMD 1/16watts 43Kohms 1%,RoHS Compliant By Exemption,,1,$0.10,$0.10
+"R3, R9, R10, R14, R17",652-CR0603-JW-103ELF,CR0603-JW-103ELF,Bourns,Thick Film Resistors - SMD 0603 10KOHMS 5% 1/10WATT,RoHS Compliant By Exemption,,5,$0.10,$0.50
+"R4, R7, R8, R15",652-CR0603-JW-331ELF,CR0603-JW-331ELF,Bourns,Thick Film Resistors - SMD 330 OHM 5%,RoHS Compliant By Exemption,,4,$0.10,$0.40
+"R5, R6",652-CR0603JW-471ELF,CR0603-JW-471ELF,Bourns,Thick Film Resistors - SMD 470 ohm 5%,RoHS Compliant By Exemption,,2,$0.10,$0.20
+U1,595-CC2591RGVR,CC2591RGVR,Texas Instruments,RF Front End 2.4 GHz RF Front End,RoHS Compliant,,1,$4.86,$4.86
+U3,595-CC2400-RTB1,CC2400-RTB1,Texas Instruments,RF Transceiver Lo-Pwr Sgl-Chip 2.4 GHz ISM Band Trnscvr,RoHS Compliant,NRND,1,$9.77,$9.77
+U4,771-LPC1754FBD80551,"LPC1754FBD80,551",NXP,ARM Microcontrollers - MCU ARM Cortex M3 Micro Controller,RoHS Compliant,,1,$7.85,$7.85
+U6,771-IP4220CZ6-T/R,"IP4220CZ6,125",NXP,ESD Suppressors USB2.0 ESD PROTECT DUAL,RoHS Compliant,,1,$0.41,$0.41
+U7,595-TPS71219DRCT,TPS71219DRCT,Texas Instruments,LDO Voltage Regulators Dual 250 mA Output UltraLow Noise,RoHS Compliant,,1,$2.52,$2.52
+X1,815-ABMM2-16-E2T,ABMM2-16.000MHZ-E2-T,ABRACON,Crystals +/-20PPM 16MHz,RoHS Compliant,,1,$1.16,$1.16
