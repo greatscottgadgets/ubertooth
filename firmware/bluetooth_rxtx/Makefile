@@ -8,6 +8,10 @@ SRC = $(TARGET).c \
 	bluetooth.c \
 	bluetooth_le.c \
 	ubertooth_usb.c \
+	ubertooth_rssi.c \
+	ubertooth_cs.c \
+	ubertooth_clock.c \
+	ubertooth_dma.c \
 	cc2400_rangetest.c \
 	ego.c \
 	$(LIBS_PATH)/usb_serial.c \

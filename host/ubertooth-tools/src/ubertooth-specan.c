@@ -34,10 +34,12 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
 	int r, j;
 	uint16_t frequency;
+	int8_t rssi;
 
 	/* process each received block */
 	for (j = 0; j < DMA_SIZE-2; j += 3) {
 		frequency = (rx->data[j] << 8) | rx->data[j + 1];
+		rssi = (int8_t)rx->data[j + 2];
 		switch(output_mode) {
 			case SPECAN_FILE:
 				r = fwrite(&rx->data[j], 1, 3, dumpfile);
@@ -48,16 +50,16 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 				break;
 			case SPECAN_STDOUT:
 				printf("%f, %d, %d\n", ((double)rx->clk100ns)/10000000,
-				       frequency, rx->data[j + 2]);
+				       frequency, rssi);
 				break;
 			case SPECAN_GNUPLOT_NORMAL:
-				printf("%d %d\n", frequency, rx->data[j + 2]);
+				printf("%d %d\n", frequency, rssi);
 				if(frequency == high_freq)
 					printf("\n");
 				break;
 			case SPECAN_GNUPLOT_3D:
 				printf("%f %d %d\n", ((double)rx->clk100ns)/10000000,
-				       frequency, rx->data[j + 2]);
+				       frequency, rssi);
 				if(frequency == high_freq)
 					printf("\n");
 				break;

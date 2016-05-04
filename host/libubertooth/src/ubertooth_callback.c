@@ -28,7 +28,6 @@
 #include "ubertooth_callback.h"
 
 unsigned int packet_counter_max;
-uint8_t calibrated = 0;
 
 static int8_t cc2400_rssi_to_dbm( const int8_t rssi )
 {
@@ -203,7 +202,7 @@ void cb_br_rx(ubertooth_t* ut, void* args)
 	       snr);
 
 	int r = btbb_process_packet(pkt, pn);
-	
+
 	/* Dump to PCAP/PCAPNG if specified */
 	if (ut->h_pcap_bredr) {
 		btbb_pcap_append_packet(ut->h_pcap_bredr, nowns,
@@ -548,6 +547,9 @@ void cb_rx(ubertooth_t* ut, void* args)
 	uint32_t lap = LAP_ANY;
 	uint8_t uap = UAP_ANY;
 
+	static int trim_counter = 0;
+	static int calibrated = 0;
+
 	/* Do analysis based on oldest packet */
 	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
 
@@ -619,18 +621,34 @@ void cb_rx(ubertooth_t* ut, void* args)
 
 	/* calibrate Ubertooth clock such that the first bit of the AC
 	 * arrives CLK_TUNE_TIME after the rising edge of CLKN */
-	if (infile == NULL && !calibrated) {
-		if (clk_offset < CLK_TUNE_TIME) {
+	if (infile == NULL) {
+		if (trim_counter < -PKTS_PER_XFER
+		    || ((clk_offset < CLK_TUNE_TIME - CLK_TUNE_OFFSET) && !calibrated)) {
 			printf("offset < CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", 6250 + clk_offset - CLK_TUNE_TIME);
 			cmd_trim_clock(ut->devh, 6250 + clk_offset - CLK_TUNE_TIME);
-		} else if (clk_offset > CLK_TUNE_TIME) {
+			trim_counter = 0;
+			calibrated = 1;
+			goto out;
+		} else if (trim_counter > PKTS_PER_XFER
+		           || ((clk_offset > CLK_TUNE_TIME + CLK_TUNE_OFFSET) && !calibrated)) {
 			printf("offset > CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", clk_offset - CLK_TUNE_TIME);
 			cmd_trim_clock(ut->devh, clk_offset - CLK_TUNE_TIME);
+			trim_counter = 0;
+			calibrated = 1;
+			goto out;
 		}
-		calibrated = 1;
-		goto out;
+
+		if (clk_offset < CLK_TUNE_TIME - CLK_TUNE_OFFSET) {
+			trim_counter--;
+			goto out;
+		} else if (clk_offset > CLK_TUNE_TIME + CLK_TUNE_OFFSET) {
+			trim_counter++;
+			goto out;
+		} else {
+			trim_counter = 0;
+		}
 	}
 
 	r = btbb_process_packet(pkt, pn);
@@ -645,8 +663,6 @@ void cb_rx(ubertooth_t* ut, void* args)
 		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
-	
-	
 
 	/* Dump to PCAP/PCAPNG if specified */
 	if (ut->h_pcap_bredr) {
