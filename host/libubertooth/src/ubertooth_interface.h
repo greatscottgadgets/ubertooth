@@ -37,6 +37,7 @@
  * CLK_TUNE_TIME * 100 ns prior to the start of an upcoming time slot.
 */
 #define CLK_TUNE_TIME   2250
+#define CLK_TUNE_OFFSET  200
 
 enum ubertooth_usb_commands {
 	UBERTOOTH_PING               = 0,
