@@ -119,10 +119,7 @@ int main(int argc, char* argv[])
 			timeout = atoi(optarg);
 			break;
 		case 'z':
-			++reset_scan;
 			++survey_mode;
-			if(timeout == 0)
-				timeout = 20;
 			break;
 		case 'V':
 			print_version();
@@ -145,7 +142,7 @@ int main(int argc, char* argv[])
 			usage();
 			return 1;
 		}
-	
+
 		r = ubertooth_check_api(ut);
 		if (r < 0)
 			return 1;
@@ -160,8 +157,8 @@ int main(int argc, char* argv[])
 		setvbuf(stdout, NULL, _IONBF, 0);
 		btbb_init_survey();
 	} else {
-		pn = btbb_piconet_new();
 		if (have_lap) {
+			pn = btbb_piconet_new();
 			btbb_init_piconet(pn, lap);
 			if (have_uap) {
 				btbb_piconet_set_uap(pn, uap);
