@@ -621,7 +621,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 
 	/* calibrate Ubertooth clock such that the first bit of the AC
 	 * arrives CLK_TUNE_TIME after the rising edge of CLKN */
-	if (infile == NULL) {
+	if (pn != NULL && infile == NULL) {
 		if (trim_counter < -PKTS_PER_XFER
 		    || ((clk_offset < CLK_TUNE_TIME - CLK_TUNE_OFFSET) && !calibrated)) {
 			printf("offset < CLK_TUNE_TIME\n");
