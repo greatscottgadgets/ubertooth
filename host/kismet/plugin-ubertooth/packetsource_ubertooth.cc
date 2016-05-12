@@ -154,9 +154,11 @@ void* ubertooth_cap_thread(void* arg)
 	cmd_rx_syms(ubertooth->ut->devh);
 
 	while (ubertooth->thread_active) {
+
 		ubertooth_bulk_wait(ubertooth->ut);
 		ubertooth_bulk_receive(ubertooth->ut, cb_cap, ubertooth);
 	}
+
 
 	ubertooth->thread_active = -1;
 	close(ubertooth->fake_fd[1]);
@@ -353,9 +355,10 @@ int PacketSource_Ubertooth::Poll() {
 
 	pending_packet = 0;
 
-	for (unsigned int x = 0; x < packet_queue.size(); x++) {
+	while (!packet_queue.empty()) {
 		kis_packet *newpack = globalreg->packetchain->GeneratePacket();
-		btbb_packet *pkt = packet_queue[x];
+		btbb_packet *pkt = packet_queue.front();
+		packet_queue.erase(packet_queue.begin());
 
 		newpack->ts.tv_sec = globalreg->timestamp.tv_sec;
 		newpack->ts.tv_usec = globalreg->timestamp.tv_usec;
@@ -402,11 +405,11 @@ int PacketSource_Ubertooth::Poll() {
 
 		// Delete the temp struct
 		btbb_packet_unref(pkt);
+		pkt = NULL;
 	}
 
 	// Flush the queue
 	packet_queue.clear();
-
 	//printf("debug - packet queue cleared %d\n", packet_queue.size());
 
 	pthread_mutex_unlock(&packet_lock);
