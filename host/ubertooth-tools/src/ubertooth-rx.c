@@ -40,6 +40,7 @@ static void usage()
 	printf("\t-q<filename> capture packets to PCAP file\n");
 	printf("\t-d<filename> dump packets to binary file\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
+	printf("\t-c <BT Channel> set a fixed bluetooth channel [Default: 39]\n");
 	printf("\t-s reset channel scanning\n");
 	printf("\t-t <SECONDS> sniff timeout - 0 means no timeout [Default: 0]\n");
 	printf("\t-z Survey mode - discover and list piconets (implies -s -t 20)\n");
@@ -58,10 +59,11 @@ int main(int argc, char* argv[])
 	btbb_piconet* pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
+	uint8_t channel = 39;
 
 	ubertooth_t* ut = ubertooth_init();
 
-	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:z")) != EOF) {
+	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:zc:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");
@@ -120,6 +122,9 @@ int main(int argc, char* argv[])
 			break;
 		case 'z':
 			++survey_mode;
+			break;
+		case 'c':
+			channel = atoi(optarg);
 			break;
 		case 'V':
 			print_version();
@@ -183,6 +188,8 @@ int main(int argc, char* argv[])
 		 * following a piconet. */
 		if (reset_scan) {
 			cmd_set_channel(ut->devh, 9999);
+		} else {
+			cmd_set_channel(ut->devh, 2402 + channel);
 		}
 
 		/* Clean up on exit. */
