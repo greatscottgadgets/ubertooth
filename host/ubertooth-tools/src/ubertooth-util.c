@@ -50,7 +50,7 @@ static void usage()
 	printf("\t-m display range test result\n");
 	printf("\t-n initiate range test\n");
 	printf("\t-p get microcontroller Part ID\n");
-	printf("\t-q[RSSI threshold in -dBm] start LED spectrum analyzer\n");
+	printf("\t-q[20-120 (RSSI threshold in -dBm)] start LED spectrum analyzer\n");
 	printf("\t-r full reset\n");
 	printf("\t-s get microcontroller serial number\n");
 	printf("\t-S stop current operation\n");
