@@ -50,7 +50,7 @@ static void usage()
 	printf("\t-m display range test result\n");
 	printf("\t-n initiate range test\n");
 	printf("\t-p get microcontroller Part ID\n");
-	printf("\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
+	printf("\t-q[RSSI threshold in -dBm] start LED spectrum analyzer\n");
 	printf("\t-r full reset\n");
 	printf("\t-s get microcontroller serial number\n");
 	printf("\t-S stop current operation\n");
@@ -300,8 +300,7 @@ int main(int argc, char *argv[])
 		return cmd_set_isp(ut->devh);
 	}
 	if(do_led_specan >= 0) {
-		do_led_specan= do_led_specan ? do_led_specan : 225;
-		printf("Entering LED specan mode (RSSI %d)\n", do_led_specan);
+		printf("Entering LED specan mode (RSSI -%d dBm)\n", do_led_specan);
 		return cmd_led_specan(ut->devh, do_led_specan);
 	}
 	if(do_range_test == 0) {

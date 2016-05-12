@@ -386,7 +386,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	case UBERTOOTH_LED_SPECAN:
 		if (request_params[0] > 256)
 			return 0;
-		rssi_threshold = (int8_t)request_params[0];
+		rssi_threshold = 54 - request_params[0];
 		requested_mode = MODE_LED_SPECAN;
 		*data_len = 0;
 		break;
@@ -2134,7 +2134,7 @@ void led_specan()
 
 		/* give the CC2400 time to acquire RSSI reading */
 		volatile u32 j = 500; while (--j); //FIXME crude delay
-		lvl = cc2400_get(RSSI) >> 8;
+		lvl = (int8_t)((cc2400_get(RSSI) >> 8) & 0xff);
 		if (lvl > rssi_threshold) {
 			switch (i) {
 				case 0:
