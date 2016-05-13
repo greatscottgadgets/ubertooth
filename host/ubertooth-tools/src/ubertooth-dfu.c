@@ -404,8 +404,11 @@ static void usage()
 #define FUNC_RESET    (1<<3)
 
 int main(int argc, char **argv) {
-	FILE *downfile, *upfile, *infile, *outfile;
-	char *outfile_name;
+	FILE* downfile = NULL;
+	FILE* upfile = NULL;
+	FILE* infile = NULL;
+	FILE* outfile = NULL;
+	char* outfile_name;
 	libusb_device_handle* devh = NULL;
 	uint8_t functions = 0;
 	int opt, ubertooth_device = -1;
