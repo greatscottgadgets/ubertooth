@@ -200,7 +200,7 @@ void set_serial_descriptor(u8 *descriptors) {
 	get_device_serial(buf, &len);
 	if(buf[0] == 0) { /* IAP success */
 		desc = descriptors + USB_SERIAL_OFFSET;
-		for(i=0; i<=16; i++) {
+		for(i=0; i<16; i++) {
 			nibble  = (buf[i+1]>>4) & 0xF;
 			desc[i * 4] = (nibble > 9) ? ('a' + nibble - 10) : ('0' + nibble);
 			desc[1+ i * 4] = 0;
