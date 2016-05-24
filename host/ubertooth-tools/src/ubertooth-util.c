@@ -31,7 +31,7 @@ const char* board_names[] = {
 	"ToorCon 13 Badge"
 };
 
-static void usage(File *output)
+static void usage(FILE *output)
 {
 	fprintf(output, "ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	fprintf(output, "Usage:\n");
