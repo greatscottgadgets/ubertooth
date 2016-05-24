@@ -248,14 +248,14 @@ usb_pkt_rx fifo[128];
 volatile u32 head = 0;
 volatile u32 tail = 0;
 
-void queue_init()
+void queue_init(void)
 {
 	head = 0;
 	tail = 0;
 	memset(fifo, 0, sizeof(fifo));
 }
 
-usb_pkt_rx *usb_enqueue()
+usb_pkt_rx *usb_enqueue(void)
 {
 	u8 h = head & 0x7F;
 	u8 t = tail & 0x7F;
@@ -271,7 +271,7 @@ usb_pkt_rx *usb_enqueue()
 
 }
 
-usb_pkt_rx *dequeue()
+usb_pkt_rx *dequeue(void)
 {
 	u8 h = head & 0x7F;
 	u8 t = tail & 0x7F;
@@ -290,7 +290,7 @@ u32 last_usb_pkt = 0;  // for keep alive packets
 
 int dequeue_send(u32 clkn)
 {
-	usb_pkt_rx *pkt = dequeue(&pkt);
+	usb_pkt_rx *pkt = dequeue();
 	if (pkt != NULL) {
 		last_usb_pkt = clkn;
 		USBHwEPWrite(BULK_IN_EP, (u8 *)pkt, sizeof(usb_pkt_rx));
