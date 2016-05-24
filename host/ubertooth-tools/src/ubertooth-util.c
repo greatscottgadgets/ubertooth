@@ -31,34 +31,34 @@ const char* board_names[] = {
 	"ToorCon 13 Badge"
 };
 
-static void usage()
+static void usage(File *output)
 {
-	printf("ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
-	printf("Usage:\n");
-	printf("\t-a[0-7] get/set power amplifier level\n");
-	printf("\t-A check Ubertooth API version\n");
-	printf("\t-b get hardware board id number\n");
-	printf("\t-c[2400-2483] get/set channel in MHz\n");
-	printf("\t-C[0-78] get/set channel\n");
-	printf("\t-d[0-1] get/set all LEDs\n");
-	printf("\t-e start repeater mode\n");
-	printf("\t-f activate flash programming (DFU) mode\n");
-	printf("\t-h display this message\n");
-	printf("\t-i activate In-System Programming (ISP) mode\n");
-	printf("\t-I identify ubertooth device by flashing all LEDs\n");
-	printf("\t-l[0-1] get/set USR LED\n");
-	printf("\t-m display range test result\n");
-	printf("\t-n initiate range test\n");
-	printf("\t-p get microcontroller Part ID\n");
-	printf("\t-q[20-120 (RSSI threshold in -dBm)] start LED spectrum analyzer\n");
-	printf("\t-r full reset\n");
-	printf("\t-s get microcontroller serial number\n");
-	printf("\t-S stop current operation\n");
-	printf("\t-t intitiate continuous transmit test\n");
-	printf("\t-U<0-7> set ubertooth device to use\n");
-	printf("\t-v get firmware revision number\n");
-	printf("\t-V get compile info\n");
-	printf("\t-z set squelch level\n");
+	fprintf(output, "ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
+	fprintf(output, "Usage:\n");
+	fprintf(output, "\t-a[0-7] get/set power amplifier level\n");
+	fprintf(output, "\t-A check Ubertooth API version\n");
+	fprintf(output, "\t-b get hardware board id number\n");
+	fprintf(output, "\t-c[2400-2483] get/set channel in MHz\n");
+	fprintf(output, "\t-C[0-78] get/set channel\n");
+	fprintf(output, "\t-d[0-1] get/set all LEDs\n");
+	fprintf(output, "\t-e start repeater mode\n");
+	fprintf(output, "\t-f activate flash programming (DFU) mode\n");
+	fprintf(output, "\t-h display this message\n");
+	fprintf(output, "\t-i activate In-System Programming (ISP) mode\n");
+	fprintf(output, "\t-I identify ubertooth device by flashing all LEDs\n");
+	fprintf(output, "\t-l[0-1] get/set USR LED\n");
+	fprintf(output, "\t-m display range test result\n");
+	fprintf(output, "\t-n initiate range test\n");
+	fprintf(output, "\t-p get microcontroller Part ID\n");
+	fprintf(output, "\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
+	fprintf(output, "\t-r full reset\n");
+	fprintf(output, "\t-s get microcontroller serial number\n");
+	fprintf(output, "\t-S stop current operation\n");
+	fprintf(output, "\t-t intitiate continuous transmit test\n");
+	fprintf(output, "\t-U<0-7> set ubertooth device to use\n");
+	fprintf(output, "\t-v get firmware revision number\n");
+	fprintf(output, "\t-V get compile info\n");
+	fprintf(output, "\t-z set squelch level\n");
 }
 
 int main(int argc, char *argv[])
@@ -185,8 +185,10 @@ int main(int argc, char *argv[])
 			do_api_check = 1;
 			break;
 		case 'h':
+			usage(stdout);
+			return 0;
 		default:
-			usage();
+			usage(stderr);
 			return 1;
 		}
 	}
@@ -194,17 +196,17 @@ int main(int argc, char *argv[])
 	/* initialise device */
 	ut = ubertooth_start(ubertooth_device);
 	if (ut == NULL) {
-		usage();
+		usage(stderr);
 		return 1;
 	}
 	if(do_reset == 0) {
-		printf("Resetting ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
+		fprintf(stdout, "Resetting ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		r = cmd_reset(ut->devh);
 		sleep(2);
 		ut = ubertooth_start(ubertooth_device);
 	}
 	if(do_stop == 0) {
-		printf("Stopping ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
+		fprintf(stdout, "Stopping ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		r = cmd_stop(ut->devh);
 	}
 
@@ -224,23 +226,23 @@ int main(int argc, char *argv[])
 
 	/* reporting actions */
 	if(do_all_leds == 2) {
-		printf("USR LED status: %d\n", cmd_get_usrled(ut->devh));
-		printf("RX LED status : %d\n", cmd_get_rxled(ut->devh));
-		printf("TX LED status : %d\n", r= cmd_get_txled(ut->devh));
+		fprintf(stdout, "USR LED status: %d\n", cmd_get_usrled(ut->devh));
+		fprintf(stdout, "RX LED status : %d\n", cmd_get_rxled(ut->devh));
+		fprintf(stdout, "TX LED status : %d\n", r= cmd_get_txled(ut->devh));
 		r = (r >= 0) ? 0 : r;
 	}
 	if(do_board_id == 0) {
 		r= cmd_get_board_id(ut->devh);
-		printf("Board ID Number: %d (%s)\n", r, board_names[r]);
+		fprintf(stdout, "Board ID Number: %d (%s)\n", r, board_names[r]);
 	}
 	if(do_channel == 0) {
 		r= cmd_get_channel(ut->devh);
-		printf("Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
+		fprintf(stdout, "Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 		}
 	if(do_firmware == 0) {
 		char version[255];
 		cmd_get_rev_num(ut->devh, version, (u8)sizeof(version));
-		printf("Firmware revision: %s\n", version);
+		fprintf(stdout, "Firmware revision: %s\n", version);
 	}
 	if(do_compile_info == 0) {
 		char compile_info[255];
@@ -248,25 +250,25 @@ int main(int argc, char *argv[])
 		puts(compile_info);
 	}
 	if(do_leds == 2)
-		printf("USR LED status: %d\n", r= cmd_get_usrled(ut->devh));
+		fprintf(stdout, "USR LED status: %d\n", r= cmd_get_usrled(ut->devh));
 	if(do_palevel == 0)
-		printf("PA Level: %d\n", r= cmd_get_palevel(ut->devh));
+		fprintf(stdout, "PA Level: %d\n", r= cmd_get_palevel(ut->devh));
 	if(do_part == 0) {
-		printf("Part ID: %X\n", r = cmd_get_partnum(ut->devh));
+		fprintf(stdout, "Part ID: %X\n", r = cmd_get_partnum(ut->devh));
 		r = (r >= 0) ? 0 : r;
 	}
 	if(do_range_result == 0) {
 		r = cmd_get_rangeresult(ut->devh, &rr);
 		if (r == 0) {
 			if (rr.valid==1) {
-				printf("request PA level : %d\n", rr.request_pa);
-				printf("request number   : %d\n", rr.request_num);
-				printf("reply PA level   : %d\n", rr.reply_pa);
-				printf("reply number     : %d\n", rr.reply_num);
+				fprintf(stdout, "request PA level : %d\n", rr.request_pa);
+				fprintf(stdout, "request number   : %d\n", rr.request_num);
+				fprintf(stdout, "reply PA level   : %d\n", rr.reply_pa);
+				fprintf(stdout, "reply number     : %d\n", rr.reply_num);
 			} else if (rr.valid>1) {
-				printf("Invalid range test: mismatch on byte %d\n", rr.valid-2);
+				fprintf(stdout, "Invalid range test: mismatch on byte %d\n", rr.valid-2);
 			} else {
-				printf("invalid range test result\n");
+				fprintf(stdout, "invalid range test result\n");
 			}
 		}
 	}
@@ -282,11 +284,11 @@ int main(int argc, char *argv[])
 
 	/* final actions */
 	if(do_flash == 0) {
-		printf("Entering flash programming (DFU) mode\n");
+		fprintf(stdout, "Entering flash programming (DFU) mode\n");
 		return cmd_flash(ut->devh);
 	}
 	if(do_identify == 0) {
-		printf("Flashing LEDs on ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
+		fprintf(stdout, "Flashing LEDs on ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		while(42) {
 			do_identify= !do_identify;
 			cmd_set_usrled(ut->devh, do_identify);
@@ -296,44 +298,45 @@ int main(int argc, char *argv[])
 		}
 	}
 	if(do_isp == 0) {
-		printf("Entering flash programming (ISP) mode\n");
+		fprintf(stdout, "Entering flash programming (ISP) mode\n");
 		return cmd_set_isp(ut->devh);
 	}
 	if(do_led_specan >= 0) {
-		printf("Entering LED specan mode (RSSI -%d dBm)\n", do_led_specan);
+		do_led_specan= do_led_specan ? do_led_specan : 225;
+		fprintf(stdout, "Entering LED specan mode (RSSI %d)\n", do_led_specan);
 		return cmd_led_specan(ut->devh, do_led_specan);
 	}
 	if(do_range_test == 0) {
-		printf("Starting range test\n");
+		fprintf(stdout, "Starting range test\n");
 		return cmd_range_test(ut->devh);
 	}
 	if(do_repeater == 0) {
-		printf("Starting repeater\n");
+		fprintf(stdout, "Starting repeater\n");
 		return cmd_repeater(ut->devh);
 	}
 	if(do_tx == 0) {
-		printf("Starting TX test\n");
+		fprintf(stdout, "Starting TX test\n");
 		return cmd_tx_test(ut->devh);
 	}
 	if(do_set_squelch > 0) {
-		printf("Setting squelch to %d\n", squelch_level);
+		fprintf(stdout, "Setting squelch to %d\n", squelch_level);
 		cmd_set_squelch(ut->devh, squelch_level);
 	}
 	if(do_get_squelch > 0) {
 		r = cmd_get_squelch(ut->devh);
-		printf("Squelch set to %d\n", (int8_t)r);
+		fprintf(stdout, "Squelch set to %d\n", (int8_t)r);
 	}
 	if (do_api_check) {
 		r = ubertooth_check_api(ut);
 		if (r == 0) {
-			printf("Ubertooth is running latest API (%d)\n", UBERTOOTH_API_VERSION);
+			fprintf(stdout, "Ubertooth is running latest API (%d)\n", UBERTOOTH_API_VERSION);
 		}
 	}
 	if(do_something) {
 		unsigned char buf[4] = { 0x55, 0x55, 0x55, 0x55 };
 		cmd_do_something(ut->devh, NULL, 0);
 		cmd_do_something_reply(ut->devh, buf, 4);
-		printf("%02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3]);
+		fprintf(stdout, "%02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3]);
 		return 0;
 	}
 
