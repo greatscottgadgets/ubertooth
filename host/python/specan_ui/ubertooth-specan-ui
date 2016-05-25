@@ -24,6 +24,8 @@ import sys
 import threading
 import numpy
 
+from optparse import OptionParser
+
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt, QPointF, QLineF
 
@@ -31,11 +33,12 @@ from specan import Ubertooth
 
 
 class SpecanThread(threading.Thread):
-    def __init__(self, device, low_frequency, high_frequency, new_frame_callback):
+    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, ubertooth_device=-1):
         threading.Thread.__init__(self)
         self.daemon = True
 
         self._device = device
+        self._ubertooth_device = ubertooth_device
         self._low_frequency = low_frequency
         self._high_frequency = high_frequency
         self._new_frame_callback = new_frame_callback
@@ -43,7 +46,7 @@ class SpecanThread(threading.Thread):
         self._stopped = False
 
     def run(self):
-        frame_source = self._device.specan(self._low_frequency, self._high_frequency)
+        frame_source = self._device.specan(self._low_frequency, self._high_frequency, ubertooth_device=self._ubertooth_device)
         for frequency_axis, rssi_values in frame_source:
             self._new_frame_callback(numpy.copy(frequency_axis), numpy.copy(rssi_values))
             if self._stopping:
@@ -56,7 +59,7 @@ class SpecanThread(threading.Thread):
 
 
 class RenderArea(QtGui.QWidget):
-    def __init__(self, device, parent=None):
+    def __init__(self, device, parent=None, ubertooth_device=-1):
         QtGui.QWidget.__init__(self, parent)
 
         self._graph = None
@@ -83,7 +86,8 @@ class RenderArea(QtGui.QWidget):
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
                                     self._high_frequency,
-                                    self._new_frame)
+                                    self._new_frame,
+                                    ubertooth_device=ubertooth_device)
         self._thread.start()
 
     def stop_thread(self):
@@ -275,12 +279,12 @@ class RenderArea(QtGui.QWidget):
 
 
 class Window(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ubertooth_device=-1):
         QtGui.QWidget.__init__(self, parent)
 
         self._device = self._open_device()
 
-        self.render_area = RenderArea(self._device)
+        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device)
 
         main_layout = QtGui.QGridLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -358,7 +362,18 @@ def sigint_handler(*args):
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
 
+    parser = OptionParser()
+    parser.add_option("-U", type="int", dest="device",
+                      help="set ubertooth device to use")
+
+    (options, args) = parser.parse_args()
+
+    ubertooth_device = options.device
+
+    if ubertooth_device is None:
+        ubertooth_device = -1
+
     app = QtGui.QApplication(sys.argv)
-    window = Window()
+    window = Window(ubertooth_device=ubertooth_device)
     window.show()
     sys.exit(app.exec_())
