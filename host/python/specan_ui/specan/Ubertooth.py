@@ -32,7 +32,7 @@ class Ubertooth(object):
     def __init__(self):
         self.proc = None
 
-    def specan(self, low_frequency, high_frequency):
+    def specan(self, low_frequency, high_frequency, ubertooth_device=-1):
         spacing_hz = 1e6
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
@@ -42,7 +42,7 @@ class Ubertooth(object):
 
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
-        args = ["ubertooth-specan", "-d", "-", "-l%d" % low, "-u%d" % high]
+        args = ["ubertooth-specan", "-d", "-", "-l %d" % low, "-u %d" % high, "-U %d" % ubertooth_device]
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         default_raw_rssi = -128
