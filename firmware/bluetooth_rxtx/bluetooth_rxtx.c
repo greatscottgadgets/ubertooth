@@ -185,6 +185,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	size_t length; // string length
 	usb_pkt_rx* p = NULL;
 	uint16_t reg_val;
+	uint8_t i;
 
 	switch (request) {
 
@@ -573,6 +574,13 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 
 	case UBERTOOTH_WRITE_REGISTER:
 		cc2400_set(request_params[0] & 0xff, request_params[1]);
+		break;
+
+	case UBERTOOTH_WRITE_REGISTERS:
+		for(i=0; i<request_params[0]; i++) {
+			reg_val = (data[(i*3)+1] << 8) | data[(i*3)+2];
+			cc2400_set(data[i*3], reg_val);
+		}
 		break;
 
 	case UBERTOOTH_BTLE_SLAVE:
