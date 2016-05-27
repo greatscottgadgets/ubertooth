@@ -583,6 +583,17 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		}
 		break;
 
+	case UBERTOOTH_READ_ALL_REGISTERS:
+		#define MAX_READ_REG 0x2d
+		for(i=0; i<=MAX_READ_REG; i++) {
+			reg_val = cc2400_get(i);
+			data[i*3] = i;
+			data[(i*3)+1] = (reg_val >> 8) & 0xff;
+			data[(i*3)+2] = reg_val & 0xff;
+		}
+		*data_len = MAX_READ_REG*3;
+		break;
+
 	case UBERTOOTH_BTLE_SLAVE:
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;

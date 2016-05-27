@@ -106,6 +106,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_TRIM_CLOCK         = 63,
 	UBERTOOTH_GET_API_VERSION    = 64,
 	UBERTOOTH_WRITE_REGISTERS    = 65,
+	UBERTOOTH_READ_ALL_REGISTERS = 66,
 };
 
 enum jam_modes {
