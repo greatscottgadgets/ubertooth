@@ -168,7 +168,7 @@ typedef struct {
 
 typedef struct {
 	u64    address;
-	u64    access_code;
+	u64    syncword;
 } bdaddr;
 
 typedef struct {

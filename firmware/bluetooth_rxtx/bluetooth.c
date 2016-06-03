@@ -25,8 +25,8 @@
 u8 a1, b, c1, e;
 u16 d1;
 /* frequency register bank */
-u8 bank[CHANNELS];
-u8 afh_bank[CHANNELS];
+u8 bank[NUM_BREDR_CHANNELS];
+u8 afh_bank[NUM_BREDR_CHANNELS];
 
 /* count the number of 1 bits in a uint64_t */
 static uint8_t count_bits(uint64_t n)
@@ -46,8 +46,8 @@ void precalc(void)
 	syncword = 0;
 
 	/* populate frequency register bank*/
-	for (i = 0; i < CHANNELS; i++)
-		bank[i] = ((i * 2) % CHANNELS);
+	for (i = 0; i < NUM_BREDR_CHANNELS; i++)
+		bank[i] = ((i * 2) % NUM_BREDR_CHANNELS);
 		/* actual frequency is 2402 + bank[i] MHz */
 
 
@@ -73,8 +73,8 @@ void precalc(void)
 		for(i = 0; i < 10; i++)
 			used_channels += count_bits((uint64_t) afh_map[i]);
 		j = 0;
-		for (i = 0; i < CHANNELS; i++)
-			chan = (i * 2) % CHANNELS;
+		for (i = 0; i < NUM_BREDR_CHANNELS; i++)
+			chan = (i * 2) % NUM_BREDR_CHANNELS;
 			if(afh_map[chan/8] & (0x1 << (chan % 8)))
 				bank[j++] = chan;
 	}
@@ -145,7 +145,7 @@ u16 next_hop(u32 clock)
 		(y1 * 0x1f) ^ c,
 		d);
 	/* hop selection */
-	next_channel = bank[(perm + e + f + y2) % CHANNELS];
+	next_channel = bank[(perm + e + f + y2) % NUM_BREDR_CHANNELS];
 	if(afh_enabled) {
 		f_dash = base_f % used_channels;
 		next_channel = afh_bank[(perm + e + f_dash + y2) % used_channels];
@@ -172,7 +172,7 @@ int find_access_code(u8 *idle_rxbuf)
 	// Search until we're 64 symbols from the end of the buffer
 	for(; count < ((8 * DMA_SIZE) - 64); count++)
 	{
-		bit_errors = count_bits(syncword ^ target.access_code);
+		bit_errors = count_bits(syncword ^ target.syncword);
 
 		if (bit_errors < MAX_SYNCWORD_ERRS)
 			return count;
