@@ -42,16 +42,12 @@ static void usage()
 int main(int argc, char* argv[])
 {
 	int opt, have_lap = 0, have_uap = 0;
-	int survey_mode = 0;
 	int r;
 	int timeout = 0;
-	int reset_scan = 0;
 	char* end;
 	char ubertooth_device = -1;
-	btbb_piconet* pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
-	uint8_t channel = 39;
 
 	ubertooth_t* ut = ubertooth_init();
 
