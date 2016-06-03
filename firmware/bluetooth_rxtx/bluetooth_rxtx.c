@@ -428,12 +428,12 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 
 	case UBERTOOTH_SET_BDADDR:
 		target.address = 0;
-		target.access_code = 0;
+		target.syncword = 0;
 		for(int i=0; i < 8; i++) {
 			target.address |= (uint64_t)data[i] << 8*i;
 		}
 		for(int i=0; i < 8; i++) {
-			target.access_code |= (uint64_t)data[i+8] << 8*i;
+			target.syncword |= (uint64_t)data[i+8] << 8*i;
 		}
 		precalc();
 		break;
@@ -799,7 +799,7 @@ static void cc2400_idle()
 	rssi_threshold = -30;
 
 	target.address = 0;
-	target.access_code = 0;
+	target.syncword = 0;
 }
 
 /* start un-buffered rx */

@@ -172,7 +172,7 @@ int find_access_code(u8 *idle_rxbuf)
 	// Search until we're 64 symbols from the end of the buffer
 	for(; count < ((8 * DMA_SIZE) - 64); count++)
 	{
-		bit_errors = count_bits(syncword ^ target.access_code);
+		bit_errors = count_bits(syncword ^ target.syncword);
 
 		if (bit_errors < MAX_SYNCWORD_ERRS)
 			return count;
