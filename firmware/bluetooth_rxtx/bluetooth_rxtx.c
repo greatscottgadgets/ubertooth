@@ -198,6 +198,12 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		*data_len = 0;
 		break;
 
+	case UBERTOOTH_TX_SYMBOLS:
+		hop_mode = HOP_BLUETOOTH;
+		requested_mode = MODE_TX_SYMBOLS;
+		*data_len = 0;
+		break;
+
 	case UBERTOOTH_GET_USRLED:
 		data[0] = (USRLED) ? 1 : 0;
 		*data_len = 1;
@@ -914,6 +920,54 @@ static void cc2400_rx_sync(u32 sync)
 #endif
 }
 
+/* start buffered tx */
+static void cc2400_tx_sync(uint32_t sync)
+{
+#ifdef TX_ENABLE
+	// Bluetooth-like modulation
+	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
+	cc2400_set(MDMTST0, 0x134b);    // no PRNG
+
+	cc2400_set(GRMDM,   0x0c01);
+	// 0 00 01 1 000 00 0 00 0 1
+	//      |  | |   |  +--------> CRC off
+	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+	//      |  | +---------------> 0 preamble bytes of 01010101
+	//      |  +-----------------> packet mode
+	//      +--------------------> buffered mode
+
+	cc2400_set(SYNCL,   sync & 0xffff);
+	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
+
+	cc2400_set(FSDIV,   channel);
+	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
+
+	if (modulation == MOD_BT_BASIC_RATE) {
+		cc2400_set(MDMCTRL, 0x0029);    // 160 kHz frequency deviation
+	} else if (modulation == MOD_BT_LOW_ENERGY) {
+		cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
+	} else {
+		/* oops */
+		return;
+	}
+
+	clkn_start();
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+#endif
+
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	cc2400_strobe(STX);
+
+#endif
+}
+
 /*
  * Transmit a BTLE packet with the specified access address.
  *
@@ -1064,7 +1118,6 @@ void hop(void)
 	 * only hop to currently used channels if AFH is enabled
 	 */
 	else if (hop_mode == HOP_SWEEP) {
-		TXLED_SET;
 		do {
 			channel += 32;
 			if (channel > 2480)
@@ -1084,17 +1137,14 @@ void hop(void)
 	}
 
 	else if (hop_mode == HOP_BLUETOOTH) {
-		TXLED_SET;
 		channel = next_hop(clkn);
 	}
 
 	else if (hop_mode == HOP_BTLE) {
-		TXLED_SET;
 		channel = btle_next_hop(&le);
 	}
 
 	else if (hop_mode == HOP_DIRECT) {
-		TXLED_SET;
 		channel = hop_direct_channel;
 	}
 
@@ -1103,7 +1153,10 @@ void hop(void)
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
 
 	/* Retune */
-	cc2400_set(FSDIV, channel - 1);
+	if(mode == MODE_TX_SYMBOLS)
+		cc2400_set(FSDIV, channel);
+	else
+		cc2400_set(FSDIV, channel - 1);
 
 	/* Update CS register if hopping.  */
 	if (hop_mode > 0) {
@@ -1116,8 +1169,10 @@ void hop(void)
 
 	dma_discard = 1;
 
-	/* RX mode */
-	cc2400_strobe(SRX);
+	if(mode == MODE_TX_SYMBOLS)
+		cc2400_strobe(STX);
+	else
+		cc2400_strobe(SRX);
 }
 
 /* Bluetooth packet monitoring */
@@ -1218,6 +1273,112 @@ rx_continue:
 	 * starting from scratch? */
 	dio_ssp_stop();
 	cs_trigger_disable();
+}
+
+static uint8_t reverse8(uint8_t data)
+{
+	uint8_t reversed = 0;
+
+	for(size_t i=0; i<8; i++)
+	{
+		reversed |= ((data >> i) & 0x01) << (7-i);
+	}
+
+	return reversed;
+}
+
+static uint16_t reverse16(uint16_t data)
+{
+	uint16_t reversed = 0;
+
+	for(size_t i=0; i<16; i++)
+	{
+		reversed |= ((data >> i) & 0x01) << (15-i);
+	}
+
+	return reversed;
+}
+
+/*
+ * Transmit a BTBR packet with the specified access code.
+ *
+ * All modulation parameters are set within this function.
+ */
+void br_transmit()
+{
+	uint16_t gio_save;
+
+	uint32_t clkn_saved;
+
+	uint16_t preamble = (target.syncword & 1) == 1 ? 0x5555 : 0xaaaa;
+	uint8_t trailer = ((target.syncword >> 63) & 1) == 1 ? 0xaa : 0x55;
+
+	uint8_t data[16] = {
+		reverse8((target.syncword >> 0) & 0xFF),
+		reverse8((target.syncword >> 8) & 0xFF),
+		reverse8((target.syncword >> 16) & 0xFF),
+		reverse8((target.syncword >> 24) & 0xFF),
+		reverse8((target.syncword >> 32) & 0xFF),
+		reverse8((target.syncword >> 40) & 0xFF),
+		reverse8((target.syncword >> 48) & 0xFF),
+		reverse8((target.syncword >> 56) & 0xFF),
+		reverse8(trailer),
+		reverse8(0x77),
+		reverse8(0x66),
+		reverse8(0x55),
+		reverse8(0x44),
+		reverse8(0x33),
+		reverse8(0x22),
+		reverse8(0x11)
+	};
+
+	cc2400_tx_sync(reverse16(preamble));
+
+	cc2400_set(INT,     0x0014);    // FIFO_THRESHOLD: 20 bytes
+
+	// set GIO to FIFO_FULL
+	gio_save = cc2400_get(IOCFG);
+	cc2400_set(IOCFG, (GIO_FIFO_FULL << 9) | (gio_save & 0x1ff));
+
+	while ( requested_mode == MODE_TX_SYMBOLS )
+	{
+
+		while ((clkn >> 1) == (clkn_saved >> 1) || T0TC < 2250) {
+
+			// If timer says time to hop, do it.
+			if (do_hop) {
+				hop();
+			}
+		}
+
+		clkn_saved = clkn;
+
+		TXLED_SET;
+
+		cc2400_spi_buf(FIFOREG, 16, data);
+
+		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+		TXLED_CLR;
+
+		cc2400_strobe(SRFOFF);
+		while ((cc2400_status() & FS_LOCK));
+
+		while (!(cc2400_status() & XOSC16M_STABLE));
+		cc2400_strobe(SFSON);
+		while (!(cc2400_status() & FS_LOCK));
+
+		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+		cc2400_strobe(STX);
+
+		handle_usb(clkn);
+	}
+
+#ifdef UBERTOOTH_ONE
+	PAEN_CLR;
+#endif
+
+	// reset GIO
+	cc2400_set(IOCFG, gio_save);
 }
 
 /* set LE access address */
@@ -2214,6 +2375,10 @@ int main()
 					mode = MODE_RX_SYMBOLS;
 					queue_init();
 					bt_stream_rx();
+					break;
+				case MODE_TX_SYMBOLS:
+					mode = MODE_TX_SYMBOLS;
+					br_transmit();
 					break;
 				case MODE_BT_FOLLOW:
 					mode = MODE_BT_FOLLOW;

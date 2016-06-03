@@ -98,6 +98,11 @@ int cmd_rx_syms(struct libusb_device_handle* devh)
 	return 0;
 }
 
+int cmd_tx_syms(struct libusb_device_handle* devh)
+{
+	return ubertooth_cmd_sync(devh, CTRL_OUT, UBERTOOTH_TX_SYMBOLS, 0, 0);
+}
+
 int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq)
 {
 	int r;

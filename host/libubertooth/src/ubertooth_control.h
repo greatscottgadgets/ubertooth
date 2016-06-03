@@ -89,6 +89,7 @@ int ubertooth_cmd_async(struct libusb_device_handle* devh,
 void cmd_trim_clock(struct libusb_device_handle* devh, uint16_t offset);
 int cmd_ping(struct libusb_device_handle* devh);
 int cmd_rx_syms(struct libusb_device_handle* devh);
+int cmd_tx_syms(struct libusb_device_handle* devh);
 int cmd_specan(struct libusb_device_handle* devh, u16 low_freq, u16 high_freq);
 int cmd_led_specan(struct libusb_device_handle* devh, u16 rssi_threshold);
 int cmd_set_usrled(struct libusb_device_handle* devh, u16 state);
