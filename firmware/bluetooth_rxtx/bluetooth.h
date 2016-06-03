@@ -25,7 +25,6 @@
 
 #include "ubertooth.h"
 
-#define CHANNELS 79
 #define MAX_SYNCWORD_ERRS 5
 
 bdaddr target;
