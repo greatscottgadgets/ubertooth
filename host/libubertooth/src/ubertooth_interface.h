@@ -118,7 +118,8 @@ enum jam_modes {
 enum modulations {
 	MOD_BT_BASIC_RATE = 0,
 	MOD_BT_LOW_ENERGY = 1,
-	MOD_80211_FHSS    = 2
+	MOD_80211_FHSS    = 2,
+	MOD_NONE          = 3
 };
 
 enum usb_pkt_types {
