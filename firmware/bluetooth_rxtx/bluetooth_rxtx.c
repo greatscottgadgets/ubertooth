@@ -811,28 +811,27 @@ static void cc2400_idle()
 /* start un-buffered rx */
 static void cc2400_rx()
 {
-	u16 mdmctrl;
-	if (modulation == MOD_BT_BASIC_RATE) {
-		mdmctrl = 0x0029; // 160 kHz frequency deviation
-	} else if (modulation == MOD_BT_LOW_ENERGY) {
-		mdmctrl = 0x0040; // 250 kHz frequency deviation
-	} else {
-		/* oops */
-		return;
+	u16 mdmctrl = 0;
+		
+	if((modulation == MOD_BT_BASIC_RATE) || (modulation == MOD_BT_LOW_ENERGY)) {
+		if (modulation == MOD_BT_BASIC_RATE) {
+			mdmctrl = 0x0029; // 160 kHz frequency deviation
+		} else if (modulation == MOD_BT_LOW_ENERGY) {
+			mdmctrl = 0x0040; // 250 kHz frequency deviation
+		}
+		cc2400_set(MANAND,  0x7fff);
+		cc2400_set(LMTST,   0x2b22);
+		cc2400_set(MDMTST0, 0x134b); // without PRNG
+		cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
+		// 0 00 00 0 010 00 0 00 0 1
+		//      |  | |   |  +--------> CRC off
+		//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
+		//      |  | +---------------> 2 preamble bytes of 01010101
+		//      |  +-----------------> not packet mode
+			//      +--------------------> un-buffered mode
+		cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
+		cc2400_set(MDMCTRL, mdmctrl);
 	}
-
-	cc2400_set(MANAND,  0x7fff);
-	cc2400_set(LMTST,   0x2b22);
-	cc2400_set(MDMTST0, 0x134b); // without PRNG
-	cc2400_set(GRMDM,   0x0101); // un-buffered mode, GFSK
-	// 0 00 00 0 010 00 0 00 0 1
-	//      |  | |   |  +--------> CRC off
-	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
-	//      |  | +---------------> 2 preamble bytes of 01010101
-	//      |  +-----------------> not packet mode
-	//      +--------------------> un-buffered mode
-	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
-	cc2400_set(MDMCTRL, mdmctrl);
 
 	// Set up CS register
 	cs_threshold_calc_and_set(channel);
@@ -1113,7 +1112,6 @@ void hop(void)
 		if (cc2400_get(FSDIV) == (channel - 1))
 			return;
 	}
-
 	/* Slow sweep (100 hops/sec)
 	 * only hop to currently used channels if AFH is enabled
 	 */
@@ -1147,7 +1145,6 @@ void hop(void)
 	else if (hop_mode == HOP_DIRECT) {
 		channel = hop_direct_channel;
 	}
-
 	/* IDLE mode, but leave amp on, so don't call cc2400_idle(). */
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK)); // need to wait for unlock?
@@ -2373,7 +2370,6 @@ int main()
 					break;
 				case MODE_RX_SYMBOLS:
 					mode = MODE_RX_SYMBOLS;
-					queue_init();
 					bt_stream_rx();
 					break;
 				case MODE_TX_SYMBOLS:
