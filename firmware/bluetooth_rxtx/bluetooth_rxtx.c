@@ -2309,16 +2309,6 @@ void rx_generic(void) {
 			packet[i] = rxbuf1[i];
 		}
 
-        // DGS: This is where BLE checks the CRC
-		// if (le.crc_verify) {
-		// 	u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
-		// 	u32 wire_crc = (p[4+len+2] << 16)
-		// 				 | (p[4+len+1] << 8)
-		// 				 | (p[4+len+0] << 0);
-		// 	if (calc_crc != wire_crc) // skip packets with a bad CRC
-		// 		goto rx_flush;
-		// }
-
 		RXLED_SET;
 		enqueue(BR_PACKET, packet);
 
