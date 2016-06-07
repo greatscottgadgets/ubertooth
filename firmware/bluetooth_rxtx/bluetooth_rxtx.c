@@ -2236,112 +2236,42 @@ void bt_slave_le() {
 	}
 }
 
-void rx_generic(void) {
-	int i;
-	int8_t rssi;
-
-	modulation = MOD_NONE;
-	mode = MODE_RX_GENERIC;
-
-	// enable USB interrupts
-	ISER0 = ISER0_ISE_USB;
-
-	RXLED_CLR;
-
+void rx_generic_sync(void) {
+	int i, j;
+	u8 len = 32;
+	u8 buf[len];
 	queue_init();
-	dio_ssp_init();
-	dma_init_le();
-	dio_ssp_start();
-
-	// just do the FS_LOCK and RX part of cc2400_rx_sync()
-    // Set up CS register
-	cs_threshold_calc_and_set(channel);
-
 	clkn_start();
 
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
-	cc2400_strobe(SRX);
+	RXLED_SET;
 #ifdef UBERTOOTH_ONE
-	PAEN_SET;
-	HGM_SET;
+		PAEN_SET;
+		HGM_SET;
 #endif
-
-	while (requested_mode == MODE_RX_GENERIC) {
-		RXLED_CLR;
-
-		/* Wait for DMA. Meanwhile keep track of RSSI. */
-		rssi_reset();
-		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == MODE_RX_GENERIC)
-			;
-
-		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
-		rssi_min = rssi_max = rssi;
-
-		//if (requested_mode != MODE_RX_GENERIC) {
-		//	goto cleanup;
-		//}
-
-		if (rx_err) {
-			status |= DMA_ERROR;
-		}
-
-		//if (do_hop)
-		//	goto rx_flush;
-
-		/* No DMA transfer? */
-		if (!rx_tc)
-			continue;
-
-		/////////////////////
-		// process the packet
-
-		while (DMACC0Config & DMACCxConfig_E && rx_err == 0)
-				;
-		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
-
-		// strobe SFSON to allow the resync to occur while we process the packet
-		cc2400_strobe(SFSON);
-
-		uint8_t packet[27];
-		for (i = 0; i < 27; i++) {
-			packet[i] = rxbuf1[i];
-		}
-
-		RXLED_SET;
-		enqueue(BR_PACKET, packet);
-
-	rx_flush:
-		// this might happen twice, but it's safe to do so
-		cc2400_strobe(SFSON);
-
-		// flush any excess bytes from the SSP's buffer
-		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
-		while (SSP1SR & SSPSR_RNE) {
-			u8 tmp = (u8)DIO_SSP_DR;
-		}
-
-		//if (do_hop)
-		//	hop();
-
-		// wait till we're in FSLOCK before strobing RX
-		while (!(cc2400_status() & FS_LOCK));
+	while (1) {
+		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 		cc2400_strobe(SRX);
-
-		rx_tc = 0;
-		rx_err = 0;
+		USRLED_CLR;
+		while (!(cc2400_status() & SYNC_RECEIVED));
+		USRLED_SET;
+		for (i = 0; i < len; i++)
+			buf[i] = cc2400_get8(FIFOREG);
+		enqueue(BR_PACKET, buf);
+		handle_usb(clkn);
 	}
+}
 
-cleanup:
-
-	// disable USB interrupts
-	ICER0 = ICER0_ICE_USB;
-
-	// reset the radio completely
-	cc2400_idle();
-	dio_ssp_stop();
-	cs_trigger_disable();
+void rx_generic(void) {
+	// Check for packet mode
+	if(cc2400_get(GRMDM) && 0x0400) {
+		rx_generic_sync();
+	} else {
+		modulation == MOD_NONE;
+		bt_stream_rx();
+	}
 }
 
 /* spectrum analysis */
