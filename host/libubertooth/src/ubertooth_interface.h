@@ -108,6 +108,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_WRITE_REGISTERS    = 65,
 	UBERTOOTH_READ_ALL_REGISTERS = 66,
 	UBERTOOTH_RX_GENERIC         = 67,
+	UBERTOOTH_TX_GENERIC_PACKET  = 68,
 };
 
 enum jam_modes {
@@ -180,5 +181,14 @@ typedef struct {
 	u8 reply_pa;
 	u8 reply_num;
 } rangetest_result;
+
+typedef struct {
+	u16 synch;
+	u16 syncl;
+	u8 length;
+	u8 channel;
+	u8 pa_level;
+	u8 data[32];
+} generic_tx_packet;
 
 #endif /* __UBERTOOTH_INTERFACE_H */

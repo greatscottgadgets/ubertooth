@@ -70,6 +70,9 @@ volatile uint16_t low_freq = 2400;
 volatile uint16_t high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
 
+/* Generic TX stuff */
+generic_tx_packet tx_pkt;
+
 /* le stuff */
 uint8_t slave_mac_address[6] = { 0, };
 
@@ -605,6 +608,11 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		*data_len = MAX_READ_REG*3;
 		break;
 
+	case UBERTOOTH_TX_GENERIC_PACKET:
+		memcpy((uint8_t*)&tx_pkt, data, sizeof(generic_tx_packet));
+		*data_len = 0;
+		break;
+
 	case UBERTOOTH_BTLE_SLAVE:
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
@@ -1059,7 +1067,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 		tx_len = len - i;
 		if (tx_len > 16)
 			tx_len = 16;
-		cc2400_spi_buf(FIFOREG, tx_len, txbuf + i);
+		cc2400_fifo_write(tx_len, txbuf + i);
 	}
 
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
@@ -1358,7 +1366,7 @@ void br_transmit()
 
 		TXLED_SET;
 
-		cc2400_spi_buf(FIFOREG, 16, data);
+		cc2400_fifo_write(16, data);
 
 		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 		TXLED_CLR;
@@ -2270,7 +2278,7 @@ void rx_generic_sync(void) {
 		while (!(cc2400_status() & SYNC_RECEIVED));
 		USRLED_SET;
 
-		cc2400_spi_buf_read(FIFOREG, len, buf+4);
+		cc2400_fifo_read(len, buf+4);
 		enqueue(BR_PACKET, buf);
 		handle_usb(clkn);
 	}
@@ -2284,6 +2292,27 @@ void rx_generic(void) {
 		modulation == MOD_NONE;
 		bt_stream_rx();
 	}
+}
+
+void tx_generic(void) {
+	u16 synch, syncl;
+	// Save existing syncword
+	synch = cc2400_get(SYNCH);
+	syncl = cc2400_get(SYNCL);
+	
+	cc2400_set(SYNCH, tx_pkt.synch);
+	cc2400_set(SYNCL, tx_pkt.syncl);
+	cc2400_set(FSDIV, tx_pkt.channel);
+	cc2400_set(FREND, tx_pkt.pa_level);
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+#ifdef UBERTOOTH_ONE
+		PAEN_SET;
+		HGM_SET;
+#endif
+
+	cc2400_fifo_write(tx_pkt.length, tx_pkt.data);
 }
 
 /* spectrum analysis */

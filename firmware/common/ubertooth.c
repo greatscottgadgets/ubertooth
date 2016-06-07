@@ -338,9 +338,9 @@ static void spi_delay() {
 
 
 /* write multiple bytes to SPI */
-void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
-{
+void cc2400_fifo_write(u8 len, u8 *data) {
 	u8 msb = 1 << 7;
+	u8 reg = FIFOREG;
 	u8 i, j, temp;
 
 	/* start transaction by dropping CSN */
@@ -380,12 +380,11 @@ void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
 }
 
 /* read multiple bytes from SPI */
-void cc2400_spi_buf_read(u8 reg, u8 len, u8 *buf)
-{
+void cc2400_fifo_read(u8 len, u8 *buf) {
 	u8 msb = 1 << 7;
-	u8 i, j, temp;
+	u8 i, j, temp, reg;
 	// Set first bit because it's a read
-	reg |= 0x80;
+	reg = 0x80 | FIFOREG;
 
 	/* start transaction by dropping CSN */
 	CSN_CLR;
