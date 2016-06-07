@@ -188,7 +188,7 @@ typedef struct {
 	u8 length;
 	u8 channel;
 	u8 pa_level;
-	u8 data[32];
+	u8 data[DMA_SIZE];
 } generic_tx_packet;
 
 #endif /* __UBERTOOTH_INTERFACE_H */

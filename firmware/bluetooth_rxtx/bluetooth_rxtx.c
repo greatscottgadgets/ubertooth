@@ -609,7 +609,9 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		break;
 
 	case UBERTOOTH_TX_GENERIC_PACKET:
-		memcpy((uint8_t*)&tx_pkt, data, sizeof(generic_tx_packet));
+		i = 7 + data[4];
+		memcpy(&tx_pkt, data, i);
+		requested_mode = MODE_TX_GENERIC;
 		*data_len = 0;
 		break;
 
@@ -2295,24 +2297,62 @@ void rx_generic(void) {
 }
 
 void tx_generic(void) {
-	u16 synch, syncl;
+	u32 i;
+	u16 synch, syncl, gio_save;
+	u8 tx_len;
+	u8 prev_mode = mode;
+
+	mode = MODE_TX_GENERIC;
+
 	// Save existing syncword
 	synch = cc2400_get(SYNCH);
 	syncl = cc2400_get(SYNCL);
-	
+
+	// set GIO to FIFO_FULL
+	gio_save = cc2400_get(IOCFG);
+	cc2400_set(IOCFG, (GIO_FIFO_FULL << 9) | (gio_save & 0x1ff));
+
 	cc2400_set(SYNCH, tx_pkt.synch);
 	cc2400_set(SYNCL, tx_pkt.syncl);
 	cc2400_set(FSDIV, tx_pkt.channel);
 	cc2400_set(FREND, tx_pkt.pa_level);
+
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
 #ifdef UBERTOOTH_ONE
 		PAEN_SET;
-		HGM_SET;
 #endif
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	cc2400_strobe(STX);
 
-	cc2400_fifo_write(tx_pkt.length, tx_pkt.data);
+	// put the packet into the FIFO
+	for (i = 0; i < tx_pkt.length; i += 16) {
+		while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
+		tx_len = tx_pkt.length - i;
+		if (tx_len > 16)
+			tx_len = 16;
+		cc2400_fifo_write(tx_len, tx_pkt.data + i);
+	}
+
+	//cc2400_fifo_write(tx_pkt.length, tx_pkt.data);
+
+	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+	TXLED_CLR;
+
+	cc2400_strobe(SRFOFF);
+	while ((cc2400_status() & FS_LOCK));
+
+#ifdef UBERTOOTH_ONE
+	PAEN_CLR;
+#endif
+	// reset GIO
+	cc2400_set(IOCFG, gio_save);
+
+	// Restore state
+	cc2400_set(SYNCH, synch);
+	cc2400_set(SYNCL, syncl);
+	requested_mode = prev_mode;
 }
 
 /* spectrum analysis */
@@ -2500,6 +2540,9 @@ int main()
 				case MODE_RX_GENERIC:
 					mode = MODE_RX_GENERIC;
 					rx_generic();
+					break;
+				case MODE_TX_GENERIC:
+					tx_generic();
 					break;
 				case MODE_IDLE:
 					cc2400_idle();
