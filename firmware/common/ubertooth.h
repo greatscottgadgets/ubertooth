@@ -326,6 +326,7 @@ void cc2400_set(u8 reg, u16 val);
 u8 cc2400_get8(u8 reg);
 void cc2400_set8(u8 reg, u8 val);
 void cc2400_spi_buf(u8 reg, u8 len, u8 *data);
+void cc2400_spi_buf_read(u8 reg, u8 len, u8 *buf);
 u8 cc2400_status(void);
 u8 cc2400_strobe(u8 reg);
 void cc2400_reset(void);

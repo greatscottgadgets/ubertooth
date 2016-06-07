@@ -330,6 +330,13 @@ void cc2400_set8(u8 reg, u8 val)
 	cc2400_spi(16, out);
 }
 
+static volatile u32 delay_counter;
+static void spi_delay() {
+       delay_counter = 10;
+       while (--delay_counter);
+}
+
+
 /* write multiple bytes to SPI */
 void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
 {
@@ -369,6 +376,46 @@ void cc2400_spi_buf(u8 reg, u8 len, u8 *data)
 	}
 
 	/* end transaction by raising CSN */
+	CSN_SET;
+}
+
+/* read multiple bytes from SPI */
+void cc2400_spi_buf_read(u8 reg, u8 len, u8 *buf)
+{
+	u8 msb = 1 << 7;
+	u8 i, j, temp;
+	// Set first bit because it's a read
+	reg |= 0x80;
+
+	/* start transaction by dropping CSN */
+	CSN_CLR;
+
+	for (i = 0; i < 8; ++i) {
+		if (reg & msb)
+			MOSI_SET;
+		else
+			MOSI_CLR;
+		reg <<= 1;
+		SCLK_SET;
+		SCLK_CLR;
+	}
+
+	for (i = 0; i < len; ++i) {
+		temp = 0;
+		for (j = 0; j < 8; ++j) {
+			spi_delay();
+			SCLK_SET;
+			temp <<= 1;
+			if (MISO)
+				temp |= 1;
+			spi_delay();
+			SCLK_CLR;
+		}
+		buf[i] = temp;
+	}
+
+	/* end transaction by raising CSN */
+	spi_delay();
 	CSN_SET;
 }
 

@@ -2239,7 +2239,19 @@ void bt_slave_le() {
 void rx_generic_sync(void) {
 	int i, j;
 	u8 len = 32;
-	u8 buf[len];
+	u8 buf[len+4];
+	u16 reg_val;
+	
+	/* Put syncword at start of buffer
+	 * DGS: fix this later, we don't know number of syncword bytes, etc
+	 */
+	reg_val = cc2400_get(SYNCH);
+	buf[0] = (reg_val >> 8) & 0xFF;
+	buf[1] = reg_val & 0xFF;
+	reg_val = cc2400_get(SYNCL);
+	buf[2] = (reg_val >> 8) & 0xFF;
+	buf[3] = reg_val & 0xFF;
+	
 	queue_init();
 	clkn_start();
 
@@ -2257,8 +2269,8 @@ void rx_generic_sync(void) {
 		USRLED_CLR;
 		while (!(cc2400_status() & SYNC_RECEIVED));
 		USRLED_SET;
-		for (i = 0; i < len; i++)
-			buf[i] = cc2400_get8(FIFOREG);
+
+		cc2400_spi_buf_read(FIFOREG, len, buf+4);
 		enqueue(BR_PACKET, buf);
 		handle_usb(clkn);
 	}
