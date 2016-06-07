@@ -390,6 +390,11 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		*data_len = 0;
 		break;
 
+	case UBERTOOTH_RX_GENERIC:
+		requested_mode = MODE_RX_GENERIC;
+		*data_len = 0;
+		break;
+
 	case UBERTOOTH_LED_SPECAN:
 		if (request_params[0] > 256)
 			return 0;
@@ -726,7 +731,8 @@ void DMA_IRQHandler()
 	   || mode == MODE_SPECAN
 	   || mode == MODE_BT_FOLLOW_LE
 	   || mode == MODE_BT_PROMISC_LE
-	   || mode == MODE_BT_SLAVE_LE)
+	   || mode == MODE_BT_SLAVE_LE
+	   || mode == MODE_RX_GENERIC)
 	{
 		/* interrupt on channel 0 */
 		if (DMACIntStat & (1 << 0)) {
@@ -2230,6 +2236,124 @@ void bt_slave_le() {
 	}
 }
 
+void rx_generic(void) {
+	int i;
+	int8_t rssi;
+
+	modulation = MOD_NONE;
+	mode = MODE_RX_GENERIC;
+
+	// enable USB interrupts
+	ISER0 = ISER0_ISE_USB;
+
+	RXLED_CLR;
+
+	queue_init();
+	dio_ssp_init();
+	dma_init_le();
+	dio_ssp_start();
+
+	// just do the FS_LOCK and RX part of cc2400_rx_sync()
+    // Set up CS register
+	cs_threshold_calc_and_set(channel);
+
+	clkn_start();
+
+	while (!(cc2400_status() & XOSC16M_STABLE));
+	cc2400_strobe(SFSON);
+	while (!(cc2400_status() & FS_LOCK));
+	cc2400_strobe(SRX);
+#ifdef UBERTOOTH_ONE
+	PAEN_SET;
+	HGM_SET;
+#endif
+
+	while (requested_mode == MODE_RX_GENERIC) {
+		RXLED_CLR;
+
+		/* Wait for DMA. Meanwhile keep track of RSSI. */
+		rssi_reset();
+		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == MODE_RX_GENERIC)
+			;
+
+		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+		rssi_min = rssi_max = rssi;
+
+		//if (requested_mode != MODE_RX_GENERIC) {
+		//	goto cleanup;
+		//}
+
+		if (rx_err) {
+			status |= DMA_ERROR;
+		}
+
+		//if (do_hop)
+		//	goto rx_flush;
+
+		/* No DMA transfer? */
+		if (!rx_tc)
+			continue;
+
+		/////////////////////
+		// process the packet
+
+		while (DMACC0Config & DMACCxConfig_E && rx_err == 0)
+				;
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+
+		// strobe SFSON to allow the resync to occur while we process the packet
+		cc2400_strobe(SFSON);
+
+		uint8_t packet[27];
+		for (i = 0; i < 27; i++) {
+			packet[i] = rxbuf1[i];
+		}
+
+        // DGS: This is where BLE checks the CRC
+		// if (le.crc_verify) {
+		// 	u32 calc_crc = btle_crcgen_lut(le.crc_init_reversed, p + 4, len);
+		// 	u32 wire_crc = (p[4+len+2] << 16)
+		// 				 | (p[4+len+1] << 8)
+		// 				 | (p[4+len+0] << 0);
+		// 	if (calc_crc != wire_crc) // skip packets with a bad CRC
+		// 		goto rx_flush;
+		// }
+
+		RXLED_SET;
+		enqueue(BR_PACKET, packet);
+
+	rx_flush:
+		// this might happen twice, but it's safe to do so
+		cc2400_strobe(SFSON);
+
+		// flush any excess bytes from the SSP's buffer
+		DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+		while (SSP1SR & SSPSR_RNE) {
+			u8 tmp = (u8)DIO_SSP_DR;
+		}
+
+		//if (do_hop)
+		//	hop();
+
+		// wait till we're in FSLOCK before strobing RX
+		while (!(cc2400_status() & FS_LOCK));
+		cc2400_strobe(SRX);
+
+		rx_tc = 0;
+		rx_err = 0;
+	}
+
+cleanup:
+
+	// disable USB interrupts
+	ICER0 = ICER0_ICE_USB;
+
+	// reset the radio completely
+	cc2400_idle();
+	dio_ssp_stop();
+	cs_trigger_disable();
+}
+
 /* spectrum analysis */
 void specan()
 {
@@ -2411,6 +2535,10 @@ int main()
 				case MODE_EGO:
 					mode = MODE_EGO;
 					ego_main(ego_mode);
+					break;
+				case MODE_RX_GENERIC:
+					mode = MODE_RX_GENERIC;
+					rx_generic();
 					break;
 				case MODE_IDLE:
 					cc2400_idle();
