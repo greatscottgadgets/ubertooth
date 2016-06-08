@@ -185,8 +185,8 @@ typedef struct {
 typedef struct {
 	u16 synch;
 	u16 syncl;
+	u16 channel;
 	u8 length;
-	u8 channel;
 	u8 pa_level;
 	u8 data[DMA_SIZE];
 } generic_tx_packet;

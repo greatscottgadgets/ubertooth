@@ -609,7 +609,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		break;
 
 	case UBERTOOTH_TX_GENERIC_PACKET:
-		i = 7 + data[4];
+		i = 7 + data[6];
 		memcpy(&tx_pkt, data, i);
 		requested_mode = MODE_TX_GENERIC;
 		*data_len = 0;
@@ -2312,37 +2312,53 @@ void tx_generic(void) {
 	gio_save = cc2400_get(IOCFG);
 	cc2400_set(IOCFG, (GIO_FIFO_FULL << 9) | (gio_save & 0x1ff));
 
-	cc2400_set(SYNCH, tx_pkt.synch);
-	cc2400_set(SYNCL, tx_pkt.syncl);
-	cc2400_set(FSDIV, tx_pkt.channel);
-	cc2400_set(FREND, tx_pkt.pa_level);
-
+	cc2400_set(SYNCH, 0x1234);
+	cc2400_set(SYNCL, 0x5678);
+	cc2400_set(FSDIV, 2402);
+	cc2400_set(FREND, 0xF);
+	
+	cc2400_set(LMTST,   0x2b22);
+	cc2400_set(MDMTST0, 0x134b);
+	cc2400_set(GRMDM,   0x0df1);  // default value
+	cc2400_set(FSDIV,   2402);
+	cc2400_set(SYNCH,   0xf9ae);
+	cc2400_set(SYNCL,   0x1584);
+	cc2400_set(FREND,   8 | 7);
+	cc2400_set(MDMCTRL, 0x0029);
+	TXLED_SET;
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
 #ifdef UBERTOOTH_ONE
 		PAEN_SET;
 #endif
+if(tx_pkt.length == 25) {
+	USRLED_SET;
+}
+while(1) {
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
-	cc2400_strobe(STX);
+	//cc2400_strobe(STX);
 
 	// put the packet into the FIFO
-	for (i = 0; i < tx_pkt.length; i += 16) {
-		while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
-		tx_len = tx_pkt.length - i;
-		if (tx_len > 16)
-			tx_len = 16;
-		cc2400_fifo_write(tx_len, tx_pkt.data + i);
-	}
+	//for (i = 0; i < tx_pkt.length; i += 16) {
+	//	while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
+	//	tx_len = tx_pkt.length - i;
+	//	if (tx_len > 16)
+	//		tx_len = 16;
+	//	cc2400_fifo_write(tx_len, tx_pkt.data + i);
+	//}
+	for (i = 0; i < tx_pkt.length; i++)
+			cc2400_set8(FIFOREG, tx_pkt.data[i]);
+	cc2400_strobe(STX);
 
 	//cc2400_fifo_write(tx_pkt.length, tx_pkt.data);
 
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
-	TXLED_CLR;
+	//TXLED_CLR;
 
 	cc2400_strobe(SRFOFF);
 	while ((cc2400_status() & FS_LOCK));
-
+}
 #ifdef UBERTOOTH_ONE
 	PAEN_CLR;
 #endif
