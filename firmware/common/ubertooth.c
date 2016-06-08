@@ -374,7 +374,8 @@ void cc2400_fifo_write(u8 len, u8 *data) {
 		SCLK_SET;
 		SCLK_CLR;
 	}
-
+	
+	spi_delay();
 	/* end transaction by raising CSN */
 	CSN_SET;
 }
