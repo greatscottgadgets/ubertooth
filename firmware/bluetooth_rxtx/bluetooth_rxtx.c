@@ -520,6 +520,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		do_hop = 0;
 		hop_mode = HOP_BTLE;
 		requested_mode = MODE_BT_FOLLOW_LE;
+		le_adv_channel = channel;
 
 		queue_init();
 		cs_threshold_calc_and_set(channel);
