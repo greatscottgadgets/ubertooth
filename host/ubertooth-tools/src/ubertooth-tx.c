@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <unistd.h>  // sleep
 #include <string.h>
+#include <inttypes.h> // PRIx64
 
 static void usage()
 {
@@ -93,7 +94,8 @@ int main(int argc, char* argv[])
 		if (r < 0)
 			return r;
 		uint64_t syncword = btbb_gen_syncword(lap);
-		printf("Syncword: 0x%016lx\n", syncword);
+		//printf("Syncword: 0x%016lx\n", syncword);
+		printf("Syncword: 0x%" PRIx64 "\n", syncword);
 	} else {
 		fprintf(stderr, "Error: LAP or UAP not specified\n");
 		usage();
