@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 			if (r == sizeof(usb_pkt_rx)) {
-				ringbuffer_add(ut->packets, &rx);
+				fifo_push(ut->fifo, &rx);
 				cb_btle(ut, &cb_opts);
 			}
 			usleep(500);

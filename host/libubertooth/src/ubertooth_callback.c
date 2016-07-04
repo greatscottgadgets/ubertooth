@@ -49,7 +49,7 @@ static int8_t cc2400_rssi_to_dbm( const int8_t rssi )
 	}
 }
 
-#define RSSI_HISTORY_LEN NUM_BANKS
+#define RSSI_HISTORY_LEN 10
 
 /* Ignore packets with a SNR lower than this in order to reduce
  * processor load.  TODO: this should be a command line parameter. */
@@ -140,7 +140,10 @@ void cb_br_rx(ubertooth_t* ut, void* args)
 	uint8_t uap = UAP_ANY;
 
 	/* Do analysis based on oldest packet */
-	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	uint8_t syms[BANK_LEN];
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
 
 	/* Sanity check */
 	if (rx->channel > (NUM_BREDR_CHANNELS-1))
@@ -160,7 +163,7 @@ void cb_br_rx(ubertooth_t* ut, void* args)
 
 	/* Pass packet-pointer-pointer so that
 	 * packet can be created in libbtbb. */
-	offset = btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, lap, max_ac_errors, &pkt);
+	offset = btbb_find_ac(syms, BANK_LEN - 64, lap, max_ac_errors, &pkt);
 	if (offset < 0)
 		goto out;
 
@@ -171,7 +174,7 @@ void cb_br_rx(ubertooth_t* ut, void* args)
 	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
 	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
-	btbb_packet_set_data(pkt, ringbuffer_top_bt(ut->packets) + offset, NUM_BANKS * BANK_LEN - offset,
+	btbb_packet_set_data(pkt, syms + offset, BANK_LEN - offset,
 	                     rx->channel, clkn);
 
 	/* When reading from file, caller will read
@@ -181,12 +184,11 @@ void cb_br_rx(ubertooth_t* ut, void* args)
 		systime = time(NULL);
 
 	/* If dumpfile is specified, write out all banks to the
-	 * file. There could be duplicate data in the dump if more
-	 * than one LAP is found within the span of NUM_BANKS. */
+	 * file. */
 	if (dumpfile) {
 		uint32_t systime_be = htobe32(systime);
 		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
-		fwrite(ringbuffer_top_usb(ut->packets), sizeof(usb_pkt_rx), 1, dumpfile);
+		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
 
@@ -236,8 +238,10 @@ void cb_scan(ubertooth_t* ut, void* args __attribute__((unused)))
 	int offset;
 	uint32_t clkn;
 
-	/* Do analysis based on oldest packet */
-	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	uint8_t syms[BANK_LEN];
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
 
 	/* Sanity check */
 	if (rx->channel > (NUM_BREDR_CHANNELS-1))
@@ -248,7 +252,7 @@ void cb_scan(ubertooth_t* ut, void* args __attribute__((unused)))
 
 	/* Pass packet-pointer-pointer so that
 	 * packet can be created in libbtbb. */
-	offset = btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, LAP_ANY, max_ac_errors, &pkt);
+	offset = btbb_find_ac(syms, BANK_LEN - 64, LAP_ANY, max_ac_errors, &pkt);
 	if (offset < 0)
 		goto out;
 
@@ -256,7 +260,7 @@ void cb_scan(ubertooth_t* ut, void* args __attribute__((unused)))
 	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
 	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
-	btbb_packet_set_data(pkt, ringbuffer_top_bt(ut->packets) + offset, NUM_BANKS * BANK_LEN - offset,
+	btbb_packet_set_data(pkt, syms + offset, BANK_LEN - offset,
 	                     rx->channel, clkn);
 
 	printf("systime=%u ch=%2d LAP=%06x err=%u clk100ns=%u clk1=%u s=%d n=%d snr=%d\n",
@@ -283,14 +287,19 @@ void cb_afh_initial(ubertooth_t* ut, void* args)
 	btbb_packet* pkt = NULL;
 	uint8_t channel;
 
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	uint8_t syms[BANK_LEN];
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
 
-	if( btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
+
+	if( btbb_find_ac(syms, BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
 		goto out;
 
 	/* detect AFH map
 	 * set current channel as used channel and send updated AFH
 	 * map to ubertooth */
-	channel = ringbuffer_top_usb(ut->packets)->channel;
+	channel = rx->channel;
 	if(btbb_piconet_set_channel_seen(pn, channel)) {
 
 		/* Don't allow single unused channels */
@@ -324,15 +333,20 @@ void cb_afh_monitor(ubertooth_t* ut, void* args)
 	uint8_t channel;
 	int i;
 
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	uint8_t syms[BANK_LEN];
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
+
 	static unsigned long last_seen[79] = {0};
 	static unsigned long counter = 0;
 
 
-	if( btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
+	if( btbb_find_ac(syms, BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
 		goto out;
 
 	counter++;
-	channel = ringbuffer_top_usb(ut->packets)->channel;
+	channel = rx->channel;
 	last_seen[channel]=counter;
 
 	if(btbb_piconet_set_channel_seen(pn, channel)) {
@@ -364,15 +378,20 @@ void cb_afh_r(ubertooth_t* ut, void* args)
 	uint8_t channel;
 	int i;
 
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	uint8_t syms[BANK_LEN];
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
+
 	static unsigned long last_seen[79] = {0};
 	static unsigned long counter = 0;
 
-	if( btbb_find_ac(ringbuffer_top_bt(ut->packets), BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
+	if( btbb_find_ac(syms, BANK_LEN - 64, btbb_piconet_get_lap(pn), max_ac_errors, &pkt) < 0 )
 		goto out;
 
 
 	counter++;
-	channel = ringbuffer_top_usb(ut->packets)->channel;
+	channel = rx->channel;
 	last_seen[channel]=counter;
 
 	btbb_piconet_set_channel_seen(pn, channel);
@@ -398,7 +417,8 @@ void cb_btle(ubertooth_t* ut, void* args)
 	lell_packet* pkt;
 	btle_options* opts = (btle_options*) args;
 	int i;
-	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
 	// u32 access_address = 0; // Build warning
 
 	static u32 prev_ts = 0;
@@ -514,7 +534,8 @@ void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)))
 {
 	int i;
 	static u32 prev_ts = 0;
-	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
 
 	u32 rx_time = rx->clk100ns;
 	if (rx_time < prev_ts)
@@ -534,12 +555,13 @@ void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)))
 	fflush(stdout);
 }
 
+#define CLOCK_TRIM_THRESHOLD 2
 
 void cb_rx(ubertooth_t* ut, void* args)
 {
 	btbb_packet* pkt = NULL;
 	btbb_piconet* pn = (btbb_piconet *)args;
-	char syms[NUM_BANKS * BANK_LEN];
+	uint8_t syms[BANK_LEN];
 	int offset;
 	uint16_t clk_offset;
 	uint32_t clkn;
@@ -550,8 +572,13 @@ void cb_rx(ubertooth_t* ut, void* args)
 	static int trim_counter = 0;
 	static int calibrated = 0;
 
-	/* Do analysis based on oldest packet */
-	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
+
+	if (rx->pkt_type != BR_PACKET) {
+		goto out;
+	}
 
 	if (rx->status & DISCARD) {
 		goto out;
@@ -567,12 +594,6 @@ void cb_rx(ubertooth_t* ut, void* args)
 	int8_t noise_level = rx->rssi_min;
 	determine_signal_and_noise( rx, &signal_level, &noise_level );
 	int8_t snr = signal_level - noise_level;
-
-	/* Copy out remaining banks of symbols for full analysis. */
-	for (i = 0; i < NUM_BANKS; i++)
-		memcpy(syms + i * BANK_LEN,
-		       ringbuffer_get_bt(ut->packets, i),
-		       BANK_LEN);
 
 	/* Look for packets with specified LAP, if given. Otherwise
 	 * search for any packet. */
@@ -597,7 +618,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
 	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (le32toh(rx->clkn_high) << 20) + (le32toh(rx->clk100ns) + offset*10 - 4000) / 3125;
-	btbb_packet_set_data(pkt, syms + offset, NUM_BANKS * BANK_LEN - offset,
+	btbb_packet_set_data(pkt, syms + offset, BANK_LEN - offset,
 	                     rx->channel, clkn);
 
 	/* When reading from file, caller will read
@@ -622,7 +643,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 	/* calibrate Ubertooth clock such that the first bit of the AC
 	 * arrives CLK_TUNE_TIME after the rising edge of CLKN */
 	if (pn != NULL && infile == NULL) {
-		if (trim_counter < -PKTS_PER_XFER
+		if (trim_counter < -CLOCK_TRIM_THRESHOLD
 		    || ((clk_offset < CLK_TUNE_TIME - CLK_TUNE_OFFSET) && !calibrated)) {
 			printf("offset < CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", 6250 + clk_offset - CLK_TUNE_TIME);
@@ -630,7 +651,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 			trim_counter = 0;
 			calibrated = 1;
 			goto out;
-		} else if (trim_counter > PKTS_PER_XFER
+		} else if (trim_counter > CLOCK_TRIM_THRESHOLD
 		           || ((clk_offset > CLK_TUNE_TIME + CLK_TUNE_OFFSET) && !calibrated)) {
 			printf("offset > CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", clk_offset - CLK_TUNE_TIME);
@@ -651,12 +672,9 @@ void cb_rx(ubertooth_t* ut, void* args)
 		}
 	}
 
-	r = btbb_process_packet(pkt, pn);
 	r = btbb_packet_get_type(pkt);
-	
-	/* If dumpfile is specified, write out all banks to the
-	 * file. There could be duplicate data in the dump if more
-	 * than one LAP is found within the span of NUM_BANKS. */
+
+	/* If dumpfile is specified, write out packet file. */
 	if (dumpfile && r==3) {
 		uint32_t systime_be = htobe32(systime);
 		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
@@ -676,6 +694,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 		                          lap, uap, pkt);
 	}
 
+	r = btbb_process_packet(pkt, pn);
 	if(infile == NULL && r < 0)
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
 
