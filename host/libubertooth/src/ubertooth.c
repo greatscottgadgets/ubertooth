@@ -191,7 +191,6 @@ static void rx_xfer_status(int status)
 static void cb_xfer(struct libusb_transfer *xfer)
 {
 	int r;
-	uint8_t *tmp;
 	ubertooth_t* ut = (ubertooth_t*)xfer->user_data;
 
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
@@ -250,7 +249,7 @@ void ubertooth_bulk_wait(ubertooth_t* ut)
 
 int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args)
 {
-	int i, r;
+	int r;
 
 	if (fifo_empty(ut->fifo))
 	{
