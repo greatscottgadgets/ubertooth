@@ -66,10 +66,7 @@
 #define PKT_LEN       64
 #define SYM_LEN       50
 #define SYM_OFFSET    14
-#define PKTS_PER_XFER 8
-#define NUM_BANKS     10
-#define XFER_LEN      (PKT_LEN * PKTS_PER_XFER)
-#define BANK_LEN      (SYM_LEN * PKTS_PER_XFER)
+#define BANK_LEN      (SYM_LEN * 8)
 
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 #define MIN(a,b) ((a)<(b) ? (a) : (b))

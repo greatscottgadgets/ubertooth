@@ -123,13 +123,11 @@ static void cb_cap(ubertooth_t* ut, void* args)
 {
 	PacketSource_Ubertooth* ubertooth = (PacketSource_Ubertooth*) args;
 	btbb_packet* pkt = NULL;
-	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
-	char syms[BANK_LEN * NUM_BANKS];
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	char syms[BANK_LEN];
 
-	for (int i = 0; i < NUM_BANKS; i++)
-		memcpy(syms + i * BANK_LEN,
-		       ringbuffer_get_bt(ut->packets, i),
-		       BANK_LEN);
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
 
 	int offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, 1, &pkt);
 	if (offset >= 0) {
@@ -137,7 +135,7 @@ static void cb_cap(ubertooth_t* ut, void* args)
 		uint32_t clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
 
 		btbb_packet_set_data(pkt, syms + offset,
-		                     NUM_BANKS * BANK_LEN - offset,
+		                     BANK_LEN - offset,
 		                     rx->channel, clkn);
 
 		enqueue(ubertooth, pkt);

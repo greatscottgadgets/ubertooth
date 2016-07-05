@@ -19,26 +19,27 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UBERTOOTH_RINGBUFFER_H__
-#define __UBERTOOTH_RINGBUFFER_H__
+#ifndef __UBERTOOTH_FIFO_H__
+#define __UBERTOOTH_FIFO_H__
 
 #include "ubertooth_control.h"
 
+#define FIFO_SIZE 10
+
 typedef struct {
-	uint8_t current_bank;
-	usb_pkt_rx usb[NUM_BANKS];
-	char bt[NUM_BANKS][BANK_LEN];
-} ringbuffer_t;
+	usb_pkt_rx packets[FIFO_SIZE];
+	size_t read_ptr;
+	size_t write_ptr;
+} fifo_t;
 
-ringbuffer_t* ringbuffer_init();
+fifo_t* fifo_init();
 
-int ringbuffer_add(ringbuffer_t* rb, const usb_pkt_rx* rx);
+void fifo_inc_write_ptr(fifo_t* fifo);
 
-usb_pkt_rx* ringbuffer_get_usb(ringbuffer_t* rb, uint8_t index);
-usb_pkt_rx* ringbuffer_top_usb(ringbuffer_t* rb);
-usb_pkt_rx* ringbuffer_bottom_usb(ringbuffer_t* rb);
-char* ringbuffer_get_bt(ringbuffer_t* rb, uint8_t index);
-char* ringbuffer_top_bt(ringbuffer_t* rb);
-char* ringbuffer_bottom_bt(ringbuffer_t* rb);
+void fifo_push(fifo_t* fifo, const usb_pkt_rx* packet);
+usb_pkt_rx fifo_pop(fifo_t* fifo);
+usb_pkt_rx* fifo_get_write_element(fifo_t* fifo);
 
-#endif /* __UBERTOOTH_RINGBUFFER_H__ */
+uint8_t fifo_empty(fifo_t* fifo);
+
+#endif /* __UBERTOOTH_FIFO_H__ */
