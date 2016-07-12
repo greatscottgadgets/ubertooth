@@ -286,14 +286,18 @@ int main(void)
 		if (bootloader_ctrl == DFU_MODE) {
 			ubertooth_init();
 			run_bootloader();
+			bootloader_ctrl = 0;
+			wait(1);
+			reset();
 		} else if (ENTRY_PIN) {
 			use_timeout = true;
 			ubertooth_init();
 			run_bootloader();
+			wait(1);
+			reset();
 		}
 	}
 
-	bootloader_ctrl = 0;
 	run_application();
 
 	return 0;
