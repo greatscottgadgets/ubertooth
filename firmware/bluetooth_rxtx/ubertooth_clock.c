@@ -32,6 +32,12 @@ void clkn_stop()
 
 	clkn_offset = 0;
 	clk100ns_offset = 0;
+
+	clk_drift_ppm = 0;
+	clk_drift_correction = 0;
+
+	clkn_last_drift_fix = 0;
+	clkn_next_drift_fix = 0;
 }
 
 void clkn_start()

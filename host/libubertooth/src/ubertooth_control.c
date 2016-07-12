@@ -72,6 +72,16 @@ void cmd_trim_clock(struct libusb_device_handle* devh, uint16_t offset)
 	ubertooth_cmd_async(devh, CTRL_OUT, UBERTOOTH_TRIM_CLOCK, data, 2);
 }
 
+void cmd_fix_clock_drift(struct libusb_device_handle* devh, int16_t ppm)
+{
+	uint8_t data[2] = {
+		(ppm >> 8) & 0xff,
+		(ppm >> 0) & 0xff
+	};
+
+	ubertooth_cmd_async(devh, CTRL_OUT, UBERTOOTH_FIX_CLOCK_DRIFT, data, 2);
+}
+
 int cmd_ping(struct libusb_device_handle* devh)
 {
 	int r;

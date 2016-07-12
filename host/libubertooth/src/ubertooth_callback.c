@@ -549,6 +549,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 
 	static int trim_counter = 0;
 	static int calibrated = 0;
+	static uint32_t clkn_trim = 0;
 
 	/* Do analysis based on oldest packet */
 	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
@@ -623,19 +624,35 @@ void cb_rx(ubertooth_t* ut, void* args)
 	 * arrives CLK_TUNE_TIME after the rising edge of CLKN */
 	if (pn != NULL && infile == NULL) {
 		if (trim_counter < -PKTS_PER_XFER
-		    || ((clk_offset < CLK_TUNE_TIME - CLK_TUNE_OFFSET) && !calibrated)) {
+		    || ((clk_offset < CLK_TUNE_TIME) && !calibrated)) {
 			printf("offset < CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", 6250 + clk_offset - CLK_TUNE_TIME);
 			cmd_trim_clock(ut->devh, 6250 + clk_offset - CLK_TUNE_TIME);
 			trim_counter = 0;
+			if (calibrated) {
+				printf("Clock drifted %d in %f s. %d PPM too slow.\n",
+				       (clk_offset-CLK_TUNE_TIME),
+				       (double)(clkn-clkn_trim)/3200,
+				       (clk_offset-CLK_TUNE_TIME) * 320 / (int32_t)(clkn-clkn_trim));
+				cmd_fix_clock_drift(ut->devh, (clk_offset-CLK_TUNE_TIME) * 320 / (int32_t)(clkn-clkn_trim));
+			}
+			clkn_trim = clkn;
 			calibrated = 1;
 			goto out;
 		} else if (trim_counter > PKTS_PER_XFER
-		           || ((clk_offset > CLK_TUNE_TIME + CLK_TUNE_OFFSET) && !calibrated)) {
+		           || ((clk_offset > CLK_TUNE_TIME) && !calibrated)) {
 			printf("offset > CLK_TUNE_TIME\n");
 			printf("CLK100ns Trim: %d\n", clk_offset - CLK_TUNE_TIME);
 			cmd_trim_clock(ut->devh, clk_offset - CLK_TUNE_TIME);
 			trim_counter = 0;
+			if (calibrated) {
+				printf("Clock drifted %d in %f s. %d PPM too fast.\n",
+				       (clk_offset-CLK_TUNE_TIME),
+				       (double)(clkn-clkn_trim)/3200,
+				       (clk_offset-CLK_TUNE_TIME) * 320 / (clkn-clkn_trim));
+				cmd_fix_clock_drift(ut->devh, (clk_offset-CLK_TUNE_TIME) * 320 / (clkn-clkn_trim));
+			}
+			clkn_trim = clkn;
 			calibrated = 1;
 			goto out;
 		}
@@ -653,7 +670,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 
 	r = btbb_process_packet(pkt, pn);
 	r = btbb_packet_get_type(pkt);
-	
+
 	/* If dumpfile is specified, write out all banks to the
 	 * file. There could be duplicate data in the dump if more
 	 * than one LAP is found within the span of NUM_BANKS. */
@@ -676,8 +693,10 @@ void cb_rx(ubertooth_t* ut, void* args)
 		                          lap, uap, pkt);
 	}
 
-	if(infile == NULL && r < 0)
+	if(infile == NULL && r < 0) {
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
+		calibrated = 0;
+	}
 
 out:
 	if (pkt)

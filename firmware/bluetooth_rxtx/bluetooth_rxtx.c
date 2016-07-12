@@ -514,6 +514,27 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		clk100ns_offset = (data[0] << 8) | (data[1] << 0);
 		break;
 
+	case UBERTOOTH_FIX_CLOCK_DRIFT:
+		clk_drift_ppm += (int16_t)(data[0] << 8) | (data[1] << 0);
+
+		// Too slow
+		if (clk_drift_ppm < 0) {
+			clk_drift_correction = 320 / (uint16_t)(-clk_drift_ppm);
+			clkn_next_drift_fix = clkn_last_drift_fix + clk_drift_correction;
+		}
+		// Too fast
+		else if (clk_drift_ppm > 0) {
+			clk_drift_correction = 320 / clk_drift_ppm;
+			clkn_next_drift_fix = clkn_last_drift_fix + clk_drift_correction;
+		}
+		// Don't trim
+		else {
+			clk_drift_correction = 0;
+			clkn_next_drift_fix = 0;
+		}
+
+		break;
+
 	case UBERTOOTH_BTLE_SNIFFING:
 		*data_len = 0;
 
@@ -702,6 +723,25 @@ void TIMER0_IRQHandler()
 			}
 		}
 
+		// Fix linear clock drift deviation
+		if(clkn_next_drift_fix != 0 && clk100ns_offset == 0) {
+			if(clkn >= clkn_next_drift_fix) {
+
+				// Too fast
+				if(clk_drift_ppm >= 0) {
+					clk100ns_offset = 1;
+				}
+
+				// Too slow
+				else {
+					clk100ns_offset = 6249;
+				}
+				clkn_last_drift_fix = clkn;
+				clkn_next_drift_fix = clkn_last_drift_fix + clk_drift_correction;
+			}
+		}
+
+		// Negative clock correction
 		if(clk100ns_offset > 3124)
 			clkn += 2;
 
@@ -829,7 +869,7 @@ static void cc2400_idle()
 static void cc2400_rx()
 {
 	u16 mdmctrl = 0;
-		
+
 	if((modulation == MOD_BT_BASIC_RATE) || (modulation == MOD_BT_LOW_ENERGY)) {
 		if (modulation == MOD_BT_BASIC_RATE) {
 			mdmctrl = 0x0029; // 160 kHz frequency deviation
@@ -2252,7 +2292,7 @@ void rx_generic_sync(void) {
 	u8 len = 32;
 	u8 buf[len+4];
 	u16 reg_val;
-	
+
 	/* Put syncword at start of buffer
 	 * DGS: fix this later, we don't know number of syncword bytes, etc
 	 */
@@ -2262,7 +2302,7 @@ void rx_generic_sync(void) {
 	reg_val = cc2400_get(SYNCL);
 	buf[2] = (reg_val >> 8) & 0xFF;
 	buf[3] = reg_val & 0xFF;
-	
+
 	queue_init();
 	clkn_start();
 
@@ -2316,7 +2356,7 @@ void tx_generic(void) {
 	cc2400_set(GRMDM, 0x0f61);
 	cc2400_set(FSDIV, tx_pkt.channel);
 	cc2400_set(FREND, tx_pkt.pa_level);
-	
+
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -2325,10 +2365,10 @@ void tx_generic(void) {
 		PAEN_SET;
 #endif
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
-	
+
 	cc2400_fifo_write(tx_pkt.length, tx_pkt.data);
 	cc2400_strobe(STX);
-	
+
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	TXLED_CLR;
 

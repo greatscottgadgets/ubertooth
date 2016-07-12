@@ -109,6 +109,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_READ_ALL_REGISTERS = 66,
 	UBERTOOTH_RX_GENERIC         = 67,
 	UBERTOOTH_TX_GENERIC_PACKET  = 68,
+	UBERTOOTH_FIX_CLOCK_DRIFT    = 69,
 };
 
 enum jam_modes {
