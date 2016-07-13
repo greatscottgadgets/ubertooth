@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 // increment on every API change
-#define UBERTOOTH_API_VERSION 0
+#define UBERTOOTH_API_VERSION 1
 
 #define DMA_SIZE 50
 
