@@ -24,7 +24,8 @@
 
 #include "ubertooth_control.h"
 
-#define FIFO_SIZE 100
+// set fifo size to 1000000 elements or 64 MByte
+#define FIFO_SIZE 1000000
 
 typedef struct {
 	usb_pkt_rx packets[FIFO_SIZE];
