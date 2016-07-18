@@ -203,6 +203,10 @@ int main(int argc, char* argv[])
 		if (r < 0)
 			return r;
 
+		r = ubertooth_bulk_thread_start();
+		if (r < 0)
+			return r;
+
 		// tell ubertooth to send packets
 		r = cmd_rx_syms(ut->devh);
 		if (r < 0)
@@ -210,9 +214,10 @@ int main(int argc, char* argv[])
 
 		// receive and process each packet
 		while(!ut->stop_ubertooth) {
-			ubertooth_bulk_wait(ut);
 			ubertooth_bulk_receive(ut, cb_rx, pn);
 		}
+
+		ubertooth_bulk_thread_stop();
 
 		ubertooth_stop(ut);
 	} else {

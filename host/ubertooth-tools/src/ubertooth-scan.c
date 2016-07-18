@@ -181,7 +181,7 @@ void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
 int main(int argc, char *argv[])
 {
 	inquiry_info *ii = NULL;
-	int i, rv, opt, dev_id, dev_handle, len, flags;
+	int r, i, rv, opt, dev_id, dev_handle, len, flags;
 	int max_rsp, num_rsp, lap, timeout = 20;
 	uint8_t uap, extended = 0;
 	uint8_t scan = 0;
@@ -279,16 +279,26 @@ int main(int argc, char *argv[])
 	if (timeout)
 		ubertooth_set_timeout(ut, timeout);
 
-	ubertooth_bulk_init(ut);
+	// init USB transfer
+	r = ubertooth_bulk_init(ut);
+	if (r < 0)
+		return r;
+
+	r = ubertooth_bulk_thread_start();
+	if (r < 0)
+		return r;
 
 	// tell ubertooth to send packets
-	cmd_rx_syms(ut->devh);
+	r = cmd_rx_syms(ut->devh);
+	if (r < 0)
+		return r;
 
 	// receive and process each packet
 	while(!ut->stop_ubertooth) {
-		ubertooth_bulk_wait(ut);
 		ubertooth_bulk_receive(ut, cb_scan, NULL);
 	}
+
+	ubertooth_bulk_thread_stop();
 
 	ubertooth_stop(ut);
 

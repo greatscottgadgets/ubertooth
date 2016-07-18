@@ -23,7 +23,7 @@
 #define __UBERTOOTH_H__
 
 #include "ubertooth_control.h"
-#include "ubertooth_ringbuffer.h"
+#include "ubertooth_fifo.h"
 #include <btbb.h>
 
 /* specan output types
@@ -43,13 +43,10 @@ enum board_ids {
 
 typedef struct {
 	/* Ringbuffers for USB and Bluetooth symbols */
-	ringbuffer_t* packets;
+	fifo_t* fifo;
 
 	struct libusb_device_handle* devh;
 	struct libusb_transfer* rx_xfer;
-	uint8_t* empty_usb_buf;
-	uint8_t* full_usb_buf;
-	uint8_t usb_really_full;
 
 	uint8_t stop_ubertooth;
 	uint64_t abs_start_ns;
@@ -86,6 +83,8 @@ void ubertooth_set_timeout(ubertooth_t* ut, int seconds);
 int ubertooth_bulk_init(ubertooth_t* ut);
 void ubertooth_bulk_wait(ubertooth_t* ut);
 int ubertooth_bulk_receive(ubertooth_t* ut, rx_callback cb, void* cb_args);
+int ubertooth_bulk_thread_start();
+void ubertooth_bulk_thread_stop();
 
 int stream_rx_file(ubertooth_t* ut,FILE* fp, rx_callback cb, void* cb_args);
 
@@ -96,5 +95,7 @@ void rx_btle(ubertooth_t* ut);
 void rx_btle_file(FILE* fp);
 void rx_afh(ubertooth_t* ut, btbb_piconet* pn, int timeout);
 void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout);
+
+void ubertooth_unpack_symbols(const uint8_t* buf, char* unpacked);
 
 #endif /* __UBERTOOTH_H__ */
