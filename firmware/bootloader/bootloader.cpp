@@ -20,7 +20,7 @@
  */
 
 /*
-	LPCUSB, an USB device driver for LPC microcontrollers	
+	LPCUSB, an USB device driver for LPC microcontrollers
 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
 
 	Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -56,7 +56,7 @@ extern "C" {
 
 #include "dfu.h"
 
-#define TIMEOUT 1572864
+#define DFU_TIMEOUT 1572864
 
 #define MAX_PACKET_SIZE	64
 
@@ -95,12 +95,12 @@ extern "C" {
 #define ID_PRODUCT 0x0004
 #endif
 
-static const u8 dfu_descriptors[] = {
+static uint8_t dfu_descriptors[] = {
 
 /* Device descriptor */
-	0x12,              		
-	DESC_DEVICE,       		
-	LE_WORD(0x0200),		// bcdUSB	
+	0x12,
+	DESC_DEVICE,
+	LE_WORD(0x0200),		// bcdUSB
 	0x00,              		// bDeviceClass
 	0x00,              		// bDeviceSubClass
 	0x00,              		// bDeviceProtocol
@@ -124,8 +124,8 @@ static const u8 dfu_descriptors[] = {
 	0x32,  				// bMaxPower
 
 // interface
-	0x09,   				
-	DESC_INTERFACE, 
+	0x09,
+	DESC_INTERFACE,
 	0x00,  		 		// bInterfaceNumber
 	0x00,   			// bAlternateSetting
 	0x00,   			// bNumEndPoints
@@ -137,9 +137,9 @@ static const u8 dfu_descriptors[] = {
 // DFU Functional Descriptor
 	0x09,
 	DESC_DFU_FUNCTIONAL,
-	DFU::WILL_DETACH | DFU::MANIFESTATION_TOLERANT | DFU::CAN_UPLOAD | DFU::CAN_DNLOAD,		// bmAttributes 
-	LE_WORD(DFU::detach_timeout_ms),// wDetachTimeOut 
-	LE_WORD(DFU::transfer_size),	// wTransferSize 
+	DFU::WILL_DETACH | DFU::MANIFESTATION_TOLERANT | DFU::CAN_UPLOAD | DFU::CAN_DNLOAD,		// bmAttributes
+	LE_WORD(DFU::detach_timeout_ms),// wDetachTimeOut
+	LE_WORD(DFU::transfer_size),	// wTransferSize
 	LE_WORD(0x0101),		// bcdDFUVersion
 
 // string descriptors
@@ -181,7 +181,7 @@ int bootloader_usb_init()
 {
 	// initialise stack
 	USBInit();
-	
+
 	// register device descriptors
 	USBRegisterDescriptors(dfu_descriptors);
 
@@ -190,7 +190,7 @@ int bootloader_usb_init()
 
 	// enable USB interrupts
 	//ISER0 |= ISER0_ISE_USB;
-	
+
 	// connect to bus
 	USBHwConnect(TRUE);
 
@@ -259,7 +259,7 @@ static void run_bootloader()
 	while( dfu.in_dfu_mode() ) {
 		USBHwISR();
 		update_leds();
-		if (use_timeout && dfu.dfu_virgin() && (count > TIMEOUT))
+		if (use_timeout && dfu.dfu_virgin() && (count > DFU_TIMEOUT))
 			break;
 	}
 
@@ -286,14 +286,18 @@ int main(void)
 		if (bootloader_ctrl == DFU_MODE) {
 			ubertooth_init();
 			run_bootloader();
+			bootloader_ctrl = 0;
+			wait(1);
+			reset();
 		} else if (ENTRY_PIN) {
 			use_timeout = true;
 			ubertooth_init();
 			run_bootloader();
+			wait(1);
+			reset();
 		}
 	}
 
-	bootloader_ctrl = 0;
 	run_application();
 
 	return 0;

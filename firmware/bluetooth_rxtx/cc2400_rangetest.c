@@ -222,8 +222,8 @@ void cc2400_repeater(volatile u16 *chan_ptr)
 			for (i = 0; i < 16; i++) {
 				buf[21] = i;
 				while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
-					for (j = 0; j < len; j++)
-						cc2400_set8(FIFOREG, buf[j]);
+				for (j = 0; j < len; j++)
+					cc2400_set8(FIFOREG, buf[j]);
 				cc2400_strobe(STX);
 			}
 		}
@@ -250,7 +250,7 @@ void cc2400_txtest(volatile u8 *mod_ptr, volatile u16 *chan_ptr)
 	cc2400_set(MDMTST0, 0x334b); // with PRNG
 	cc2400_set(GRMDM,   0x0df1); // default value
 	cc2400_set(FSDIV,   *chan_ptr);
-	cc2400_set(MDMCTRL, mdmctrl); 
+	cc2400_set(MDMCTRL, mdmctrl);
 
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);

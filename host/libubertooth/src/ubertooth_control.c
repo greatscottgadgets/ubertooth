@@ -431,9 +431,8 @@ int cmd_flash(struct libusb_device_handle* devh)
 
 	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_FLASH, 0, 0,
 			NULL, 0, 1000);
-	/* LIBUSB_ERROR_PIPE or LIBUSB_ERROR_OTHER is expected */
-	if ((r != LIBUSB_ERROR_PIPE) && (r != LIBUSB_ERROR_OTHER)) {
-	    show_libusb_error(r);
+	if (r != LIBUSB_SUCCESS) {
+		show_libusb_error(r);
 		return r;
 	}
 	return 0;

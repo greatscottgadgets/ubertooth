@@ -73,10 +73,11 @@ void precalc(void)
 		for(i = 0; i < 10; i++)
 			used_channels += count_bits((uint64_t) afh_map[i]);
 		j = 0;
-		for (i = 0; i < NUM_BREDR_CHANNELS; i++)
+		for (i = 0; i < NUM_BREDR_CHANNELS; i++) {
 			chan = (i * 2) % NUM_BREDR_CHANNELS;
 			if(afh_map[chan/8] & (0x1 << (chan % 8)))
 				bank[j++] = chan;
+		}
 	}
 }
 

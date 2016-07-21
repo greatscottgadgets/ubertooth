@@ -379,7 +379,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 
 	case UBERTOOTH_FLASH:
 		bootloader_ctrl = DFU_MODE;
-		reset();
+		requested_mode = MODE_RESET;
 		break;
 
 	case UBERTOOTH_SPECAN:
@@ -1362,7 +1362,7 @@ void br_transmit()
 {
 	uint16_t gio_save;
 
-	uint32_t clkn_saved;
+	uint32_t clkn_saved = 0;
 
 	uint16_t preamble = (target.syncword & 1) == 1 ? 0x5555 : 0xaaaa;
 	uint8_t trailer = ((target.syncword >> 63) & 1) == 1 ? 0xaa : 0x55;
