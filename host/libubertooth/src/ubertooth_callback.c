@@ -668,18 +668,17 @@ void cb_rx(ubertooth_t* ut, void* args)
 		}
 	}
 
-	r = btbb_process_packet(pkt, pn);
-	r = btbb_packet_get_type(pkt);
-
 	/* If dumpfile is specified, write out all banks to the
 	 * file. There could be duplicate data in the dump if more
 	 * than one LAP is found within the span of NUM_BANKS. */
-	if (dumpfile && r==3) {
+	if (dumpfile) {
 		uint32_t systime_be = htobe32(systime);
 		fwrite(&systime_be, sizeof(systime_be), 1, dumpfile);
 		fwrite(rx, sizeof(usb_pkt_rx), 1, dumpfile);
 		fflush(dumpfile);
 	}
+
+	r = btbb_process_packet(pkt, pn);
 
 	/* Dump to PCAP/PCAPNG if specified */
 	if (ut->h_pcap_bredr) {
