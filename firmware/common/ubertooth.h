@@ -323,6 +323,7 @@ void atest_init(void);
 void cc2400_init(void);
 u32 cc2400_spi(u8 len, u32 data);
 u16 cc2400_get(u8 reg);
+int8_t cc2400_rssi();
 void cc2400_set(u8 reg, u16 val);
 u8 cc2400_get8(u8 reg);
 void cc2400_set8(u8 reg, u8 val);

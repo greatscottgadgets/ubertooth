@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 // increment on every API change
-#define UBERTOOTH_API_VERSION 1
+#define UBERTOOTH_API_VERSION 2
 
 #define DMA_SIZE 50
 
@@ -157,17 +157,18 @@ enum usb_pkt_status {
  * USB packet for Bluetooth RX (64 total bytes)
  */
 typedef struct {
-	u8     pkt_type;
-	u8     status;
-	u8     channel;
-	u8     clkn_high;
-	u32    clk100ns;
-	char   rssi_max;   // Max RSSI seen while collecting symbols in this packet
-	char   rssi_min;   // Min ...
-	char   rssi_avg;   // Average ...
-	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
-	u8     reserved[2];
-	u8     data[DMA_SIZE];
+	uint8_t  pkt_type;
+	uint8_t  status;
+	uint8_t  channel;
+	uint8_t  clkn_high;
+	uint32_t clk100ns;
+	int8_t   rssi_max;   // Max RSSI seen while collecting symbols in this packet
+	int8_t   rssi_min;   // Min ...
+	int8_t   rssi_avg;   // Average ...
+	uint8_t  rssi_count; // Number of ... (0 means RSSI stats are invalid)
+	int8_t   rssi_signal;
+	int8_t   rssi_noise;
+	uint8_t  data[DMA_SIZE];
 } usb_pkt_rx;
 
 typedef struct {

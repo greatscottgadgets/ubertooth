@@ -24,13 +24,13 @@
 
 #include "inttypes.h"
 
-int8_t rssi_max;
-int8_t rssi_min;
-uint8_t rssi_count;
-
-void rssi_reset(void);
+void rssi_reset();
 void rssi_add(int8_t v);
-void rssi_iir_update(uint16_t channel);
-int8_t rssi_get_avg(uint16_t channel);
+int8_t rssi_get_avg();
+int8_t rssi_get_signal();
+int8_t rssi_get_noise();
+int8_t rssi_get_min();
+int8_t rssi_get_max();
+uint8_t rssi_get_cnt();
 
 #endif

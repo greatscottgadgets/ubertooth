@@ -64,7 +64,7 @@ void wait_us(u32 us)
  */
 void gpio_init()
 {
-	/* 
+	/*
 	 * Set all pins for GPIO.  This shouldn't be necessary after a reset, but
 	 * we might get called at other times.
 	 */
@@ -306,6 +306,11 @@ u16 cc2400_get(u8 reg)
 	return in & 0xFFFF;
 }
 
+int8_t cc2400_rssi()
+{
+	return (int8_t)(cc2400_get(RSSI) >> 8) - 54;
+}
+
 /* write 16 bit value to a register */
 void cc2400_set(u8 reg, u16 val)
 {
@@ -374,7 +379,7 @@ void cc2400_fifo_write(u8 len, u8 *data) {
 		SCLK_SET;
 		SCLK_CLR;
 	}
-	
+
 	spi_delay();
 	/* end transaction by raising CSN */
 	CSN_SET;
@@ -531,9 +536,9 @@ void reset()
 	USRLED_CLR;
 	WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;
 	WDFEED_SEQUENCE;
-	
+
 	/* Set watchdog timeout to 256us (minimum) */
-	
+
 	/* sleep for 1s (minimum) */
 	wait(1);
 }
@@ -633,7 +638,7 @@ void get_part_num(uint8_t *buffer, int *len)
 	buffer[3] = (result[1] >> 16) & 0xFF;
 	buffer[4] = (result[1] >> 24) & 0xFF;
 	*len = 5;
-	
+
 }
 
 void get_device_serial(uint8_t *buffer, int *len)

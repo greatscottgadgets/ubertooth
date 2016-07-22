@@ -46,9 +46,8 @@ class Ubertooth(object):
         self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         default_raw_rssi = -128
-        rssi_offset = -54
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
-        rssi_values.fill(default_raw_rssi + rssi_offset)
+        rssi_values.fill(default_raw_rssi)
 
         # Give it a chance to time out if it fails to find Ubertooth
         time.sleep(0.5)
@@ -69,8 +68,8 @@ class Ubertooth(object):
 
                         # We started a new frame, send the existing frame
                         yield (frequency_axis, rssi_values)
-                        rssi_values.fill(default_raw_rssi + rssi_offset)
-                    rssi_values[index] = raw_rssi_value + rssi_offset
+                        rssi_values.fill(default_raw_rssi)
+                    rssi_values[index] = raw_rssi_value
 
     def close(self):
         if self.proc and not self.proc.poll():

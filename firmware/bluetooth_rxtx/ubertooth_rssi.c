@@ -23,58 +23,101 @@
 
 #include <string.h>
 
-#define RSSI_IIR_ALPHA 3       // 3/256 = .012
+#define RINGBUFFER_SIZE 40
 
-int32_t rssi_sum;
-int16_t rssi_iir[79] = {0};
+size_t pointer = 0;
+size_t size = 0;
+int8_t values[RINGBUFFER_SIZE] = {0};
+
+int8_t max = -120;
+int8_t min = 0;
 
 void rssi_reset(void)
 {
-	memset(rssi_iir, 0, sizeof(rssi_iir));
+	memset(values, 0, size);
+	pointer = 0;
+	size = 0;
 
-	rssi_count = 0;
-	rssi_sum = 0;
-	rssi_max = INT8_MIN;
-	rssi_min = INT8_MAX;
+	max = -120;
+	min = 0;
 }
 
 void rssi_add(int8_t v)
 {
-	rssi_max = (v > rssi_max) ? v : rssi_max;
-	rssi_min = (v < rssi_min) ? v : rssi_min;
-	rssi_sum += ((int32_t)v * 256);  // scaled int math (x256)
-	rssi_count += 1;
+	max = (v > max) ? v : max;
+	min = (v < min) ? v : min;
+
+	values[pointer] = v;
+	pointer = (pointer + 1) % RINGBUFFER_SIZE;
+
+	size = size < RINGBUFFER_SIZE ? size + 1 : RINGBUFFER_SIZE;
 }
 
-/* For sweep mode, update IIR per channel. Otherwise, use single value. */
-void rssi_iir_update(uint16_t channel)
+int8_t rssi_get_avg()
 {
-	int32_t avg;
-	int32_t rssi_iir_acc;
+	int32_t sum = 0;
 
-	/* Use array to track 79 Bluetooth channels, or just first slot
-	 * of array if the frequency is not a valid Bluetooth channel. */
-	if ( channel < 2402 || channel < 2480 )
-		channel = 2402;
+	for (size_t i = 0; i < size; i++)
+	{
+		sum += values[i];
+	}
 
-	int i = channel - 2402;
+	uint8_t avg = (int8_t)(sum / (int)size);
 
-	// IIR using scaled int math (x256)
-	if (rssi_count != 0)
-		avg = (rssi_sum  + 128) / rssi_count;
-	else
-		avg = 0; // really an error
-	rssi_iir_acc = rssi_iir[i] * (256-RSSI_IIR_ALPHA);
-	rssi_iir_acc += avg * RSSI_IIR_ALPHA;
-	rssi_iir[i] = (int16_t)((rssi_iir_acc + 128) / 256);
+	return avg;
 }
 
-int8_t rssi_get_avg(uint16_t channel)
+int8_t rssi_get_signal()
 {
-	/* Use array to track 79 Bluetooth channels, or just first slot
-	 * of array if the frequency is not a valid Bluetooth channel. */
-	if ( channel < 2402 || channel < 2480 )
-		channel = 2402;
+	int32_t sum = 0;
+	size_t num = 0;
+	int8_t avg = ((int16_t)min + (int16_t)max) / 2;
 
-	return (rssi_iir[channel-2402] + 128) / 256;
+	for (size_t i = 0; i < size; i++)
+	{
+		if (values[i] > avg)
+		{
+			sum += values[i];
+			num++;
+		}
+	}
+
+	int8_t signal = (int8_t)(sum / (int)num);
+
+	return signal;
+}
+
+int8_t rssi_get_noise()
+{
+	int32_t sum = 0;
+	size_t num = 0;
+	int8_t avg = ((int16_t)min + (int16_t)max) / 2;
+
+	for (size_t i = 0; i < size; i++)
+	{
+		if (values[i] <= avg)
+		{
+			sum += values[i];
+			num++;
+		}
+	}
+
+	int8_t noise = (int8_t)(sum / (int)num);
+
+	return noise;
+}
+
+uint8_t rssi_get_cnt()
+{
+	return (uint8_t)size;
+}
+
+int8_t rssi_get_min()
+{
+	return min;
+}
+
+int8_t rssi_get_max()
+{
+	return max;
 }
