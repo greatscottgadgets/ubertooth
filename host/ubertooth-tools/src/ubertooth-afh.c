@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 		return 1;
 
 	/* Clean up on exit. */
-	register_cleanup_handler(ut, 1);
+	register_cleanup_handler(ut, 0);
 
 	if (use_r_format)
 		rx_afh_r(ut, pn, timeout);

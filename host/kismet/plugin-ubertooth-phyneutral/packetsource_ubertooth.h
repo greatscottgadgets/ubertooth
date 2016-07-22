@@ -34,17 +34,8 @@ extern "C" {
 	#include <ubertooth.h>
 }
 
-#ifdef NUM_BANKS
-#undef NUM_BANKS
-#endif
-#ifdef BANK_LEN
-#undef BANK_LEN
-#endif
-
 /* BANK_LEN must be >= AC_LEN */
 #define AC_LEN    72
-#define NUM_BANKS 10
-#define BANK_LEN  400
 
 #define USE_PACKETSOURCE_UBERTOOTH
 
