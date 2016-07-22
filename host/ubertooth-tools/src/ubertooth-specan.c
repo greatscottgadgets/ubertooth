@@ -31,25 +31,25 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	                     (((uint8_t*)args)[1] << 8);
 	uint8_t output_mode = ((uint8_t*)args)[2];
 
-	usb_pkt_rx* rx = ringbuffer_top_usb(ut->packets);
+	usb_pkt_rx rx = fifo_pop(ut->fifo);
 	int r, j;
 	uint16_t frequency;
 	int8_t rssi;
 
 	/* process each received block */
 	for (j = 0; j < DMA_SIZE-2; j += 3) {
-		frequency = (rx->data[j] << 8) | rx->data[j + 1];
-		rssi = (int8_t)rx->data[j + 2];
+		frequency = (rx.data[j] << 8) | rx.data[j + 1];
+		rssi = (int8_t)rx.data[j + 2];
 		switch(output_mode) {
 			case SPECAN_FILE:
-				r = fwrite(&rx->data[j], 1, 3, dumpfile);
+				r = fwrite(&rx.data[j], 1, 3, dumpfile);
 				if(r != 3) {
 					fprintf(stderr, "Error writing to file (%d)\n", r);
 					return;
 				}
 				break;
 			case SPECAN_STDOUT:
-				printf("%f, %d, %d\n", ((double)rx->clk100ns)/10000000,
+				printf("%f, %d, %d\n", ((double)rx.clk100ns)/10000000,
 				       frequency, rssi);
 				break;
 			case SPECAN_GNUPLOT_NORMAL:
@@ -58,7 +58,7 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 					printf("\n");
 				break;
 			case SPECAN_GNUPLOT_3D:
-				printf("%f %d %d\n", ((double)rx->clk100ns)/10000000,
+				printf("%f %d %d\n", ((double)rx.clk100ns)/10000000,
 				       frequency, rssi);
 				if(frequency == high_freq)
 					printf("\n");
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	/* Clean up on exit. */
-	register_cleanup_handler(ut, 1);
+	register_cleanup_handler(ut, 0);
 
 	uint8_t specan_args[] = {
 		(uint8_t)(upper & 0xff),
@@ -167,18 +167,21 @@ int main(int argc, char *argv[])
 	if (r < 0)
 		return r;
 
+	r = ubertooth_bulk_thread_start();
+	if (r < 0)
+		return r;
+
 	// tell ubertooth to start specan and send packets
 	r = cmd_specan(ut->devh, lower, upper);
 	if (r < 0)
 		return r;
 
 	// receive and process each packet
-	while(1) {
-		ubertooth_bulk_wait(ut);
-		r = ubertooth_bulk_receive(ut, cb_specan, specan_args);
-		if (r == -1)
-			return r;
+	while(!ut->stop_ubertooth) {
+		ubertooth_bulk_receive(ut, cb_specan, specan_args);
 	}
+
+	ubertooth_bulk_thread_stop();
 
 	ubertooth_stop(ut);
 	fprintf(stderr, "Ubertooth stopped\n");

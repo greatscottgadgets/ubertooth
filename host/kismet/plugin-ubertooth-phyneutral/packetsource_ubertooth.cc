@@ -123,13 +123,11 @@ static void cb_cap(ubertooth_t* ut, void* args)
 {
 	PacketSource_Ubertooth* ubertooth = (PacketSource_Ubertooth*) args;
 	btbb_packet* pkt = NULL;
-	usb_pkt_rx* rx = ringbuffer_bottom_usb(ut->packets);
-	char syms[BANK_LEN * NUM_BANKS];
+	usb_pkt_rx usb = fifo_pop(ut->fifo);
+	usb_pkt_rx* rx = &usb;
+	char syms[BANK_LEN];
 
-	for (int i = 0; i < NUM_BANKS; i++)
-		memcpy(syms + i * BANK_LEN,
-		       ringbuffer_get_bt(ut->packets, i),
-		       BANK_LEN);
+	ubertooth_unpack_symbols((uint8_t*)rx->data, syms);
 
 	int offset = btbb_find_ac(syms, BANK_LEN, LAP_ANY, 1, &pkt);
 	if (offset >= 0) {
@@ -137,7 +135,7 @@ static void cb_cap(ubertooth_t* ut, void* args)
 		uint32_t clkn = (rx->clkn_high << 20) + (le32toh(rx->clk100ns) + offset*10) / 3125;
 
 		btbb_packet_set_data(pkt, syms + offset,
-		                     NUM_BANKS * BANK_LEN - offset,
+		                     BANK_LEN - offset,
 		                     rx->channel, clkn);
 
 		enqueue(ubertooth, pkt);
@@ -151,8 +149,9 @@ void* ubertooth_cap_thread(void* arg)
 
 	cmd_rx_syms(ubertooth->ut->devh);
 
+	ubertooth_bulk_thread_start();
+
 	while (ubertooth->thread_active) {
-		ubertooth_bulk_wait(ubertooth->ut);
 		ubertooth_bulk_receive(ubertooth->ut, cb_cap, ubertooth);
 	}
 
@@ -176,6 +175,7 @@ int PacketSource_Ubertooth::OpenSource() {
 	if (pipe(fake_fd) < 0) {
 		_MSG("Ubertooth '" + name + "' failed to make a pipe() (this is really "
 			 "weird): " + string(strerror(errno)), MSGFLAG_ERROR);
+		ubertooth_bulk_thread_stop();
 		ubertooth_stop(ut);
 		return 0;
 	}
@@ -183,6 +183,7 @@ int PacketSource_Ubertooth::OpenSource() {
 	if (pthread_mutex_init(&packet_lock, NULL) < 0) {
 		_MSG("Ubertooth '" + name + "' failed to initialize pthread mutex: " +
 			 string(strerror(errno)), MSGFLAG_ERROR);
+		ubertooth_bulk_thread_stop();
 		ubertooth_stop(ut);
 		return 0;
 	}
@@ -209,6 +210,7 @@ int PacketSource_Ubertooth::CloseSource() {
 	}
 
 	if (ut) {
+		ubertooth_bulk_thread_stop();
 		ubertooth_stop(ut);
 	}
 
