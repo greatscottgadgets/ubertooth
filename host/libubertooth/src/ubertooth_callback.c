@@ -713,7 +713,6 @@ void cb_rx(ubertooth_t* ut, void* args)
 		                          lap, uap, pkt);
 	}
 
-	r = btbb_process_packet(pkt, pn);
 	if(infile == NULL && r < 0) {
 		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
 		calibrated = 0;
