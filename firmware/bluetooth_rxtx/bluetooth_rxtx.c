@@ -1082,7 +1082,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	cc2400_set(FSDIV,   channel);
 	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
 	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
-	cc2400_set(INT,     0x0014);	// FIFO_THRESHOLD: 20 bytes
+	cc2400_set(INT,     0x0014);    // FIFO_THRESHOLD: 20 bytes
 
 	// sync byte depends on the first transmitted bit of the AA
 	if (aa & 1)
@@ -2275,6 +2275,8 @@ void bt_slave_le() {
 	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
 	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
 	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+
+	clkn_start();
 
 	// spam advertising packets
 	while (requested_mode == MODE_BT_SLAVE_LE) {
