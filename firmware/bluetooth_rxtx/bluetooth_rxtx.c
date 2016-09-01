@@ -1968,7 +1968,8 @@ void connection_follow_cb(u8 *packet) {
 			le.win_offset = packet[WIN_OFFSET];
 
 #define CONN_INTERVAL (2+4+6+6+4+3+1+2)
-			le.conn_interval = packet[CONN_INTERVAL];
+			le.conn_interval = (packet[CONN_INTERVAL+1] << 8)
+							 |  packet[CONN_INTERVAL+0];
 
 #define CHANNEL_INC (2+4+6+6+4+3+1+2+2+2+2+5)
 			le.channel_increment = packet[CHANNEL_INC] & 0x1f;
