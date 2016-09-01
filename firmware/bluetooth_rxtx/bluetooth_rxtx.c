@@ -1684,7 +1684,7 @@ void bt_le_sync(u8 active_mode)
 		/////////////////////
 		// process the packet
 
-		uint32_t packet[48/4+1];
+		uint32_t packet[48/4+1] = { 0, };
 		u8 *p = (u8 *)packet;
 		packet[0] = le.access_address;
 
@@ -1940,6 +1940,17 @@ void connection_follow_cb(u8 *packet) {
 	} else if (le.link_state == LINK_LISTENING) {
 		u8 pkt_type = packet[4] & 0x0F;
 		if (pkt_type == 0x05) {
+			uint16_t conn_interval;
+
+			// ignore packets with incorrect length
+			if (*data_len != 34)
+				return;
+
+			// conn interval must be [7.5 ms, 4.0s] in units of 1.25 ms
+			conn_interval = (packet[29] << 8) | packet[28];
+			if (conn_interval < 6 || conn_interval > 3200)
+				return;
+
 			// This is a connect packet
 			// if we have a target, see if InitA or AdvA matches
 			if (le.target_set &&
