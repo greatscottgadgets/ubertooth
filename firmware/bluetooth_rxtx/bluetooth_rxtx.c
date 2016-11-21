@@ -164,6 +164,8 @@ int enqueue_with_ts(uint8_t type, uint8_t* buf, uint32_t ts)
 		return 0;
 	}
 
+	f->pkt_type = type;
+
 	f->clkn_high = 0;
 	f->clk100ns = ts;
 
@@ -181,9 +183,6 @@ int enqueue_with_ts(uint8_t type, uint8_t* buf, uint32_t ts)
 
 static int vendor_request_handler(uint8_t request, uint16_t* request_params, uint8_t* data, int* data_len)
 {
-	uint32_t command[5];
-	uint32_t result[5];
-	uint64_t ac_copy;
 	uint32_t clock;
 	size_t length; // string length
 	usb_pkt_rx* p = NULL;
@@ -767,13 +766,22 @@ void EINT3_IRQHandler()
 }
 #endif // TC13BADGE
 
-/* Sleep (busy wait) for 'millis' milliseconds. The 'wait' routines in
- * ubertooth.c are matched to the clock setup at boot time and can not
- * be used while the board is running at 100MHz. */
+/*
+ * Sleep (busy wait) for 'millis' milliseconds
+ * Needs clkn. Be sure to call clkn_init() before using it.
+ */
 static void msleep(uint32_t millis)
 {
-	uint32_t stop_at = clkn + millis * 3125 / 1000;  // millis -> clkn ticks
-	do { } while (clkn < stop_at);                   // TODO: handle wrapping
+	uint32_t now = (clkn & 0xffffff);
+	uint32_t stop_at = now + millis * 10000 / 3125; // millis -> clkn ticks
+
+	// handle clkn overflow
+	if (stop_at >= ((uint32_t)1<<28)) {
+		stop_at -= ((uint32_t)1<<28);
+		while ((clkn & 0xffffff) >= now || (clkn & 0xffffff) < stop_at);
+	} else {
+		while ((clkn & 0xffffff) < stop_at);
+	}
 }
 
 void DMA_IRQHandler()
@@ -1315,7 +1323,6 @@ void bt_stream_rx()
 
 		enqueue(BR_PACKET, (uint8_t*)idle_rxbuf);
 
-rx_continue:
 		handle_usb(clkn);
 		rx_tc = 0;
 		rx_err = 0;
@@ -1471,7 +1478,7 @@ void reset_le() {
 	le.update_instant = 0;
 	le.interval_update = 0;
 	le.win_size_update = 0;
-	le.win_offset_update;
+	le.win_offset_update = 0;
 
 	do_hop = 0;
 }
@@ -1485,7 +1492,6 @@ void reset_le_promisc(void) {
 /* generic le mode */
 void bt_generic_le(u8 active_mode)
 {
-	u8 *tmp = NULL;
 	u8 hold;
 	int i, j;
 	int8_t rssi, rssi_at_trigger;
@@ -1894,11 +1900,11 @@ void connection_follow_cb(u8 *packet) {
 #define DATA_LEN_IDX 5
 #define DATA_START_IDX 6
 
-	u8 *adv_addr = &packet[ADV_ADDRESS_IDX];
+	// u8 *adv_addr = &packet[ADV_ADDRESS_IDX];
 	u8 header = packet[HEADER_IDX];
 	u8 *data_len = &packet[DATA_LEN_IDX];
 	u8 *data = &packet[DATA_START_IDX];
-	u8 *crc = &packet[DATA_START_IDX + *data_len];
+	// u8 *crc = &packet[DATA_START_IDX + *data_len];
 
 	if (le.link_state == LINK_CONN_PENDING) {
 		// We received a packet in the connection pending state, so now the device *should* be connected
@@ -2302,7 +2308,6 @@ void bt_slave_le() {
 }
 
 void rx_generic_sync(void) {
-	int i, j;
 	u8 len = 32;
 	u8 buf[len+4];
 	u16 reg_val;
@@ -2346,15 +2351,13 @@ void rx_generic(void) {
 	if(cc2400_get(GRMDM) && 0x0400) {
 		rx_generic_sync();
 	} else {
-		modulation == MOD_NONE;
+		modulation = MOD_NONE;
 		bt_stream_rx();
 	}
 }
 
 void tx_generic(void) {
-	u32 i;
 	u16 synch, syncl;
-	u8 tx_len;
 	u8 prev_mode = mode;
 
 	mode = MODE_TX_GENERIC;
