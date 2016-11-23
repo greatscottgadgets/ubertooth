@@ -345,7 +345,7 @@ void cb_btle(ubertooth_t* ut, void* args)
 	prev_ts = rx->clk100ns;
 	printf("systime=%u freq=%d addr=%08x delta_t=%.03f ms rssi=%d\n",
 	       systime, rx->channel + 2402, lell_get_access_address(pkt),
-	       ts_diff / 10000.0, rx->rssi_min);
+	       ts_diff / 10000.0, rx->rssi_signal);
 
 	int len = (rx->data[5] & 0x3f) + 6 + 3;
 	if (len > 50) len = 50;
