@@ -338,38 +338,6 @@ int stream_rx_file(ubertooth_t* ut, FILE* fp, rx_callback cb, void* cb_args)
 	}
 }
 
-/* Receive and process packets. For now, returning from
- * stream_rx_usb() means that UAP and clocks have been found, and that
- * hopping should be started. A more flexible framework would be
- * nice. */
-void rx_live(ubertooth_t* ut, btbb_piconet* pn, int timeout)
-{
-	int r = btbb_init(max_ac_errors);
-	if (r < 0)
-		return;
-
-	if (timeout)
-		ubertooth_set_timeout(ut, timeout);
-
-	if (pn != NULL && btbb_piconet_get_flag(pn, BTBB_CLK27_VALID))
-		cmd_set_clock(ut->devh, 0);
-	else {
-		stream_rx_usb(ut, cb_br_rx, pn);
-		/* Allow pending transfers to finish */
-		sleep(1);
-	}
-	/* Used when follow_pn is preset OR set by stream_rx_usb above
-	 * i.e. This cannot be rolled in to the above if...else
-	 */
-	if (pn != NULL && btbb_piconet_get_flag(pn, BTBB_CLK27_VALID)) {
-		ut->stop_ubertooth = 0;
-		// cmd_stop(ut->devh);
-		cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
-		cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
-		stream_rx_usb(ut, cb_br_rx, pn);
-	}
-}
-
 void rx_afh(ubertooth_t* ut, btbb_piconet* pn, int timeout)
 {
 	int r = btbb_init(max_ac_errors);
@@ -445,20 +413,6 @@ void rx_afh_r(ubertooth_t* ut, btbb_piconet* pn, int timeout __attribute__((unus
 	}
 
 	ubertooth_bulk_thread_stop();
-}
-
-/* sniff one target LAP until the UAP is determined */
-void rx_file(FILE* fp, btbb_piconet* pn)
-{
-	int r = btbb_init(max_ac_errors);
-	if (r < 0)
-		return;
-
-	ubertooth_t* ut = ubertooth_init();
-	if (ut == NULL)
-		return;
-
-	stream_rx_file(ut, fp, cb_br_rx, pn);
 }
 
 void rx_btle_file(FILE* fp)
