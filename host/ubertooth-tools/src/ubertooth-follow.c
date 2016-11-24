@@ -29,6 +29,7 @@
 #include <err.h>
 
 #include "ubertooth.h"
+#include "ubertooth_callback.h"
 #include <btbb.h>
 #include <getopt.h>
 
@@ -53,7 +54,7 @@ static void usage()
 
 int main(int argc, char *argv[])
 {
-	int opt, sock, dev_id, rv, lap = 0, uap = 0, delay = 5;
+	int opt, sock, dev_id, lap = 0, uap = 0, delay = 5;
 	int have_lap = 0;
 	int have_uap = 0;
 	int afh_enabled = 0;
@@ -222,17 +223,43 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	rv = ubertooth_check_api(ut);
-	if (rv < 0)
+	int r = ubertooth_check_api(ut);
+	if (r < 0)
 		return 1;
 
+	r = btbb_init(max_ac_errors);
+	if (r < 0)
+		return 1;
+
+	// init USB transfer
+	r = ubertooth_bulk_init(ut);
+	if (r < 0)
+		return r;
+
+	r = ubertooth_bulk_thread_start();
+	if (r < 0)
+		return r;
+
 	cmd_set_bdaddr(ut->devh, btbb_piconet_get_bdaddr(pn));
+	cmd_set_clock(ut->devh, 0);
 	if(afh_enabled)
 		cmd_set_afh_map(ut->devh, afh_map);
 	btbb_piconet_set_clk_offset(pn, clock+delay);
 	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
 	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
-	rx_live(ut, pn, 0);
+
+	// tell ubertooth to start hopping and send packets
+	r = cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
+	if (r < 0)
+		return r;
+
+	// receive and process each packet
+	while(!ut->stop_ubertooth) {
+		ubertooth_bulk_receive(ut, cb_rx, pn);
+	}
+
+	ubertooth_bulk_thread_stop();
+
 	ubertooth_stop(ut);
 
 	return 0;
