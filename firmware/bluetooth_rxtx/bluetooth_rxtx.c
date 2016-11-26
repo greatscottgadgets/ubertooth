@@ -787,6 +787,7 @@ static void msleep(uint32_t millis)
 void DMA_IRQHandler()
 {
 	if ( mode == MODE_RX_SYMBOLS
+	   || mode == MODE_BT_FOLLOW
 	   || mode == MODE_SPECAN
 	   || mode == MODE_BT_FOLLOW_LE
 	   || mode == MODE_BT_PROMISC_LE
