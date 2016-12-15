@@ -459,7 +459,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 {
 	btbb_packet* pkt = NULL;
 	btbb_piconet* pn = (btbb_piconet *)args;
-	char syms[BANK_LEN];
+	char syms[BANK_LEN*10] = {0};
 	int offset;
 	uint16_t clk_offset;
 	uint32_t clkn;
@@ -517,7 +517,7 @@ void cb_rx(ubertooth_t* ut, void* args)
 	 * and other rx data. CLKN here is the 312.5us CLK27-0. The
 	 * btbb library can shift it be CLK1 if needed. */
 	clkn = (le32toh(rx->clkn_high) << 20) + (le32toh(rx->clk100ns) + offset*10 - 4000) / 3125;
-	btbb_packet_set_data(pkt, syms + offset, BANK_LEN - offset,
+	btbb_packet_set_data(pkt, syms + offset, BANK_LEN*10 - offset,
 	                     rx->channel, clkn);
 
 	/* When reading from file, caller will read
