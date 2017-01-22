@@ -68,7 +68,7 @@ volatile uint8_t modulation = MOD_BT_BASIC_RATE;
 /* specan stuff */
 volatile uint16_t low_freq = 2400;
 volatile uint16_t high_freq = 2483;
-volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
+volatile int8_t rssi_threshold = -84;
 
 /* Generic TX stuff */
 generic_tx_packet tx_pkt;
@@ -140,10 +140,12 @@ static int enqueue(uint8_t type, uint8_t* buf)
 		f->clkn_high = idle_buf_clkn_high;
 		f->clk100ns = idle_buf_clk100ns;
 		f->channel = (uint8_t)((idle_buf_channel - 2402) & 0xff);
-		f->rssi_min = rssi_min;
-		f->rssi_max = rssi_max;
-		f->rssi_avg = rssi_get_avg(idle_buf_channel);
-		f->rssi_count = rssi_count;
+		f->rssi_min = rssi_get_min();
+		f->rssi_max = rssi_get_max();
+		f->rssi_noise = rssi_get_noise();
+		f->rssi_signal = rssi_get_signal();
+		f->rssi_avg = rssi_get_avg();
+		f->rssi_count = rssi_get_cnt();
 	}
 
 	memcpy(f->data, buf, DMA_SIZE);
@@ -400,7 +402,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	case UBERTOOTH_LED_SPECAN:
 		if (request_params[0] > 256)
 			return 0;
-		rssi_threshold = 54 - request_params[0];
+		rssi_threshold = request_params[0];
 		requested_mode = MODE_LED_SPECAN;
 		*data_len = 0;
 		break;
@@ -1270,12 +1272,11 @@ void bt_stream_rx()
 		 * at multiple trigger points there. The MAX() below
 		 * helps with statistics in the case that cs_trigger
 		 * happened before the loop started. */
-		rssi_reset();
 		rssi_at_trigger = INT8_MIN;
 		while (!rx_tc) {
-			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			rssi = cc2400_rssi();
 			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
-				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi = MAX(rssi, cs_threshold_cur);
 				rssi_at_trigger = rssi;
 			}
 			rssi_add(rssi);
@@ -1284,6 +1285,7 @@ void bt_stream_rx()
 
 			/* If timer says time to hop, do it. */
 			if (do_hop) {
+				rssi_reset();
 				hop();
 			} else {
 				TXLED_CLR;
@@ -1307,8 +1309,6 @@ void bt_stream_rx()
 			dma_discard = 0;
 		}
 
-		rssi_iir_update(channel);
-
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same
 		 * threshold. Currently, this is redundant, but allows for
@@ -1318,11 +1318,13 @@ void bt_stream_rx()
 			cs_trigger = 0;
 		}
 
-		if (rssi_max >= (cs_threshold_cur + 54)) {
+		if (rssi_get_max() >= cs_threshold_cur) {
 			status |= RSSI_TRIGGER;
 		}
 
 		enqueue(BR_PACKET, (uint8_t*)idle_rxbuf);
+
+		rssi_reset();
 
 		handle_usb(clkn);
 		rx_tc = 0;
@@ -1548,9 +1550,9 @@ void bt_generic_le(u8 active_mode)
 		rssi_at_trigger = INT8_MIN;
 		while ((rx_tc == 0) && (rx_err == 0))
 		{
-			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			rssi = cc2400_rssi();
 			if (cs_trigger && (rssi_at_trigger == INT8_MIN)) {
-				rssi = MAX(rssi,(cs_threshold_cur+54));
+				rssi = MAX(rssi,cs_threshold_cur);
 				rssi_at_trigger = rssi;
 			}
 			rssi_add(rssi);
@@ -1568,8 +1570,6 @@ void bt_generic_le(u8 active_mode)
 		if (rx_tc > 1)
 			status |= DMA_OVERFLOW;
 
-		rssi_iir_update(channel);
-
 		/* Set squelch hold if there was either a CS trigger, squelch
 		 * is disabled, or if the current rssi_max is above the same
 		 * threshold. Currently, this is redundant, but allows for
@@ -1580,7 +1580,7 @@ void bt_generic_le(u8 active_mode)
 			cs_trigger = 0;
 		}
 
-		if (rssi_max >= (cs_threshold_cur + 54)) {
+		if (rssi_get_max(channel) >= cs_threshold_cur) {
 			status |= RSSI_TRIGGER;
 			hold = CS_HOLD_TIME;
 		}
@@ -1670,8 +1670,8 @@ void bt_le_sync(u8 active_mode)
 		while ((rx_tc == 0) && (rx_err == 0) && (do_hop == 0) && requested_mode == active_mode)
 			;
 
-		rssi = (int8_t)(cc2400_get(RSSI) >> 8);
-		rssi_min = rssi_max = rssi;
+		rssi = cc2400_rssi();
+		rssi_add(rssi);
 
 		if (requested_mode != active_mode) {
 			goto cleanup;
@@ -1751,6 +1751,8 @@ void bt_le_sync(u8 active_mode)
 		ISER0 = ISER0_ISE_USB;
 
 		le.last_packet = CLK100NS;
+
+		rssi_reset();
 
 	rx_flush:
 		// this might happen twice, but it's safe to do so
@@ -2443,7 +2445,7 @@ void specan()
 			volatile u32 j = 500; while (--j); //FIXME crude delay
 			buf[3 * i] = (f >> 8) & 0xFF;
 			buf[(3 * i) + 1] = f  & 0xFF;
-			buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
+			buf[(3 * i) + 2] = cc2400_rssi();
 			i++;
 			if (i == 16) {
 				enqueue(SPECAN, buf);
@@ -2489,7 +2491,7 @@ void led_specan()
 
 		/* give the CC2400 time to acquire RSSI reading */
 		volatile u32 j = 500; while (--j); //FIXME crude delay
-		lvl = (int8_t)((cc2400_get(RSSI) >> 8) & 0xff);
+		lvl = cc2400_rssi();
 		if (lvl > rssi_threshold) {
 			switch (i) {
 				case 0:
