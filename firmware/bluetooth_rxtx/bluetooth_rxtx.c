@@ -1744,7 +1744,12 @@ void bt_le_sync(u8 active_mode)
 
 		RXLED_SET;
 		packet_cb((uint8_t *)packet);
+
+		// disable USB interrupts while we touch USB data structures
+		ICER0 = ICER0_ICE_USB;
 		enqueue(LE_PACKET, (uint8_t *)packet);
+		ISER0 = ISER0_ISE_USB;
+
 		le.last_packet = CLK100NS;
 
 	rx_flush:
