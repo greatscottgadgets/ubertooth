@@ -583,27 +583,35 @@ ubertooth_t* ubertooth_start(int ubertooth_device)
 }
 
 int ubertooth_check_api(ubertooth_t *ut) {
-	int r;
+	int result;
+	uint16_t version;
+	libusb_device* dev;
+	struct libusb_device_descriptor desc;
+	dev = libusb_get_device(ut->devh);
+	result = libusb_get_device_descriptor(dev, &desc);
+	if (result < 0) {
+		if (result == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(result);
+		}
+		return result;
+	}
+	version = desc.bcdDevice;
 
-	r = cmd_api_version(ut->devh);
-	if (r < 0) {
-		fprintf(stderr, "Ubertooth running very old firmware found.\n");
+	if (version < UBERTOOTH_API_VERSION) {
+		fprintf(stderr, "Ubertooth API version %x.%02x found, libubertooth %s requires %x.%02x.\n",
+				(version>>8)&0xFF, version&0xFF, VERSION,
+				(UBERTOOTH_API_VERSION>>8)&0xFF, UBERTOOTH_API_VERSION&0xFF);
 		fprintf(stderr, "Please upgrade to latest released firmware.\n");
 		ubertooth_stop(ut);
 		return -1;
 	}
-	else if (r < UBERTOOTH_API_VERSION) {
-		fprintf(stderr, "Ubertooth API version %d found, libubertooth requires %d.\n",
-				r, UBERTOOTH_API_VERSION);
-		fprintf(stderr, "Please upgrade to latest released firmware.\n");
-		ubertooth_stop(ut);
-		return -1;
-	}
-	else if (r > UBERTOOTH_API_VERSION) {
-		fprintf(stderr, "Ubertooth API version %d found, newer than that supported by libubertooth (%d).\n",
-				r, UBERTOOTH_API_VERSION);
+	else if (version > UBERTOOTH_API_VERSION) {
+		fprintf(stderr, "Ubertooth API version %x.%02x found, newer than that supported by libubertooth (%x.%02x).\n",
+				(version>>8)&0xFF, version&0xFF,
+				(UBERTOOTH_API_VERSION>>8)&0xFF, UBERTOOTH_API_VERSION&0xFF);
 		fprintf(stderr, "Things will still work, but you might want to update your host tools.\n");
 	}
-
 	return 0;
 }

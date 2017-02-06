@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 // increment on every API change
-#define UBERTOOTH_API_VERSION 1
+#define UBERTOOTH_API_VERSION 0x0102
 
 #define DMA_SIZE 50
 
@@ -104,7 +104,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_AFH                = 61,
 	UBERTOOTH_HOP                = 62,
 	UBERTOOTH_TRIM_CLOCK         = 63,
-	UBERTOOTH_GET_API_VERSION    = 64,
+	// UBERTOOTH_GET_API_VERSION    = 64,
 	UBERTOOTH_WRITE_REGISTERS    = 65,
 	UBERTOOTH_READ_ALL_REGISTERS = 66,
 	UBERTOOTH_RX_GENERIC         = 67,

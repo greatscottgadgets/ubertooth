@@ -57,8 +57,6 @@
 
 #define DATA_IN     (0x82 | LIBUSB_ENDPOINT_IN)
 #define DATA_OUT    (0x05 | LIBUSB_ENDPOINT_OUT)
-#define CTRL_IN     (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_IN)
-#define CTRL_OUT    (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT)
 #define TIMEOUT     20000
 
 /* RX USB packet parameters */
@@ -142,6 +140,5 @@ int cmd_set_jam_mode(struct libusb_device_handle* devh, int mode);
 int cmd_ego(struct libusb_device_handle* devh, int mode);
 int cmd_afh(struct libusb_device_handle* devh);
 int cmd_hop(struct libusb_device_handle* devh);
-int32_t cmd_api_version(struct libusb_device_handle* devh);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */

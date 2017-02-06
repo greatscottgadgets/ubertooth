@@ -23,6 +23,9 @@
 #include <btbb.h>
 #include "ubertooth_control.h"
 
+#define CTRL_IN     (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_IN)
+#define CTRL_OUT    (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_ENDPOINT_OUT)
+
 void show_libusb_error(int error_code)
 {
 	char *error_hint = "";
@@ -31,6 +34,9 @@ void show_libusb_error(int error_code)
 	/* Available only in libusb > 1.0.3 */
 	// error_name = libusb_error_name(error_code);
 
+#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000103)
+	error_name = libusb_strerror(error_code);
+#else
 	switch (error_code) {
 		case LIBUSB_ERROR_TIMEOUT:
 			error_name="Timeout";
@@ -50,6 +56,7 @@ void show_libusb_error(int error_code)
 			error_name="Command Error";
 			break;
 	}
+#endif
 
 	fprintf(stderr,"libUSB Error: %s: %s (%d)\n", error_name, error_hint, error_code);
 }
@@ -1003,19 +1010,6 @@ int cmd_hop(struct libusb_device_handle* devh)
 	libusb_submit_transfer(xfer);
 
 	return 0;
-}
-
-int32_t cmd_api_version(struct libusb_device_handle* devh) {
-	unsigned char data[4];
-	int r;
-
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_GET_API_VERSION, 0, 0,
-			data, 4, 3000);
-	if (r < 0) {
-		show_libusb_error(r);
-		return r;
-	}
-	return data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 }
 
 int ubertooth_cmd_sync(struct libusb_device_handle* devh,
