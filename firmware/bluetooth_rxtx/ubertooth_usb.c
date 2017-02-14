@@ -140,20 +140,44 @@ static u8 abDescriptors[] = {
 	LE_WORD(0x0409),
 
 	// manufacturer string
-	0x5C,
+	40,
 	DESC_STRING,
-	'h', 0, 't', 0, 't', 0, 'p', 0, ':', 0, '/', 0, '/', 0, 'g', 0,
-	'i', 0, 't', 0, 'h', 0, 'u', 0, 'b', 0, '.', 0, 'c', 0, 'o', 0,
-	'm', 0, '/', 0, 'g', 0, 'r', 0, 'e', 0, 'a', 0, 't', 0, 's', 0,
-	'c', 0, 'o', 0, 't', 0, 't', 0, 'g', 0, 'a', 0, 'd', 0, 'g', 0,
-	'e', 0, 't', 0, 's', 0, '/', 0, 'u', 0, 'b', 0, 'e', 0, 'r', 0,
-	't', 0, 'o', 0, 'o', 0, 't', 0, 'h', 0,
+	'G', 0x00,
+	'r', 0x00,
+	'e', 0x00,
+	'a', 0x00,
+	't', 0x00,
+	' ', 0x00,
+	'S', 0x00,
+	'c', 0x00,
+	'o', 0x00,
+	't', 0x00,
+	't', 0x00,
+	' ', 0x00,
+	'G', 0x00,
+	'a', 0x00,
+	'd', 0x00,
+	'g', 0x00,
+	'e', 0x00,
+	't', 0x00,
+	's', 0x00,
 
 	// product string
-	0x1E,
+	28,
 	DESC_STRING,
-	'b', 0, 'l', 0, 'u', 0, 'e', 0, 't', 0, 'o', 0, 'o', 0, 't', 0, 'h', 0, '_', 0,
-	'r', 0, 'x', 0, 't', 0, 'x', 0,
+	'U', 0x00,
+	'b', 0x00,
+	'e', 0x00,
+	'r', 0x00,
+	't', 0x00,
+	'o', 0x00,
+	'o', 0x00,
+	't', 0x00,
+	'h', 0x00,
+	' ', 0x00,
+	'O', 0x00,
+	'n', 0x00,
+	'e', 0x00,
 
 	// serial number string
 	0x42,
@@ -167,7 +191,7 @@ static u8 abDescriptors[] = {
 	0
 };
 
-#define USB_SERIAL_OFFSET 178
+#define USB_SERIAL_OFFSET 124
 
 u8 abVendorReqData[258];
 
