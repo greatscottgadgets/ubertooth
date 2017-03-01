@@ -48,7 +48,7 @@ volatile uint16_t channel = 2441;
 volatile uint16_t hop_direct_channel = 0;      // for hopping directly to a channel
 volatile uint16_t hop_timeout = 158;
 volatile uint16_t requested_channel = 0;
-volatile uint16_t saved_request = 0;
+volatile uint16_t le_adv_channel = 0;
 
 /* bulk USB stuff */
 volatile uint8_t  idle_buf_clkn_high = 0;
@@ -540,6 +540,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		do_hop = 0;
 		hop_mode = HOP_BTLE;
 		requested_mode = MODE_BT_FOLLOW_LE;
+		le_adv_channel = channel;
 
 		queue_init();
 		cs_threshold_calc_and_set(channel);
@@ -841,7 +842,7 @@ static void cc2400_idle()
 	hop_direct_channel = 0;
 	hop_timeout = 158;
 	requested_channel = 0;
-	saved_request = 0;
+	le_adv_channel = 0;
 
 
 	/* bulk USB stuff */
@@ -1653,7 +1654,7 @@ void bt_le_sync(u8 active_mode)
 			/* RX mode */
 			cc2400_strobe(SRX);
 
-			saved_request = requested_channel;
+			le_adv_channel = requested_channel;
 			requested_channel = 0;
 		}
 
@@ -1787,7 +1788,7 @@ void bt_le_sync(u8 active_mode)
 			while ((cc2400_status() & FS_LOCK));
 
 			/* Retune */
-			channel = saved_request != 0 ? saved_request : 2402;
+			channel = le_adv_channel != 0 ? le_adv_channel : 2402;
 			restart_jamming = 1;
 		}
 
