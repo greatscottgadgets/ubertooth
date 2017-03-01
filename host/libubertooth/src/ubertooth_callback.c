@@ -526,7 +526,6 @@ void cb_rx(ubertooth_t* ut, void* args)
 	if (infile == NULL)
 		systime = time(NULL);
 
-	printf("\n");
 	printf("systime=%u ch=%2d LAP=%06x err=%u clkn=%u clk_offset=%u s=%d n=%d snr=%d\n",
 	       (uint32_t)time(NULL),
 	       btbb_packet_get_channel(pkt),
