@@ -1,16 +1,36 @@
-Ubertooth 2015-10-R1 Release Notes
+Ubertooth 2017-03-R1 Release Notes
+==============================
+The Ubertooth host utilities in this release require libbtbb-2017-03-R1
+(https://github.com/greatscottgadgets/libbtbb/releases/tag/2017-03-R1) or
+greater.
 
-The Ubertooth host utilities in this release require libbtbb-2015-10-R1 (https://github.com/greatscottgadgets/libbtbb/releases/tag/2015-10-R1) or greater.
+Changes
+-------
+**USB API versioning** - We have added USB API versioning to improve the
+experience of failures due to mismatched firmware and host code. You may find
+that Ubertooth tools complain that your firmware is out of date.  Updating
+firmware is simple and reliable, please follow the instructions on the wiki
+https://github.com/greatscottgadgets/ubertooth/wiki/Firmware
+A release archive with precompiled firmware is available from
+https://github.com/greatscottgadgets/ubertooth/releases/download/2017-03-R1/ubertooth-2017-03-R1.tar.xz
 
-This is a minor bugfix and update release, for a complete list of changes
-since the previous release, see the git commit log.
+**Basic Rate PCAP output** - the pcap file produced by the Ubertooth tools
+should all be read by the latest Wireshark versions without the need to install
+plugins.
 
- * Update ubertooth-scan to provide more consistent output
- * It is now possible to build receive only firmware
- * Host code versioning is more reliable
- * Python tools now support Python 3.  Thanks Hannes!
+**Kismet plugins** - Kismet is currently under heavy development and it has not
+been possible to continue tracking the master branch.  The legacy Kismet plugins
+should continue to work, but we will wait to track git master until development
+has stabalised.
 
-Build instructions are available from the wiki https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
+This release rolls up a lot of bug fixes, code tidying efforts, and small
+enhancements, for a complete list of changes since the previous release, see the
+git commit log.
+
+Support
+-------
+Build instructions are available from the wiki
+https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide
 
 As always, support is available via the Ubertooth-general mailing list or IRC.
 Issues can also be reported via the GitHub issue tracker and pull requests are

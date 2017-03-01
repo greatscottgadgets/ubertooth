@@ -61,25 +61,6 @@ cp bluetooth_rxtx/bluetooth_rxtx.dfu ${targetdir}/ubertooth-one-firmware-bin/blu
 make clean
 
 ############################
-# Hardware
-############################
-# Do this part by hand if there have been hardware changes since the last release
-cp ${originaldir}/hardware/pogoprog/pogoprog-schematic.pdf ${targetdir}/hardware/pogoprog
-cp ${originaldir}/hardware/pogoprog/pogoprog-assembly.pdf ${targetdir}/hardware/pogoprog
-cp ${originaldir}/hardware/pogoprog/gerbers ${tagetdir}/hardware/pogoprog/
-cp ${originaldir}/hardware/pogoprog/pogoprog-bom.csv ${targetdir}/hardware/pogoprog/pogoprog-bom.csv
-
-cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-schematic.pdf ${targetdir}/hardware/ubertooth-one
-cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-assembly.pdf ${targetdir}/hardware/ubertooth-one
-cp ${originaldir}/hardware/ubertooth-one/gergers ${targetdir}/hardware/ubertooth-one/
-cp ${originaldir}/hardware/ubertooth-one/ubertooth-one-bom.csv ${targetdir}/hardware/ubertooth-one/ubertooth-one-bom.csv
-
-cp ${originaldir}/hardware/tc13badge/tc13badge-schematic.pdf ${targetdir}/hardware/tc13badge/
-cp ${originaldir}/hardware/tc13badge/tc13badge-assembly.pdf ${targetdir}/hardware/tc13badge/
-cp ${originaldir}/hardware/tc13badge/gerbers ${targetdir}/hardware/tc13badge/
-cp ${originaldir}/hardware/tc13badge/tc13badge-bom.csv ${targetdir}/hardware/tc13badge/tc13badge-bom.csv
-
-############################
 # Clean up
 ############################
 cp ${targetdir}/tools/RELEASENOTES ${targetdir}/
