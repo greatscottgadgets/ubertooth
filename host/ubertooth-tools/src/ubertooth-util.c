@@ -36,7 +36,6 @@ static void usage(FILE *output)
 	fprintf(output, "ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
 	fprintf(output, "Usage:\n");
 	fprintf(output, "\t-a[0-7] get/set power amplifier level\n");
-	fprintf(output, "\t-A check Ubertooth API version\n");
 	fprintf(output, "\t-b get hardware board id number\n");
 	fprintf(output, "\t-c[2400-2483] get/set channel in MHz\n");
 	fprintf(output, "\t-C[0-78] get/set channel\n");
@@ -61,6 +60,8 @@ static void usage(FILE *output)
 	fprintf(output, "\t-z set squelch level\n");
 }
 
+#define MAX_VERSION_STRING_LEN 255
+
 int main(int argc, char *argv[])
 {
 	int opt;
@@ -72,8 +73,9 @@ int main(int argc, char *argv[])
 	int do_range_test, do_repeater, do_firmware, do_board_id;
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
-	int do_something, do_compile_info, do_api_check;
+	int do_something, do_compile_info;
 	char ubertooth_device = -1;
+	char version_string[MAX_VERSION_STRING_LEN];
 
 	/* set command states to negative as a starter
 	 * setting to 0 means 'do it'
@@ -83,9 +85,9 @@ int main(int argc, char *argv[])
 	do_range_test= do_repeater= do_firmware= do_board_id= -1;
 	do_range_result= do_all_leds= do_identify= -1;
 	do_set_squelch= -1, do_get_squelch= -1; squelch_level= 0;
-	do_something= 0; do_compile_info= -1, do_api_check = 0;
+	do_something= 0; do_compile_info= -1;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9VA")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9V")) != EOF) {
 		switch(opt) {
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -181,9 +183,6 @@ int main(int argc, char *argv[])
 		case 'V':
 			do_compile_info = 0;
 			break;
-		case 'A':
-			do_api_check = 1;
-			break;
 		case 'h':
 			usage(stdout);
 			return 0;
@@ -240,14 +239,19 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
 		}
 	if(do_firmware == 0) {
-		char version[255];
-		cmd_get_rev_num(ut->devh, version, (u8)sizeof(version));
-		fprintf(stdout, "Firmware revision: %s\n", version);
+		uint16_t usb_version;
+		cmd_get_rev_num(ut->devh, version_string, MAX_VERSION_STRING_LEN);
+		fprintf(stdout, "Firmware version: %s", version_string);
+		r = ubertooth_get_api(ut, &usb_version);
+		if(r >= 0)
+			fprintf(stdout, " (API:%x.%02x)\n", (usb_version>>8)&0xFF, usb_version&0xFF);
+		else
+			fprintf(stdout, "\n");
+
 	}
 	if(do_compile_info == 0) {
-		char compile_info[255];
-		cmd_get_compile_info(ut->devh, compile_info, (u8)sizeof(compile_info));
-		puts(compile_info);
+		cmd_get_compile_info(ut->devh, version_string, MAX_VERSION_STRING_LEN);
+		fprintf(stdout, "%s\n", version_string);
 	}
 	if(do_leds == 2)
 		fprintf(stdout, "USR LED status: %d\n", r= cmd_get_usrled(ut->devh));
@@ -325,12 +329,6 @@ int main(int argc, char *argv[])
 	if(do_get_squelch > 0) {
 		r = cmd_get_squelch(ut->devh);
 		fprintf(stdout, "Squelch set to %d\n", (int8_t)r);
-	}
-	if (do_api_check) {
-		r = ubertooth_check_api(ut);
-		if (r == 0) {
-			fprintf(stdout, "Ubertooth is running latest API (%d)\n", UBERTOOTH_API_VERSION);
-		}
 	}
 	if(do_something) {
 		unsigned char buf[4] = { 0x55, 0x55, 0x55, 0x55 };

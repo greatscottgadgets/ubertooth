@@ -582,9 +582,8 @@ ubertooth_t* ubertooth_start(int ubertooth_device)
 	return ut;
 }
 
-int ubertooth_check_api(ubertooth_t *ut) {
+int ubertooth_get_api(ubertooth_t *ut, uint16_t *version) {
 	int result;
-	uint16_t version;
 	libusb_device* dev;
 	struct libusb_device_descriptor desc;
 	dev = libusb_get_device(ut->devh);
@@ -597,13 +596,24 @@ int ubertooth_check_api(ubertooth_t *ut) {
 		}
 		return result;
 	}
-	version = desc.bcdDevice;
+	*version = desc.bcdDevice;
+	return 0;
+}
+
+int ubertooth_check_api(ubertooth_t *ut) {
+	uint16_t version;
+	int result;
+	result = ubertooth_get_api(ut, &version);
+	if (result < 0) {
+		return result;
+	}
 
 	if (version < UBERTOOTH_API_VERSION) {
 		fprintf(stderr, "Ubertooth API version %x.%02x found, libubertooth %s requires %x.%02x.\n",
 				(version>>8)&0xFF, version&0xFF, VERSION,
 				(UBERTOOTH_API_VERSION>>8)&0xFF, UBERTOOTH_API_VERSION&0xFF);
 		fprintf(stderr, "Please upgrade to latest released firmware.\n");
+		fprintf(stderr, "See: https://github.com/greatscottgadgets/ubertooth/wiki/Firmware\n");
 		ubertooth_stop(ut);
 		return -1;
 	}
