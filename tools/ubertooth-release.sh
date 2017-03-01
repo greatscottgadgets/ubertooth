@@ -66,6 +66,7 @@ make clean
 cp ${targetdir}/tools/RELEASENOTES ${targetdir}/
 rm -rf ${targetdir}/tools
 rm ${targetdir}/.gitignore
+rm ${targetdir}/.travis.yml
 
 ############################
 # Archive
