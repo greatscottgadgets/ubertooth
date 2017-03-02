@@ -20,7 +20,7 @@ mkdir -p ${targetdir}
 git archive --format=tar  HEAD | (cd ${targetdir} && tar xf -)
 
 sed -e "s/GIT_REVISION=\".*\"/GIT_REVISION=\"${version}\"/" -i ${targetdir}/firmware/common.mk
-sed -e "s/set\(RELEASE \"\"\)/set\(RELEASE \"${version}\"\)/" -i ${targetdir}/host/libubertooth/src/CMakeLists.txt
+sed -e "s/set(RELEASE.*/set(RELEASE \"${version}\")/" -i ${targetdir}/host/libubertooth/src/CMakeLists.txt
 
 ############################
 # Documentation
