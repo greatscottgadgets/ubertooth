@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 	int max_rsp, num_rsp, lap, timeout = 20;
 	uint8_t uap, extended = 0;
 	uint8_t scan = 0;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
 	ubertooth_t* ut = NULL;

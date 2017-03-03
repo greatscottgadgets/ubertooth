@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int do_mode = -1;
 	int do_channel = 2418;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 	int r;
 
 	while ((opt=getopt(argc,argv,"frijc:U:h")) != EOF) {

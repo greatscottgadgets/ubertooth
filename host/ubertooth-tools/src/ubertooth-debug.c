@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     int verbose = 1;
     ubertooth_t* ut = NULL;
     int do_read_register;
-    char ubertooth_device = -1;
+    int ubertooth_device = -1;
     int *regList = NULL;
     int regListN = 0;
     int i;

@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 {
 	int opt, r = 0, output_mode = SPECAN_STDOUT;
 	int lower= 2402, upper= 2480;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 
 	ubertooth_t* ut = NULL;
 

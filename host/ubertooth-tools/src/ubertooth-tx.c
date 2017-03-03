@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 	int r;
 	int timeout = 0;
 	char* end;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
 

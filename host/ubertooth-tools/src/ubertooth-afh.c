@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	int opt, have_lap = 0, have_uap = 0, timeout = 0;//, have_initial_afh = 0;
 	// uint8_t initial_afh[10];
 	char* end;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 	btbb_piconet* pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;

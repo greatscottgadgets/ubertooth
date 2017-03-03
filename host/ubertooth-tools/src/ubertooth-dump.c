@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int bitstream = 0;
 	int modulation = MOD_BT_BASIC_RATE;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 
 	ubertooth_t* ut = NULL;
 	int r;

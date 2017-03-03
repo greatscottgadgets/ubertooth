@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
 	int do_something, do_compile_info;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 	char version_string[MAX_VERSION_STRING_LEN];
 
 	/* set command states to negative as a starter

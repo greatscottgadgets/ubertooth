@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	int do_slave_mode;
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
-	char ubertooth_device = -1;
+	int ubertooth_device = -1;
 	ubertooth_t* ut = ubertooth_init();
 
 	btle_options cb_opts = { .allowed_access_address_errors = 32 };

@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
 	int have_uap = 0;
 	int afh_enabled = 0;
 	uint8_t mode, afh_map[10];
-	char *end, ubertooth_device = -1;
+	char *end;
+        int ubertooth_device = -1;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
 	uint32_t clock;
