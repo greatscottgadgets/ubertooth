@@ -389,6 +389,7 @@ void cb_btle(ubertooth_t* ut, void* args)
 		lell_pcap_append_packet(ut->h_pcap_le, nowns,
 					sig, noise,
 					refAA, pkt);
+		// read the above comment: this function may silently fail
 		lell_pcap_append_ppi_packet(ut->h_pcap_le, nowns,
 		                            rx->clkn_high,
 		                            rx->rssi_min, rx->rssi_max,
