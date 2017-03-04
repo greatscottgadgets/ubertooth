@@ -381,7 +381,8 @@ void cb_btle(ubertooth_t* ut, void* args)
 
 	/* Dump to PCAP/PCAPNG if specified */
 	refAA = lell_packet_is_data(pkt) ? 0 : 0x8e89bed6;
-	determine_signal_and_noise( rx, &sig, &noise );
+	sig = cc2400_rssi_to_dbm( rx->rssi_max );
+	noise = INT8_MIN; // FIXME - keep track of this
 
 	if (ut->h_pcap_le) {
 		/* only one of these two will succeed, depending on
