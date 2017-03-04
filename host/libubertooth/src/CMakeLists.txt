@@ -60,7 +60,7 @@ if( ${BUILD_SHARED_LIB} )
 	message(STATUS "Building shared library")
 	add_library(ubertooth SHARED ${c_sources})
 	target_link_libraries(ubertooth ${LIBUBERTOOTH_LIBS})
-	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 0)
+	set_target_properties(ubertooth PROPERTIES VERSION ${MAJOR_VERSION}.${MINOR_VERSION} SOVERSION 1)
 	set_target_properties(ubertooth PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 	install(TARGETS ubertooth
 			LIBRARY DESTINATION lib${LIB_SUFFIX}
