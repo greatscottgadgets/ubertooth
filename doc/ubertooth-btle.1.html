@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>ubertooth-btle(1) - Bluetooth Low Energy (BLE) sniffing and more</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+  <style type='text/css' media='all'>
+  /* style: toc */
+  .man-navigation {display:block !important;position:fixed;top:0;left:113ex;height:100%;width:100%;padding:48px 0 0 0;border-left:1px solid #dbdbdb;background:#eee}
+  .man-navigation a,.man-navigation a:hover,.man-navigation a:link,.man-navigation a:visited {display:block;margin:0;padding:5px 2px 5px 30px;color:#999;text-decoration:none}
+  .man-navigation a:hover {color:#111;text-decoration:underline}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#EXAMPLES">EXAMPLES</a>
+    <a href="#OPTIONS">OPTIONS</a>
+    <a href="#USING-WITH-CRACKLE">USING WITH CRACKLE</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+    <a href="#COPYRIGHT">COPYRIGHT</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>ubertooth-btle(1)</li>
+    <li class='tc'></li>
+    <li class='tr'>ubertooth-btle(1)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>ubertooth-btle</code> - <span class="man-whatis">Bluetooth Low Energy (BLE) sniffing and more</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<pre><code>ubertooth-btle -f [-A 37|38|39] [-r output.pcapng]
+</code></pre>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p><code>ubertooth-btle</code> is a tool for doing Fun Stuff(TM) with BLE. It can do
+the following things:</p>
+
+<ul>
+<li>Sniff connections</li>
+<li>Interfere with connections</li>
+<li>Send advertising packets (experimental)</li>
+</ul>
+
+
+<p>Sniffing connections is the most robust feature supported by
+<code>ubertooth-btle</code>. It has two primary modes of operation: follow mode and
+promiscuous mode.</p>
+
+<p>Follow mode is the preferred mode for general use. In this mode,
+Ubertooth will listen on one of three advertising channels waiting for a
+BLE connection to be established. When a connection is established,
+Ubertooth will hop along the data channels, passively capturing the data
+sent between the central and peripheral. After the connection
+terminates, Ubertooth will return to the advertising channel and wait
+for another connection.</p>
+
+<p>Promiscuous mode is an experimental mode for sniffing connections after
+they have already been established. This mode can be used to sniff
+long-lived connections.</p>
+
+<p>When sniffing, Ubertooth can only operate in either follow mode or
+promiscuous mode, but not both at the same time. If you are unsure which
+mode to use, use follow mode.</p>
+
+<p>By default, Ubertooth will follow any connection it observes. You can
+limit this to following a specific Bluetooth Address (BD ADDR) using the
+<code>-t</code> command line flag. For example, the following command will only
+sniff connections where the central or peripheral's BD ADDR is
+<code>22:44:66:88:AA:CC</code>:</p>
+
+<pre><code>ubertooth-btle -f -t22:44:66:88:AA:CC
+</code></pre>
+
+<p>In both sniffing modes, Ubertooth can log data to PCAP or PcapNG with a
+variety of pseudoheaders. The recommended logging format is PcapNG
+(<code>-r</code>) or PCAP with LE Pseudoheader (<code>-q</code>). For compatibility with
+crackle (see <a href="#USING-WITH-CRACKLE" title="USING WITH CRACKLE" data-bare-link="true">USING WITH CRACKLE</a>), use PCAP with PPI (<code>-c</code>).</p>
+
+<p>Interfering with connections is a feature for causing intentional
+interference with newly established or long-lived connections. When this
+attack succeeds, the BLE connection between the central and peripheral
+will be terminated. Pair the <code>-i</code> or <code>-I</code> flag with <code>-f</code> to interfere
+with new connections or <code>-p</code> to interfere with long-lived connections.
+Note that causing intentional interference may be illegal in your
+jurisdiction. Check your local laws before using this feature.</p>
+
+<p>Finally, <code>ubertooth-btle</code> supports transmitting advertising packets with
+a specified BD ADDR. This feature, referred to as faux slave mode, is
+experimental and may not function as intended. Use at your own risk.</p>
+
+<h2 id="EXAMPLES">EXAMPLES</h2>
+
+<p>Sniff all connections on advertising channel 38, logging all data to
+PcapNG:</p>
+
+<pre><code>ubertooth-btle -f -A 38 -r log.pcapng
+</code></pre>
+
+<p>Interfere with connections recovered with promiscuous mode:</p>
+
+<pre><code>ubertooth-btle -p -I
+</code></pre>
+
+<p>Send advertising packets using BD ADDR <code>22:44:66:88:AA:CC</code>:</p>
+
+<pre><code>ubertooth-btle -s22:44:66:88:AA:CC
+</code></pre>
+
+<h2 id="OPTIONS">OPTIONS</h2>
+
+<dl>
+<dt class="flush"><code>-h</code> </dt><dd>Displays help message</dd>
+</dl>
+
+
+<p>Major modes:</p>
+
+<dl>
+<dt class="flush"><code>-f</code> </dt><dd>Follow mode: sniff connections as they are established</dd>
+<dt class="flush"><code>-p</code> </dt><dd>Promiscuous mode: sniff already-established connections</dd>
+<dt><code>-s&lt;BD ADDR></code> </dt><dd>Inject advertising packets using specified BD ADDR</dd>
+</dl>
+
+
+<p>Interference (pair with <code>-f</code> or <code>-p</code>):</p>
+
+<dl>
+<dt class="flush"><code>-i</code> </dt><dd>Interfere with one connection and return to idle</dd>
+<dt class="flush"><code>-I</code> </dt><dd>Interfere continuously with many connections</dd>
+</dl>
+
+
+<p>Filtering:</p>
+
+<dl>
+<dt><code>-t&lt;BD ADDR></code> </dt><dd>Limit connection following and interference in follow mode to the
+specified BD ADDR</dd>
+</dl>
+
+
+<p>Logging:</p>
+
+<dl>
+<dt><code>-r &lt;output.pcapng&gt;</code> </dt><dd>Log to PcapNG (preferred)</dd>
+<dt><code>-q &lt;output.pcap&gt;</code> </dt><dd>Log to PCAP with <code>DLT_BLUETOOTH_LE_LL_WITH_PHDR</code></dd>
+<dt><code>-c &lt;output.pcap&gt;</code> </dt><dd>Log to PCAP with PPI (for compatibility with <span class="man-ref">crackle<span class="s">(1)</span></span>)</dd>
+</dl>
+
+
+<p>Miscellaneous:</p>
+
+<dl>
+<dt><code>-A &lt;37|38|39></code> </dt><dd>Which advertising channel to use in follow mode (default: 37)</dd>
+<dt><code>-a[address]</code> </dt><dd>Get or set access address in promiscuous mode</dd>
+<dt class="flush"><code>-v[01]</code> </dt><dd>Get or set CRC verification (default: 0)</dd>
+<dt><code>-x&lt;0-32></code> </dt><dd>Allow n access address violations (default: 32). Filtering occurs on
+host.</dd>
+</dl>
+
+
+<p>Data source:</p>
+
+<dl>
+<dt><code>-U&lt;0-7></code> </dt><dd>Which Ubertooth to use</dd>
+</dl>
+
+
+<h2 id="USING-WITH-CRACKLE">USING WITH CRACKLE</h2>
+
+<p><code>crackle</code> is a tool for cracking the BLE key exchange and decrypting
+encrypted data. To capture data for use with <code>crackle</code>, sniff
+connections in follow mode using <code>-f</code> and log data to PCAP/PPI using
+<code>-c</code>. Example:</p>
+
+<pre><code>ubertooth-btle -f -c crack.pcap
+</code></pre>
+
+<p>Refer to <code>crackle</code> documentation for further details.</p>
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><span class="man-ref">crackle<span class="s">(1)</span></span>: https://github.com/mikeryan/crackle</p>
+
+<h2 id="COPYRIGHT">COPYRIGHT</h2>
+
+<p><code>ubertooth-btle</code> is Copyright (C) 2012-2017 Mike Ryan. This tool is
+released under the GPLv2. Refer to COPYING for futher details.</p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>March 2017</li>
+    <li class='tr'>ubertooth-btle(1)</li>
+  </ol>
+
+  </div>
+</body>
+</html>
