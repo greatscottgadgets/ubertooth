@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>ubertooth(7) - Project Ubertooth</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#OVERVIEW">OVERVIEW</a>
+    <a href="#COMMAND-LINE-TOOLS">COMMAND LINE TOOLS</a>
+    <a href="#SUPPORT">SUPPORT</a>
+    <a href="#COPYRIGHT">COPYRIGHT</a>
+    <a href="#AUTHOR">AUTHOR</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>ubertooth(7)</li>
+    <li class='tc'></li>
+    <li class='tr'>ubertooth(7)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>ubertooth</code> - <span class="man-whatis">Project Ubertooth</span>
+</p>
+
+<h2 id="OVERVIEW">OVERVIEW</h2>
+
+<p>Ubertooth is a platform for Bluetooth experimentation. It is able to
+sniff Bluetooth Smart (BLE), discover undiscoverable classic Bluetooth
+devices, and perform rudimentary sniffing of classic Bluetooth devices.</p>
+
+<p>Ubertooth is <strong>not</strong> a Bluetooth dongle and it will not show up as one
+when running <code>hciconfig</code>.</p>
+
+<h2 id="COMMAND-LINE-TOOLS">COMMAND LINE TOOLS</h2>
+
+<p>The following command line tools included in this package are the
+primary means of using Ubertooth. Refer to their manual pages for
+example usage and comprehensive documentation.</p>
+
+<p>Useful commands:</p>
+
+<ul>
+<li><span class="man-ref">ubertooth-btle<span class="s">(1)</span></span> : BLE sniffing and other fun</li>
+<li><span class="man-ref">ubertooth-rx<span class="s">(1)</span></span> : Classic Bluetooth device discovery and rudimentary sniffing</li>
+<li><span class="man-ref">ubertooth-scan<span class="s">(1)</span></span> : Active scanning of undiscoverable devices</li>
+<li><span class="man-ref">ubertooth-afh<span class="s">(1)</span></span> : Detecting the AFH map of a Classic Bluetooth piconet</li>
+<li><span class="man-ref">ubertooth-ego<span class="s">(1)</span></span> : Yuneec E-Go electric skateboard sniffing</li>
+</ul>
+
+
+<p>Utility commands:</p>
+
+<ul>
+<li><span class="man-ref">ubertooth-dfu<span class="s">(1)</span></span> : Firmware update tool</li>
+<li><span class="man-ref">ubertooth-dump<span class="s">(1)</span></span> : Dumping raw RF symbols to disk</li>
+<li><span class="man-ref">ubertooth-util<span class="s">(1)</span></span> : "Everything else"</li>
+</ul>
+
+
+<p>Less useful commands:</p>
+
+<ul>
+<li><span class="man-ref">ubertooth-debug<span class="s">(1)</span></span> : Peeking and poking registers on the CC2400</li>
+<li><span class="man-ref">ubertooth-specan<span class="s">(1)</span></span> : Raw RSSI values used by graphical specan</li>
+<li><span class="man-ref">ubertooth-tx<span class="s">(1)</span></span> : Retransmitting raw RF symbols dumped with <code>ubertooth-dump</code></li>
+</ul>
+
+
+<h2 id="SUPPORT">SUPPORT</h2>
+
+<p>Ubertooth is an open source project maintained primarily by volunteers.
+Please keep that in mind when seeking support.</p>
+
+<p>If you are having issues with a tool or believe you have found a bug,
+please file an issue on the project GitHub:
+<a href="https://github.com/greatscottgadgets/ubertooth" data-bare-link="true">https://github.com/greatscottgadgets/ubertooth</a></p>
+
+<p>For interactive support, join the <code>#ubertooth</code> IRC channel on Freenode.</p>
+
+<h2 id="COPYRIGHT">COPYRIGHT</h2>
+
+<p>The code and documentation for Project Ubertooth are Copyright 2010-2017
+Great Scott Gadgets and are available under the terms of the GPLv2.
+Refer to <code>COPYING</code> for details. Ubertooth is a registered trademark of
+Great Scott Gadgets.</p>
+
+<h2 id="AUTHOR">AUTHOR</h2>
+
+<p>This manual page was written by Mike Ryan.</p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>March 2017</li>
+    <li class='tr'>ubertooth(7)</li>
+  </ol>
+
+  </div>
+</body>
+</html>

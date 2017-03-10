@@ -1,0 +1,79 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "UBERTOOTH" "7" "March 2017" "" ""
+.
+.SH "NAME"
+\fBubertooth\fR \- Project Ubertooth
+.
+.SH "OVERVIEW"
+Ubertooth is a platform for Bluetooth experimentation\. It is able to sniff Bluetooth Smart (BLE), discover undiscoverable classic Bluetooth devices, and perform rudimentary sniffing of classic Bluetooth devices\.
+.
+.P
+Ubertooth is \fBnot\fR a Bluetooth dongle and it will not show up as one when running \fBhciconfig\fR\.
+.
+.SH "COMMAND LINE TOOLS"
+The following command line tools included in this package are the primary means of using Ubertooth\. Refer to their manual pages for example usage and comprehensive documentation\.
+.
+.P
+Useful commands:
+.
+.IP "\(bu" 4
+ubertooth\-btle(1) : BLE sniffing and other fun
+.
+.IP "\(bu" 4
+ubertooth\-rx(1) : Classic Bluetooth device discovery and rudimentary sniffing
+.
+.IP "\(bu" 4
+ubertooth\-scan(1) : Active scanning of undiscoverable devices
+.
+.IP "\(bu" 4
+ubertooth\-afh(1) : Detecting the AFH map of a Classic Bluetooth piconet
+.
+.IP "\(bu" 4
+ubertooth\-ego(1) : Yuneec E\-Go electric skateboard sniffing
+.
+.IP "" 0
+.
+.P
+Utility commands:
+.
+.IP "\(bu" 4
+ubertooth\-dfu(1) : Firmware update tool
+.
+.IP "\(bu" 4
+ubertooth\-dump(1) : Dumping raw RF symbols to disk
+.
+.IP "\(bu" 4
+ubertooth\-util(1) : "Everything else"
+.
+.IP "" 0
+.
+.P
+Less useful commands:
+.
+.IP "\(bu" 4
+ubertooth\-debug(1) : Peeking and poking registers on the CC2400
+.
+.IP "\(bu" 4
+ubertooth\-specan(1) : Raw RSSI values used by graphical specan
+.
+.IP "\(bu" 4
+ubertooth\-tx(1) : Retransmitting raw RF symbols dumped with \fBubertooth\-dump\fR
+.
+.IP "" 0
+.
+.SH "SUPPORT"
+Ubertooth is an open source project maintained primarily by volunteers\. Please keep that in mind when seeking support\.
+.
+.P
+If you are having issues with a tool or believe you have found a bug, please file an issue on the project GitHub: \fIhttps://github\.com/greatscottgadgets/ubertooth\fR
+.
+.P
+For interactive support, join the \fB#ubertooth\fR IRC channel on Freenode\.
+.
+.SH "COPYRIGHT"
+The code and documentation for Project Ubertooth are Copyright 2010\-2017 Great Scott Gadgets and are available under the terms of the GPLv2\. Refer to \fBCOPYING\fR for details\. Ubertooth is a registered trademark of Great Scott Gadgets\.
+.
+.SH "AUTHOR"
+This manual page was written by Mike Ryan\.
