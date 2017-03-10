@@ -76,6 +76,11 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 static void usage(FILE *file)
 {
 	fprintf(file, "ubertooth-specan - output a continuous stream of signal strengths\n");
+	fprintf(file, "\n");
+	fprintf(file, "!!!!!\n");
+	fprintf(file, "NOTE: you probably want ubertooth-specan-ui\n");
+	fprintf(file, "!!!!!\n");
+	fprintf(file, "\n");
 	fprintf(file, "Usage:\n");
 	fprintf(file, "\t-h this help\n");
 	fprintf(file, "\t-v verbose (print debug information to stderr)\n");
