@@ -49,9 +49,8 @@ For interactive support, join the `#ubertooth` IRC channel on Freenode.
 ## COPYRIGHT
 
 The code and documentation for Project Ubertooth are Copyright 2010-2017
-Great Scott Gadgets and are available under the terms of the GPLv2.
-Refer to `COPYING` for details. Ubertooth is a registered trademark of
-Great Scott Gadgets.
+and are available under the terms of the GPLv2. Refer to `COPYING` for
+details. Ubertooth is a registered trademark of Great Scott Gadgets.
 
 ## AUTHOR
 
