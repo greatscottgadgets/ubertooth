@@ -1,4 +1,8 @@
-# ubertooth(7) - Project Ubertooth
+# UBERTOOTH 7 "March 2017" "Project Ubertooth" "Project Ubertooth Overview"
+
+## NAME
+
+ubertooth(7) - Project Ubertooth
 
 ## OVERVIEW
 
