@@ -1,204 +1,197 @@
-.\" generated with Ronn/v0.7.3
-.\" http://github.com/rtomayko/ronn/tree/0.7.3
-.
-.TH "UBERTOOTH\-BTLE" "1" "March 2017" "" ""
-.
-.SH "NAME"
-\fBubertooth\-btle\fR \- Bluetooth Low Energy (BLE) sniffing and more
-.
-.SH "SYNOPSIS"
-.
+.TH UBERTOOTH\-BTLE 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+ubertooth\-btle \-\- Bluetooth Low Energy (BLE) sniffing and more
+.SH SYNOPSIS
+.PP
+.RS
 .nf
-
-ubertooth\-btle \-f [\-A 37|38|39] [\-r output\.pcapng]
-.
+ubertooth\-btle \-f [\-A 37|38|39] [\-r output.pcapng]
 .fi
-.
-.SH "DESCRIPTION"
-\fBubertooth\-btle\fR is a tool for doing Fun Stuff(TM) with BLE\. It can do the following things:
-.
-.IP "\(bu" 4
+.RE
+.SH DESCRIPTION
+.PP
+\fB\fCubertooth\-btle\fR is a tool for doing Fun 
+.BR Stuff (TM) 
+with BLE. It can do
+the following things:
+.RS
+.IP \(bu 2
 Sniff connections
-.
-.IP "\(bu" 4
+.IP \(bu 2
 Interfere with connections
-.
-.IP "\(bu" 4
+.IP \(bu 2
 Send advertising packets (experimental)
-.
-.IP "" 0
-.
-.P
-Sniffing connections is the most robust feature supported by \fBubertooth\-btle\fR\. It has two primary modes of operation: follow mode and promiscuous mode\.
-.
-.P
-Follow mode is the preferred mode for general use\. In this mode, Ubertooth will listen on one of three advertising channels waiting for a BLE connection to be established\. When a connection is established, Ubertooth will hop along the data channels, passively capturing the data sent between the central and peripheral\. After the connection terminates, Ubertooth will return to the advertising channel and wait for another connection\.
-.
-.P
-Promiscuous mode is an experimental mode for sniffing connections after they have already been established\. This mode can be used to sniff long\-lived connections\.
-.
-.P
-When sniffing, Ubertooth can only operate in either follow mode or promiscuous mode, but not both at the same time\. If you are unsure which mode to use, use follow mode\.
-.
-.P
-By default, Ubertooth will follow any connection it observes\. You can limit this to following a specific Bluetooth Address (BD ADDR) using the \fB\-t\fR command line flag\. For example, the following command will only sniff connections where the central or peripheral\'s BD ADDR is \fB22:44:66:88:AA:CC\fR:
-.
-.IP "" 4
-.
+.RE
+.PP
+Sniffing connections is the most robust feature supported by
+\fB\fCubertooth\-btle\fR\&. It has two primary modes of operation: follow mode and
+promiscuous mode.
+.PP
+Follow mode is the preferred mode for general use. In this mode,
+Ubertooth will listen on one of three advertising channels waiting for a
+BLE connection to be established. When a connection is established,
+Ubertooth will hop along the data channels, passively capturing the data
+sent between the central and peripheral. After the connection
+terminates, Ubertooth will return to the advertising channel and wait
+for another connection.
+.PP
+Promiscuous mode is an experimental mode for sniffing connections after
+they have already been established. This mode can be used to sniff
+long\-lived connections.
+.PP
+When sniffing, Ubertooth can only operate in either follow mode or
+promiscuous mode, but not both at the same time. If you are unsure which
+mode to use, use follow mode.
+.PP
+By default, Ubertooth will follow any connection it observes. You can
+limit this to following a specific Bluetooth Address (BD ADDR) using the
+\fB\fC\-t\fR command line flag. For example, the following command will only
+sniff connections where the central or peripheral's BD ADDR is
+\fB\fC22:44:66:88:AA:CC\fR:
+.PP
+.RS
 .nf
-
 ubertooth\-btle \-f \-t22:44:66:88:AA:CC
-.
 .fi
-.
-.IP "" 0
-.
-.P
-In both sniffing modes, Ubertooth can log data to PCAP or PcapNG with a variety of pseudoheaders\. The recommended logging format is PcapNG (\fB\-r\fR) or PCAP with LE Pseudoheader (\fB\-q\fR)\. For compatibility with crackle (see \fIUSING WITH CRACKLE\fR), use PCAP with PPI (\fB\-c\fR)\.
-.
-.P
-Interfering with connections is a feature for causing intentional interference with newly established or long\-lived connections\. When this attack succeeds, the BLE connection between the central and peripheral will be terminated\. Pair the \fB\-i\fR or \fB\-I\fR flag with \fB\-f\fR to interfere with new connections or \fB\-p\fR to interfere with long\-lived connections\. Note that causing intentional interference may be illegal in your jurisdiction\. Check your local laws before using this feature\.
-.
-.P
-Finally, \fBubertooth\-btle\fR supports transmitting advertising packets with a specified BD ADDR\. This feature, referred to as faux slave mode, is experimental and may not function as intended\. Use at your own risk\.
-.
-.SH "EXAMPLES"
-Sniff all connections on advertising channel 38, logging all data to PcapNG:
-.
-.IP "" 4
-.
+.RE
+.PP
+In both sniffing modes, Ubertooth can log data to PCAP or PcapNG with a
+variety of pseudoheaders. The recommended logging format is PcapNG
+(\fB\fC\-r\fR) or PCAP with LE Pseudoheader (\fB\fC\-q\fR). For compatibility with
+crackle (see [USING WITH CRACKLE][]), use PCAP with PPI (\fB\fC\-c\fR).
+.PP
+Interfering with connections is a feature for causing intentional
+interference with newly established or long\-lived connections. When this
+attack succeeds, the BLE connection between the central and peripheral
+will be terminated. Pair the \fB\fC\-i\fR or \fB\fC\-I\fR flag with \fB\fC\-f\fR to interfere
+with new connections or \fB\fC\-p\fR to interfere with long\-lived connections.
+Note that causing intentional interference may be illegal in your
+jurisdiction. Check your local laws before using this feature.
+.PP
+Finally, \fB\fCubertooth\-btle\fR supports transmitting advertising packets with
+a specified BD ADDR. This feature, referred to as faux slave mode, is
+experimental and may not function as intended. Use at your own risk.
+.SH EXAMPLES
+.PP
+Sniff all connections on advertising channel 38, logging all data to
+PcapNG:
+.PP
+.RS
 .nf
-
-ubertooth\-btle \-f \-A 38 \-r log\.pcapng
-.
+ubertooth\-btle \-f \-A 38 \-r log.pcapng
 .fi
-.
-.IP "" 0
-.
-.P
+.RE
+.PP
 Interfere with connections recovered with promiscuous mode:
-.
-.IP "" 4
-.
+.PP
+.RS
 .nf
-
 ubertooth\-btle \-p \-I
-.
 .fi
-.
-.IP "" 0
-.
-.P
-Send advertising packets using BD ADDR \fB22:44:66:88:AA:CC\fR:
-.
-.IP "" 4
-.
+.RE
+.PP
+Send advertising packets using BD ADDR \fB\fC22:44:66:88:AA:CC\fR:
+.PP
+.RS
 .nf
-
 ubertooth\-btle \-s22:44:66:88:AA:CC
-.
 .fi
-.
-.IP "" 0
-.
-.SH "OPTIONS"
-.
-.TP
-\fB\-h\fR
+.RE
+.SH OPTIONS
+.RS
+.IP \(bu 2
+\fB\fC\-h\fR :
 Displays help message
-.
-.P
+.RE
+.PP
 Major modes:
-.
-.TP
-\fB\-f\fR
+.RS
+.IP \(bu 2
+\fB\fC\-f\fR :
 Follow mode: sniff connections as they are established
-.
-.TP
-\fB\-p\fR
+.IP \(bu 2
+\fB\fC\-p\fR :
 Promiscuous mode: sniff already\-established connections
-.
-.TP
-\fB\-s<BD ADDR>\fR
+.IP \(bu 2
+\fB\fC\-s<BD ADDR>\fR : 
 Inject advertising packets using specified BD ADDR
-.
-.P
-Interference (pair with \fB\-f\fR or \fB\-p\fR):
-.
-.TP
-\fB\-i\fR
+.RE
+.PP
+Interference (pair with \fB\fC\-f\fR or \fB\fC\-p\fR):
+.RS
+.IP \(bu 2
+\fB\fC\-i\fR :
 Interfere with one connection and return to idle
-.
-.TP
-\fB\-I\fR
+.IP \(bu 2
+\fB\fC\-I\fR :
 Interfere continuously with many connections
-.
-.P
+.RE
+.PP
 Filtering:
-.
-.TP
-\fB\-t<BD ADDR>\fR
-Limit connection following and interference in follow mode to the specified BD ADDR
-.
-.P
+.RS
+.IP \(bu 2
+\fB\fC\-t<BD ADDR>\fR :
+Limit connection following and interference in follow mode to the
+specified BD ADDR
+.RE
+.PP
 Logging:
-.
-.TP
-\fB\-r <output\.pcapng>\fR
+.RS
+.IP \(bu 2
+\fB\fC\-r <output.pcapng>\fR :
 Log to PcapNG (preferred)
-.
-.TP
-\fB\-q <output\.pcap>\fR
-Log to PCAP with \fBDLT_BLUETOOTH_LE_LL_WITH_PHDR\fR
-.
-.TP
-\fB\-c <output\.pcap>\fR
-Log to PCAP with PPI (for compatibility with crackle(1))
-.
-.P
+.IP \(bu 2
+\fB\fC\-q <output.pcap>\fR :
+Log to PCAP with \fB\fCDLT_BLUETOOTH_LE_LL_WITH_PHDR\fR
+.IP \(bu 2
+\fB\fC\-c <output.pcap>\fR :
+Log to PCAP with PPI (for compatibility with 
+.BR crackle (1))
+.RE
+.PP
 Miscellaneous:
-.
-.TP
-\fB\-A <37|38|39>\fR
+.RS
+.IP \(bu 2
+\fB\fC\-A <37|38|39>\fR :
 Which advertising channel to use in follow mode (default: 37)
-.
-.TP
-\fB\-a[address]\fR
+.IP \(bu 2
+\fB\fC\-a[address]\fR :
 Get or set access address in promiscuous mode
-.
-.TP
-\fB\-v[01]\fR
+.IP \(bu 2
+\fB\fC\-v[01]\fR :
 Get or set CRC verification (default: 0)
-.
-.TP
-\fB\-x<0\-32>\fR
-Allow n access address violations (default: 32)\. Filtering occurs on host\.
-.
-.P
+.IP \(bu 2
+\fB\fC\-x<0\-32>\fR :
+Allow n access address violations (default: 32). Filtering occurs on
+host.
+.RE
+.PP
 Data source:
-.
-.TP
-\fB\-U<0\-7>\fR
+.RS
+.IP \(bu 2
+\fB\fC\-U<0\-7>\fR :
 Which Ubertooth to use
-.
-.SH "USING WITH CRACKLE"
-\fBcrackle\fR is a tool for cracking the BLE key exchange and decrypting encrypted data\. To capture data for use with \fBcrackle\fR, sniff connections in follow mode using \fB\-f\fR and log data to PCAP/PPI using \fB\-c\fR\. Example:
-.
-.IP "" 4
-.
+.RE
+.SH USING WITH CRACKLE
+.PP
+\fB\fCcrackle\fR is a tool for cracking the BLE key exchange and decrypting
+encrypted data. To capture data for use with \fB\fCcrackle\fR, sniff
+connections in follow mode using \fB\fC\-f\fR and log data to PCAP/PPI using
+\fB\fC\-c\fR\&. Example:
+.PP
+.RS
 .nf
-
-ubertooth\-btle \-f \-c crack\.pcap
-.
+ubertooth\-btle \-f \-c crack.pcap
 .fi
-.
-.IP "" 0
-.
-.P
-Refer to \fBcrackle\fR documentation for further details\.
-.
-.SH "SEE ALSO"
-crackle(1): https://github\.com/mikeryan/crackle
-.
-.SH "COPYRIGHT"
-\fBubertooth\-btle\fR is Copyright (C) 2012\-2017 Mike Ryan\. This tool is released under the GPLv2\. Refer to COPYING for futher details\.
+.RE
+.PP
+Refer to \fB\fCcrackle\fR documentation for further details.
+.SH SEE ALSO
+.PP
+.BR crackle (1): 
+\[la]https://github.com/mikeryan/crackle\[ra]
+.SH COPYRIGHT
+.PP
+\fB\fCubertooth\-btle\fR is Copyright (C) 2012\-2017 Mike Ryan. This tool is
+released under the GPLv2. Refer to COPYING for futher details.

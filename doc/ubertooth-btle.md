@@ -1,4 +1,8 @@
-# ubertooth-btle(1) -- Bluetooth Low Energy (BLE) sniffing and more
+# UBERTOOTH-BTLE 1 "March 2017" "Project Ubertooth" "User Commands"
+
+## NAME
+
+ubertooth-btle -- Bluetooth Low Energy (BLE) sniffing and more
 
 ## SYNOPSIS
 
