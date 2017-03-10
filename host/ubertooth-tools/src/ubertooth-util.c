@@ -34,30 +34,36 @@ const char* board_names[] = {
 static void usage(FILE *output)
 {
 	fprintf(output, "ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
-	fprintf(output, "Usage:\n");
-	fprintf(output, "\t-a[0-7] get/set power amplifier level\n");
-	fprintf(output, "\t-b get hardware board id number\n");
-	fprintf(output, "\t-c[2400-2483] get/set channel in MHz\n");
-	fprintf(output, "\t-C[0-78] get/set channel\n");
-	fprintf(output, "\t-d[0-1] get/set all LEDs\n");
-	fprintf(output, "\t-e start repeater mode\n");
-	fprintf(output, "\t-f activate flash programming (DFU) mode\n");
-	fprintf(output, "\t-h display this message\n");
-	fprintf(output, "\t-i activate In-System Programming (ISP) mode\n");
-	fprintf(output, "\t-I identify ubertooth device by flashing all LEDs\n");
-	fprintf(output, "\t-l[0-1] get/set USR LED\n");
-	fprintf(output, "\t-m display range test result\n");
-	fprintf(output, "\t-n initiate range test\n");
-	fprintf(output, "\t-p get microcontroller Part ID\n");
-	fprintf(output, "\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
-	fprintf(output, "\t-r full reset\n");
-	fprintf(output, "\t-s get microcontroller serial number\n");
-	fprintf(output, "\t-S stop current operation\n");
-	fprintf(output, "\t-t intitiate continuous transmit test\n");
-	fprintf(output, "\t-U<0-7> set ubertooth device to use\n");
+	fprintf(output, "\n");
+	fprintf(output, "Common options:\n");
 	fprintf(output, "\t-v get firmware revision number\n");
 	fprintf(output, "\t-V get compile info\n");
+	fprintf(output, "\t-I identify ubertooth device by flashing all LEDs\n");
+	fprintf(output, "\t-d[0-1] get/set all LEDs\n");
+	fprintf(output, "\t-l[0-1] get/set USR LED\n");
+	fprintf(output, "\t-S stop current operation\n");
+	fprintf(output, "\t-r full reset\n");
+	fprintf(output, "\t-U<0-7> set ubertooth device to use\n");
+	fprintf(output, "\n");
+	fprintf(output, "Radio options:\n");
+	fprintf(output, "\t-a[0-7] get/set power amplifier level\n");
+	fprintf(output, "\t-c[2400-2483] get/set channel in MHz\n");
+	fprintf(output, "\t-C[0-78] get/set channel\n");
+	fprintf(output, "\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
+	fprintf(output, "\t-t intitiate continuous transmit test\n");
 	fprintf(output, "\t-z set squelch level\n");
+	fprintf(output, "\n");
+	fprintf(output, "Range test:\n");
+	fprintf(output, "\t-e start repeater mode\n");
+	fprintf(output, "\t-m display range test result\n");
+	fprintf(output, "\t-n initiate range test\n");
+	fprintf(output, "\n");
+	fprintf(output, "Miscellaneous:\n");
+	fprintf(output, "\t-f activate flash programming (DFU) mode\n");
+	fprintf(output, "\t-i activate In-System Programming (ISP) mode\n");
+	fprintf(output, "\t-b get hardware board id number\n");
+	fprintf(output, "\t-p get microcontroller Part ID\n");
+	fprintf(output, "\t-s get microcontroller serial number\n");
 }
 
 #define MAX_VERSION_STRING_LEN 255
