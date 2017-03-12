@@ -140,6 +140,9 @@ This attack works against discoverable and undiscoverable devices alike.
 
 ## SEE ALSO
 
+ubertooth-scan(1): active device scanning and inquiry using Ubertooth
+and BlueZ
+
 ubertooth(7): overview of Project Ubertooth
 
 D. Spill and A. Bittau. "BlueSniff: Eve Meets Alice and Bluetooth."
