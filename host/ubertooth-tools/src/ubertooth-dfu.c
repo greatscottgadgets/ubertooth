@@ -389,12 +389,17 @@ static int get_outfile(char *infile, char **outfile) {
 static void usage()
 {
 	printf("ubertooth-dfu - Ubertooth firmware update tool\n");
+	printf("\n");
+	printf("To update firmware, run:\n");
+	printf("\tubertooth-dfu -d bluetooth_rxtx.dfu -r\n");
+	printf("\n");
 	printf("Usage:\n");
-	printf("\t-h this help\n");
-	printf("\t-s <filename> add DFU suffix to binary firmware file\n");
 	printf("\t-u <filename> upload - read firmware from device\n");
 	printf("\t-d <filename> download - write DFU file to device\n");
 	printf("\t-r reset Ubertooth after other operations complete\n");
+	printf("\n");
+	printf("Miscellaneous:\n");
+	printf("\t-s <filename> add DFU suffix to binary firmware file\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
 }
 
