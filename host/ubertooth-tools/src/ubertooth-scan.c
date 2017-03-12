@@ -38,15 +38,28 @@
 
 static void usage()
 {
-	printf("ubertooth-scan - active(bluez) device scan and inquiry supported by Ubertooth\n");
+	printf("ubertooth-scan - active(Bluez) device scan and inquiry supported by Ubertooth\n");
+	printf("\n");
+	printf("This tool uses a normal Bluetooth dongle to perform Inquiry Scans and\n");
+	printf("Extended Inquiry scans of Bluetooth devices. It uses Ubertooth to\n");
+	printf("discover undiscoverable devices and can use BlueZ to scan for\n");
+	printf("discoverable devices.\n");
+	printf("\n");
 	printf("Usage:\n");
-	printf("\t-h this Help\n");
-	printf("\t-U<0-7> set Ubertooth device to use\n");
+	printf("    ubertooth-scan\n");
+	printf("        Use Ubertooth to discover devices and perform Inquiry Scan.\n");
+	printf("\n");
+	printf("    ubertooth-scan -s -x\n");
+	printf("        Use BlueZ and Ubertooth to discover devices and perform Inquiry Scan\n");
+	printf("        and Extended Inquiry Scan.\n");
+	printf("\n");
+	printf("Options:\n");
+	printf("\t-s hci Scan - use BlueZ to scan for discoverable devices\n");
+	printf("\t-x eXtended scan - retrieve additional information about target devices\n");
 	printf("\t-t scan Time (seconds) - length of time to sniff packets. [Default: 20s]\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
-	printf("\t-s hci Scan - perform the equivalent of 'hcitool scan'\n");
-	printf("\t-x eXtended scan - retrieve additional information about target devices\n");
 	printf("\t-b Bluetooth device (hci0)\n");
+	printf("\t-U<0-7> set Ubertooth device to use\n");
 }
 
 
