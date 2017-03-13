@@ -1,0 +1,83 @@
+ubertooth (2017-03-R2) unstable; urgency=low
+  * USB API versioning - We have added USB API versioning to improve the
+    experience of failures due to mismatched firmware and host code. You may
+    find that Ubertooth tools complain that your firmware is out of date.
+    Updating firmware is simple and reliable, please follow the instructions
+    on the wiki. A release archive with precompiled firmware is available.
+  * Basic Rate PCAP output - the pcap file produced by the Ubertooth tools
+    should all be read by the latest Wireshark versions without the need to
+    install plugins.
+  * Kismet plugins - Kismet is currently under heavy development and it has
+    not been possible to continue tracking the master branch. The legacy
+    Kismet plugins should continue to work, but we will wait to track git
+    master until development has stabalised.
+  
+ -- Dominic Spill <dominicgs@gmail.com>  01 Mar 2017 10:39:00 -0700   
+ 
+ ubertooth (2015-10-R1) unstable; urgency=low
+  * This is a minor bugfix and update release
+  * Update ubertooth-scan to provide more consistent output
+  * It is now possible to build receive only firmware
+  * Host code versioning is more reliable
+  * Python tools now support Python 3. Thanks Hannes!
+
+  
+ -- Dominic Spill <dominicgs@gmail.com>  12 Oct 2015 03:10:00 -0700   
+ 
+ ubertooth (2015-09-R2) unstable; urgency=low
+  * Basic Rate Bluetooth Improvements
+      * Stability has improved in performance constrained environments
+      * The "uh oh, buffer not emptied" issue no longer causes the tools to loop
+        indefinitely
+      * AFH support has greatly improved, UAP and CLK values are now found more
+        quickly when AFH is used
+  * Basic Rate PCAP support
+      * ubertooth-rx and ubertooth-follow support a new PCAP file format
+      * The new PCAP format is also supported with a new Wireshark plugin: btbredr
+      * The PCAP format is still in the early stages, but we hope to have the plugin
+        included in Wireshark later this year
+      * The older btbb format is still produced by the Kismet plugins, they will
+        be migrated over to the new format in the next release
+  * Bluetooth Smart (BLE) Improvements
+      * Improved packet reception
+      * Promiscuous sniffing mode is more reliable
+      * Promiscuous sniffing reports the recovered parameters to the host
+  * Skateboard Hacking
+      * Support for interfering with connections of BLE enabled skateboards
+      * ubertooth-ego targets Yuneec E-go (not Bluetooth)
+      * Always hack safely and responsibly!
+
+  
+ -- Dominic Spill <dominicgs@gmail.com>  05 Sep 2015 05:30:00 -0700   
+
+ubertooth (2014-02-R2) unstable; urgency=low
+  * Bluetooth Smart (Low Energy) Support
+      * Promiscuous and follow modes
+      * Pcap format packet logging
+      * Pairing / encryption support when paired with crackle
+      * Credit for BLE features goes to Mike Ryan
+  * Unified host tool for monitoring Basic Rate
+      * ubertooth-rx replaces -lap, -uap, -hop tools
+      * Once UAP is discovered, ubertooth-rx automatically tries to find clock
+        values and begin hopping
+      * Thanks to Will Code for working on this
+  * Survey tool - ubertooth-scan
+      * Combining both Ubertooth and a standard Bluetooth dongle
+      * Ubertooth scans for non-discoverable master devices
+      * Dongle probes devices for piconet information and features
+  * Cmake now used for the build system
+      * Improves support for non-Linux operating systems
+      * More sensible handling of dependencies
+      * New build instructions
+  * Packaging (Experimental)
+      * Early stage support for packaging systems
+      * libbtbb in Homebrew repository, Ubertooth coming soon
+      * MacPorts availability is under test
+      * Release already available in Pentoo
+  * GitHub migration
+      * libbtbb, Ubertooth and gr-bluetooth all hosted on GitHub
+      * Allows for more open development and collaboration model
+      * Already seeing an increase in issue reporting and pull requests
+
+
+ -- Dominic Spill <dominicgs@gmail.com>  20 Feb 2014 06:06:00 -0700   
