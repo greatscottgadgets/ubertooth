@@ -47,3 +47,10 @@ TAGS
 TAGS.log
 cscope*
 ID
+
+# Editor junk
+*.swp
+*.sublime-project
+*.sublime-workspace
+.vscode
+
