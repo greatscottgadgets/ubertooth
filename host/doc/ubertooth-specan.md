@@ -1,4 +1,4 @@
-# UBERTOOTH-UTIL 1 "March 2017" "Project Ubertooth" "User Commands"
+# UBERTOOTH-SPECAN 1 "March 2017" "Project Ubertooth" "User Commands"
 
 ## NAME
 
