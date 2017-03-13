@@ -32,21 +32,14 @@
 #include "cc2400.h"
 #include "arglist.h"
 
-const char *board_names[] = {
-    "Ubertooth Zero",
-    "Ubertooth One",
-    "ToorCon 13 Badge"
-};
-
 static void usage()
 {
     printf
-	("ubertooth-debug - command line utility for debugging Ubertooth Zero and Ubertooth One\n");
+	("ubertooth-debug - command line utility for debugging Ubertooth One\n");
     printf("Usage:\n");
     printf("\t-h this message\n");
-    printf("\t-r <name> read the contents of a 16 bit CC2400 register\n");
-    printf
-	("\t-r <number,number,low-high> read the contents of a 16 bit CC2400 register(s)\n");
+    printf("\t-r <number>[,<number> [,[...]]] read the contents of numbered CC2400 register(s)\n");
+    printf("\t-r <start>-<end> read a consecutive set of CC2400 register(s)\n");
     printf("\t-U<0-7> set ubertooth device to use\n");
     printf("\t-v<0-2> verbosity (default=1)\n");
 }
@@ -98,16 +91,16 @@ int main(int argc, char *argv[])
 	case 'r':
 	    regList = listOfInts(optarg, &regListN, token_to_int);
 	    if (regListN > 0) {
-		do_read_register = 0;
-		for (i = 0; i < regListN; i++)
-		    if (regList[i] < 0 || regList[i] > 0xff)
+			do_read_register = 0;
+			for (i = 0; i < regListN; i++)
+			    if (regList[i] < 0 || regList[i] > 0xff)
 			do_read_register = -1;
 	    }
 	    if (do_read_register < 0 || do_read_register > 0xff
-		|| regListN == -1) {
-		fprintf(stderr,
-			"ERROR: register address must be > 0x00 and < 0xff\n");
-		return 1;
+			|| regListN == -1) {
+			fprintf(stderr,
+				"ERROR: register address must be > 0x00 and < 0xff\n");
+			return 1;
 	    }
 	    break;
 	default:
@@ -116,6 +109,11 @@ int main(int argc, char *argv[])
 	}
     }
 
+	if(regListN == 0) {
+		fprintf(stderr, "At least one register must be provided\n");
+	    usage();
+	    return 1;
+	}
     /* initialise device */
     ut = ubertooth_start(ubertooth_device);
     if (ut == NULL) {
