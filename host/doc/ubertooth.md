@@ -37,7 +37,6 @@ Less useful commands:
 
  - ubertooth-debug(1) : Peeking and poking registers on the CC2400
  - ubertooth-specan(1) : Raw RSSI values used by graphical specan
- - ubertooth-tx(1) : Retransmitting raw RF symbols dumped with ubertooth-dump(1)
 
 ## SUPPORT
 
