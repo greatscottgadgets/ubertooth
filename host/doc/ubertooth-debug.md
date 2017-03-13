@@ -18,7 +18,7 @@ may be of interest to curious hackers.
 
 Options:
 
- - `-r <number>[,<number> [,[...]]]` :
+ - `-r <reg>[,<reg> [,[...]]]` :
    Read one or more registers from the CC2400 on Ubertooth
  - `-r <start>-<end>` :
    Read a consecutive set of registers from the CC2400 on Ubertooth
@@ -33,10 +33,10 @@ To read the MANOR register, use:
 
     ubertooth-debug -r 19
 
-Registers can also be specified in hexadecimal, the following will
+Registers can also be specified by name, the following will
 also read the MANOR register:
 
-    ubertooth-debug -r 0x13
+    ubertooth-debug -r %manor
 
 Read a range of registers:
 
