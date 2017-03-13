@@ -1,4 +1,4 @@
-# UBERTOOTH-UTIL 7 "March 2017" "Project Ubertooth" "User Commands"
+# UBERTOOTH-UTIL 1 "March 2017" "Project Ubertooth" "User Commands"
 
 ## NAME
 
@@ -20,7 +20,7 @@ monitored. Refer to the [OPTIONS][] section for full details.
 
 ## OPTIONS
 
-Common options:
+Options:
 
  - `-l` :
    lower frequency (default 2402)
