@@ -30,14 +30,18 @@
 
 static void usage()
 {
-	printf("ubertooth-rx - passive Bluetooth discovery/decode\n");
+	printf("ubertooth-tx - retransmit symbols dumped with ubertooth-dump\n");
+	printf("\n");
+	printf("!!!!\n");
+	printf("WARNING: This tool currently does nothing!\n");
+	printf("!!!!\n");
+	printf("\n");
 	printf("Usage:\n");
-	printf("\t-h this help\n");
-	printf("\t-V print version information\n");
-	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
-	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
-	printf("\t-U <0-7> set ubertooth device to use\n");
+	printf("\t-l <LAP> to transmit to (3 bytes / 6 hex digits)\n");
+	printf("\t-u <UAP> to transmit to (1 byte / 2 hex digits)\n");
 	printf("\t-t <SECONDS> timeout - 0 means no timeout [Default: 0]\n");
+	printf("\t-V print version information\n");
+	printf("\t-U <0-7> set ubertooth device to use\n");
 }
 
 int main(int argc, char* argv[])
@@ -112,6 +116,8 @@ int main(int argc, char* argv[])
 	r = cmd_tx_syms(ut->devh);
 	if (r < 0)
 		return r;
+
+	// TODO - send symbols to the bulk endpoint
 
 	// wait
 	while(!ut->stop_ubertooth)
