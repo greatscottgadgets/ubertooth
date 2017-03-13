@@ -1,0 +1,49 @@
+.TH UBERTOOTH\-DUMP 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+.BR ubertooth-dump (1) 
+\- output a continuous stream of received bits
+.SH SYNOPSIS
+.PP
+.RS
+.nf
+ubertooth\-dump [\-b] [\-c | \-l] [\-d <filename.bin>]
+.fi
+.RE
+.SH DESCRIPTION
+.PP
+This tool dumps the raw bitstream received from the CC2400 radio to
+STDOUT or a file (if specified with \fB\fC\-d\fR). It can configure the radio to
+demodulate Classic Bluetooth with \fB\fC\-c\fR (default), or Bluetooth Low
+Energy (BLE) with \fB\fC\-l\fR\&. Optionally it can decode the binary data and
+print ASCII 0 and 1 using \fB\fC\-b\fR\&.'
+.SH OPTIONS
+.RS
+.IP \(bu 2
+\fB\fC\-b\fR :
+Print ASCII 0 and 1 instead of raw data
+.IP \(bu 2
+\fB\fC\-c\fR :
+Classic Bluetooth modulation (default)
+.IP \(bu 2
+\fB\fC\-l\fR :
+Bluetooth Low Energy (BLE) modulation
+.IP \(bu 2
+\fB\fC\-d <filename.bin>\fR :
+Dump to file instead of stdout
+.IP \(bu 2
+\fB\fC\-U <0\-7>\fR :
+which Ubertooth device to use
+.RE
+.SH SEE ALSO
+.PP
+.BR ubertooth (7): 
+overview of Project Ubertooth
+.SH AUTHOR
+.PP
+This manual page was written by Mike Ryan.
+.SH COPYRIGHT
+.PP
+.BR ubertooth-dump (1) 
+is Copyright (c) 2010\-2017. This tool is released under the
+GPLv2. Refer to \fB\fCCOPYING\fR for further details.
