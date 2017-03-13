@@ -1,7 +1,7 @@
-Ubertooth 2017-03-R1 Release Notes
+Ubertooth 2017-03-R2 Release Notes
 ==============================
-The Ubertooth host utilities in this release require libbtbb-2017-03-R1
-(https://github.com/greatscottgadgets/libbtbb/releases/tag/2017-03-R1) or
+The Ubertooth host utilities in this release require libbtbb-2017-03-R2
+(https://github.com/greatscottgadgets/libbtbb/releases/tag/2017-03-R2) or
 greater.
 
 Changes
@@ -12,7 +12,7 @@ that Ubertooth tools complain that your firmware is out of date.  Updating
 firmware is simple and reliable, please follow the instructions on the wiki
 https://github.com/greatscottgadgets/ubertooth/wiki/Firmware
 A release archive with precompiled firmware is available from
-https://github.com/greatscottgadgets/ubertooth/releases/download/2017-03-R1/ubertooth-2017-03-R1.tar.xz
+https://github.com/greatscottgadgets/ubertooth/releases/download/2017-03-R2/ubertooth-2017-03-R2.tar.xz
 
 **Basic Rate PCAP output** - the pcap file produced by the Ubertooth tools
 should all be read by the latest Wireshark versions without the need to install
