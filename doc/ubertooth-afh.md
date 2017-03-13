@@ -1,4 +1,4 @@
-# UBERTOOTH-AFH 7 "March 2017" "Project Ubertooth" "User Commands"
+# UBERTOOTH-AFH 1 "March 2017" "Project Ubertooth" "User Commands"
 
 ## NAME
 
@@ -55,5 +55,5 @@ This manual page was written by Mike Ryan.
 
 ## COPYRIGHT
 
-ubertooth-util(1) is Copyright (c) 2015-2017. This tool is released under the
+ubertooth-afh(1) is Copyright (c) 2015-2017. This tool is released under the
 GPLv2. Refer to `COPYING` for further details.
