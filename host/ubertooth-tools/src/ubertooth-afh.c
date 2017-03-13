@@ -32,17 +32,21 @@ extern unsigned int packet_counter_max;
 static void usage()
 {
 	printf("ubertooth-afh - passive detection of the AFH channel map\n");
-	printf("Usage:\n");
-	printf("\t-h this help\n");
-	printf("\t-r print AFH channel map once every second\n");
+	printf("\n");
+	printf("Determine the AFH map for piconet ??:??:22:44:66:88:\n");
+	printf("    ubertooth-afh -u 22 -l 446688\n");
+	printf("\n");
+	printf("Main options:\n");
+	printf("\t-l <LAP> LAP of target piconet (3 bytes / 6 hex digits)\n");
+	printf("\t-u <UAP> UAP of target piconet (1 byte / 2 hex digits)\n");
+	printf("\t-m <int> threshold for channel removal (default: 5)\n");
+	printf("\t-r print AFH channel map once every second (default: print on update)\n");
+	printf("\n");
+	printf("Other options\n");
+	printf("\t-t <seconds> timeout for initial AFH map detection (not required)\n");
+	printf("\t-e maximum access code errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-V print version information\n");
-	printf("\t-l <LAP> to decode (6 hex), otherwise sniff all LAPs\n");
-	printf("\t-u <UAP> to decode (2 hex), otherwise try to calculate (requires LAP)\n");
 	printf("\t-U <0-7> set ubertooth device to use\n");
-	printf("\t-t <seconds> timeout for initial AFH map detection\n");
-	printf("\t-m <int> threshold for channel removal\n");
-	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
-	printf("\nIf an input file is not specified, an Ubertooth device is used for live capture.\n");
 }
 
 int main(int argc, char* argv[])
@@ -58,6 +62,9 @@ int main(int argc, char* argv[])
 
 	ubertooth_t* ut = NULL;
 	int r;
+
+	// default value for '-m' channel timeout
+	packet_counter_max = 5;
 
 	while ((opt=getopt(argc,argv,"rhVl:u:U:e:a:t:m:")) != EOF) {
 		switch(opt) {
