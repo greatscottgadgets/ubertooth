@@ -38,7 +38,7 @@ static void usage()
 	("ubertooth-debug - command line utility for debugging Ubertooth One\n");
     printf("Usage:\n");
     printf("\t-h this message\n");
-    printf("\t-r <number>[,<number> [,[...]]] read the contents of numbered CC2400 register(s)\n");
+    printf("\t-r <number>[,<number>[,...]] read the contents of numbered CC2400 register(s)\n");
     printf("\t-r <start>-<end> read a consecutive set of CC2400 register(s)\n");
     printf("\t-U<0-7> set ubertooth device to use\n");
     printf("\t-v<0-2> verbosity (default=1)\n");
