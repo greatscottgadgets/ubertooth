@@ -1,0 +1,72 @@
+.TH UBERTOOTH\-UTIL 7 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+ubertooth\-specan(1) \- a spectrum analyzer for Ubertooth
+
+.SH SYNOPSIS
+.PP
+ubertooth\-specan [\-l <freq>] [\-u <freq>] [\-g|G]
+
+.SH DESCRIPTION
+.PP
+ubertooth\-specan(1) is a tool for using Ubertooth as a spectrum analyzer
+in the 2.4GHz band. It is often used as a helper for GUI tools, such as
+ubertooth\-specan\-ui or Spectools. It can also produce output suitable for
+user with the feedgnuplot tool.
+
+.PP
+Other options allow upper and lower bounds to be set on the frequencies
+monitored. Refer to the [OPTIONS][] section for full details.
+
+.SH OPTIONS
+.PP
+Common options:
+.IP \(bu 2
+\fB\fC\-l\fR :
+lower frequency (default 2402)
+.IP \(bu 2
+\fB\fC\-u\fR :
+upper frequency (default 2480)
+.IP \(bu 2
+\fB\fC\-g\fR :
+format output for feedgnuplot
+.IP \(bu 2
+\fB\fC\-G\fR :
+format output for 3D feedgnuplot
+.IP \(bu 2
+\fB\fC\-d<filename>\fR :
+output to file <filename>
+.IP \(bu 2
+\fB\fC\-v\fR :
+print verbose output to stderr
+.IP \(bu 2
+\fB\fC\-U<0\-7>\fR :
+set ubertooth device to use
+
+.PP
+##EXAMPLES
+
+.PP
+To monitor the 2.4GHz band and produce a file suitable for feedgnuplot:
+
+.PP
+ubertooth\-specan \-g \-d output.dat
+
+.PP
+To monitor the upper half of the 2.4GHz band, use:
+
+.PP
+ubertooth\-specan \-l 2440
+
+.SH SEE ALSO
+.PP
+ubertooth(7): overview of Project Ubertooth
+
+.SH AUTHOR
+.PP
+This manual page was written by Dominic Spill.
+
+.SH COPYRIGHT
+.PP
+ubertooth\-specan(1) is Copyright (c) 2010\-2017. This tool is released under the
+GPLv2. Refer to \fB\fCCOPYING\fR for further details.
