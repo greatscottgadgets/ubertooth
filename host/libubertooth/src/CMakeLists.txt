@@ -18,22 +18,9 @@
 #
 # Based slightly upon the hackrf cmake setup.
 
-# FIXME Set static release version here to avoid pulling from git
-set(RELEASE "")
-set(DIRTY_FLAG "")
-
-if ( "${RELEASE}" STREQUAL "" )
-	# automatic git version when working out of git
-	include(GetGitRevisionDescription)
-	get_git_head_revision(GIT_REFSPEC RELEASE)
-
-	execute_process(COMMAND git status -s --untracked-files=no OUTPUT_VARIABLE DIRTY)
-	if ( NOT "${DIRTY}" STREQUAL "" )
-		set(DIRTY_FLAG "*")
-	endif()
-endif()
-
-add_definitions( -DRELEASE="${RELEASE}${DIRTY_FLAG}" )
+include(${PROJECT_SOURCE_DIR}/../cmake/set_release.cmake)
+add_definitions( -DRELEASE="${RELEASE_STRING}" )
+message(STATUS "Setting version string ${RELEASE_STRING}")
 
 # Targets
 set(c_sources ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth.c
