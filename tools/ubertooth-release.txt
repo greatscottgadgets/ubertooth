@@ -1,5 +1,7 @@
 release procedure:
 
+Set release string in host/cmake/set_release.cmake
+
 scripted (release.sh):
 - git archive
 - nanoc compile
