@@ -46,7 +46,6 @@ static void usage()
 	printf("\t-c <BT Channel> set a fixed bluetooth channel [Default: 39]\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-t <SECONDS> sniff timeout - 0 means no timeout [Default: 0]\n");
-	printf("\t-s reset channel scanning\n");
 	printf("\n");
 	printf("Output options:\n");
 	printf("\t-r<filename> capture packets to PcapNG file\n");
@@ -64,13 +63,12 @@ int main(int argc, char* argv[])
 	int survey_mode = 0;
 	int r;
 	int timeout = 0;
-	int reset_scan = 0;
 	char* end;
 	int ubertooth_device = -1;
 	btbb_piconet* pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
-	uint8_t channel = 39;
+	uint16_t channel = 9999;
 
 	ubertooth_t* ut = ubertooth_init();
 
@@ -126,7 +124,7 @@ int main(int argc, char* argv[])
 			max_ac_errors = atoi(optarg);
 			break;
 		case 's':
-			++reset_scan;
+			fprintf(stderr, "sweep mode is now the default and the -s argument is deprecated\n");
 			break;
 		case 't':
 			timeout = atoi(optarg);
@@ -136,6 +134,7 @@ int main(int argc, char* argv[])
 			break;
 		case 'c':
 			channel = atoi(optarg);
+			channel = channel + 2402;
 			break;
 		case 'V':
 			print_version();
@@ -194,14 +193,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (infile == NULL) {
-		/* Scan all frequencies. Same effect as
-		 * ubertooth-utils -c9999. This is necessary after
-		 * following a piconet. */
-		if (reset_scan) {
-			cmd_set_channel(ut->devh, 9999);
-		} else {
-			cmd_set_channel(ut->devh, 2402 + channel);
-		}
+		cmd_set_channel(ut->devh, channel);
 
 		/* Clean up on exit. */
 		register_cleanup_handler(ut, 0);

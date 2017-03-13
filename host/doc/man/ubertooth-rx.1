@@ -1,31 +1,33 @@
 .TH UBERTOOTH\-RX 1 "March 2017" "Project Ubertooth" "User Commands"
 .SH NAME
 .PP
-.BR ubertooth-rx (1) 
-\- Classic Bluetooth discovery, sniffing, and decoding
+ubertooth\-rx(1) \- Classic Bluetooth discovery, sniffing, and decoding
+
 .SH SYNOPSIS
 .PP
 .RS
+
 .nf
 ubertooth\-rx [ \-l <lap> [ \-u <uap ] ]
 ubertooth\-rx \-z
+
 .fi
 .RE
+
 .SH DESCRIPTION
 .PP
-.BR ubertooth-rx (1) 
-is the primary interface into Classic Bluetooth (BR)
+ubertooth\-rx(1) is the primary interface into Classic Bluetooth (BR)
 functionality provided by Ubertooth. It has two main modes of operation:
-piconet following and survey mode. In either mode, 
-.BR ubertooth-rx (1) 
-is
+piconet following and survey mode. In either mode, ubertooth\-rx(1) is
 able to discover undiscoverable devices. See [DISCOVERING UNDISCOVERABLE
 DEVICES][].
+
 .PP
 In piconet following mode, the tool will follow the first piconet it
 fully identifies. In survey mode the device will attempt to identify all
 piconets in a given area and display them after either a timeout or
 manual interruption.
+
 .PP
 Piconet following is the main mode entered when no arguments are passed
 to the command or a LAP and optionally a UAP are provided. If no
@@ -34,88 +36,114 @@ observed LAPs. If a LAP is passed, the UAP will be calculated for that
 specific LAP. Once a LAP and UAP have been recovered, the tool will
 attempt to recover the clock value, and if that succeeds it will follow
 that piconet.
+
 .PP
 Survey mode, entered using \fB\fC\-z\fR, will record all LAPs and attempt to
 calculate the UAPs for any observed LAPs. This mode can be combined with
 a timeout using \fB\fC\-t\fR, and it can be interrupted at any time using
 \fB\fCctrl\-C\fR\&.
+
 .SH EXAMPLES
 .PP
 Follow the first piconet whose LAP, UAP, and clock are recovered from
 the air:
+
 .PP
 .RS
+
 .nf
 ubertooth\-rx
+
 .fi
 .RE
+
 .PP
 For a given LAP, calculate the UAP and recover the clock, then follow:
+
 .PP
 .RS
+
 .nf
 ubertooth\-rx \-l 112233
+
 .fi
 .RE
+
 .PP
 For a given LAP and UAP, recover the clock then follow:
+
 .PP
 .RS
+
 .nf
 ubertooth\-rx \-l 112233 \-u ab
+
 .fi
 .RE
+
 .PP
 Enter survey mode for 20 seconds, and print out the BD ADDRs of all
 observed piconets:
+
 .PP
 .RS
+
 .nf
 ubertooth\-rx \-z \-t 20
+
 .fi
 .RE
+
 .SH OPTIONS
 .PP
 Major modes:
-.RS
 .IP \(bu 2
+
+.PP
 \fB\fC\-l <lap>\fR :
 Limit UAP recovery, clock recovery, and piconet following to a given
 LAP. Format is 3 bytes / 6 hex characters.
 .IP \(bu 2
+
+.PP
 \fB\fC\-u <uap>\fR :
 Limit clock recovery and piconet following to a given UAP. Must be
 used in conjunction with \fB\fC\-l\fR\&. Format is 1 byte / 2 hex characters.
 .IP \(bu 2
+
+.PP
 \fB\fC\-z\fR :
 Survey mode: recover all LAP and UAP pairs and display them. Will run
 indefinitely until interrupted with \fB\fCctrl\-C\fR unless paired with \fB\fC\-t\fR\&.
-.RE
+
 .PP
 Options:
-.RS
 .IP \(bu 2
+
+.PP
 \fB\fC\-i <input>\fR :
 Input file. If not specified will perform live capture using
 Ubertooth.
 .IP \(bu 2
+
+.PP
 \fB\fC\-c <0\-79>\fR :
 Fixed channel for all major modes. If not specified will sweep
 through all channels.
 .IP \(bu 2
-\fB\fC\-s\fR :
-Sweep through channels in all major modes. See also: \fB\fC\-c\fR\&.
-.IP \(bu 2
+
+.PP
 \fB\fC\-e <0\-4>\fR :
 Maximum access code bit errors. [Default: 2]
 .IP \(bu 2
+
+.PP
 \fB\fC\-t <seconds>\fR :
 Timeout in seconds. If not specified will run indefinitely. Suggested
 values for \fB\fC\-z\fR: 20\-60 seconds.
-.RE
+
 .PP
 Output options:
-.RS
 .IP \(bu 2
 \fB\fC\-r <file.pcapng>\fR :
 Capture packets to PcapNG
@@ -125,41 +153,51 @@ Capture packets to PCAP
 .IP \(bu 2
 \fB\fC\-d <file.bin>\fR :
 Capture packets to binary file suitable for use with \fB\fC\-i\fR\&.
-.RE
+
 .PP
 Miscellaneous:
-.RS
 .IP \(bu 2
+
+.PP
 \fB\fC\-V\fR :
 Version information
 .IP \(bu 2
+
+.PP
 \fB\fC\-U<0\-7>\fR :
 Which Ubertooth device to use
-.RE
+
 .SH DISCOVERING UNDISCOVERABLE DEVICES
 .PP
 Classic Bluetooth piocnets are defined by the Lower Address Part (LAP)
 and Upper Address Part (UAP) of the master device. These are elements
 of the master device's Bluetooth Address (BD ADDR).
+
 .PP
 Consider the following BD ADDR:
+
 .PP
 .RS
+
 .nf
 22:44:66:88:AA:BB
+
 .fi
 .RE
+
 .PP
 The lower address part (LAP) is the lower 24 bits, so \fB\fC88:AA:BB\fR\&. In the
 context of this tool, the value is written \fB\fC88AABB\fR\&. The upper address
 part is the next 8 bits, so \fB\fC66\fR\&. The \fB\fC22:44\fR is called the
 Non\-significant Address Part (NAP) and as you might imagine it is not
 significant.
+
 .PP
 In piconet following mode, the tool will recover LAP values from the air
 and attempt to calculate the UAP from those. It will go on to follow the
 piconet if it can recover the clock value. In survey mode, the tool will
 simply recover LAP and UAP values.
+
 .PP
 To convert LAP + UAP pairs back into Bluetooth addresses, do the reverse
 of the above. For example, if the tool recovers a LAP of 36A2B4 and a
@@ -167,25 +205,28 @@ UAP of 98, the associated Bluetooth address is \fB\fC??:??:98:36:A2:B4\fR\&. Any
 value can be substituted into the ?? slots and most Bluetooth tools will
 still work. For example, \fB\fChcitool name 00:00:98:36:A2:B4\fR will establish
 a connection to the device and return its name.
+
 .PP
 This attack works against discoverable and undiscoverable devices alike.
+
 .SH SEE ALSO
 .PP
-.BR ubertooth-scan (1): 
-active device scanning and inquiry using Ubertooth
+ubertooth\-scan(1): active device scanning and inquiry using Ubertooth
 and BlueZ
+
 .PP
-.BR ubertooth (7): 
-overview of Project Ubertooth
+ubertooth(7): overview of Project Ubertooth
+
 .PP
 D. Spill and A. Bittau. "BlueSniff: Eve Meets Alice and Bluetooth."
 USENIX WOOT 2007.
+
 .SH AUTHOR
 .PP
 This manual page was written by Mike Ryan.
+
 .SH COPYRIGHT
 .PP
-.BR ubertooth-rx (1) 
-is Copyright (c) 2010\-2017 Michael Ossmann, Dominic
+ubertooth\-rx(1) is Copyright (c) 2010\-2017 Michael Ossmann, Dominic
 Spill, and others. This tool is released under the GPLv2. Refer to
 \fB\fCCOPYING\fR for further details.
