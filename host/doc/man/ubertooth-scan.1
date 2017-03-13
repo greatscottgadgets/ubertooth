@@ -1,0 +1,70 @@
+.TH UBERTOOTH\-SCAN 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+.BR ubertooth-scan (1) 
+\- 
+.BR active (Bluez) 
+device scan and inquiry supported by Ubertooth
+.SH SYNOPSIS
+.PP
+ubertooth\-scan [\-s] [\-x]
+.SH DESCRIPTION
+.PP
+This tool uses a normal Bluetooth dongle to perform Inquiry Scans and
+Extended Inquiry scans of Bluetooth devices. It uses Ubertooth to
+discover undiscoverable devices and can use BlueZ to scan for
+discoverable devices.
+.SH EXAMPLES
+.PP
+Use Ubertooth to discover devices and perform Inquiry Scan with BlueZ:
+.PP
+.RS
+.nf
+ubertooth\-scan
+.fi
+.RE
+.PP
+Use BlueZ and Ubertooth to discover devices and perform Inquiry Scan and
+Extended Inquiry Scan:
+.PP
+.RS
+.nf
+ubertooth\-scan \-s \-x
+.fi
+.RE
+.SH OPTIONS
+.RS
+.IP \(bu 2
+\fB\fC\-s\fR :
+hci Scan \- use BlueZ to scan for discoverable devices
+.IP \(bu 2
+\fB\fC\-x\fR :
+eXtended scan \- retrieve additional information about target devices
+.IP \(bu 2
+\fB\fC\-t <seconds>\fR :
+scan Time \- length of time to sniff packets. [Default: 20s]
+.IP \(bu 2
+\fB\fC\-e <0\-4>\fR : 
+Maximum Access Code Errors (default: 2)
+.IP \(bu 2
+\fB\fC\-b hciN\fR :
+Bluetooth device (default: hci0)
+.IP \(bu 2
+\fB\fC\-U<0\-7>\fR :
+which Ubertooth device to use
+.RE
+.SH SEE ALSO
+.PP
+.BR ubertooth-rx (1): 
+Discover devices passively with Ubertooth
+.PP
+.BR ubertooth (7): 
+overview of Project Ubertooth
+.SH AUTHOR
+.PP
+This manual page was written by Mike Ryan.
+.SH COPYRIGHT
+.PP
+.BR ubertooth-scan (1) 
+is Copyright (c) 2010\-2017. This tool is released under the
+GPLv2. Refer to \fB\fCCOPYING\fR for further details.

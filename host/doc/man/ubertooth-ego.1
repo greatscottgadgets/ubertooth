@@ -1,0 +1,81 @@
+.TH UBERTOOTH\-EGO 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+.BR ubertooth-ego (1) 
+\- Yuneec E\-Go sniffing
+.SH SYNOPSIS
+.PP
+.RS
+.nf
+ubertooth\-ego \-f
+.fi
+.RE
+.SH DESCRIPTION
+.PP
+The Yuneec E\-Go is an electric skateboard controlled by a wireless
+handheld remote. This handheld remote uses a custom protocol implemented
+in 2.4 GHz RF. 
+.BR ubertooth-ego (1) 
+can sniff this protocol and interfere
+with its operation.
+.SH EXAMPLES
+.PP
+Sniff the connection between an E\-Go and its remote:
+.PP
+.RS
+.nf
+ubertooth\-ego \-f
+.fi
+.RE
+.PP
+Receive all E\-Go packets on 2408 MHz:
+.PP
+.RS
+.nf
+ubertooth\-ego \-r \-c 2408
+.fi
+.RE
+.PP
+Interfere with a connection:
+.PP
+.RS
+.nf
+ubertooth\-ego \-i
+.fi
+.RE
+.SH OPTIONS
+.PP
+Major modes:
+.RS
+.IP \(bu 2
+\fB\fC\-f\fR :
+Sniff a connection by hopping along channels
+.IP \(bu 2
+\fB\fC\-r\fR :
+Continuously receive packets on a single channel (see \fB\fC\-c\fR)
+.IP \(bu 2
+\fB\fC\-i\fR :
+Interfere with a connection
+.RE
+.PP
+Options:
+.RS
+.IP \(bu 2
+\fB\fC\-c\fR :
+Channel to use for continuous receive (suggested: 2408, 2418, 2423, 2469)
+.IP \(bu 2
+\fB\fC\-U<0\-7>\fR :
+Which Ubertooth device to use
+.RE
+.SH SEE ALSO
+.PP
+.BR ubertooth (7): 
+overview of Project Ubertooth
+.SH AUTHOR
+.PP
+This manual page was written by Mike Ryan.
+.SH COPYRIGHT
+.PP
+.BR ubertooth-ego (1) 
+is Copyright (c) 2015 Mike Ryan. This tool is released
+under the GPLv2. Refer to \fB\fCCOPYING\fR for further details.

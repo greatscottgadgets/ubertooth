@@ -1,0 +1,99 @@
+.TH UBERTOOTH\-DFU 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+.BR ubertooth-dfu (1) 
+\- Device firmware update for Ubertooth
+.SH SYNOPSIS
+.PP
+To update firmware, run:
+.PP
+.RS
+.nf
+ubertooth\-dfu \-d bluetooth_rxtx.dfu \-r
+.fi
+.RE
+.SH DESCRIPTION
+.PP
+.BR ubertooth-dfu (1) 
+is a utility for updating firmware on Ubertooth. It can
+also download the currently running firmware from the device.
+.PP
+Running the upload or download command automatically resets the device
+into the firmware update bootloader. The USB ID of the Ubertooth will
+change in the bootloader, and this may cause problems when attempting to
+update firmware from inside a VM.
+.PP
+In the DFU bootloader, the TX, RX, and USR LEDs will turn on and off in
+sequence. If this does not occur, you can try to manually force the
+device to boot into the bootloader. Refer to [MANUALLY ENTERING
+BOOTLOADER][].
+.SH OPTIONS
+.PP
+Major modes:
+.RS
+.IP \(bu 2
+\fB\fC\-d <firmware.dfu>\fR :
+Download \- write DFU file to device
+.IP \(bu 2
+\fB\fC\-u <output.dfu>\fR :
+Upload \- read DFU file from device
+.IP \(bu 2
+\fB\fC\-r\fR :
+Reset device after performing operation
+.RE
+.PP
+Miscellaneous:
+.RS
+.IP \(bu 2
+\fB\fC\-s <file.bin>\fR :
+Add DFU suffix to binary firmware file
+.IP \(bu 2
+\fB\fC\-U <0\-7>\fR :
+Which Ubertooth device to use
+.RE
+.SH MANUALLY ENTERING BOOTLOADER
+.PP
+If the device does not enter the bootloader when running the upload or
+download commands, it is possible to force the device to boot into that
+mode when it is inserted. To do so, you will need to jumper two pins on
+the expansion header.
+.PP
+The expansion header is a 2x3 pin header between the two largest chips
+on the board, about halfway between the USB connector and antenna. It is
+labeled "EXPAND" on the back side of the board. Holding the board so USB
+is pointed up, on the front side of the board the expansion header looks
+like this:
+.PP
+.RS
+.nf
+  +\-\-\-\-\-\-\-+
+6 + O | O | 3
+  +\-\-\-+\-\-\-+
+5 + O | O | 2
+  +\-\-\-+\-\-\-+
+4 + O | X | 1
+  +\-\-\-+\-\-\-+
+.fi
+.RE
+.PP
+PIN #1, marked X, is square.
+.PP
+With Ubertooth unplugged, use a piece of wire, paperclip, staple, etc to
+connect pins 1 and 2 together. When it it plugged in, the Ubertooth
+should enter bootloader mode (LEDs will be turning on and off in
+sequence).
+.PP
+The bootloader will exit after 5 seconds of no activity and boot into
+the main firmware.
+.SH SEE ALSO
+.PP
+.BR ubertooth (7): 
+overview of Project Ubertooth
+.SH AUTHOR
+.PP
+This manual page was written by Mike Ryan.
+.SH COPYRIGHT
+.PP
+.BR ubertooth-dfu (1) 
+is Copyright (c) 2010\-2017. This tool is released under
+the GPLv2. Refer to \fB\fCCOPYING\fR for further details.

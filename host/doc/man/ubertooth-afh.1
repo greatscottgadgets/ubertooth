@@ -1,0 +1,72 @@
+.TH UBERTOOTH\-AFH 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+.BR ubertooth-afh (1) 
+\- passive detection of AFH channel map
+.SH SYNOPSIS
+.PP
+.RS
+.nf
+ubertooth\-afh \-u <uap> \-l <lap> [\-r] [\-m <seconds>]
+.fi
+.RE
+.SH DESCRIPTION
+.PP
+Classic Bluetooth piconets commonly make use of Adaptive Frequency
+Hopping (AFH) to avoid interference with other signals in 2.4 GHz. This
+tool attempts to determine the AFH map being used for a given piconet
+identified by UAP and LAP.
+.PP
+At a minimum you must provide UAP and LAP. See 
+.BR ubertooth-rx (1) 
+for a
+method for sniffing these over the air and details on where else to find
+them. By default the tool will only print the AFH map when it is
+updated. By providing the \fB\fC\-r\fR flag, the AFH map will be printed out in
+binary form once per second.
+.SH OPTIONS
+.RS
+.IP \(bu 2
+\fB\fC\-l <LAP>\fR :
+LAP of target piconet (3 bytes / 6 hex digits)
+.IP \(bu 2
+\fB\fC\-u <UAP>\fR :
+UAP of target piconet (1 byte / 2 hex digits)
+.IP \(bu 2
+\fB\fC\-m <int>\fR :
+threshold for channel removal (default: 5)
+.IP \(bu 2
+\fB\fC\-r\fR :
+print AFH channel map once every second (default: print on update)
+.RE
+.PP
+Other options:
+.RS
+.IP \(bu 2
+\fB\fC\-t <seconds>\fR :
+timeout for initial AFH map detection (not required)
+.IP \(bu 2
+\fB\fC\-e <0\-4>\fR :
+maximum access code errors (default: 2, range: 0\-4)
+.IP \(bu 2
+\fB\fC\-V\fR :
+print version information
+.IP \(bu 2
+\fB\fC\-U <0\-7>\fR :
+set ubertooth device to use
+.RE
+.SH SEE ALSO
+.PP
+.BR ubertooth-rx (1): 
+a tool for finding UAP and LAP
+.PP
+.BR ubertooth (7): 
+overview of Project Ubertooth
+.SH AUTHOR
+.PP
+This manual page was written by Mike Ryan.
+.SH COPYRIGHT
+.PP
+.BR ubertooth-afh (1) 
+is Copyright (c) 2015\-2017. This tool is released under the
+GPLv2. Refer to \fB\fCCOPYING\fR for further details.

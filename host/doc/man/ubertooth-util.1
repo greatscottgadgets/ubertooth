@@ -1,0 +1,166 @@
+.TH UBERTOOTH\-UTIL 1 "March 2017" "Project Ubertooth" "User Commands"
+.SH NAME
+.PP
+.BR ubertooth-util (1) 
+\- general purpose Ubertooth utility
+.SH SYNOPSIS
+.PP
+ubertooth\-util [\-abcdefghijk\-ellemenop\-qrstuvwxyZ]
+.SH DESCRIPTION
+.PP
+.BR ubertooth-util (1) 
+is a catch\-all tool for doing generally useful things
+with, to, and about Ubertooth. To get firmware revision and compile
+information, run:
+.PP
+.RS
+.nf
+ubertooth\-util \-vV
+.fi
+.RE
+.PP
+To fully reset Ubertooth, run:
+.PP
+.RS
+.nf
+ubertooth\-util \-r
+.fi
+.RE
+.PP
+Other options are available for modifying LED states, setting channel,
+and performing miscellaneous radio\-related actions. Refer to the
+[OPTIONS][] section for full details.
+.PP
+The utility also includes a simple range test tool for use with two
+Uberteeth. Refer to [RANGE TEST][] for full details.
+.SH OPTIONS
+.PP
+Common options:
+.RS
+.IP \(bu 2
+\fB\fC\-v\fR :
+get firmware revision number
+.IP \(bu 2
+\fB\fC\-V\fR :
+get compile info
+.IP \(bu 2
+\fB\fC\-I\fR :
+identify ubertooth device by flashing all LEDs
+.IP \(bu 2
+\fB\fC\-d[0\-1]\fR :
+get/set all LEDs
+.IP \(bu 2
+\fB\fC\-l[0\-1]\fR :
+get/set USR LED
+.IP \(bu 2
+\fB\fC\-S\fR :
+stop current operation
+.IP \(bu 2
+\fB\fC\-r\fR :
+full reset
+.IP \(bu 2
+\fB\fC\-U<0\-7>\fR :
+set ubertooth device to use
+.RE
+.PP
+Radio options:
+.RS
+.IP \(bu 2
+\fB\fC\-a[0\-7]\fR :
+get/set power amplifier level
+.IP \(bu 2
+\fB\fC\-c[2400\-2483]\fR :
+get/set channel in MHz
+.IP \(bu 2
+\fB\fC\-C[0\-78]\fR :
+get/set channel
+.IP \(bu 2
+\fB\fC\-q[1\-225 (RSSI threshold)]\fR :
+start LED spectrum analyzer
+.IP \(bu 2
+\fB\fC\-t\fR :
+intitiate continuous transmit test
+.IP \(bu 2
+\fB\fC\-z\fR :
+set squelch level
+.RE
+.PP
+Range test:
+.RS
+.IP \(bu 2
+\fB\fC\-e\fR :
+start repeater mode
+.IP \(bu 2
+\fB\fC\-m\fR :
+display range test result
+.IP \(bu 2
+\fB\fC\-n\fR :
+initiate range test
+.RE
+.PP
+Miscellaneous:
+.RS
+.IP \(bu 2
+\fB\fC\-f\fR :
+activate flash programming (DFU) mode
+.IP \(bu 2
+\fB\fC\-i\fR :
+activate In\-System Programming (ISP) mode
+.IP \(bu 2
+\fB\fC\-b\fR :
+get hardware board id number
+.IP \(bu 2
+\fB\fC\-p\fR :
+get microcontroller Part ID
+.IP \(bu 2
+\fB\fC\-s\fR :
+get microcontroller serial number
+.RE
+.SH RANGE TEST
+.PP
+Using two Uberteeth it is possible to perform a range test. One
+Ubertooth acts as a repeated by running:
+.PP
+.RS
+.nf
+ubertooth\-util \-e
+.fi
+.RE
+.PP
+A second Ubertooth (the sender) initiates the range test by running:
+.PP
+.RS
+.nf
+ubertooth\-util \-n
+.fi
+.RE
+.PP
+During the range test the sender Ubertooth will transmit data packets at
+increasing power level, listening for repeats from the repeater
+Ubertooth. The receiving Ubertooth will validate that the received data
+was not corrupted in flight.
+.PP
+The range test results can be displayed on the sender Ubertooth's system
+by running:
+.PP
+.RS
+.nf
+ubertooth\-util \-m
+.fi
+.RE
+.PP
+Note that the range test transmits the Cortex M3 microcontroller's
+serial number. If you do not wish to broadcast that information
+wirelessly, do not use the range test functionality.
+.SH SEE ALSO
+.PP
+.BR ubertooth (7): 
+overview of Project Ubertooth
+.SH AUTHOR
+.PP
+This manual page was written by Mike Ryan.
+.SH COPYRIGHT
+.PP
+.BR ubertooth-util (1) 
+is Copyright (c) 2010\-2017. This tool is released under the
+GPLv2. Refer to \fB\fCCOPYING\fR for further details.
