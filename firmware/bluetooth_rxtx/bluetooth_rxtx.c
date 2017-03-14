@@ -463,6 +463,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		DIO_SSEL_SET;
 		clk100ns_offset = (data[4] << 8) | (data[5] << 0);
 		requested_mode = MODE_BT_FOLLOW;
+		precalc();
 		break;
 
 	case UBERTOOTH_AFH:
