@@ -9,5 +9,7 @@ scripted (release.sh):
 
 manual:
 - write RELEASENOTES.txt
+- update README.md to reflect new version (two places)
 - tar -czvf
 - upload to GitHub
+- update #ubertooth topic
