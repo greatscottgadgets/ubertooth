@@ -39,7 +39,7 @@
 #define VERSION "unknown"
 #endif
 
-
+struct libusb_device **usb_list = NULL;
 uint32_t systime;
 FILE* infile = NULL;
 FILE* dumpfile = NULL;
@@ -66,6 +66,8 @@ static void cleanup_exit(int sig __attribute__((unused)))
 {
 	if (cleanup_devh)
 		ubertooth_stop(cleanup_devh);
+
+	libusb_free_device_list(usb_list,1);
 	exit(0);
 }
 
@@ -103,7 +105,6 @@ void ubertooth_set_timeout(ubertooth_t* ut, int seconds) {
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
 	struct libusb_context *ctx = NULL;
-	struct libusb_device **usb_list = NULL;
 	struct libusb_device_handle *devh = NULL;
 	struct libusb_device_descriptor desc;
 	int usb_devs, i, r, ret, ubertooths = 0;
