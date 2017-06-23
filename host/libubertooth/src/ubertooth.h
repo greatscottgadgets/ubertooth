@@ -70,7 +70,6 @@ extern uint32_t systime;
 extern FILE* infile;
 extern FILE* dumpfile;
 extern int max_ac_errors;
-extern struct libusb_device **usb_list;
 
 void print_version();
 void register_cleanup_handler(ubertooth_t* ut, int do_exit);
