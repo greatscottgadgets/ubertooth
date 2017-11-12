@@ -31,9 +31,11 @@ u16 btle_next_hop(le_state_t *le)
 	return phys;
 }
 
-u8 btle_channel_index(u8 channel) {
-	u8 idx;
-	channel /= 2;
+// calculate channel index from physical channel
+// channel is in range [2402, 2480]
+uint8_t btle_channel_index(uint16_t channel) {
+	uint8_t idx;
+	channel = (channel - 2402) / 2;
 	if (channel == 0)
 		idx = 37;
 	else if (channel < 12)

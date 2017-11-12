@@ -86,7 +86,7 @@ static const u8 hop_interval_lut[] = {
 };
 
 u16 btle_next_hop(le_state_t *le);
-u8 btle_channel_index(u8 channel);
+uint8_t btle_channel_index(uint16_t channel);
 u16 btle_channel_index_to_phys(u8 idx);
 u32 btle_calc_crc(u32 crc_init, u8 *data, int len);
 u32 btle_reverse_crc(u32 crc, u8 *data, int len);

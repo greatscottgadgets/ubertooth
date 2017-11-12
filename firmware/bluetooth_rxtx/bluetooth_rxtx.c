@@ -1056,7 +1056,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	}
 
 	// whiten the data and copy it into the txbuf
-	int idx = whitening_index[btle_channel_index(channel-2402)];
+	int idx = whitening_index[btle_channel_index(channel)];
 	for (i = 0; i < len; ++i) {
 		byte = data[i];
 		txbuf[i+4] = 0;
@@ -1689,7 +1689,7 @@ void bt_le_sync(u8 active_mode)
 		u8 *p = (u8 *)packet;
 		packet[0] = le.access_address;
 
-		const uint32_t *whit = whitening_word[btle_channel_index(channel-2402)];
+		const uint32_t *whit = whitening_word[btle_channel_index(channel)];
 		for (i = 0; i < 4; i+= 4) {
 			uint32_t v = rxbuf1[i+0] << 24
 					   | rxbuf1[i+1] << 16
@@ -1837,7 +1837,7 @@ cleanup:
  * follows a known AA around */
 int cb_follow_le() {
 	int i, j, k;
-	int idx = whitening_index[btle_channel_index(channel-2402)];
+	int idx = whitening_index[btle_channel_index(channel)];
 
 	u32 access_address = 0;
 	for (i = 0; i < 31; ++i) {
@@ -2160,7 +2160,7 @@ int cb_le_promisc(char *unpacked) {
 	};
 
 	for (i = 0; i < 4; ++i) {
-		idx = whitening_index[btle_channel_index(channel-2402)];
+		idx = whitening_index[btle_channel_index(channel)];
 
 		// whiten the desired data
 		for (j = 0; j < (int)sizeof(desired[i]); ++j) {
@@ -2196,7 +2196,7 @@ int cb_le_promisc(char *unpacked) {
 			continue;
 
 		// found a match! unwhiten it and send it home
-		idx = whitening_index[btle_channel_index(channel-2402)];
+		idx = whitening_index[btle_channel_index(channel)];
 		for (j = 0; j < 4+3+3; ++j) {
 			u8 byte = 0;
 			for (k = 0; k < 8; k++) {
