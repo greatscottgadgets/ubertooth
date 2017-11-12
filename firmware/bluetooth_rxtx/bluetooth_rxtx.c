@@ -542,7 +542,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		hop_mode = HOP_BTLE;
 		requested_mode = MODE_BT_FOLLOW_LE;
 
-		queue_init();
+		usb_queue_init();
 		cs_threshold_calc_and_set(channel);
 		break;
 
@@ -596,7 +596,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		hop_mode = HOP_NONE;
 		requested_mode = MODE_BT_PROMISC_LE;
 
-		queue_init();
+		usb_queue_init();
 		cs_threshold_calc_and_set(channel);
 		break;
 
@@ -1241,7 +1241,7 @@ void bt_stream_rx()
 
 	RXLED_CLR;
 
-	queue_init();
+	usb_queue_init();
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
@@ -1502,7 +1502,7 @@ void bt_generic_le(u8 active_mode)
 
 	RXLED_CLR;
 
-	queue_init();
+	usb_queue_init();
 	dio_ssp_init();
 	dma_init();
 	dio_ssp_start();
@@ -1632,7 +1632,7 @@ void bt_le_sync(u8 active_mode)
 
 	RXLED_CLR;
 
-	queue_init();
+	usb_queue_init();
 	dio_ssp_init();
 	dma_init_le();
 	dio_ssp_start();
@@ -2322,7 +2322,7 @@ void rx_generic_sync(void) {
 	buf[2] = (reg_val >> 8) & 0xFF;
 	buf[3] = reg_val & 0xFF;
 
-	queue_init();
+	usb_queue_init();
 	clkn_start();
 
 	while (!(cc2400_status() & XOSC16M_STABLE));
@@ -2411,7 +2411,7 @@ void specan()
 
 	RXLED_SET;
 
-	queue_init();
+	usb_queue_init();
 	clkn_start();
 
 #ifdef UBERTOOTH_ONE

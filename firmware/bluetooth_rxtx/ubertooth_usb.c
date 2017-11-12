@@ -272,7 +272,7 @@ usb_pkt_rx fifo[128];
 volatile u32 head = 0;
 volatile u32 tail = 0;
 
-void queue_init(void)
+void usb_queue_init(void)
 {
 	head = 0;
 	tail = 0;
