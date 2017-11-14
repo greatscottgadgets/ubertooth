@@ -12,6 +12,7 @@ SRC = $(TARGET).c \
 	ubertooth_cs.c \
 	ubertooth_clock.c \
 	ubertooth_dma.c \
+	queue.c \
 	cc2400_rangetest.c \
 	ego.c \
 	$(LIBS_PATH)/usb_serial.c \
