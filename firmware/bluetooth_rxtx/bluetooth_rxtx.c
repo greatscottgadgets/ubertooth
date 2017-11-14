@@ -780,7 +780,32 @@ static void msleep(uint32_t millis)
 	}
 }
 
-void DMA_IRQHandler()
+void legacy_DMA_IRQHandler();
+void le_DMA_IRQHandler();
+void DMA_IRQHandler(void) {
+	if (mode == MODE_BT_FOLLOW_LE)
+		le_DMA_IRQHandler();
+	else
+		legacy_DMA_IRQHandler();
+
+	// DMA channel 7: debug UART
+	if (DMACIntStat & (1 << 7)) {
+		// TC -- DMA completed, unset flag so another printf can occur
+		if (DMACIntTCStat & (1 << 7)) {
+			DMACIntTCClear = (1 << 7);
+			debug_dma_active = 0;
+		}
+		// error -- blow up
+		if (DMACIntErrStat & (1 << 7)) {
+			DMACIntErrClr = (1 << 7);
+			// FIXME do something better here
+			USRLED_SET;
+			while (1) { }
+		}
+	}
+}
+
+void legacy_DMA_IRQHandler()
 {
 	if ( mode == MODE_RX_SYMBOLS
 	   || mode == MODE_BT_FOLLOW
@@ -813,22 +838,6 @@ void DMA_IRQHandler()
 				DMACIntErrClr = (1 << 0);
 				++rx_err;
 			}
-		}
-	}
-
-	// DMA channel 7: debug UART
-	if (DMACIntStat & (1 << 7)) {
-		// TC -- DMA completed, unset flag so another printf can occur
-		if (DMACIntTCStat & (1 << 7)) {
-			DMACIntTCClear = (1 << 7);
-			debug_dma_active = 0;
-		}
-		// error -- blow up
-		if (DMACIntErrStat & (1 << 7)) {
-			DMACIntErrClr = (1 << 7);
-			// FIXME do something better here
-			USRLED_SET;
-			while (1) { }
 		}
 	}
 }
@@ -2011,18 +2020,15 @@ void connection_follow_cb(u8 *packet) {
 	}
 }
 
+void le_phy_main(void);
 void bt_follow_le() {
+	le_phy_main();
+
+	/* old method
 	reset_le();
 	packet_cb = connection_follow_cb;
 	bt_le_sync(MODE_BT_FOLLOW_LE);
-
-	/* old non-sync mode
-	data_cb = cb_follow_le;
-	packet_cb = connection_follow_cb;
-	bt_generic_le(MODE_BT_FOLLOW_LE);
 	*/
-
-	mode = MODE_IDLE;
 }
 
 // issue state change message
@@ -2570,6 +2576,7 @@ int main()
 					bt_stream_rx();
 					break;
 				case MODE_BT_FOLLOW_LE:
+					mode = MODE_BT_FOLLOW_LE;
 					bt_follow_le();
 					break;
 				case MODE_BT_PROMISC_LE:

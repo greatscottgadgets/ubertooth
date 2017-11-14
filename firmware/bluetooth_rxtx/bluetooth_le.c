@@ -178,3 +178,24 @@ u32 btle_crcgen_lut(u32 crc_init, u8 *data, int len) {
 	}
 	return state;
 }
+
+/*
+ * Dewhiten and reverse the bit order of a buffer in place.
+ * Channel is a physical channel in the range [2402, 2480]
+ * TODO convert this to use whitening word
+ */
+void le_dewhiten(uint8_t *data, unsigned size, unsigned channel) {
+	unsigned i, j, bit;
+	unsigned idx = whitening_index[btle_channel_index(channel)];
+
+	for (i = 0; i < size; ++i) {
+		uint8_t out = 0;
+		for (j = 0; j < 8; ++j) {
+			bit = (data[i] >> (7-j)) & 1;
+			bit ^= whitening[idx];
+			idx = (idx + 1) % sizeof(whitening);
+			out |= bit << j;
+		}
+		data[i] = out;
+	}
+}

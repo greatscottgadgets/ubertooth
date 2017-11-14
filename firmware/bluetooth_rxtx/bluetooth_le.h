@@ -91,6 +91,7 @@ u16 btle_channel_index_to_phys(u8 idx);
 u32 btle_calc_crc(u32 crc_init, u8 *data, int len);
 u32 btle_reverse_crc(u32 crc, u8 *data, int len);
 u32 btle_crcgen_lut(u32 crc_init, u8 *data, int len);
+void le_dewhiten(uint8_t *data, unsigned size, unsigned channel);
 
 static const u32 whitening_word[40][12] = {
 	{ 0xc3bcb240, 0x5f4a371f, 0x9a9cf685, 0x44c5d6c1, 0xe1de5920, 0xafa51b8f,
