@@ -74,3 +74,9 @@ void clkn_init()
 	T0MCR = TMCR_MR0R | TMCR_MR0I;
 	ISER0 = ISER0_ISE_TIMER0;
 }
+
+// totally disable clkn and timer0
+void clkn_disable(void) {
+	clkn_stop();
+	ICER0 = ICER0_ICE_TIMER0;
+}

@@ -41,6 +41,7 @@ volatile uint32_t rx_err;
 
 void dma_init();
 void dma_init_le();
+void dma_disable();
 void dio_ssp_start();
 void dio_ssp_stop();
 

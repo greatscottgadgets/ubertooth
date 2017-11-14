@@ -51,5 +51,6 @@ volatile uint32_t clkn_next_drift_fix;
 void clkn_stop();
 void clkn_start();
 void clkn_init();
+void clkn_disable();
 
 #endif

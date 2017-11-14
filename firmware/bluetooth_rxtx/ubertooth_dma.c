@@ -42,7 +42,7 @@ static void dma_enable(void)
 	ISER0 = ISER0_ISE_DMA;
 }
 
-static void dma_disable(void)
+void dma_disable(void)
 {
 	// disable DMA engine:
 	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 607
