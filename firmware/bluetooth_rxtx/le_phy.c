@@ -79,6 +79,16 @@ static void buffers_init(void) {
 		le_buffer_pool[i].available = 1;
 }
 
+// clear a buffer for new data
+static void buffer_clear(le_rx_t *buf) {
+	buf->pos = 0;
+	buf->size = 0;
+	memset(buf->data, 0, sizeof(buf->data));
+	buf->rssi_min = INT8_MAX;
+	buf->rssi_max = INT8_MIN;
+	buf->rssi_sum = 0;
+}
+
 // get a packet buffer
 // returns a pointer to a buffer if available
 // returns NULL otherwise
@@ -88,9 +98,7 @@ static le_rx_t *buffer_get(void) {
 	for (i = 0; i < LE_BUFFER_POOL_SIZE; ++i) {
 		if (le_buffer_pool[i].available) {
 			le_buffer_pool[i].available = 0;
-			le_buffer_pool[i].pos = 0;
-			le_buffer_pool[i].size = 0;
-			memset(le_buffer_pool[i].data, 0, sizeof(le_buffer_pool[i].data));
+			buffer_clear(&le_buffer_pool[i]);
 			return &le_buffer_pool[i];
 		}
 	}
