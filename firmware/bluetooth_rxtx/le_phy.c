@@ -45,7 +45,7 @@ typedef struct _le_rx_t {
 	unsigned pos;               // current input byte offset
 	uint32_t timestamp;         // timestamp taken after first byte rx
 	unsigned channel;           // physical channel
-	uint32_t access_address;	// access address
+	uint32_t access_address;    // access address
 	int available;              // 1 if available, 0 in use
 } le_rx_t;
 
@@ -134,8 +134,6 @@ void le_DMA_IRQHandler(void) {
 			if (pos == 2) {
 				uint8_t length = dewhiten_length(current_rxbuf->channel, current_rxbuf->data[1]);
 				current_rxbuf->size = length + 2 + 3; // two bytes for header and three for CRC
-				// XXX do we want to ignore long adv packets?
-				// TODO size buffer accordingly
 			}
 
 			// finished packet - state transition
@@ -437,4 +435,6 @@ void le_phy_main(void) {
 	TXLED_CLR;
 	USRLED_CLR;
 	clkn_init();
+
+	// TODO kill CC2400
 }
