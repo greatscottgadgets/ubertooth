@@ -2805,7 +2805,7 @@
 /* Interrupt Register (T[0/1/2/3]IR - 0x4000 4000, 0x4000 8000, 0x4009 0000, 0x4009 4000) */
 #define TIR_MR0_Interrupt (0x1 << 0)
 #define TIR_MR1_Interrupt (0x1 << 1)
-#define TIR_MR2 Interrupt (0x1 << 2)
+#define TIR_MR2_Interrupt (0x1 << 2)
 #define TIR_MR3_Interrupt (0x1 << 3)
 #define TIR_CR0_Interrupt (0x1 << 4)
 #define TIR_CR1_Interrupt (0x1 << 5)

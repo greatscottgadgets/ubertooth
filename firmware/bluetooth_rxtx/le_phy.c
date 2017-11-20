@@ -70,6 +70,7 @@ static void timer1_start(void);
 static void timer1_stop(void);
 static void timer1_set_match(uint32_t match);
 static void timer1_clear_match(void);
+static void timer1_wait_fs_lock(void);
 static void blink(int tx, int rx, int usr);
 static void le_dma_init(void);
 static void le_cc2400_strobe_rx(void);
@@ -178,10 +179,8 @@ void le_DMA_IRQHandler(void) {
 				le_dma_init();
 				dio_ssp_start();
 
-				// TODO: wait for FS_LOCK in its own state
-				while (!(cc2400_status() & FS_LOCK));
-
-				le_cc2400_strobe_rx();
+				// wait for FS_LOCK in background
+				timer1_wait_fs_lock();
 			}
 		}
 
@@ -285,11 +284,12 @@ static void le_cc2400_init_rf(void) {
 	cc2400_set(FSDIV,   rf_channel - 1); // 1 MHz IF
 	cc2400_set(MDMCTRL, mdmctrl);
 
-	// TODO 1: wait for XOSC16M_STABLE in its own state
+	// XOSC16M should always be stable, but leave this test anyway
 	while (!(cc2400_status() & XOSC16M_STABLE));
+
+	// wait for FS_LOCK in background
 	cc2400_strobe(SFSON);
-	// TODO 2: wait for FS_LOCK in its own state
-	while (!(cc2400_status() & FS_LOCK));
+	timer1_wait_fs_lock();
 }
 
 // strobe RX and enable PA
@@ -329,6 +329,11 @@ static void timer1_clear_match(void) {
 	T1MCR &= ~TMCR_MR0I;
 }
 
+static void timer1_wait_fs_lock(void) {
+	T1MR2 = NOW + USEC(3);
+	T1MCR |= TMCR_MR2I;
+}
+
 void TIMER1_IRQHandler(void) {
 	if (T1IR & TIR_MR0_Interrupt) {
 		// ack the interrupt
@@ -347,6 +352,22 @@ void TIMER1_IRQHandler(void) {
 		TXLED_CLR;
 		RXLED_CLR;
 		USRLED_CLR;
+	}
+
+	// check FS_LOCK
+	if (T1IR & TIR_MR2_Interrupt) {
+		T1IR = TIR_MR2_Interrupt;
+
+		// if FS is locked, strobe RX and clear interrupt
+		if (cc2400_status() & FS_LOCK) {
+			le_cc2400_strobe_rx();
+			T1MCR &= ~TMCR_MR2I;
+		}
+
+		// if FS is not locked, check again in 3 us
+		else {
+			timer1_wait_fs_lock();
+		}
 	}
 }
 
@@ -428,7 +449,6 @@ void le_phy_main(void) {
 	rf_channel = 2402;
 	le_sys_init();
 	le_cc2400_init_rf();
-	le_cc2400_strobe_rx();
 
 	while (requested_mode == MODE_BT_FOLLOW_LE) {
 		le_rx_t *packet = NULL;
