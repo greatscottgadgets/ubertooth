@@ -142,7 +142,7 @@ void le_DMA_IRQHandler(void) {
 			current_rxbuf->pos = pos;
 
 			if (pos == 1) {
-				current_rxbuf->timestamp = NOW;
+				current_rxbuf->timestamp = NOW - USEC(8 + 32); // packet starts at preamble
 				current_rxbuf->channel = rf_channel;
 				current_rxbuf->access_address = le.access_address;
 			}
