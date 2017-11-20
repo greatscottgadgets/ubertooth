@@ -47,6 +47,8 @@ typedef struct _le_rx_t {
 	unsigned channel;           // physical channel
 	uint32_t access_address;    // access address
 	int available;              // 1 if available, 0 in use
+	int8_t rssi_min, rssi_max;  // min and max RSSI observed values
+	int rssi_sum;               // running sum of all RSSI values
 } le_rx_t;
 
 // pool of all buffers
@@ -117,6 +119,7 @@ static void buffer_release(le_rx_t *buffer) {
 // received packet, fetches a new buffer, and restarts RX.
 void le_DMA_IRQHandler(void) {
 	unsigned pos;
+	int8_t rssi;
 
 	// channel 0
 	if (DMACIntStat & (1 << 0)) {
@@ -124,7 +127,11 @@ void le_DMA_IRQHandler(void) {
 		if (DMACIntTCStat & (1 << 0)) {
 			DMACIntTCClear = (1 << 0);
 
-			// TODO poll RSSI
+			// poll RSSI
+			rssi = (int8_t)(cc2400_get(RSSI) >> 8);
+			current_rxbuf->rssi_sum += rssi;
+			if (rssi < current_rxbuf->rssi_min) current_rxbuf->rssi_min = rssi;
+			if (rssi > current_rxbuf->rssi_max) current_rxbuf->rssi_max = rssi;
 
 			// grab byte from DMA buffer
 			pos = current_rxbuf->pos;
@@ -391,7 +398,9 @@ static int usb_enqueue_le(le_rx_t *packet) {
 	f->clk100ns = packet->timestamp;
 
 	f->channel = (uint8_t)((packet->channel - 2402) & 0xff);
-	f->rssi_avg = 0;
+	f->rssi_avg = packet->rssi_sum / packet->size;
+	f->rssi_min = packet->rssi_min;
+	f->rssi_max = packet->rssi_max;
 	f->rssi_count = 0;
 
 	memcpy(f->data, &packet->access_address, 4);
