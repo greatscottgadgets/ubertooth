@@ -17,6 +17,8 @@
 
 // current time, from timer1
 #define NOW T1TC
+#define USEC(X) (X*10)
+#define MSEC(X) (X*10000)
 
 //////////////////////
 // global state
@@ -357,7 +359,7 @@ static void blink(int tx, int rx, int usr) {
 		USRLED_SET;
 
 	// blink for 10 ms
-	T1MR1 = NOW + 100000;
+	T1MR1 = NOW + MSEC(10);
 	T1MCR |= TMCR_MR1I;
 }
 
