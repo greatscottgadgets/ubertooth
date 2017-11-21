@@ -19,6 +19,7 @@
 #define NOW T1TC
 #define USEC(X) (X*10)
 #define MSEC(X) (X*10000)
+#define PACKET_TIME(X) ((X)->timestamp + 40 + (X)->size * 8)
 
 //////////////////////
 // global state
@@ -298,6 +299,24 @@ static void le_cc2400_strobe_rx(void) {
 #endif
 }
 
+void change_channel(void) {
+	cc2400_strobe(SRFOFF);
+
+	// stop DMA and flush SSP
+	DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
+	while (SSP1SR & SSPSR_RNE) {
+		uint8_t tmp = (uint8_t)DIO_SSP_DR;
+	}
+
+	buffer_clear(current_rxbuf);
+	le_dma_init();
+	dio_ssp_start();
+
+	// TODO select channel, change access address
+	rf_channel = btle_channel_index_to_phys(le.channel_increment);
+	le_cc2400_init_rf();
+}
+
 ///////
 // timer stuff
 
@@ -339,6 +358,7 @@ void TIMER1_IRQHandler(void) {
 
 		// TODO and then.... ?
 		// insert hopping logic here
+		change_channel();
 	}
 
 	// LEDs
@@ -431,6 +451,44 @@ static int usb_enqueue_le(le_rx_t *packet) {
 	return 1;
 }
 
+static unsigned extract_field(le_rx_t *buf, size_t offset, unsigned size) {
+	unsigned i, ret = 0;
+
+	// this could just be replaced by memcpy... right?
+	for (i = 0; i < size; ++i)
+		ret |= buf->data[offset + i] << (i*8);
+
+	return ret;
+}
+
+static void le_connect_handler(le_rx_t *buf) {
+	uint32_t aa, crc_init;
+
+	if (buf->size != 2 + 6 + 6 + 22 + 3)
+		return;
+
+	le.access_address     = extract_field(buf, 14, 4);
+	le.crc_init           = extract_field(buf, 18, 3);
+	le.crc_init_reversed  = rbit(le.crc_init);
+	le.win_size           = extract_field(buf, 21, 1);
+	le.win_offset         = extract_field(buf, 22, 2);
+	le.channel_increment  = extract_field(buf, 35, 1) & 0x1f;
+
+	timer1_set_match(PACKET_TIME(buf) + (le.win_offset + 1) * USEC(1250) - USEC(500));
+}
+
+static void packet_handler(le_rx_t *buf) {
+	// advertising packet
+	if (btle_channel_index(buf->channel) >= 37) {
+		switch (buf->data[0] & 0xf) {
+			// CONNECT_REQ
+			case 0x05:
+				le_connect_handler(buf);
+				break;
+		}
+	}
+}
+
 static int filter_match(le_rx_t *buf) {
 	if (!le.target_set)
 		return 1;
@@ -493,6 +551,7 @@ void le_phy_main(void) {
 			if (filter_match(packet)) {
 				blink(0, 1, 0); // RX LED
 				usb_enqueue_le(packet);
+				packet_handler(packet);
 			}
 
 			buffer_release(packet);
