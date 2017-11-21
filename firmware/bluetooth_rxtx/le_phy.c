@@ -165,9 +165,6 @@ void le_DMA_IRQHandler(void) {
 					uint8_t tmp = (uint8_t)DIO_SSP_DR;
 				}
 
-				// blink RX LED
-				blink(0, 1, 0);
-
 				// TODO error transition on queue_insert
 				queue_insert(&packet_queue, current_rxbuf);
 
@@ -434,6 +431,44 @@ static int usb_enqueue_le(le_rx_t *packet) {
 	return 1;
 }
 
+static int filter_match(le_rx_t *buf) {
+	if (!le.target_set)
+		return 1;
+
+	// allow all data channel packets
+	if (btle_channel_index(buf->channel) < 37)
+		return 1;
+
+	switch (buf->data[0] & 0xf) {
+		// ADV_IND, ADV_NONCONN_IND, ADV_SCAN_IND, SCAN_RSP
+		case 0x00:
+		case 0x02:
+		case 0x06:
+		case 0x04:
+			// header + one address
+			if (buf->size < 2 + 6)
+				return 0;
+			return memcmp(&buf->data[2], le.target, 6) == 0;
+			break;
+
+		// ADV_DIRECT_IND, SCAN_REQ, CONNECT_REQ
+		case 0x01:
+		case 0x03:
+		case 0x05:
+			// header + two addresses
+			if (buf->size < 2 + 6 + 6)
+				return 0;
+			return memcmp(&buf->data[2], le.target, 6) == 0 ||
+				   memcmp(&buf->data[8], le.target, 6) == 0;
+			break;
+
+		default:
+			break;
+	}
+
+	return 0;
+}
+
 void le_phy_main(void) {
 	// disable USB interrupts -- we poll them below
 	// n.b., they should not be enabled but let's be careful
@@ -454,9 +489,11 @@ void le_phy_main(void) {
 		le_rx_t *packet = NULL;
 		if (queue_remove(&packet_queue, (void **)&packet)) {
 			le_dewhiten(packet->data, packet->size, packet->channel);
-			usb_enqueue_le(packet);
 
-			// TODO process packet
+			if (filter_match(packet)) {
+				blink(0, 1, 0); // RX LED
+				usb_enqueue_le(packet);
+			}
 
 			buffer_release(packet);
 		}
