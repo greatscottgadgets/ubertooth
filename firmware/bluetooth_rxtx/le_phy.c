@@ -124,6 +124,7 @@ static void buffer_release(le_rx_t *buffer) {
 void le_DMA_IRQHandler(void) {
 	unsigned pos;
 	int8_t rssi;
+	uint32_t timestamp = NOW; // sampled early for most accurate measurement
 
 	// channel 0
 	if (DMACIntStat & (1 << 0)) {
@@ -144,7 +145,7 @@ void le_DMA_IRQHandler(void) {
 			current_rxbuf->pos = pos;
 
 			if (pos == 1) {
-				current_rxbuf->timestamp = NOW - USEC(8 + 32); // packet starts at preamble
+				current_rxbuf->timestamp = timestamp - USEC(8 + 32); // packet starts at preamble
 				current_rxbuf->channel = rf_channel;
 				current_rxbuf->access_address = le.access_address;
 			}
