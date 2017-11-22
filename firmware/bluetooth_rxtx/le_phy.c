@@ -250,11 +250,11 @@ static void le_cc2400_init_rf(void) {
 	uint32_t sync = rbit(le.access_address);
 
 	mdmctrl = 0x0040; // 250 kHz frequency deviation
-	grmdm = 0x0561; // un-buffered mode, packet w/ sync word detection
-	// 0 00 00 1 010 11 0 00 0 1
+	grmdm = 0x04E1; // un-buffered mode, packet w/ sync word detection
+	// 0 00 00 1 001 11 0 00 0 1
 	//   |  |  | |   |  +--------> CRC off
 	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
-	//   |  |  | +---------------> 2 preamble bytes of 01010101
+	//   |  |  | +---------------> 1 preamble byte of 01010101
 	//   |  |  +-----------------> packet mode
 	//   |  +--------------------> un-buffered mode
 	//   +-----------------------> sync error bits: 0
