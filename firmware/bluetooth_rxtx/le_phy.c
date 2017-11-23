@@ -19,7 +19,21 @@
 #define NOW T1TC
 #define USEC(X) ((X)*10)
 #define MSEC(X) ((X)*10000)
-#define PACKET_TIME(X) ((X)->timestamp + 40 + (X)->size * 8)
+#define PACKET_DURATION(X) (USEC(40 + (X)->size * 8))
+
+///////////////////////
+// time constants
+
+// time for the radio to warmup + some timing slack
+#define RX_WARMUP_TIME USEC(300)
+
+// max inter-frame space between packets in a connection event
+#define IFS_TIMEOUT USEC(300)
+
+// observed connection anchor must be within ANCHOR_EPSILON of
+// calculated anchor
+#define ANCHOR_EPSILON USEC(3)
+
 
 //////////////////////
 // global state
@@ -62,6 +76,46 @@ static le_rx_t *current_rxbuf = NULL;
 
 // received packets, waiting to be processed
 queue_t packet_queue;
+
+
+/////////////////////
+// connections
+
+// this system is architected so that following multiple connections may
+// be possible in the future. all connection state lives in an le_conn_t
+// struct. at present only one such structure exists. refer to
+// connection event below for how anchors are handled.
+
+typedef struct _le_conn_t {
+	uint32_t access_address;
+	uint32_t crc_init;
+	uint32_t crc_init_reversed;
+
+	uint8_t  channel_idx;
+	uint8_t  hop_increment;
+	uint32_t conn_interval; // in units of 100 ns
+
+	uint8_t  win_size;
+	uint16_t win_offset;
+
+	uint32_t last_anchor;
+	int      anchor_set;
+} le_conn_t;
+le_conn_t conn = { 0, };
+
+// every connection event is tracked using this global le_conn_event_t
+// structure named conn_event. when a packet is observed, anchor is set.
+// the event may close due to receiving two packets, or if a timeout
+// occurs. in both cases, finish_conn_event() is called, which updates
+// the active connection's anchor. opened is set to 1 once the radio is
+// tuned to the data channel for the connection event.
+typedef struct _le_conn_event_t {
+	uint32_t anchor;
+	unsigned num_packets;
+	int opened;
+} le_conn_event_t;
+le_conn_event_t conn_event;
+
 
 //////////////////////
 // code
@@ -117,6 +171,65 @@ static void buffer_release(le_rx_t *buffer) {
 	buffer->available = 1;
 }
 
+// clear a connection event
+static void reset_conn_event(void) {
+	conn_event.num_packets = 0;
+	conn_event.opened = 0;
+}
+
+// finish a connection event. the logic can be summarized thusly:
+// 1) if we received two packets, set the connection anchor to the
+//    observed value
+// 2) if we received one packet, see if it's within ANCHOR_EPISLON
+//    microseconds if the expected anchor time. if so, it's the master
+//    and we can update the anchor
+// 3) if the single packet is a slave or we received zero packets,
+//    update the anchor to the estimated value
+//
+// FIXME this code does not properly handle the case where the initial
+// connection transmit window has no received packets
+static void finish_conn_event(void) {
+	uint32_t last_anchor = 0;
+	int last_anchor_set = 0;
+
+	// two packets -- update anchor
+	if (conn_event.num_packets == 2) {
+		last_anchor = conn_event.anchor;
+		last_anchor_set = 1;
+	}
+
+	// if there's one packet, we need to find out if it was the master
+	else if (conn_event.num_packets == 1 && conn.anchor_set) {
+		// calculate the difference between the estimated and observed anchor
+		uint32_t estimated_anchor = conn.last_anchor + conn.conn_interval;
+		uint32_t delta = estimated_anchor - conn_event.anchor;
+		// see whether the observed anchor is within 3 us of the estimate
+		delta += ANCHOR_EPSILON;
+		if (delta < 2 * ANCHOR_EPSILON) {
+			last_anchor = conn_event.anchor;
+			last_anchor_set = 1;
+		}
+	}
+
+	// if we observed a new anchor, set it
+	if (last_anchor_set) {
+		conn.last_anchor = last_anchor;
+		conn.anchor_set = 1;
+	}
+
+	// without a new anchor, estimate the next anchor
+	else if (conn.anchor_set) {
+		conn.last_anchor += conn.conn_interval;
+	}
+
+	else {
+		// FIXME this is totally broken if we receive the slave's packet first
+		conn.last_anchor = conn_event.anchor;
+	}
+
+	reset_conn_event();
+}
+
 // DMA handler
 // called once per byte. handles all incoming data, but only minimally
 // processes received data. at the end of a packet, it enqueues the
@@ -147,7 +260,13 @@ void le_DMA_IRQHandler(void) {
 			if (pos == 1) {
 				current_rxbuf->timestamp = timestamp - USEC(8 + 32); // packet starts at preamble
 				current_rxbuf->channel = rf_channel;
-				current_rxbuf->access_address = le.access_address;
+				current_rxbuf->access_address = conn.access_address;
+
+				// data packet received: cancel timeout
+				// new timeout or hop timer will be set at end of packet RX
+				if (btle_channel_index(rf_channel) < 37) {
+					timer1_clear_match();
+				}
 			}
 
 			// get length from header
@@ -162,6 +281,7 @@ void le_DMA_IRQHandler(void) {
 				cc2400_strobe(SFSON);
 
 				// stop DMA and flush SSP
+				dma_disable();
 				DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
 				while (SSP1SR & SSPSR_RNE) {
 					uint8_t tmp = (uint8_t)DIO_SSP_DR;
@@ -169,6 +289,26 @@ void le_DMA_IRQHandler(void) {
 
 				// TODO error transition on queue_insert
 				queue_insert(&packet_queue, current_rxbuf);
+
+				// track connection events
+				if (btle_channel_index(rf_channel) < 37) {
+					++conn_event.num_packets;
+
+					// first packet: set connection anchor
+					if (conn_event.num_packets == 1) {
+						conn_event.anchor = current_rxbuf->timestamp;
+						timer1_set_match(NOW + IFS_TIMEOUT); // set a timeout for next packet
+					}
+
+					// second packet: close connection event, and set hop timer
+					else if (conn_event.num_packets == 2) {
+						cc2400_strobe(SRFOFF);
+						current_rxbuf = buffer_get();
+						finish_conn_event();
+						timer1_set_match(conn.last_anchor + conn.conn_interval - RX_WARMUP_TIME);
+						return;
+					}
+				}
 
 				// get a new packet
 				// TODO handle error transition
@@ -247,7 +387,7 @@ static void le_sys_init(void) {
 // initialize RF and strobe FSON
 static void le_cc2400_init_rf(void) {
 	u16 grmdm, mdmctrl;
-	uint32_t sync = rbit(le.access_address);
+	uint32_t sync = rbit(conn.access_address);
 
 	mdmctrl = 0x0040; // 250 kHz frequency deviation
 	grmdm = 0x04E1; // un-buffered mode, packet w/ sync word detection
@@ -314,7 +454,8 @@ void change_channel(void) {
 	dio_ssp_start();
 
 	// TODO select channel, change access address
-	rf_channel = btle_channel_index_to_phys(le.channel_increment);
+	conn.channel_idx = (conn.channel_idx + conn.hop_increment) % 37;
+	rf_channel = btle_channel_index_to_phys(conn.channel_idx);
 	le_cc2400_init_rf();
 }
 
@@ -355,11 +496,20 @@ void TIMER1_IRQHandler(void) {
 	if (T1IR & TIR_MR0_Interrupt) {
 		// ack the interrupt
 		T1IR = TIR_MR0_Interrupt;
-		timer1_clear_match(); // prevent interrupt from firing a second time
 
-		// TODO and then.... ?
-		// insert hopping logic here
-		change_channel();
+		// new connection event: set timeout and change channel
+		if (!conn_event.opened) {
+			conn_event.opened = 1;
+			// timeout is max packet length + warmup time (slack)
+			timer1_set_match(NOW + USEC(2120) + RX_WARMUP_TIME);
+			change_channel();
+		}
+
+		// timeout: close connection event and set timer for next hop
+		else {
+			finish_conn_event();
+			timer1_set_match(conn.last_anchor + conn.conn_interval - RX_WARMUP_TIME);
+		}
 	}
 
 	// LEDs
@@ -468,14 +618,23 @@ static void le_connect_handler(le_rx_t *buf) {
 	if (buf->size != 2 + 6 + 6 + 22 + 3)
 		return;
 
-	le.access_address     = extract_field(buf, 14, 4);
-	le.crc_init           = extract_field(buf, 18, 3);
-	le.crc_init_reversed  = rbit(le.crc_init);
-	le.win_size           = extract_field(buf, 21, 1);
-	le.win_offset         = extract_field(buf, 22, 2);
-	le.channel_increment  = extract_field(buf, 35, 1) & 0x1f;
+	conn.access_address     = extract_field(buf, 14, 4);
+	conn.crc_init           = extract_field(buf, 18, 3);
+	conn.crc_init_reversed  = rbit(conn.crc_init);
+	conn.win_size           = extract_field(buf, 21, 1);
+	conn.win_offset         = extract_field(buf, 22, 2);
+	conn.conn_interval      = extract_field(buf, 24, 2);
+	conn.hop_increment      = extract_field(buf, 35, 1) & 0x1f;
 
-	timer1_set_match(PACKET_TIME(buf) + (le.win_offset + 1) * USEC(1250) - USEC(500));
+	if (conn.conn_interval < 6 || conn.conn_interval > 3200) {
+		// TODO don't accept connection?
+	} else {
+		conn.conn_interval *= USEC(1250);
+	}
+
+	reset_conn_event();
+	timer1_set_match(buf->timestamp + PACKET_DURATION(buf) +
+			(conn.win_offset + 1) * USEC(1250) - RX_WARMUP_TIME);
 }
 
 static void packet_handler(le_rx_t *buf) {
@@ -541,6 +700,7 @@ void le_phy_main(void) {
 
 	current_rxbuf = buffer_get();
 	rf_channel = 2402;
+	conn.access_address = le.access_address;
 	le_sys_init();
 	le_cc2400_init_rf();
 
