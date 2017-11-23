@@ -259,7 +259,7 @@ static void le_cc2400_init_rf(void) {
 	//   |  +--------------------> un-buffered mode
 	//   +-----------------------> sync error bits: 0
 
-	cc2400_set(MANAND,  0x7fff);
+	cc2400_set(MANAND,  0x7ffe);
 	cc2400_set(LMTST,   0x2b22);
 
 	cc2400_set(MDMTST0, 0x124b);
