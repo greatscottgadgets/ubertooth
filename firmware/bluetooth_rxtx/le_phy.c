@@ -17,8 +17,8 @@
 
 // current time, from timer1
 #define NOW T1TC
-#define USEC(X) (X*10)
-#define MSEC(X) (X*10000)
+#define USEC(X) ((X)*10)
+#define MSEC(X) ((X)*10000)
 #define PACKET_TIME(X) ((X)->timestamp + 40 + (X)->size * 8)
 
 //////////////////////
