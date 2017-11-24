@@ -21,6 +21,8 @@
 #define MSEC(X) ((X)*10000)
 #define PACKET_DURATION(X) (USEC(40 + (X)->size * 8))
 
+#define ADVERTISING_AA (0x8e89bed6)
+
 ///////////////////////
 // time constants
 
@@ -94,12 +96,14 @@ typedef struct _le_conn_t {
 	uint8_t  channel_idx;
 	uint8_t  hop_increment;
 	uint32_t conn_interval; // in units of 100 ns
+	uint32_t supervision_timeout; // in units of 100 ns
 
 	uint8_t  win_size;
 	uint16_t win_offset;
 
 	uint32_t last_anchor;
 	int      anchor_set;
+	uint32_t last_packet_ts; // used to check supervision timeout
 } le_conn_t;
 le_conn_t conn = { 0, };
 
@@ -116,6 +120,11 @@ typedef struct _le_conn_event_t {
 } le_conn_event_t;
 le_conn_event_t conn_event;
 
+static void reset_conn(void) {
+	memset(&conn, 0, sizeof(conn));
+	conn.access_address = ADVERTISING_AA;
+}
+
 
 //////////////////////
 // code
@@ -129,6 +138,7 @@ static void timer1_wait_fs_lock(void);
 static void blink(int tx, int rx, int usr);
 static void le_dma_init(void);
 static void le_cc2400_strobe_rx(void);
+static void change_channel(void);
 static uint8_t dewhiten_length(unsigned channel, uint8_t data);
 
 // resets the state of all available buffers
@@ -177,7 +187,13 @@ static void reset_conn_event(void) {
 	conn_event.opened = 0;
 }
 
-// finish a connection event. the logic can be summarized thusly:
+// finish a connection event
+//
+// 1) update the anchor point (see details below)
+// 2) check if supervision timeout is exceeded
+// 2) setup radio for next packet (data or adv if timeout exceeded)
+//
+// anchor update logic can be summarized thusly:
 // 1) if we received two packets, set the connection anchor to the
 //    observed value
 // 2) if we received one packet, see if it's within ANCHOR_EPISLON
@@ -225,9 +241,26 @@ static void finish_conn_event(void) {
 	else {
 		// FIXME this is totally broken if we receive the slave's packet first
 		conn.last_anchor = conn_event.anchor;
+		conn.last_packet_ts = NOW; // FIXME gross hack
+	}
+
+	// update last packet for supervision timeout
+	if (conn_event.num_packets > 0) {
+		conn.last_packet_ts = NOW;
 	}
 
 	reset_conn_event();
+
+	// supervision timeout reached - switch back to advertising
+	if (NOW - conn.last_packet_ts > conn.supervision_timeout) {
+		reset_conn();
+		change_channel();
+	}
+
+	// supervision timeout not reached - hop to next channel
+	else {
+		timer1_set_match(conn.last_anchor + conn.conn_interval - RX_WARMUP_TIME);
+	}
 }
 
 // DMA handler
@@ -305,7 +338,6 @@ void le_DMA_IRQHandler(void) {
 						cc2400_strobe(SRFOFF);
 						current_rxbuf = buffer_get();
 						finish_conn_event();
-						timer1_set_match(conn.last_anchor + conn.conn_interval - RX_WARMUP_TIME);
 						return;
 					}
 				}
@@ -440,7 +472,10 @@ static void le_cc2400_strobe_rx(void) {
 #endif
 }
 
-void change_channel(void) {
+// change channel and init rx
+static void change_channel(void) {
+	uint8_t channel_idx = 0;
+
 	cc2400_strobe(SRFOFF);
 
 	// stop DMA and flush SSP
@@ -453,9 +488,14 @@ void change_channel(void) {
 	le_dma_init();
 	dio_ssp_start();
 
-	// TODO select channel, change access address
-	conn.channel_idx = (conn.channel_idx + conn.hop_increment) % 37;
-	rf_channel = btle_channel_index_to_phys(conn.channel_idx);
+	if (conn.access_address == ADVERTISING_AA) {
+		channel_idx = 37;
+	} else {
+		conn.channel_idx = (conn.channel_idx + conn.hop_increment) % 37;
+		channel_idx = conn.channel_idx;
+	}
+
+	rf_channel = btle_channel_index_to_phys(channel_idx);
 	le_cc2400_init_rf();
 }
 
@@ -508,7 +548,6 @@ void TIMER1_IRQHandler(void) {
 		// timeout: close connection event and set timer for next hop
 		else {
 			finish_conn_event();
-			timer1_set_match(conn.last_anchor + conn.conn_interval - RX_WARMUP_TIME);
 		}
 	}
 
@@ -624,6 +663,7 @@ static void le_connect_handler(le_rx_t *buf) {
 	conn.win_size           = extract_field(buf, 21, 1);
 	conn.win_offset         = extract_field(buf, 22, 2);
 	conn.conn_interval      = extract_field(buf, 24, 2);
+	conn.supervision_timeout = extract_field(buf, 28, 2);
 	conn.hop_increment      = extract_field(buf, 35, 1) & 0x1f;
 
 	if (conn.conn_interval < 6 || conn.conn_interval > 3200) {
@@ -631,6 +671,8 @@ static void le_connect_handler(le_rx_t *buf) {
 	} else {
 		conn.conn_interval *= USEC(1250);
 	}
+
+	conn.supervision_timeout *= MSEC(10);
 
 	reset_conn_event();
 	timer1_set_match(buf->timestamp + PACKET_DURATION(buf) +
@@ -700,7 +742,7 @@ void le_phy_main(void) {
 
 	current_rxbuf = buffer_get();
 	rf_channel = 2402;
-	conn.access_address = le.access_address;
+	conn.access_address = ADVERTISING_AA;
 	le_sys_init();
 	le_cc2400_init_rf();
 
