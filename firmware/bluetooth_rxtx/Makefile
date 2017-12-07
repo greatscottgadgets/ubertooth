@@ -15,6 +15,7 @@ SRC = $(TARGET).c \
 	queue.c \
 	cc2400_rangetest.c \
 	ego.c \
+	debug_uart.c \
 	$(LIBS_PATH)/usb_serial.c \
 	$(LIBS_PATH)/serial_fifo.c \
 	$(LIBS_PATH)/LPC17xx_Startup.c \

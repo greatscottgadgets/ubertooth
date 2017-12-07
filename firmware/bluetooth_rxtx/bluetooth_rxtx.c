@@ -33,6 +33,7 @@
 #include "bluetooth_le.h"
 #include "cc2400_rangetest.h"
 #include "ego.h"
+#include "debug_uart.h"
 
 #define MIN(x,y)	((x)<(y)?(x):(y))
 #define MAX(x,y)	((x)>(y)?(x):(y))
@@ -2523,6 +2524,12 @@ int main()
 	ubertooth_usb_init(vendor_request_handler);
 	cc2400_idle();
 	dma_poweron();
+
+	debug_uart_init(0);
+	int i;
+	debug_write("hello\n");
+	debug_write("this is a test\n");
+	// debug_printf("hello\n");
 
 	while (1) {
 		handle_usb(clkn);
