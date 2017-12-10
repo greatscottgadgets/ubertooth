@@ -101,6 +101,8 @@ typedef struct _le_conn_t {
 	uint8_t  win_size;
 	uint16_t win_offset;
 
+	le_channel_remapping_t remapping;
+
 	uint32_t last_anchor;
 	int      anchor_set;
 	uint32_t last_packet_ts; // used to check supervision timeout
@@ -492,7 +494,7 @@ static void change_channel(void) {
 		channel_idx = 37;
 	} else {
 		conn.channel_idx = (conn.channel_idx + conn.hop_increment) % 37;
-		channel_idx = conn.channel_idx;
+		channel_idx = le_map_channel(conn.channel_idx, &conn.remapping);
 	}
 
 	rf_channel = btle_channel_index_to_phys(channel_idx);
@@ -673,6 +675,8 @@ static void le_connect_handler(le_rx_t *buf) {
 	}
 
 	conn.supervision_timeout *= MSEC(10);
+
+	le_parse_channel_map(&buf->data[30], &conn.remapping);
 
 	reset_conn_event();
 	timer1_set_match(buf->timestamp + PACKET_DURATION(buf) +

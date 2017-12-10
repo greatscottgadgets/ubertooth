@@ -64,6 +64,13 @@ typedef struct _le_state_t {
     u32 last_packet;            // when was the last packet received
 } le_state_t;
 
+// for handling LE channel maps
+typedef struct _le_channel_remapping_t {
+	int         channel_in_use[37];
+	uint8_t     remapping_index[37]; // array of channel indices
+	unsigned    total_channels;
+} le_channel_remapping_t;
+
 static const u8 whitening[] = {
     1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1,
     1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0,
@@ -92,6 +99,8 @@ u32 btle_calc_crc(u32 crc_init, u8 *data, int len);
 u32 btle_reverse_crc(u32 crc, u8 *data, int len);
 u32 btle_crcgen_lut(u32 crc_init, u8 *data, int len);
 void le_dewhiten(uint8_t *data, unsigned size, unsigned channel);
+void le_parse_channel_map(uint8_t *channel_map, le_channel_remapping_t *remapping);
+uint8_t le_map_channel(uint8_t channel_idx, le_channel_remapping_t *remapping);
 
 static const u32 whitening_word[40][12] = {
 	{ 0xc3bcb240, 0x5f4a371f, 0x9a9cf685, 0x44c5d6c1, 0xe1de5920, 0xafa51b8f,

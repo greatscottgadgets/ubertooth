@@ -199,3 +199,42 @@ void le_dewhiten(uint8_t *data, unsigned size, unsigned channel) {
 		data[i] = out;
 	}
 }
+
+/*
+ * Parse a channel map and populate the le_channel_remapping_t struct.
+ */
+void le_parse_channel_map(uint8_t *channel_map, le_channel_remapping_t *remapping) {
+	unsigned i, j, byte;
+	unsigned idx = 0;
+
+	memset(remapping, 0, sizeof(remapping));
+
+	for (i = 0; i < 5; ++i) {
+		byte = channel_map[i];
+		for (j = 0; j < 8; ++j) {
+			if (byte & 1) {
+				remapping->channel_in_use[idx] = 1;
+				remapping->remapping_index[remapping->total_channels] = idx;
+				++remapping->total_channels;
+			} else {
+				remapping->channel_in_use[idx] = 0;
+			}
+
+			byte >>= 1;
+
+			++idx;
+			if (idx == 37)
+				break;
+		}
+	}
+}
+
+/*
+ * Map a channel index to a used index given a remapping struct.
+ */
+uint8_t le_map_channel(uint8_t channel_idx, le_channel_remapping_t *remapping) {
+	if (remapping->channel_in_use[channel_idx])
+		return channel_idx;
+	else
+		return remapping->remapping_index[channel_idx];
+}
