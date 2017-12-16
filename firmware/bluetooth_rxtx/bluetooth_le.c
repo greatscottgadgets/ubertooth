@@ -21,6 +21,8 @@
 
 #include "bluetooth_le.h"
 
+#include <string.h>
+
 extern u8 le_channel_idx;
 extern u8 le_hop_amount;
 
