@@ -315,8 +315,10 @@ void le_DMA_IRQHandler(void) {
 				// stop the CC2400 before flushing SSP
 				cc2400_strobe(SFSON);
 
-				// stop DMA and flush SSP
-				dma_disable();
+				// stop DMA on this channel and flush SSP
+				DMACC0Config = 0;
+				DMACIntTCClear = (1 << 0); // if we don't clear a second time, data is corrupt
+
 				DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
 				while (SSP1SR & SSPSR_RNE) {
 					uint8_t tmp = (uint8_t)DIO_SSP_DR;
@@ -376,15 +378,6 @@ static void le_dma_init(void) {
 		uint32_t control;
 	} dma_lli;
 	static dma_lli le_dma_lli[2];
-
-	// power up GPDMA controller
-	PCONP |= PCONP_PCGPDMA;
-
-	dma_disable();
-
-	// enable DMA globally
-	DMACConfig = DMACConfig_E;
-	while (!(DMACConfig & DMACConfig_E));
 
 	for (i = 0; i < 2; ++i) {
 		le_dma_lli[i].src = (uint32_t)&(DIO_SSP_DR);
