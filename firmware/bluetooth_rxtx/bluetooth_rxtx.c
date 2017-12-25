@@ -1243,7 +1243,7 @@ void bt_stream_rx()
 
 	usb_queue_init();
 	dio_ssp_init();
-	dma_init();
+	dma_init_rx_symbols();
 	dio_ssp_start();
 
 	cc2400_rx();
@@ -1324,10 +1324,6 @@ void bt_stream_rx()
 		rx_err = 0;
 	}
 
-	/* This call is a nop so far. Since bt_rx_stream() starts the
-	 * stream, it makes sense that it would stop it. TODO - how
-	 * should setup/teardown be handled? Should every new mode be
-	 * starting from scratch? */
 	dio_ssp_stop();
 	cs_trigger_disable();
 }
@@ -1504,7 +1500,7 @@ void bt_generic_le(u8 active_mode)
 
 	usb_queue_init();
 	dio_ssp_init();
-	dma_init();
+	dma_init_rx_symbols();
 	dio_ssp_start();
 	cc2400_rx();
 
@@ -2526,6 +2522,7 @@ int main()
 	clkn_init();
 	ubertooth_usb_init(vendor_request_handler);
 	cc2400_idle();
+	dma_poweron();
 
 	while (1) {
 		handle_usb(clkn);

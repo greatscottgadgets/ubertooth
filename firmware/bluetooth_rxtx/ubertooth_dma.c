@@ -35,20 +35,12 @@ dma_lli rx_dma_lli2;
 dma_lli le_dma_lli[11]; // 11 x 4 bytes
 
 
-static void dma_enable(void)
-{
-	/* enable DMA */
-	DMACC0Config |= DMACCxConfig_E;
+void dma_poweron(void) {
+	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 616
+	PCONP |= PCONP_PCGPDMA;
+
+	// enable DMA interrupts
 	ISER0 = ISER0_ISE_DMA;
-}
-
-void dma_disable(void)
-{
-	// disable DMA engine:
-	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 607
-
-	// disable DMA interrupts
-	ICER0 = ICER0_ICE_DMA;
 
 	// disable active channels
 	DMACC0Config = 0;
@@ -62,25 +54,29 @@ void dma_disable(void)
 	DMACIntTCClear = 0xFF;
 	DMACIntErrClr = 0xFF;
 
+	/* enable DMA globally */
+	DMACConfig = DMACConfig_E;
+	while (!(DMACConfig & DMACConfig_E));
+}
+
+void dma_poweroff(void) {
 	// Disable the DMA controller by writing 0 to the DMA Enable bit in the DMACConfig
 	// register.
 	DMACConfig &= ~DMACConfig_E;
 	while (DMACConfig & DMACConfig_E);
 
-	/* reset interrupt counters */
-	rx_tc = 0;
-	rx_err = 0;
+	ICER0 = ICER0_ICE_DMA;
 
-	active_rxbuf = &rxbuf1[0];
-	idle_rxbuf = &rxbuf2[0];
+	PCONP &= ~PCONP_PCGPDMA;
 }
 
-void dma_init()
-{
-	/* power up GPDMA controller */
-	PCONP |= PCONP_PCGPDMA;
+void dma_clear_interrupts(unsigned channel) {
+	DMACIntTCClear = 1 << channel;
+	DMACIntErrClr  = 1 << channel;
+}
 
-	dma_disable();
+void dma_init_rx_symbols(void) {
+	dma_clear_interrupts(0);
 
 	/* DMA linked lists */
 	rx_dma_lli1.src = (uint32_t)&(DIO_SSP_DR);
@@ -105,11 +101,7 @@ void dma_init()
 			DMACCxControl_DI | /* destination increment */
 			DMACCxControl_I;   /* terminal count interrupt enable */
 
-	/* enable DMA globally */
-	DMACConfig = DMACConfig_E;
-	while (!(DMACConfig & DMACConfig_E));
-
-	/* configure DMA channel 1 */
+	/* configure DMA channel 0 */
 	DMACC0SrcAddr = rx_dma_lli1.src;
 	DMACC0DestAddr = rx_dma_lli1.dest;
 	DMACC0LLI = rx_dma_lli1.next_lli;
@@ -118,20 +110,21 @@ void dma_init()
 	               | (0x2 << 11)       /* peripheral to memory */
 	               | DMACCxConfig_IE   /* allow error interrupts */
 	               | DMACCxConfig_ITC; /* allow terminal count interrupts */
+
+	rx_tc = 0;
+	rx_err = 0;
+
+	active_rxbuf = &rxbuf1[0];
+	idle_rxbuf = &rxbuf2[0];
+
+	// enable channel
+	DMACC0Config |= 1;
 }
 
-void dma_init_le()
-{
+void dma_init_le(void) {
 	int i;
 
-	/* power up GPDMA controller */
-	PCONP |= PCONP_PCGPDMA;
-
-	dma_disable();
-
-	/* enable DMA globally */
-	DMACConfig = DMACConfig_E;
-	while (!(DMACConfig & DMACConfig_E));
+	dma_clear_interrupts(0);
 
 	for (i = 0; i < 11; ++i) {
 		le_dma_lli[i].src = (uint32_t)&(DIO_SSP_DR);
@@ -158,7 +151,6 @@ void dma_init_le()
 			DMACCxConfig_ITC; /* allow terminal count interrupts */
 }
 
-
 void dio_ssp_start()
 {
 	/* make sure the (active low) slave select signal is not active */
@@ -168,7 +160,8 @@ void dio_ssp_start()
 	DIO_SSP_DMACR |= SSPDMACR_RXDMAE;
 	DIO_SSP_CR1 |= SSPCR1_SSE;
 
-	dma_enable();
+	// enable channel
+	DMACC0Config |= 1;
 
 	/* activate slave select pin */
 	DIO_SSEL_CLR;
@@ -179,9 +172,16 @@ void dio_ssp_stop()
 	// disable CC2400's output (active low)
 	DIO_SSEL_SET;
 
-	// disable DMA on SSP; disable SSP
+	// disable DMA on SSP; disable SSP ; disable DMA channel
 	DIO_SSP_DMACR &= ~SSPDMACR_RXDMAE;
 	DIO_SSP_CR1 &= ~SSPCR1_SSE;
+	DMACC0Config = 0;
+	dma_clear_interrupts(0);
 
-	dma_disable();
+	// TODO flush SSP
+	/*
+	while (SSP1SR & SSPSR_RNE) {
+		u8 tmp = (u8)DIO_SSP_DR;
+	}
+	*/
 }
