@@ -2526,10 +2526,7 @@ int main()
 	dma_poweron();
 
 	debug_uart_init(0);
-	int i;
-	debug_write("hello\n");
-	debug_write("this is a test\n");
-	// debug_printf("hello\n");
+	debug_printf("\n\n****UBERTOOTH BOOT****\n%s\n", compile_info);
 
 	while (1) {
 		handle_usb(clkn);

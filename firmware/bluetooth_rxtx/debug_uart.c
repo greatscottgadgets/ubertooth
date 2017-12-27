@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "ubertooth.h"
+#include "tinyprintf.h"
 
 char debug_buffer[256];
 
@@ -66,7 +67,7 @@ void debug_printf(char *fmt, ...) {
 	void *ret;
 
 	va_start(ap, fmt);
-	vsnprintf(debug_buffer, sizeof(debug_buffer) - 1, fmt, ap);
+	tfp_vsnprintf(debug_buffer, sizeof(debug_buffer) - 1, fmt, ap);
 	va_end(ap);
 	debug_buffer[sizeof(debug_buffer) - 1] = 0;
 
