@@ -1,9 +1,11 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "ubertooth.h"
 #include "tinyprintf.h"
 
+int debug_dma_active = 0;
 char debug_buffer[256];
 
 void debug_uart_init(int flow_control) {
@@ -28,8 +30,7 @@ void debug_uart_init(int flow_control) {
 		U1MCR = 0;
 
 	// enable FIFO and DMA
-	// U1FCR = 0b1001;
-	U1FCR = 0b0001; // XXX no DMA, just FIFO
+	U1FCR = 0b1001;
 
 	// set P0.15 as TXD1, with pullup
 	PINSEL0  = (PINSEL0  & ~(0b11 << 30)) | (0b01 << 30);
@@ -62,20 +63,39 @@ void debug_write(const char *str) {
 	}
 }
 
+static void debug_send_dma(size_t size) {
+	DMACC7SrcAddr = (uint32_t)debug_buffer;
+	DMACC7DestAddr = (uint32_t)&U1THR;
+	DMACC7LLI = 0;
+	DMACC7Control =
+			(size & 0xfff)   | // transfer size
+			(0b000 << 12)    | // source burst: 1 byte
+			(0b000 << 15)    | // dest burst: 1 byte
+			DMACCxControl_SI | // source increment
+			DMACCxControl_I  ; // terminal count interrupt enable
+	DMACC7Config =
+			(10 << 6)         | // UART1 TX
+			(0b001 << 11)     | // memory to peripheral
+			DMACCxConfig_IE   | // allow error interrupts
+			DMACCxConfig_ITC  ; // allow terminal count interrupts
+
+	DMACC7Config |= 1;
+}
+
 void debug_printf(char *fmt, ...) {
 	va_list ap;
 	void *ret;
+
+	// TODO warn user?
+	if (debug_dma_active)
+		return;
+	debug_dma_active = 1;
 
 	va_start(ap, fmt);
 	tfp_vsnprintf(debug_buffer, sizeof(debug_buffer) - 1, fmt, ap);
 	va_end(ap);
 	debug_buffer[sizeof(debug_buffer) - 1] = 0;
 
-	// TODO convert this to DMA
-	char *p;
-	for (p = debug_buffer; *p; ++p) {
-		while (!(U1LSR & U1LSR_THRE))
-			;
-		U1THR = *p;
-	}
+	size_t len = strlen(debug_buffer);
+	debug_send_dma(len);
 }

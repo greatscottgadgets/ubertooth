@@ -815,6 +815,22 @@ void DMA_IRQHandler()
 			}
 		}
 	}
+
+	// DMA channel 7: debug UART
+	if (DMACIntStat & (1 << 7)) {
+		// TC -- DMA completed, unset flag so another printf can occur
+		if (DMACIntTCStat & (1 << 7)) {
+			DMACIntTCClear = (1 << 7);
+			debug_dma_active = 0;
+		}
+		// error -- blow up
+		if (DMACIntErrStat & (1 << 7)) {
+			DMACIntErrClr = (1 << 7);
+			// FIXME do something better here
+			USRLED_SET;
+			while (1) { }
+		}
+	}
 }
 
 static void cc2400_idle()
