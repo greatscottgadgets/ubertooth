@@ -77,3 +77,14 @@ keeps udev rules, typically /lib/udev/rules.d
 This action will allow any user in the "usb" group to access the ubertooth
 hardware. If you want to give access to a different group you can easily edit
 the rules file and change usb to whatever group you prefer.
+
+Troubleshooting
+---------------
+
+If trying to run any of the host tools results in error message like 
+```
+ubertooth-specan: error while loading shared libraries: libubertooth.so.1: cannot open shared object file: No such file or directory
+```
+there could be a problem with your library path configuration.
+
+On Arch Linux and Fedora it could be neccessary to edit the `/etc/ld.so.conf` (or create a corresponding file with the path in `/etc/ld.so.conf.d/`) file to include the default library installation path `/usr/local/lib`.
