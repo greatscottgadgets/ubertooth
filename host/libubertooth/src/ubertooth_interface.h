@@ -157,39 +157,39 @@ enum usb_pkt_status {
  * USB packet for Bluetooth RX (64 total bytes)
  */
 typedef struct {
-	u8     pkt_type;
-	u8     status;
-	u8     channel;
-	u8     clkn_high;
-	u32    clk100ns;
-	int8_t rssi_max;   // Max RSSI seen while collecting symbols in this packet
-	int8_t rssi_min;   // Min ...
-	int8_t rssi_avg;   // Average ...
-	u8     rssi_count; // Number of ... (0 means RSSI stats are invalid)
-	u8     reserved[2];
-	u8     data[DMA_SIZE];
+	uint8_t  pkt_type;
+	uint8_t  status;
+	uint8_t  channel;
+	uint8_t  clkn_high;
+	uint32_t clk100ns;
+	int8_t   rssi_max;   // Max RSSI seen while collecting symbols in this packet
+	int8_t   rssi_min;   // Min ...
+	int8_t   rssi_avg;   // Average ...
+	uint8_t  rssi_count; // Number of ... (0 means RSSI stats are invalid)
+	uint8_t  reserved[2];
+	uint8_t  data[DMA_SIZE];
 } usb_pkt_rx;
 
 typedef struct {
-	u64    address;
-	u64    syncword;
+	uint64_t address;
+	uint64_t syncword;
 } bdaddr;
 
 typedef struct {
-	u8 valid;
-	u8 request_pa;
-	u8 request_num;
-	u8 reply_pa;
-	u8 reply_num;
+	uint8_t valid;
+	uint8_t request_pa;
+	uint8_t request_num;
+	uint8_t reply_pa;
+	uint8_t reply_num;
 } rangetest_result;
 
 typedef struct {
-	u16 synch;
-	u16 syncl;
-	u16 channel;
-	u8 length;
-	u8 pa_level;
-	u8 data[DMA_SIZE];
+	uint16_t synch;
+	uint16_t syncl;
+	uint16_t channel;
+	uint8_t  length;
+	uint8_t  pa_level;
+	uint8_t  data[DMA_SIZE];
 } generic_tx_packet;
 
 #endif /* __UBERTOOTH_INTERFACE_H */
