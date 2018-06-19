@@ -46,6 +46,7 @@ uint8_t le_dma_dest[2];
 
 extern volatile uint8_t mode;
 extern volatile uint8_t requested_mode;
+extern volatile uint16_t le_adv_channel;
 
 ////////////////////
 // buffers
@@ -484,7 +485,13 @@ static void change_channel(void) {
 	dio_ssp_start();
 
 	if (conn.access_address == ADVERTISING_AA) {
-		channel_idx = 37;
+		// FIXME
+		switch (le_adv_channel) {
+			case 2402: channel_idx = 37; break;
+			case 2426: channel_idx = 38; break;
+			case 2480: channel_idx = 39; break;
+			default:   channel_idx = 37; break;
+		}
 	} else {
 		conn.channel_idx = (conn.channel_idx + conn.hop_increment) % 37;
 		channel_idx = le_map_channel(conn.channel_idx, &conn.remapping);
@@ -738,7 +745,7 @@ void le_phy_main(void) {
 	timer1_start();
 
 	current_rxbuf = buffer_get();
-	rf_channel = 2402;
+	rf_channel = le_adv_channel; // FIXME
 	conn.access_address = ADVERTISING_AA;
 	le_sys_init();
 	le_cc2400_init_rf();
