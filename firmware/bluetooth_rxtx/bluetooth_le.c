@@ -209,7 +209,7 @@ void le_parse_channel_map(uint8_t *channel_map, le_channel_remapping_t *remappin
 	unsigned i, j, byte;
 	unsigned idx = 0;
 
-	memset(remapping, 0, sizeof(remapping));
+	memset(remapping, 0, sizeof(*remapping));
 
 	for (i = 0; i < 5; ++i) {
 		byte = channel_map[i];
