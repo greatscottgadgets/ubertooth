@@ -107,6 +107,12 @@ typedef struct _le_conn_t {
 	uint32_t last_anchor;
 	int      anchor_set;
 	uint32_t last_packet_ts; // used to check supervision timeout
+
+	uint16_t conn_event_counter;
+
+	int      channel_map_update_pending;
+	uint16_t channel_map_update_instant;
+	le_channel_remapping_t pending_remapping;
 } le_conn_t;
 le_conn_t conn = { 0, };
 
@@ -253,6 +259,9 @@ static void finish_conn_event(void) {
 	}
 
 	reset_conn_event();
+
+	// increment connection event counter
+	++conn.conn_event_counter;
 
 	// supervision timeout reached - switch back to advertising
 	if (NOW - conn.last_packet_ts > conn.supervision_timeout) {
@@ -539,6 +548,13 @@ void TIMER1_IRQHandler(void) {
 		// ack the interrupt
 		T1IR = TIR_MR0_Interrupt;
 
+		// channel map update, can be interleaved with connection update
+		if (conn.channel_map_update_pending &&
+				conn.conn_event_counter == conn.channel_map_update_instant) {
+			conn.remapping = conn.pending_remapping;
+			conn.channel_map_update_pending = 0;
+		}
+
 		// new connection event: set timeout and change channel
 		if (!conn_event.opened) {
 			conn_event.opened = 1;
@@ -683,6 +699,12 @@ static void le_connect_handler(le_rx_t *buf) {
 			(conn.win_offset + 1) * USEC(1250) - RX_WARMUP_TIME);
 }
 
+static void channel_map_update_handler(le_rx_t *buf) {
+	conn.channel_map_update_pending = 1;
+	conn.channel_map_update_instant = extract_field(buf, 8, 2);
+	le_parse_channel_map(&buf->data[3], &conn.pending_remapping);
+}
+
 static void packet_handler(le_rx_t *buf) {
 	// advertising packet
 	if (btle_channel_index(buf->channel) >= 37) {
@@ -693,6 +715,21 @@ static void packet_handler(le_rx_t *buf) {
 				break;
 		}
 	}
+
+	// data packet
+	else {
+		// LL control PDU
+		if ((buf->data[0] & 0b11) == 0b11 && buf->data[1] > 0) {
+			switch (buf->data[2]) {
+				// LE_CHANNEL_MAP_REQ -- update channel map
+				case 0x1:
+					if (buf->data[1] == 8)
+						channel_map_update_handler(buf);
+					break;
+			}
+		}
+	}
+
 }
 
 static int filter_match(le_rx_t *buf) {
