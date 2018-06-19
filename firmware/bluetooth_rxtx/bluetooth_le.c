@@ -238,5 +238,5 @@ uint8_t le_map_channel(uint8_t channel_idx, le_channel_remapping_t *remapping) {
 	if (remapping->channel_in_use[channel_idx])
 		return channel_idx;
 	else
-		return remapping->remapping_index[channel_idx];
+		return remapping->remapping_index[channel_idx % remapping->total_channels];
 }
