@@ -1012,6 +1012,18 @@ int cmd_hop(struct libusb_device_handle* devh)
 	return 0;
 }
 
+int cmd_cancel_follow(struct libusb_device_handle* devh)
+{
+	uint8_t buffer[LIBUSB_CONTROL_SETUP_SIZE];
+	struct libusb_transfer *xfer = libusb_alloc_transfer(0);
+
+	libusb_fill_control_setup(buffer, CTRL_OUT, UBERTOOTH_CANCEL_FOLLOW, 0, 0, 0);
+	libusb_fill_control_transfer(xfer, devh, buffer, callback, NULL, 1000);
+	libusb_submit_transfer(xfer);
+
+	return 0;
+}
+
 int ubertooth_cmd_sync(struct libusb_device_handle* devh,
                        uint8_t type,
                        uint8_t command,

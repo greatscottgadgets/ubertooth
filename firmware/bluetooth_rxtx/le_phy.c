@@ -47,6 +47,7 @@ uint8_t le_dma_dest[2];
 extern volatile uint8_t mode;
 extern volatile uint8_t requested_mode;
 extern volatile uint16_t le_adv_channel;
+extern volatile int cancel_follow;
 
 ////////////////////
 // buffers
@@ -265,6 +266,13 @@ static void finish_conn_event(void) {
 
 	// supervision timeout reached - switch back to advertising
 	if (NOW - conn.last_packet_ts > conn.supervision_timeout) {
+		reset_conn();
+		change_channel();
+	}
+
+	// FIXME - hack to cancel following a connection
+	else if (cancel_follow) {
+		cancel_follow = 0;
 		reset_conn();
 		change_channel();
 	}
@@ -674,6 +682,10 @@ static void le_connect_handler(le_rx_t *buf) {
 
 	if (buf->size != 2 + 6 + 6 + 22 + 3)
 		return;
+
+	// FIXME ugly hack
+	if (cancel_follow)
+		cancel_follow = 0;
 
 	conn.access_address     = extract_field(buf, 14, 4);
 	conn.crc_init           = extract_field(buf, 18, 3);

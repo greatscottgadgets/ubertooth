@@ -28,6 +28,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+int cancel_follow = 0;
+
+// send SIGUSR1 to cancel following an active connection
+static void cancel_follow_handler(int sig __attribute__((unused))) {
+	cancel_follow = 1;
+}
+
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
 
@@ -233,6 +240,8 @@ int main(int argc, char *argv[])
 	/* Clean up on exit. */
 	register_cleanup_handler(ut, 1);
 
+	signal(SIGUSR1, cancel_follow_handler);
+
 	if (do_follow && do_promisc) {
 		printf("Error: must choose either -f or -p, one or the other pal\n");
 		return 1;
@@ -263,6 +272,10 @@ int main(int argc, char *argv[])
 		}
 
 		while (1) {
+			if (cancel_follow) {
+				cmd_cancel_follow(ut->devh);
+				cancel_follow = 0;
+			}
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
 				printf("USB error\n");

@@ -50,6 +50,7 @@ volatile uint16_t hop_direct_channel = 0;      // for hopping directly to a chan
 volatile uint16_t hop_timeout = 158;
 volatile uint16_t requested_channel = 0;
 volatile uint16_t le_adv_channel = 2402;
+volatile int      cancel_follow = 0;
 
 /* bulk USB stuff */
 volatile uint8_t  idle_buf_clkn_high = 0;
@@ -653,6 +654,11 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		le.target[4] = data[1];
 		le.target[5] = data[0];
 		le.target_set = 1;
+		break;
+
+	case UBERTOOTH_CANCEL_FOLLOW:
+		// cancel following an active connection
+		cancel_follow = 1;
 		break;
 
 #ifdef TX_ENABLE

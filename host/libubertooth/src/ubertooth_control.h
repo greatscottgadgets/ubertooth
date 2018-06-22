@@ -140,5 +140,6 @@ int cmd_set_jam_mode(struct libusb_device_handle* devh, int mode);
 int cmd_ego(struct libusb_device_handle* devh, int mode);
 int cmd_afh(struct libusb_device_handle* devh);
 int cmd_hop(struct libusb_device_handle* devh);
+int cmd_cancel_follow(struct libusb_device_handle* devh);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */
