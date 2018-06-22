@@ -27,6 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 
 int cancel_follow = 0;
 
