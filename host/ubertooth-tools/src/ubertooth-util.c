@@ -44,6 +44,7 @@ static void usage(FILE *output)
 	fprintf(output, "\t-S stop current operation\n");
 	fprintf(output, "\t-r full reset\n");
 	fprintf(output, "\t-U<0-7> set ubertooth device to use\n");
+	fprintf(output, "\t-N print total number of Uberteeth and exit\n");
 	fprintf(output, "\n");
 	fprintf(output, "Radio options:\n");
 	fprintf(output, "\t-a[0-7] get/set power amplifier level\n");
@@ -80,6 +81,7 @@ int main(int argc, char *argv[])
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
 	int do_something, do_compile_info;
+	int do_number;
 	int ubertooth_device = -1;
 	char version_string[MAX_VERSION_STRING_LEN];
 
@@ -92,8 +94,9 @@ int main(int argc, char *argv[])
 	do_range_result= do_all_leds= do_identify= -1;
 	do_set_squelch= -1, do_get_squelch= -1; squelch_level= 0;
 	do_something= 0; do_compile_info= -1;
+	do_number= 0;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9V")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9VN")) != EOF) {
 		switch(opt) {
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -189,6 +192,9 @@ int main(int argc, char *argv[])
 		case 'V':
 			do_compile_info = 0;
 			break;
+		case 'N':
+			do_number = 1;
+			break;
 		case 'h':
 			usage(stdout);
 			return 0;
@@ -196,6 +202,12 @@ int main(int argc, char *argv[])
 			usage(stderr);
 			return 1;
 		}
+	}
+
+	if (do_number) {
+		unsigned count = ubertooth_count();
+		printf("%u\n", count);
+		return 0;
 	}
 
 	/* initialise device */

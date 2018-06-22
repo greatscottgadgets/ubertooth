@@ -100,6 +100,37 @@ void ubertooth_set_timeout(ubertooth_t* ut, int seconds) {
 	alarm(seconds);
 }
 
+unsigned ubertooth_count(void) {
+	struct libusb_device **usb_list = NULL;
+	struct libusb_context *ctx = NULL;
+	struct libusb_device_descriptor desc;
+	int usb_devs, i, r;
+	unsigned uberteeth = 0;
+
+	r = libusb_init(NULL);
+	if (r < 0) {
+		fprintf(stderr, "libusb_init failed (got 1.0?)\n");
+		return -1;
+	}
+
+	usb_devs = libusb_get_device_list(ctx, &usb_list);
+
+	for(i = 0 ; i < usb_devs ; ++i) {
+		r = libusb_get_device_descriptor(usb_list[i], &desc);
+		if(r < 0)
+			fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
+		if ((desc.idVendor == TC13_VENDORID && desc.idProduct == TC13_PRODUCTID)
+		    || (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
+		    || (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
+		{
+			uberteeth++;
+		}
+	}
+
+	return uberteeth;
+	libusb_free_device_list(usb_list,1);
+}
+
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 {
 	struct libusb_device **usb_list = NULL;
