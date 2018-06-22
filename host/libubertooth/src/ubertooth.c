@@ -107,9 +107,11 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 	struct libusb_device_handle *devh = NULL;
 	struct libusb_device_descriptor desc;
 	int usb_devs, i, r, ret, uberteeth = 0;
-	int ubertooth_devs[] = {0,0,0,0,0,0,0,0};
+	int *ubertooth_devs = NULL;
 
 	usb_devs = libusb_get_device_list(ctx, &usb_list);
+	ubertooth_devs = calloc(usb_devs, sizeof(int));
+
 	for(i = 0 ; i < usb_devs ; ++i) {
 		r = libusb_get_device_descriptor(usb_list[i], &desc);
 		if(r < 0)
