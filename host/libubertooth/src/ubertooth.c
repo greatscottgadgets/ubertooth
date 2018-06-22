@@ -106,7 +106,7 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 	struct libusb_context *ctx = NULL;
 	struct libusb_device_handle *devh = NULL;
 	struct libusb_device_descriptor desc;
-	int usb_devs, i, r, ret, ubertooths = 0;
+	int usb_devs, i, r, ret, uberteeth = 0;
 	int ubertooth_devs[] = {0,0,0,0,0,0,0,0};
 
 	usb_devs = libusb_get_device_list(ctx, &usb_list);
@@ -118,22 +118,22 @@ static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
 		    || (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
 		    || (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
 		{
-			ubertooth_devs[ubertooths] = i;
-			ubertooths++;
+			ubertooth_devs[uberteeth] = i;
+			uberteeth++;
 		}
 	}
-	if(ubertooths == 1) {
+	if(uberteeth == 1) {
 		ret = libusb_open(usb_list[ubertooth_devs[0]], &devh);
 		if (ret)
 			show_libusb_error(ret);
 	}
-	else if (ubertooths == 0)
+	else if (uberteeth == 0)
 		return NULL;
 	else {
 		if (ubertooth_device < 0) {
 			fprintf(stderr, "multiple Ubertooth devices found! Use '-U' to specify device number\n");
 			uint8_t serial[17], r;
-			for(i = 0 ; i < ubertooths ; ++i) {
+			for(i = 0 ; i < uberteeth ; ++i) {
 				libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
 				ret = libusb_open(usb_list[ubertooth_devs[i]], &devh);
 				if (ret) {
