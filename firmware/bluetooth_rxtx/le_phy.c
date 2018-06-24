@@ -835,6 +835,8 @@ void le_phy_main(void) {
 	le_sys_init();
 	le_cc2400_init_rf();
 
+	cancel_follow = 0;
+
 	while (requested_mode == MODE_BT_FOLLOW_LE) {
 		le_rx_t *packet = NULL;
 		if (queue_remove(&packet_queue, (void **)&packet)) {
