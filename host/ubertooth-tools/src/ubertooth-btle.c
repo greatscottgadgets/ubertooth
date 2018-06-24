@@ -36,6 +36,12 @@ static void cancel_follow_handler(int sig __attribute__((unused))) {
 	cancel_follow = 1;
 }
 
+int running = 1;
+
+static void quit(int sig __attribute__((unused))) {
+	running = 0;
+}
+
 int convert_mac_address(char *s, uint8_t *o) {
 	int i;
 
@@ -238,9 +244,12 @@ int main(int argc, char *argv[])
 	if (r < 0)
 		return 1;
 
-	/* Clean up on exit. */
-	register_cleanup_handler(ut, 1);
+	// quit on ctrl-C
+	signal(SIGINT, quit);
+	signal(SIGQUIT, quit);
+	signal(SIGTERM, quit);
 
+	// cancel following on USR1
 	signal(SIGUSR1, cancel_follow_handler);
 
 	if (do_follow && do_promisc) {
@@ -272,7 +281,8 @@ int main(int argc, char *argv[])
 			cmd_btle_promisc(ut->devh);
 		}
 
-		while (1) {
+		// running can be changed by signal handler
+		while (running) {
 			if (cancel_follow) {
 				cmd_cancel_follow(ut->devh);
 				cancel_follow = 0;
