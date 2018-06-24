@@ -19,6 +19,7 @@
 #define NOW T1TC
 #define USEC(X) ((X)*10)
 #define MSEC(X) ((X)*10000)
+#define  SEC(X) ((X)*10000000)
 #define PACKET_DURATION(X) (USEC(40 + (X)->size * 8))
 
 #define ADVERTISING_AA (0x8e89bed6)
@@ -101,7 +102,7 @@ typedef struct _le_conn_t {
 	uint32_t supervision_timeout; // in units of 100 ns
 
 	uint8_t  win_size;
-	uint16_t win_offset;
+	uint32_t win_offset; // in units of 100 ns
 
 	le_channel_remapping_t remapping;
 
@@ -145,6 +146,7 @@ static void timer1_stop(void);
 static void timer1_set_match(uint32_t match);
 static void timer1_clear_match(void);
 static void timer1_wait_fs_lock(void);
+static void timer1_cancel_fs_lock(void);
 static void blink(int tx, int rx, int usr);
 static void le_dma_init(void);
 static void le_cc2400_strobe_rx(void);
@@ -551,6 +553,10 @@ static void timer1_wait_fs_lock(void) {
 	T1MCR |= TMCR_MR2I;
 }
 
+static void timer1_cancel_fs_lock(void) {
+	T1MCR &= ~TMCR_MR2I;
+}
+
 void TIMER1_IRQHandler(void) {
 	if (T1IR & TIR_MR0_Interrupt) {
 		// ack the interrupt
@@ -679,6 +685,7 @@ static unsigned extract_field(le_rx_t *buf, size_t offset, unsigned size) {
 
 static void le_connect_handler(le_rx_t *buf) {
 	uint32_t aa, crc_init;
+	uint32_t win_size, max_win_size;
 
 	if (buf->size != 2 + 6 + 6 + 22 + 3)
 		return;
@@ -697,18 +704,47 @@ static void le_connect_handler(le_rx_t *buf) {
 	conn.hop_increment      = extract_field(buf, 35, 1) & 0x1f;
 
 	if (conn.conn_interval < 6 || conn.conn_interval > 3200) {
-		// TODO don't accept connection?
+		goto err_out;
 	} else {
 		conn.conn_interval *= USEC(1250);
 	}
 
+	// window offset is in range [0, conn_interval]
+	conn.win_offset *= USEC(1250);
+	if (conn.win_offset > conn.conn_interval)
+		goto err_out;
+
+	// win size is in range [1.25 ms, MIN(10 ms, conn_interval - 1.25 ms)]
+	win_size = conn.win_size * USEC(1250);
+	max_win_size = conn.conn_interval - USEC(1250);
+	if (max_win_size > MSEC(10))
+		max_win_size = MSEC(10);
+	if (win_size < USEC(1250) || win_size > max_win_size)
+		goto err_out;
+
+	// The connSupervisionTimeout shall be a multiple of 10 ms in the
+	// range of 100 ms to 32.0 s and it shall be larger than (1 +
+	// connSlaveLatency) * connInterval * 2
 	conn.supervision_timeout *= MSEC(10);
+	if (conn.supervision_timeout < MSEC(100) || conn.supervision_timeout > SEC(32))
+		goto err_out;
+	// TODO handle slave latency
 
 	le_parse_channel_map(&buf->data[30], &conn.remapping);
+	if (conn.remapping.total_channels == 0)
+		goto err_out;
+
+	// cancel RX on advertising channel
+	timer1_cancel_fs_lock();
 
 	reset_conn_event();
 	timer1_set_match(buf->timestamp + PACKET_DURATION(buf) +
-			(conn.win_offset + 1) * USEC(1250) - RX_WARMUP_TIME);
+			conn.win_offset + USEC(1250) - RX_WARMUP_TIME);
+	return;
+
+	// error condition: reset conn and return
+err_out:
+	reset_conn();
 }
 
 static void channel_map_update_handler(le_rx_t *buf) {
