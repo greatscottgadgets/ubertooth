@@ -127,8 +127,8 @@ unsigned ubertooth_count(void) {
 		}
 	}
 
-	return uberteeth;
 	libusb_free_device_list(usb_list,1);
+	return uberteeth;
 }
 
 static struct libusb_device_handle* find_ubertooth_device(int ubertooth_device)
