@@ -866,11 +866,16 @@ int cmd_set_crc_verify(struct libusb_device_handle* devh, int verify)
 int cmd_poll(struct libusb_device_handle* devh, usb_pkt_rx *p)
 {
 	int r;
+	unsigned i;
 
-	r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_POLL, 0, 0,
-			(u8 *)p, sizeof(usb_pkt_rx), 1000);
-	if (r < 0) {
-		show_libusb_error(r);
+	// retry up to three times due to stalls
+	for (i = 0; i < 3; ++i) {
+		r = libusb_control_transfer(devh, CTRL_IN, UBERTOOTH_POLL, 0, 0,
+				(u8 *)p, sizeof(usb_pkt_rx), 1000);
+		if (r == LIBUSB_ERROR_PIPE) // retry
+			continue;
+		if (r < 0)
+			show_libusb_error(r);
 		return r;
 	}
 	return r;
