@@ -1,31 +1,42 @@
-Ubertooth 2017-03-R2 Release Notes
+Ubertooth 2018-06-R1 Release Notes
 ==============================
-The Ubertooth host utilities in this release require libbtbb-2017-03-R2
-(https://github.com/greatscottgadgets/libbtbb/releases/tag/2017-03-R2) or
+The Ubertooth host utilities in this release require libbtbb-2018-06-R1
+(https://github.com/greatscottgadgets/libbtbb/releases/tag/2018-06-R1) or
 greater.
 
 Changes
 -------
-**USB API versioning** - We have added USB API versioning to improve the
-experience of failures due to mismatched firmware and host code. You may find
-that Ubertooth tools complain that your firmware is out of date.  Updating
-firmware is simple and reliable, please follow the instructions on the wiki
+
+**New LE sniffing engine** - The BLE sniffing engine has been completely
+rewritten using interrupts to drive an event-based core. The new
+sniffing engine is considerably more robust than previous versions and
+should have a higher packet capture rate. This code has received less
+testing than previous versions, but in the experience of the author has
+been exceptionally stable and is superior to previous versions in almost
+every way.
+
+**Partial channel map support** - As part of the new BLE sniffing
+engine, there is now support for partial channel maps when an LE
+connection is established as well as support for the Channel Map Update
+Link Layer Procedure. This allows capturing connections from virtually
+all modern BLE devices.
+
+**Feature degradation** - Support for Connection Update Link Layer
+Procedure has been lost as of this update. This is a relatively rare
+occurrence, and it will be added in an upcoming release once it has been
+fully debugged. If you encounter a device that uses this feature, please
+file a bug on the project as it will help with our implementation
+testing.
+
+**USB API version** - As with the previous release, we are using USB API
+versioning to improve the experience of failures due to mismatched
+firmware and host code. As of this release, the USB API has been bumped
+to 1.03. If the Ubertooth tools complain that your firmware is out of
+date, please update your firmware. Updating firmware is simple and
+reliable, please follow the instructions on the wiki
 https://github.com/greatscottgadgets/ubertooth/wiki/Firmware
 A release archive with precompiled firmware is available from
-https://github.com/greatscottgadgets/ubertooth/releases/download/2017-03-R2/ubertooth-2017-03-R2.tar.xz
-
-**Basic Rate PCAP output** - the pcap file produced by the Ubertooth tools
-should all be read by the latest Wireshark versions without the need to install
-plugins.
-
-**Kismet plugins** - Kismet is currently under heavy development and it has not
-been possible to continue tracking the master branch.  The legacy Kismet plugins
-should continue to work, but we will wait to track git master until development
-has stabalised.
-
-This release rolls up a lot of bug fixes, code tidying efforts, and small
-enhancements, for a complete list of changes since the previous release, see the
-git commit log.
+https://github.com/greatscottgadgets/ubertooth/releases/download/2018-06-R1/ubertooth-2018-06-R1.tar.xz
 
 Support
 -------

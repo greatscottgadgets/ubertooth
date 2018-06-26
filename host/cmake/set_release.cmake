@@ -6,7 +6,7 @@
 # tagged
 
 if(NOT DEFINED RELEASE_STRING)
-	set(LATEST_RELEASE "2017-03-R2")
+	set(LATEST_RELEASE "2018-06-R1")
 
 	execute_process(
 		COMMAND git log -n 1 --format=%h

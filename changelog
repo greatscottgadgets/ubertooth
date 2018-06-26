@@ -1,3 +1,14 @@
+ubertooth (2018-06-R1) unstable; urgency=low
+  * Brand new LE sniffing engine
+  * Support for partial channel maps and channel map updates during connection
+  * Support for connection updates has been lost, but will be re-added in a
+    future release
+  * Packet filtering with ubertooth-btle -t will filter advertising packets in
+    addition to connections
+  * USB API version bumped to 1.03
+
+ -- Mike Ryan <mikeryan@lacklustre.net>  26 Jun 2018 13:05:00 -0700
+
 ubertooth (2017-03-R2) unstable; urgency=low
   * USB API versioning - We have added USB API versioning to improve the
     experience of failures due to mismatched firmware and host code. You may
