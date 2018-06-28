@@ -42,8 +42,38 @@ static void quit(int sig __attribute__((unused))) {
 	running = 0;
 }
 
-int convert_mac_address(char *s, uint8_t *o) {
+void print_mac(uint8_t *mac_address, int mask) {
+	unsigned i;
+	for (i = 0; i < 5; ++i)
+		printf("%02x:", mac_address[i]);
+	printf("%02x", mac_address[5]);
+	if (mask >= 0)
+		printf("/%u", mask);
+}
+
+int convert_mac_address(char *s, uint8_t *o, uint8_t *mask_out) {
 	int i;
+	char *mask_p;
+	unsigned mask = 48; // default mask is entire BD ADDR
+
+	if (strcmp(s, "none") == 0) {
+		memset(o, 0, 6);
+		mask_out = 0;
+		return 1;
+	}
+
+	// if there is a mask included, parse it
+	mask_p = strchr(s, '/');
+	if (mask_p != NULL) {
+		*mask_p = '\0';
+		++mask_p;
+		mask = strtoul(mask_p, NULL, 10);
+		if (mask > 48) {
+			printf("Error: MAC mask must be between 0 and 48\n");
+			return 0;
+		}
+	}
+	*mask_out = mask; // see above, default 48, otherwise user-supplied
 
 	// validate length
 	if (strlen(s) != 6 * 2 + 5) {
@@ -85,7 +115,8 @@ static void usage(void)
 	printf("\t-p promiscuous: sniff active connections\n");
 	printf("\t-a[address] get/set access address (example: -a8e89bed6)\n");
 	printf("\t-s<address> faux slave mode, using MAC addr (example: -s22:44:66:88:aa:cc)\n");
-	printf("\t-t<address> set connection following target (example: -t22:44:66:88:aa:cc)\n");
+	printf("\t-t<address> set connection following target (example: -t22:44:66:88:aa:cc/48)\n");
+	printf("\t-tnone unset connection following target\n");
 	printf("\n");
 	printf("    Interference (use with -f or -p):\n");
 	printf("\t-i interfere with one connection and return to idle\n");
@@ -124,6 +155,7 @@ int main(int argc, char *argv[])
 	int r;
 	u32 access_address;
 	uint8_t mac_address[6] = { 0, };
+	uint8_t mac_mask = 0;
 
 	do_follow = do_promisc = 0;
 	do_get_aa = do_set_aa = 0;
@@ -196,7 +228,7 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			do_slave_mode = 1;
-			r = convert_mac_address(optarg, mac_address);
+			r = convert_mac_address(optarg, mac_address, &mac_mask);
 			if (!r) {
 				usage();
 				return 1;
@@ -204,7 +236,7 @@ int main(int argc, char *argv[])
 			break;
 		case 't':
 			do_target = 1;
-			r = convert_mac_address(optarg, mac_address);
+			r = convert_mac_address(optarg, mac_address, &mac_mask);
 			if (!r) {
 				usage();
 				return 1;
@@ -255,6 +287,23 @@ int main(int argc, char *argv[])
 	if (do_follow && do_promisc) {
 		printf("Error: must choose either -f or -p, one or the other pal\n");
 		return 1;
+	}
+
+	// allow user to set target before following
+	if (do_target) {
+		r = cmd_btle_set_target(ut->devh, mac_address, mac_mask);
+		if (r == 0) {
+			if (mac_mask == 0) {
+				printf("target cleared\n");
+			} else {
+				printf("target set to: ");
+				print_mac(mac_address, mac_mask);
+				printf("\n");
+			}
+		} else {
+			printf("Unable to set target\n");
+			return 1;
+		}
 	}
 
 	if (do_follow || do_promisc) {
@@ -334,17 +383,6 @@ int main(int argc, char *argv[])
 		cmd_set_channel(ut->devh, channel);
 
 		cmd_btle_slave(ut->devh, mac_address);
-	}
-
-	if (do_target) {
-		r = cmd_btle_set_target(ut->devh, mac_address);
-		if (r == 0) {
-			int i;
-			printf("target set to: ");
-			for (i = 0; i < 5; ++i)
-				printf("%02x:", mac_address[i]);
-			printf("%02x\n", mac_address[5]);
-		}
 	}
 
 	if (!(do_follow || do_promisc || do_get_aa || do_set_aa ||

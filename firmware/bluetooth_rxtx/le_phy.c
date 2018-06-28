@@ -780,6 +780,15 @@ static void packet_handler(le_rx_t *buf) {
 
 }
 
+// compare a BD addr against target with mask
+static int bd_addr_cmp(uint8_t *bd_addr) {
+	unsigned i;
+	for (i = 0; i < 6; ++i)
+		if ((bd_addr[i] & le.target_mask[i]) != le.target[i])
+			return 0;
+	return 1;
+}
+
 static int filter_match(le_rx_t *buf) {
 	if (!le.target_set)
 		return 1;
@@ -797,7 +806,7 @@ static int filter_match(le_rx_t *buf) {
 			// header + one address
 			if (buf->size < 2 + 6)
 				return 0;
-			return memcmp(&buf->data[2], le.target, 6) == 0;
+			return bd_addr_cmp(&buf->data[2]);
 			break;
 
 		// ADV_DIRECT_IND, SCAN_REQ, CONNECT_REQ
@@ -807,8 +816,8 @@ static int filter_match(le_rx_t *buf) {
 			// header + two addresses
 			if (buf->size < 2 + 6 + 6)
 				return 0;
-			return memcmp(&buf->data[2], le.target, 6) == 0 ||
-				   memcmp(&buf->data[8], le.target, 6) == 0;
+			return bd_addr_cmp(&buf->data[2]) ||
+				   bd_addr_cmp(&buf->data[8]);
 			break;
 
 		default:

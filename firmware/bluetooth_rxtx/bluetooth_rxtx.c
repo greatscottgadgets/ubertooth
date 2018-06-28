@@ -647,13 +647,41 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	case UBERTOOTH_BTLE_SET_TARGET:
 		// Addresses appear in packets in reverse-octet order.
 		// Store the target address in reverse order so that we can do a simple memcmp later
-		le.target[0] = data[5];
-		le.target[1] = data[4];
-		le.target[2] = data[3];
-		le.target[3] = data[2];
-		le.target[4] = data[1];
-		le.target[5] = data[0];
-		le.target_set = 1;
+		if (data[6] > 48) {
+			return 1; // invalid mask
+		}
+		else if (data[6] == 0) {
+			le.target_set = 0;
+			memset(le.target, 0, 6);
+			memset(le.target_mask, 0, 6);
+		} else {
+			unsigned last;
+
+			for (i = 0; i < 6; ++i)
+				le.target[i] = data[5-i];
+
+			// compute mask
+			memset(le.target_mask, 0, 6);
+			for (i = 5; data[6] > 8; --i, data[6] -= 8) {
+				le.target_mask[i] = 0xff;
+			}
+			last = i;
+
+			if (data[6] > 0) {
+				uint8_t final_byte = 0;
+				for (i = 0; i < data[6]; ++i) {
+					final_byte >>= 1;
+					final_byte |= 0b10000000;
+				}
+				le.target_mask[last] = final_byte;
+			}
+
+			// in case the user specifies a bad mask
+			for (i = 0; i < 5; ++i)
+				le.target[i] &= le.target_mask[i];
+
+			le.target_set = 1;
+		}
 		break;
 
 	case UBERTOOTH_CANCEL_FOLLOW:

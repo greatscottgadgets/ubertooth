@@ -60,6 +60,7 @@ typedef struct _le_state_t {
     u16 win_offset_update;      // the new window offset
 
     u8 target[6];               // target MAC for connection following (byte order reversed)
+    u8 target_mask[6];          // mask for MAC connection following (byte order reversed)
     int target_set;             // whether a target has been set (default: false)
     u32 last_packet;            // when was the last packet received
 } le_state_t;
