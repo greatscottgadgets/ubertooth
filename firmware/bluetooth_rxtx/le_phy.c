@@ -112,6 +112,11 @@ typedef struct _le_conn_t {
 
 	uint16_t conn_event_counter;
 
+	int      conn_update_pending;
+	uint32_t conn_update_pending_interval;
+	uint32_t conn_update_pending_supervision_timeout;
+	uint16_t conn_update_instant;
+
 	int      channel_map_update_pending;
 	uint16_t channel_map_update_instant;
 	le_channel_remapping_t pending_remapping;
@@ -202,8 +207,9 @@ static void reset_conn_event(void) {
 // finish a connection event
 //
 // 1) update the anchor point (see details below)
-// 2) check if supervision timeout is exceeded
-// 2) setup radio for next packet (data or adv if timeout exceeded)
+// 2) increment connection event counter
+// 3) check if supervision timeout is exceeded
+// 4) setup radio for next packet (data or adv if timeout exceeded)
 //
 // anchor update logic can be summarized thusly:
 // 1) if we received two packets, set the connection anchor to the
@@ -558,11 +564,45 @@ static void timer1_cancel_fs_lock(void) {
 }
 
 void TIMER1_IRQHandler(void) {
+	// MR0: connection events
 	if (T1IR & TIR_MR0_Interrupt) {
 		// ack the interrupt
 		T1IR = TIR_MR0_Interrupt;
 
-		// channel map update, can be interleaved with connection update
+		// connection update procedure
+		if (conn.conn_update_pending &&
+				conn.conn_event_counter == conn.conn_update_instant) {
+
+			// on the first past through, handle the transmit window
+			// offset. if there's no offset, skip down to else block
+			if (!conn_event.opened && conn.win_offset > 0) {
+				timer1_set_match(conn.last_anchor + conn.conn_interval +
+						conn.win_offset - RX_WARMUP_TIME);
+				conn_event.opened = 1;
+			}
+
+			// after the transmit window offset, or if there is no
+			// transmit window, set a packet timeout and change the
+			// channel
+			else { // conn_event.opened || conn.win_offset == 0
+				conn_event.opened = 1;
+
+				// this is like a new connection, so set all values
+				// accordingly
+				conn.anchor_set = 0;
+				conn.conn_interval = conn.conn_update_pending_interval;
+				conn.supervision_timeout = conn.conn_update_pending_supervision_timeout;
+				conn.conn_update_pending = 0;
+
+				// timeout after conn window + max packet length
+				timer1_set_match(conn.last_anchor + conn.conn_interval +
+						conn.win_offset + conn.win_size + USEC(2120));
+				change_channel();
+			}
+			return;
+		}
+
+		// channel map update
 		if (conn.channel_map_update_pending &&
 				conn.conn_event_counter == conn.channel_map_update_instant) {
 			conn.remapping = conn.pending_remapping;
@@ -577,9 +617,25 @@ void TIMER1_IRQHandler(void) {
 			change_channel();
 		}
 
-		// timeout: close connection event and set timer for next hop
+		// regular connection event, plus timeout from connection updates
+		// FIXME connection update timeouts and initial connection
+		// timeouts need to be handled differently: they should have a
+		// full window until the packets from the new connection are
+		// captured and a new anchor is set.
 		else {
-			finish_conn_event();
+			// new connection event: set timeout and change channel
+			if (!conn_event.opened) {
+				conn_event.opened = 1;
+
+				// timeout is max packet length + warmup time (slack)
+				timer1_set_match(NOW + USEC(2120) + RX_WARMUP_TIME);
+				change_channel();
+			}
+
+			// timeout: close connection event and set timer for next hop
+			else {
+				finish_conn_event();
+			}
 		}
 	}
 
@@ -747,6 +803,24 @@ err_out:
 	reset_conn();
 }
 
+static void connection_update_handler(le_rx_t *buf) {
+	conn.win_size            = extract_field(buf, 3, 1);
+	conn.win_offset          = extract_field(buf, 4, 2);
+	conn.conn_update_pending_interval = extract_field(buf, 6, 2);
+	conn.conn_update_pending_supervision_timeout = extract_field(buf, 10, 2);
+	conn.conn_update_instant = extract_field(buf, 12, 2);
+
+	// TODO check for invalid values. XXX what do we even do in that
+	// case? we will probably drop the connection, but at least it's on
+	// our own terms and not some impossibly long supervision timeout.
+	conn.win_size   *= USEC(1250);
+	conn.win_offset *= USEC(1250);
+	conn.conn_update_pending_interval *= USEC(1250);
+	conn.conn_update_pending_supervision_timeout *= MSEC(10);
+
+	conn.conn_update_pending = 1;
+}
+
 static void channel_map_update_handler(le_rx_t *buf) {
 	conn.channel_map_update_pending = 1;
 	conn.channel_map_update_instant = extract_field(buf, 8, 2);
@@ -759,6 +833,7 @@ static void packet_handler(le_rx_t *buf) {
 		switch (buf->data[0] & 0xf) {
 			// CONNECT_REQ
 			case 0x05:
+				// TODO validate length
 				le_connect_handler(buf);
 				break;
 		}
@@ -769,6 +844,12 @@ static void packet_handler(le_rx_t *buf) {
 		// LL control PDU
 		if ((buf->data[0] & 0b11) == 0b11 && buf->data[1] > 0) {
 			switch (buf->data[2]) {
+				// LE_CONNECTION_UPDATE_REQ -- update connection parameters
+				case 0x0:
+					if (buf->data[1] == 12)
+						connection_update_handler(buf);
+					break;
+
 				// LE_CHANNEL_MAP_REQ -- update channel map
 				case 0x1:
 					if (buf->data[1] == 8)
@@ -777,7 +858,6 @@ static void packet_handler(le_rx_t *buf) {
 			}
 		}
 	}
-
 }
 
 // compare a BD addr against target with mask
