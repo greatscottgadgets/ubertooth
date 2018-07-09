@@ -1,4 +1,4 @@
-# UBERTOOTH-BTLE 1 "March 2017" "Project Ubertooth" "User Commands"
+# UBERTOOTH-BTLE 1 "July 2018" "Project Ubertooth" "User Commands"
 
 ## NAME
 
@@ -44,6 +44,25 @@ sniff connections where the central or peripheral's BD ADDR is
 `22:44:66:88:AA:CC`:
 
     ubertooth-btle -f -t22:44:66:88:AA:CC
+
+`-t` can also take a mask length in CIDR-like notation. Masks can be
+between 1 and 48 bits long, with a 48 bit mask matching the entire
+address. Using a /24 mask will filter on just the OUI. For example, to
+limit sniffing to just TI devices with the OUI 00:1A:7D, use the
+following:
+
+    ubertooth-btle -t 00:1A:7D:00:00:00/24
+
+Filters persist until they are explicitly cleared or the system restarts
+(either via `ubertooth-util -r` or unplug/replug). To clear a filter,
+use the special filter `none`. Example:
+
+    ubertooth-btle -t none
+
+When filtering, previous versions of the firmware would still log all
+advertising packets but only follow connections based on the filter
+parameters. As of 2018-06-R1, advertising packets that do not match the
+filter are dropped.
 
 In both sniffing modes, Ubertooth can log data to PCAP or PcapNG with a
 variety of pseudoheaders. The recommended logging format is PcapNG
@@ -147,5 +166,5 @@ crackle(1): https://github.com/mikeryan/crackle
 
 ## COPYRIGHT
 
-`ubertooth-btle` is Copyright (C) 2012-2017 Mike Ryan. This tool is
+`ubertooth-btle` is Copyright (C) 2012-2018 Mike Ryan. This tool is
 released under the GPLv2. Refer to COPYING for futher details.

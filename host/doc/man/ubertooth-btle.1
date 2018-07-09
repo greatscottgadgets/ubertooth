@@ -1,4 +1,4 @@
-.TH UBERTOOTH\-BTLE 1 "March 2017" "Project Ubertooth" "User Commands"
+.TH UBERTOOTH\-BTLE 1 "July 2018" "Project Ubertooth" "User Commands"
 .SH NAME
 .PP
 ubertooth\-btle \-\- Bluetooth Low Energy (BLE) sniffing and more
@@ -55,6 +55,33 @@ sniff connections where the central or peripheral's BD ADDR is
 ubertooth\-btle \-f \-t22:44:66:88:AA:CC
 .fi
 .RE
+.PP
+\fB\fC\-t\fR can also take a mask length in CIDR\-like notation. Masks can be
+between 1 and 48 bits long, with a 48 bit mask matching the entire
+address. Using a /24 mask will filter on just the OUI. For example, to
+limit sniffing to just TI devices with the OUI 00:1A:7D, use the
+following:
+.PP
+.RS
+.nf
+ubertooth\-btle \-t 00:1A:7D:00:00:00/24
+.fi
+.RE
+.PP
+Filters persist until they are explicitly cleared or the system restarts
+(either via \fB\fCubertooth\-util \-r\fR or unplug/replug). To clear a filter,
+use the special filter \fB\fCnone\fR\&. Example:
+.PP
+.RS
+.nf
+ubertooth\-btle \-t none
+.fi
+.RE
+.PP
+When filtering, previous versions of the firmware would still log all
+advertising packets but only follow connections based on the filter
+parameters. As of 2018\-06\-R1, advertising packets that do not match the
+filter are dropped.
 .PP
 In both sniffing modes, Ubertooth can log data to PCAP or PcapNG with a
 variety of pseudoheaders. The recommended logging format is PcapNG
@@ -193,5 +220,5 @@ Refer to \fB\fCcrackle\fR documentation for further details.
 \[la]https://github.com/mikeryan/crackle\[ra]
 .SH COPYRIGHT
 .PP
-\fB\fCubertooth\-btle\fR is Copyright (C) 2012\-2017 Mike Ryan. This tool is
+\fB\fCubertooth\-btle\fR is Copyright (C) 2012\-2018 Mike Ryan. This tool is
 released under the GPLv2. Refer to COPYING for futher details.
