@@ -88,6 +88,7 @@ le_state_t le = {
 
 	.link_state = LINK_INACTIVE,
 	.conn_epoch = 0,
+	.do_follow = 1,
 	.target_set = 0,
 	.last_packet = 0,
 };
@@ -538,6 +539,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		break;
 
 	case UBERTOOTH_BTLE_SNIFFING:
+		le.do_follow = request_params[0];
 		*data_len = 0;
 
 		do_hop = 0;

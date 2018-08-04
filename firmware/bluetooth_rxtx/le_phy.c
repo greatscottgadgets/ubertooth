@@ -743,6 +743,9 @@ static void le_connect_handler(le_rx_t *buf) {
 	uint32_t aa, crc_init;
 	uint32_t win_size, max_win_size;
 
+	if (!le.do_follow)
+		return;
+
 	if (buf->size != 2 + 6 + 6 + 22 + 3)
 		return;
 

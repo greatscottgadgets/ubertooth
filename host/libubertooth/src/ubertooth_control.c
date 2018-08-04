@@ -724,11 +724,11 @@ uint32_t cmd_get_clock(struct libusb_device_handle* devh)
 	return clock;
 }
 
-int cmd_btle_sniffing(struct libusb_device_handle* devh, u16 num)
+int cmd_btle_sniffing(struct libusb_device_handle* devh, uint8_t do_follow)
 {
 	int r;
 
-	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SNIFFING, num, 0,
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_BTLE_SNIFFING, do_follow, 0,
 			NULL, 0, 1000);
 	if (r < 0) {
 		if (r == LIBUSB_ERROR_PIPE) {
