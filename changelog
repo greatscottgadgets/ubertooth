@@ -1,3 +1,10 @@
+ubertooth (2018-08-R1) unstable; urgency=low
+  * Support for partial channel map updates
+  * LE no-follow mode (advertising packets only)
+  * USB API version bumped to 1.05
+
+ -- Mike Ryan <mikeryan@lacklustre.net>  07 Aug 2018 15:20:00 -0700
+
 ubertooth (2018-06-R1) unstable; urgency=low
   * Brand new LE sniffing engine
   * Support for partial channel maps and channel map updates during connection
