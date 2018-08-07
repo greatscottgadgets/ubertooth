@@ -1,7 +1,7 @@
-Ubertooth 2018-06-R1 Release Notes
+Ubertooth 2018-08-R1 Release Notes
 ==============================
-The Ubertooth host utilities in this release require libbtbb-2018-06-R1
-(https://github.com/greatscottgadgets/libbtbb/releases/tag/2018-06-R1) or
+The Ubertooth host utilities in this release require libbtbb-2018-08-R1
+(https://github.com/greatscottgadgets/libbtbb/releases/tag/2018-08-R1) or
 greater.
 
 Changes
@@ -21,22 +21,29 @@ connection is established as well as support for the Channel Map Update
 Link Layer Procedure. This allows capturing connections from virtually
 all modern BLE devices.
 
-**Feature degradation** - Support for Connection Update Link Layer
-Procedure has been lost as of this update. This is a relatively rare
-occurrence, and it will be added in an upcoming release once it has been
-fully debugged. If you encounter a device that uses this feature, please
-file a bug on the project as it will help with our implementation
-testing.
+**Connection update support** - Support for Connection Update Link Layer
+Procedure has been reimplemented as of this update. This was a feature
+degradation in 2018-06-R1 but has been fixed.
+
+**Improved filtering** - LE filtering now applies to all advertising
+packets, not just connections. Packets that do not match the filter are
+silently dropped. Filters can include a CIDR-style netmask, allowing as
+few as 1 or as many as 48 bits to be included in the BD ADDR filter.
+
+**No-follow mode** - In LE, it is now a first-class operation to only
+log advertising packets (inhibit connection following). The previous
+mechanism of using a filter of 00:00:00:00:00:00 is no longer
+functional, and this new feature should be used instead.
 
 **USB API version** - As with the previous release, we are using USB API
 versioning to improve the experience of failures due to mismatched
 firmware and host code. As of this release, the USB API has been bumped
-to 1.03. If the Ubertooth tools complain that your firmware is out of
+to 1.04. If the Ubertooth tools complain that your firmware is out of
 date, please update your firmware. Updating firmware is simple and
 reliable, please follow the instructions on the wiki
 https://github.com/greatscottgadgets/ubertooth/wiki/Firmware
 A release archive with precompiled firmware is available from
-https://github.com/greatscottgadgets/ubertooth/releases/download/2018-06-R1/ubertooth-2018-06-R1.tar.xz
+https://github.com/greatscottgadgets/ubertooth/releases/download/2018-08-R1/ubertooth-2018-08-R1.tar.xz
 
 Support
 -------
