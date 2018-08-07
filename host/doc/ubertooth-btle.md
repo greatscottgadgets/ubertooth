@@ -29,6 +29,9 @@ sent between the central and peripheral. After the connection
 terminates, Ubertooth will return to the advertising channel and wait
 for another connection.
 
+No-follow mode is similar to follow mode, but it only logs advertising
+packets and will not follow connections as they are established.
+
 Promiscuous mode is an experimental mode for sniffing connections after
 they have already been established. This mode can be used to sniff
 long-lived connections.
@@ -64,7 +67,7 @@ advertising packets but only follow connections based on the filter
 parameters. As of 2018-06-R1, advertising packets that do not match the
 filter are dropped.
 
-In both sniffing modes, Ubertooth can log data to PCAP or PcapNG with a
+In all sniffing modes, Ubertooth can log data to PCAP or PcapNG with a
 variety of pseudoheaders. The recommended logging format is PcapNG
 (`-r`) or PCAP with LE Pseudoheader (`-q`). For compatibility with
 crackle (see [USING WITH CRACKLE][]), use PCAP with PPI (`-c`).
@@ -88,6 +91,10 @@ PcapNG:
 
     ubertooth-btle -f -A 38 -r log.pcapng
 
+Log advertising packets without following connections:
+
+    ubertooth-btle -n
+
 Interfere with connections recovered with promiscuous mode:
 
     ubertooth-btle -p -I
@@ -105,6 +112,8 @@ Major modes:
 
  - `-f` :
    Follow mode: sniff connections as they are established
+ - `-n` :
+   No-follow mode: log advertising packets but don't follow connections
  - `-p` :
    Promiscuous mode: sniff already-established connections
  - `-s<BD ADDR>` : 
