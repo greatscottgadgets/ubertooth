@@ -24,7 +24,7 @@ import sys
 import threading
 import numpy
 
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt, QPointF, QLineF
@@ -385,13 +385,15 @@ def sigint_handler(*args):
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
 
-    parser = OptionParser()
-    parser.add_option("-U", type="int", dest="device",
+    parser = ArgumentParser()
+    parser.add_argument("-U", type=int, dest="device",
                       help="set ubertooth device to use")
-    parser.add_option("-l", type="int", dest="lower_freq", help="lower bound for scan, in MHz (no less than " + str(MIN_FREQ) + ")", default=DEFAULT_LOWER_FREQ)
-    parser.add_option("-u", type="int", dest="upper_freq", help="upper bound for scan, in MHz (no more than " + str(MAX_FREQ) + ")", default=DEFAULT_UPPER_FREQ)
+    parser.add_argument("-l", type=int, dest="lower_freq", help="lower bound for scan, in MHz (no less than " + str(MIN_FREQ) + ")")
+    parser.add_argument("-u", type=int, dest="upper_freq", help="upper bound for scan, in MHz (no more than " + str(MAX_FREQ) + ")")
+    parser.add_argument("--wifi", nargs='?', type=int, dest="wifi", help="interpret the bounds as 2.4GHz wifi channels, not as MHz values. If a value is provided after --wifi, it will be used as both the lower and upper bounds", const=-1, default=False)
+    parser.add_argument("--padding", type=int, dest="padding", help="padding on both ends when using --wifi, measured in MHz (default 10)", default=10)
 
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_known_args()
 
     ubertooth_device = options.device
 
@@ -399,6 +401,39 @@ if __name__ == '__main__':
         ubertooth_device = -1
 
     lower_freq = options.lower_freq
+    upper_freq = options.upper_freq
+
+    if options.wifi:
+
+        if not lower_freq:
+            lower_freq = 1
+
+        if not upper_freq:
+            upper_freq = 11
+
+        if options.wifi > 0:
+            lower_freq = options.wifi
+            upper_freq = options.wifi
+
+        if lower_freq < 1 or lower_freq > 14:
+            print("ERROR: lower channel " + str(lower_freq) + " is not a valid wifi channel")
+        if upper_freq < 1 or upper_freq > 14:
+            print("ERROR: upper channel " + str(upper_freq) + " is not a valid wifi channel")
+
+        if lower_freq == 14:
+            lower_freq = 2482 - options.padding
+        else:
+            lower_freq = lower_freq * 5 + 2407 - options.padding
+
+        if upper_freq == 14:
+            upper_freq = 2482 + options.padding
+        else:
+            upper_freq = upper_freq * 5 + 2407 + options.padding
+    else:
+        if not lower_freq:
+            lower_freq = DEFAULT_LOWER_FREQ
+        if not upper_freq:
+            upper_freq = DEFAULT_UPPER_FREQ
 
     if lower_freq < MIN_FREQ:
         print("ERROR: lower freq " + str(lower_freq) + " below minimum frequency of " + str(MIN_FREQ))
@@ -407,8 +442,6 @@ if __name__ == '__main__':
     if lower_freq > MAX_FREQ:
         print("ERROR: lower freq " + str(lower_freq) + " above maximum frequency of " + str(MAX_FREQ))
         sys.exit(1)
-
-    upper_freq = options.upper_freq
 
     if upper_freq < MIN_FREQ:
         print("ERROR: upper freq " + str(upper_freq) + " below minimum frequency of " + str(MIN_FREQ))
