@@ -90,12 +90,17 @@ class RenderArea(QtGui.QWidget):
         self._mouse_x2 = None
         self._mouse_y2 = None
 
+        self._clear_scheduled = False
+
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
                                     self._high_frequency,
                                     self._new_frame,
                                     ubertooth_device=ubertooth_device)
         self._thread.start()
+
+    def schedule_clear(self):
+        self._clear_scheduled = True
 
     def stop_thread(self):
         self._thread.stop()
@@ -119,6 +124,7 @@ class RenderArea(QtGui.QWidget):
         return QtCore.QSize(x_points * 4, y_points * 1)
 
     def _new_frame(self, frequency_axis, rssi_values):
+
         self._frame = (frequency_axis, rssi_values)
         if self._persisted_frames is None:
             self._new_persisted_frames(len(frequency_axis))
@@ -127,6 +133,12 @@ class RenderArea(QtGui.QWidget):
         self.update()
 
     def _draw_graph(self):
+        if self._clear_scheduled:
+            frequency_axis, _ = self._frame
+            self._clear_scheduled = False
+            self._new_graph()
+            self._new_persisted_frames(len(frequency_axis))
+
         if self._graph is None:
             self._new_graph()
         elif self._graph.size() != self.size():
@@ -344,6 +356,7 @@ class Window(QtGui.QWidget):
             print(' <LEFT MOUSE>        Mark LEFT frequency / signal strength at pointer')
             print(' <RIGHT MOUSE>       Mark RIGHT frequency / signal strength at pointer')
             print(' <MIDDLE MOUSE>      Toggle visibility of frequency / signal strength markers')
+            print(' C                   Clear graph')
             print(' H                   Print this HELP text')
             print(' M                   Simulate MIDDLE MOUSE click (for those with trackpads)')
             print(' Q                   Quit')
@@ -354,6 +367,9 @@ class Window(QtGui.QWidget):
             self.render_area._mouse_x2 = None
             self.render_area._mouse_y2 = None
             self.render_area._hide_markers = not self.render_area._hide_markers
+            return
+        if key == 'C':
+            self.render_area.schedule_clear()
             return
         if key == 'Q':
             print('Quit!')
