@@ -390,10 +390,10 @@ if __name__ == '__main__':
                       help="set ubertooth device to use")
     parser.add_argument("-l", type=int, dest="lower_freq", help="lower bound for scan, in MHz (no less than " + str(MIN_FREQ) + ")")
     parser.add_argument("-u", type=int, dest="upper_freq", help="upper bound for scan, in MHz (no more than " + str(MAX_FREQ) + ")")
-    parser.add_argument("--wifi", nargs='?', type=int, dest="wifi", help="interpret the bounds as 2.4GHz wifi channels, not as MHz values. If a value is provided after --wifi, it will be used as both the lower and upper bounds", const=-1, default=False)
+    parser.add_argument("--wifi", nargs='?', type=int, dest="wifi", metavar="channel", help="interpret the bounds as 2.4GHz wifi channels, not as MHz values. If a value is provided after --wifi, it will be used as both the lower and upper bounds", const=-1, default=False)
     parser.add_argument("--padding", type=int, dest="padding", help="padding on both ends when using --wifi, measured in MHz (default 10)", default=10)
 
-    (options, args) = parser.parse_known_args()
+    (options, extras) = parser.parse_known_args()
 
     ubertooth_device = options.device
 
@@ -420,6 +420,8 @@ if __name__ == '__main__':
         if upper_freq < 1 or upper_freq > 14:
             print("ERROR: upper channel " + str(upper_freq) + " is not a valid wifi channel")
 
+        # channel 14 is special, for some reason
+        
         if lower_freq == 14:
             lower_freq = 2482 - options.padding
         else:
