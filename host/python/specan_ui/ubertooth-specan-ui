@@ -31,6 +31,13 @@ from PySide.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 
+DEFAULT_LOWER_FREQ = 2400
+DEFAULT_UPPER_FREQ = 2483
+
+# going much further causes the Ubertooth to stop responding :(
+
+MIN_FREQ = 2300
+MAX_FREQ = 2600
 
 class SpecanThread(threading.Thread):
     def __init__(self, device, low_frequency, high_frequency, new_frame_callback, ubertooth_device=-1):
@@ -59,7 +66,7 @@ class SpecanThread(threading.Thread):
 
 
 class RenderArea(QtGui.QWidget):
-    def __init__(self, device, parent=None, ubertooth_device=-1):
+    def __init__(self, device, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ):
         QtGui.QWidget.__init__(self, parent)
 
         self._graph = None
@@ -71,8 +78,8 @@ class RenderArea(QtGui.QWidget):
         self._persisted_frames_depth = 350
         self._path_max = None
 
-        self._low_frequency = 2.400e9
-        self._high_frequency = 2.483e9
+        self._low_frequency = lower_freq * 1e6
+        self._high_frequency = upper_freq * 1e6
         self._frequency_step = 1e6
         self._high_dbm = 0.0
         self._low_dbm = -100.0
@@ -279,12 +286,12 @@ class RenderArea(QtGui.QWidget):
 
 
 class Window(QtGui.QWidget):
-    def __init__(self, parent=None, ubertooth_device=-1):
+    def __init__(self, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ):
         QtGui.QWidget.__init__(self, parent)
 
         self._device = self._open_device()
 
-        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device)
+        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
 
         main_layout = QtGui.QGridLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -365,6 +372,8 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-U", type="int", dest="device",
                       help="set ubertooth device to use")
+    parser.add_option("-l", type="int", dest="lower_freq", help="lower bound for scan, in MHz (no less than " + str(MIN_FREQ) + ")", default=DEFAULT_LOWER_FREQ)
+    parser.add_option("-u", type="int", dest="upper_freq", help="upper bound for scan, in MHz (no more than " + str(MAX_FREQ) + ")", default=DEFAULT_UPPER_FREQ)
 
     (options, args) = parser.parse_args()
 
@@ -373,7 +382,31 @@ if __name__ == '__main__':
     if ubertooth_device is None:
         ubertooth_device = -1
 
+    lower_freq = options.lower_freq
+
+    if lower_freq < MIN_FREQ:
+        print("ERROR: lower freq " + str(lower_freq) + " below minimum frequency of " + str(MIN_FREQ))
+        sys.exit(1)
+
+    if lower_freq > MAX_FREQ:
+        print("ERROR: lower freq " + str(lower_freq) + " above maximum frequency of " + str(MAX_FREQ))
+        sys.exit(1)
+
+    upper_freq = options.upper_freq
+
+    if upper_freq < MIN_FREQ:
+        print("ERROR: upper freq " + str(upper_freq) + " below minimum frequency of " + str(MIN_FREQ))
+        sys.exit(1)
+
+    if upper_freq > MAX_FREQ:
+        print("ERROR: upper freq " + str(upper_freq) + " above maximum frequency of " + str(MAX_FREQ))
+        sys.exit(1)
+
+    if lower_freq >= upper_freq:
+        print("ERROR: lower freq " + str(lower_freq) + " must be less than upper freq " + str(upper_freq))
+        sys.exit(1)
+
     app = QtGui.QApplication(sys.argv)
-    window = Window(ubertooth_device=ubertooth_device)
+    window = Window(ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
     window.show()
     sys.exit(app.exec_())
