@@ -24,13 +24,20 @@ import sys
 import threading
 import numpy
 
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 from PySide import QtCore, QtGui
 from PySide.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 
+DEFAULT_LOWER_FREQ = 2400
+DEFAULT_UPPER_FREQ = 2483
+
+# going much further causes the Ubertooth to stop responding :(
+
+MIN_FREQ = 2300
+MAX_FREQ = 2600
 
 class SpecanThread(threading.Thread):
     def __init__(self, device, low_frequency, high_frequency, new_frame_callback, ubertooth_device=-1):
@@ -59,7 +66,7 @@ class SpecanThread(threading.Thread):
 
 
 class RenderArea(QtGui.QWidget):
-    def __init__(self, device, parent=None, ubertooth_device=-1):
+    def __init__(self, device, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ):
         QtGui.QWidget.__init__(self, parent)
 
         self._graph = None
@@ -71,8 +78,8 @@ class RenderArea(QtGui.QWidget):
         self._persisted_frames_depth = 350
         self._path_max = None
 
-        self._low_frequency = 2.400e9
-        self._high_frequency = 2.483e9
+        self._low_frequency = lower_freq * 1e6
+        self._high_frequency = upper_freq * 1e6
         self._frequency_step = 1e6
         self._high_dbm = 0.0
         self._low_dbm = -100.0
@@ -83,12 +90,17 @@ class RenderArea(QtGui.QWidget):
         self._mouse_x2 = None
         self._mouse_y2 = None
 
+        self._clear_scheduled = False
+
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
                                     self._high_frequency,
                                     self._new_frame,
                                     ubertooth_device=ubertooth_device)
         self._thread.start()
+
+    def schedule_clear(self):
+        self._clear_scheduled = True
 
     def stop_thread(self):
         self._thread.stop()
@@ -112,6 +124,7 @@ class RenderArea(QtGui.QWidget):
         return QtCore.QSize(x_points * 4, y_points * 1)
 
     def _new_frame(self, frequency_axis, rssi_values):
+
         self._frame = (frequency_axis, rssi_values)
         if self._persisted_frames is None:
             self._new_persisted_frames(len(frequency_axis))
@@ -120,6 +133,12 @@ class RenderArea(QtGui.QWidget):
         self.update()
 
     def _draw_graph(self):
+        if self._clear_scheduled:
+            frequency_axis, _ = self._frame
+            self._clear_scheduled = False
+            self._new_graph()
+            self._new_persisted_frames(len(frequency_axis))
+
         if self._graph is None:
             self._new_graph()
         elif self._graph.size() != self.size():
@@ -279,12 +298,12 @@ class RenderArea(QtGui.QWidget):
 
 
 class Window(QtGui.QWidget):
-    def __init__(self, parent=None, ubertooth_device=-1):
+    def __init__(self, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ):
         QtGui.QWidget.__init__(self, parent)
 
         self._device = self._open_device()
 
-        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device)
+        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
 
         main_layout = QtGui.QGridLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -337,6 +356,7 @@ class Window(QtGui.QWidget):
             print(' <LEFT MOUSE>        Mark LEFT frequency / signal strength at pointer')
             print(' <RIGHT MOUSE>       Mark RIGHT frequency / signal strength at pointer')
             print(' <MIDDLE MOUSE>      Toggle visibility of frequency / signal strength markers')
+            print(' C                   Clear graph')
             print(' H                   Print this HELP text')
             print(' M                   Simulate MIDDLE MOUSE click (for those with trackpads)')
             print(' Q                   Quit')
@@ -347,6 +367,9 @@ class Window(QtGui.QWidget):
             self.render_area._mouse_x2 = None
             self.render_area._mouse_y2 = None
             self.render_area._hide_markers = not self.render_area._hide_markers
+            return
+        if key == 'C':
+            self.render_area.schedule_clear()
             return
         if key == 'Q':
             print('Quit!')
@@ -359,21 +382,90 @@ def sigint_handler(*args):
     """Handler for the SIGINT signal."""
     QtGui.QApplication.quit()
 
+
+def convert_wifi(channel):
+    if channel < 1 or channel > 14:
+        print("ERROR: channel " + str(channel) + " is not a valid wifi channel")
+        raise ValueError()
+
+    if channel == 14:
+        return 2482
+    else:
+        return channel * 5 + 2407
+
+def check_freq(freq):
+    if freq < MIN_FREQ:
+        print("ERROR: frequency of " + str(freq) + " MHz is below minimum frequency of " + str(MIN_FREQ))
+        raise ValueError()
+    if freq > MAX_FREQ:
+        print("ERROR: frequency of " + str(freq) + " MHz is above maximum frequency of " + str(MAX_FREQ))
+        raise ValueError()
+
+
+def check_freq_pair(freq1, freq2):
+    check_freq(freq1)
+    check_freq(freq2)
+
+    if freq1 > freq2:
+        print("ERROR: lower frequency of " + str(freq1) + " MHz is above upper frequency of " + str(freq2) + " MHz")
+        raise ValueError()
+
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
 
-    parser = OptionParser()
-    parser.add_option("-U", type="int", dest="device",
+    parser = ArgumentParser()
+    parser.add_argument("-U", type=int, dest="device",
                       help="set ubertooth device to use")
+    parser.add_argument("-l", type=int, dest="lower_freq", help="lower bound for scan, in MHz (no less than " + str(MIN_FREQ) + ")")
+    parser.add_argument("-u", type=int, dest="upper_freq", help="upper bound for scan, in MHz (no more than " + str(MAX_FREQ) + ")")
+    parser.add_argument("--wifi", type=str, nargs='?', dest="wifi", metavar="channel(s)", help="display the spectrum for the wifi channels provided, either as a single number for one channel, or a range (e.g. 1-11) for two channels", const="1", default=False)
+    parser.add_argument("--padding", type=int, dest="padding", help="padding on both ends when using --wifi, measured in MHz (default 10)", default=10)
 
-    (options, args) = parser.parse_args()
+    (options, extras) = parser.parse_known_args()
 
     ubertooth_device = options.device
 
     if ubertooth_device is None:
         ubertooth_device = -1
 
+    lower_freq = options.lower_freq
+    upper_freq = options.upper_freq
+
+    if options.wifi:
+
+        lower_channel = upper_channel = None
+
+        parts = options.wifi.split("-")
+
+        try:
+            if len(parts) == 1:
+                lower_channel = upper_channel = int(parts[0])
+            elif len(parts) == 2:
+                lower_channel = int(parts[0])
+                upper_channel = int(parts[1])
+            else:
+                raise ValueError()
+        except ValueError:
+            print("ERROR: invalid channel range: " + options.wifi)
+            sys.exit(1)
+
+        try:
+            lower_freq = convert_wifi(lower_channel) - options.padding
+            upper_freq = convert_wifi(upper_channel) + options.padding
+        except ValueError:
+            sys.exit(1)
+    else:
+        if not lower_freq:
+            lower_freq = DEFAULT_LOWER_FREQ
+        if not upper_freq:
+            upper_freq = DEFAULT_UPPER_FREQ
+
+    try:
+        check_freq_pair(lower_freq, upper_freq)
+    except ValueError:
+        sys.exit(1)
+
     app = QtGui.QApplication(sys.argv)
-    window = Window(ubertooth_device=ubertooth_device)
+    window = Window(ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
     window.show()
     sys.exit(app.exec_())
