@@ -26,8 +26,8 @@ import numpy
 
 from argparse import ArgumentParser
 
-from PySide import QtCore, QtGui
-from PySide.QtCore import Qt, QPointF, QLineF
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 
@@ -65,9 +65,9 @@ class SpecanThread(threading.Thread):
         self._stopped = True
 
 
-class RenderArea(QtGui.QWidget):
+class RenderArea(QtWidgets.QWidget):
     def __init__(self, device, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self._graph = None
         self._reticle = None
@@ -297,15 +297,15 @@ class RenderArea(QtGui.QWidget):
         return self._high_dbm - delta
 
 
-class Window(QtGui.QWidget):
+class Window(QtWidgets.QWidget):
     def __init__(self, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self._device = self._open_device()
 
         self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
 
-        main_layout = QtGui.QGridLayout()
+        main_layout = QtWidgets.QGridLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.render_area, 0, 0)
         self.setLayout(main_layout)
@@ -380,7 +380,7 @@ class Window(QtGui.QWidget):
 
 def sigint_handler(*args):
     """Handler for the SIGINT signal."""
-    QtGui.QApplication.quit()
+    QtWidgets.QApplication.quit()
 
 
 def convert_wifi(channel):
@@ -465,7 +465,7 @@ if __name__ == '__main__':
     except ValueError:
         sys.exit(1)
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = Window(ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
     window.show()
     sys.exit(app.exec_())
