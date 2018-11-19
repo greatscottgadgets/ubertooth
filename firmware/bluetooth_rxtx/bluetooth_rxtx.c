@@ -1096,16 +1096,21 @@ static void cc2400_tx_sync(uint32_t sync)
  * All modulation parameters are set within this function. The data
  * should not be pre-whitened, but the CRC should be calculated and
  * included in the data length.
+ *
+ * FIXME: Total packet len must be <= 32 bytes for Reasons. Longer
+ * packets will be quietly truncated.
  */
 void le_transmit(u32 aa, u8 len, u8 *data)
 {
 	unsigned i, j;
 	int bit;
-	u8 txbuf[64];
-	u8 tx_len;
+	u8 txbuf[32];
 	u8 byte;
-	u16 gio_save;
 	uint32_t sync = rbit(aa);
+
+	// lol
+	if (len > 32)
+		len = 32;
 
 	// whiten the data and copy it into the txbuf
 	int idx = whitening_index[btle_channel_index(channel)];
@@ -1142,10 +1147,7 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	cc2400_set(SYNCL,   sync & 0xffff);
 	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
 
-	// set GIO to FIFO_FULL
-	gio_save = cc2400_get(IOCFG);
-	cc2400_set(IOCFG, (GIO_FIFO_FULL << 9) | (gio_save & 0x1ff));
-
+	// turn on the radio
 	while (!(cc2400_status() & XOSC16M_STABLE));
 	cc2400_strobe(SFSON);
 	while (!(cc2400_status() & FS_LOCK));
@@ -1154,16 +1156,10 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	PAEN_SET;
 #endif
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
-	cc2400_strobe(STX);
 
-	// put the packet into the FIFO
-	for (i = 0; i < len; i += 16) {
-		while (GIO6) ; // wait for the FIFO to drain (FIFO_FULL false)
-		tx_len = len - i;
-		if (tx_len > 16)
-			tx_len = 16;
-		cc2400_fifo_write(tx_len, txbuf + i);
-	}
+	// copy the packet to the FIFO and strobe STX
+	cc2400_fifo_write(len, txbuf);
+	cc2400_strobe(STX);
 
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	TXLED_CLR;
@@ -1174,9 +1170,6 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 #ifdef UBERTOOTH_ONE
 	PAEN_CLR;
 #endif
-
-	// reset GIO
-	cc2400_set(IOCFG, gio_save);
 }
 
 void le_jam(void) {
