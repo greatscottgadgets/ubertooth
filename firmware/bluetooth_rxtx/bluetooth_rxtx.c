@@ -1105,43 +1105,31 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	u8 tx_len;
 	u8 byte;
 	u16 gio_save;
-
-	// first four bytes: AA
-	for (i = 0; i < 4; ++i) {
-		byte = aa & 0xff;
-		aa >>= 8;
-		txbuf[i] = 0;
-		for (j = 0; j < 8; ++j) {
-			txbuf[i] |= (byte & 1) << (7 - j);
-			byte >>= 1;
-		}
-	}
+	uint32_t sync = rbit(aa);
 
 	// whiten the data and copy it into the txbuf
 	int idx = whitening_index[btle_channel_index(channel)];
 	for (i = 0; i < len; ++i) {
 		byte = data[i];
-		txbuf[i+4] = 0;
+		txbuf[i] = 0;
 		for (j = 0; j < 8; ++j) {
 			bit = (byte & 1) ^ whitening[idx];
 			idx = (idx + 1) % sizeof(whitening);
 			byte >>= 1;
-			txbuf[i+4] |= bit << (7 - j);
+			txbuf[i] |= bit << (7 - j);
 		}
 	}
-
-	len += 4; // include the AA in len
 
 	// Bluetooth-like modulation
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
 	cc2400_set(MDMTST0, 0x134b);    // no PRNG
 
-	cc2400_set(GRMDM,   0x0c01);
-	// 0 00 01 1 000 00 0 00 0 1
+	cc2400_set(GRMDM,   0x0ce1);
+	// 0 00 01 1 001 11 0 00 0 1
 	//      |  | |   |  +--------> CRC off
-	//      |  | |   +-----------> sync word: 8 MSB bits of SYNC_WORD
-	//      |  | +---------------> 0 preamble bytes of 01010101
+	//      |  | |   +-----------> sync word: all 32 bits of SYNC_WORD
+	//      |  | +---------------> 1 preamble byte of 01010101
 	//      |  +-----------------> packet mode
 	//      +--------------------> buffered mode
 
@@ -1150,11 +1138,9 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
 	cc2400_set(INT,     0x0014);    // FIFO_THRESHOLD: 20 bytes
 
-	// sync byte depends on the first transmitted bit of the AA
-	if (aa & 1)
-		cc2400_set(SYNCH,   0xaaaa);
-	else
-		cc2400_set(SYNCH,   0x5555);
+	// set sync word to bit-reversed AA
+	cc2400_set(SYNCL,   sync & 0xffff);
+	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
 
 	// set GIO to FIFO_FULL
 	gio_save = cc2400_get(IOCFG);
