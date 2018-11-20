@@ -212,7 +212,7 @@ VendorRequestHandler *v_req_handler;
 BOOL usb_vendor_request_handler(TSetupPacket *pSetup, int *piLen, u8 **ppbData)
 {
 	int rv;
-	u16 params[2] = {pSetup->wValue, pSetup->wIndex};
+	u16 params[3] = {pSetup->wValue, pSetup->wIndex, pSetup->wLength};
 	rv = v_req_handler(pSetup->bRequest, params, *ppbData, piLen);
 	return (BOOL) (rv==1);
 }
