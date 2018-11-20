@@ -113,6 +113,9 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_CANCEL_FOLLOW      = 70,
 };
 
+// maximum adv data len: 32 - (2 + 6 + 3)
+#define LE_ADV_MAX_LEN 21
+
 enum jam_modes {
 	JAM_NONE       = 0,
 	JAM_ONCE       = 1,

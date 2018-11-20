@@ -75,8 +75,10 @@ volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
 /* Generic TX stuff */
 generic_tx_packet tx_pkt;
 
-/* le stuff */
+/* le slave stuff */
 uint8_t slave_mac_address[6] = { 0, };
+uint8_t le_adv_data[LE_ADV_MAX_LEN] = { 0x02, 0x01, 0x05 };
+unsigned le_adv_len = 3;
 
 le_state_t le = {
 	.access_address = 0x8e89bed6,           // advertising channel access address
@@ -2302,31 +2304,31 @@ void bt_promisc_le() {
 void bt_slave_le() {
 	u32 calc_crc;
 	int i;
+	uint8_t adv_ind[32] = { 0x00, };
+	uint8_t adv_ind_len;
 
-	u8 adv_ind[] = {
-		// LL header
-		0x00, 0x09,
+	if (le_adv_len > LE_ADV_MAX_LEN) {
+		requested_mode = MODE_IDLE;
+		return;
+	}
 
-		// advertising address
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-
-		// advertising data
-		0x02, 0x01, 0x05,
-
-		// CRC (calc)
-		0xff, 0xff, 0xff,
-	};
-
-	u8 adv_ind_len = sizeof(adv_ind) - 3;
+	adv_ind_len = 6 + le_adv_len;
+	adv_ind[1] = adv_ind_len;
 
 	// copy the user-specified mac address
 	for (i = 0; i < 6; ++i)
 		adv_ind[i+2] = slave_mac_address[5-i];
 
+	// copy in the adv data
+	memcpy(adv_ind + 2 + 6, le_adv_data, le_adv_len);
+
+	// total: 2 + 6 + le_adv_len
+	adv_ind_len += 2;
+
 	calc_crc = btle_calc_crc(le.crc_init_reversed, adv_ind, adv_ind_len);
-	adv_ind[adv_ind_len+0] = (calc_crc >>  0) & 0xff;
-	adv_ind[adv_ind_len+1] = (calc_crc >>  8) & 0xff;
-	adv_ind[adv_ind_len+2] = (calc_crc >> 16) & 0xff;
+	adv_ind[adv_ind_len + 0] = (calc_crc >>  0) & 0xff;
+	adv_ind[adv_ind_len + 1] = (calc_crc >>  8) & 0xff;
+	adv_ind[adv_ind_len + 2] = (calc_crc >> 16) & 0xff;
 
 	clkn_start();
 
