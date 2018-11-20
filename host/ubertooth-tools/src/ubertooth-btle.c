@@ -387,6 +387,10 @@ int main(int argc, char *argv[])
 			channel = 2480;
 		cmd_set_channel(ut->devh, channel);
 
+		// flags: LE Limited Discovery
+		uint8_t adv_data[] = { 0x02, 0x01, 0x05 };
+		cmd_le_set_adv_data(ut->devh, adv_data, sizeof(adv_data));
+
 		cmd_btle_slave(ut->devh, mac_address);
 	}
 

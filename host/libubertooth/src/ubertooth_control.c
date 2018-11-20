@@ -935,6 +935,28 @@ int cmd_btle_slave(struct libusb_device_handle* devh, u8 *mac_address)
 	return 0;
 }
 
+int cmd_le_set_adv_data(struct libusb_device_handle* devh, uint8_t *data, unsigned data_len) {
+	int r;
+
+	if (data_len > LE_ADV_MAX_LEN) {
+		fprintf(stderr, "Ubertooth USB error: LE advertising data too long (%u > %u)\n", data_len, LE_ADV_MAX_LEN);
+		return -1;
+	}
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_LE_SET_ADV_DATA, 0, 0,
+			data, data_len, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	return 0;
+}
+
 int cmd_btle_set_target(struct libusb_device_handle* devh, uint8_t *mac_address, uint8_t mac_mask)
 {
 	int r;

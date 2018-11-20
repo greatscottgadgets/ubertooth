@@ -193,6 +193,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	usb_pkt_rx* p = NULL;
 	uint16_t reg_val;
 	uint8_t i;
+	unsigned data_in_len = request_params[2];
 
 	switch (request) {
 
@@ -646,6 +647,14 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 	case UBERTOOTH_BTLE_SLAVE:
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
+		break;
+
+	case UBERTOOTH_LE_SET_ADV_DATA:
+		// make sure the data fits in our buffer
+		if (data_in_len > LE_ADV_MAX_LEN)
+			return 0;
+		le_adv_len = data_in_len;
+		memcpy(le_adv_data, data, le_adv_len);
 		break;
 
 	case UBERTOOTH_BTLE_SET_TARGET:
