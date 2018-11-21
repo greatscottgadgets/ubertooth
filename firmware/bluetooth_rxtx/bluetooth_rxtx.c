@@ -661,7 +661,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		// Addresses appear in packets in reverse-octet order.
 		// Store the target address in reverse order so that we can do a simple memcmp later
 		if (data[6] > 48) {
-			return 1; // invalid mask
+			return 0; // invalid mask
 		}
 		else if (data[6] == 0) {
 			le.target_set = 0;
