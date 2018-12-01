@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #define DEFAULT_UUID "fd123ff9-9e30-45b2-af0d-b85b7d2dc80c"
+#define BOOTLOADER_UUID "344bc7f2-5619-4953-9be8-9888fe29d996"
 
 int running = 1;
 
@@ -145,8 +146,10 @@ static void usage(void) {
 	printf("ubertooth-ducky - make an Uberducky quack like a USB Rubber Ducky\n");
 	printf("Usage:\n");
 	printf("\t-q [uuid] quack!\n");
+	printf("\t-b signal Uberducky to enter bootloader\n");
+	printf("\n");
 	printf("\t-A <index> advertising channel index (default: 38)\n");
-	printf("\t-b <BD ADDR> Bluetooth address (default: random)\n");
+	printf("\t-a <BD ADDR> Bluetooth address (default: random)\n");
 	printf("\t-h this help\n");
 	printf("\n");
 	printf("For more information on Uberducky, visit:\n");
@@ -172,11 +175,16 @@ int main(int argc, char *argv[])
 	addr_set = 0;
 	be_sarcastic = 0;
 
-	while ((opt=getopt(argc,argv,"q::A:b:hs")) != EOF) {
+	while ((opt=getopt(argc,argv,"q::bA:a:hs")) != EOF) {
 		switch(opt) {
 		case 'q':
 			do_quack = 1;
 			uuid_str = strdup(optarg ? optarg : DEFAULT_UUID);
+			break;
+
+		case 'b':
+			do_quack = 1;
+			uuid_str = strdup(BOOTLOADER_UUID);
 			break;
 
 		case 'A':
@@ -188,7 +196,7 @@ int main(int argc, char *argv[])
 			}
 			break;
 
-		case 'b':
+		case 'a':
 			r = convert_mac_address(optarg, bd_addr);
 			if (!r) {
 				printf("Error parsing BD ADDR '%s'\n", optarg);
