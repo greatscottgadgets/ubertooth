@@ -2341,15 +2341,17 @@ void bt_slave_le() {
 
 	clkn_start();
 
+	// enable USB interrupts due to busy waits
+	ISER0 = ISER0_ISE_USB;
+
 	// spam advertising packets
 	while (requested_mode == MODE_BT_SLAVE_LE) {
-		ICER0 = ICER0_ICE_USB;
-		ICER0 = ICER0_ICE_DMA;
 		le_transmit(0x8e89bed6, adv_ind_len+3, adv_ind);
-		ISER0 = ISER0_ISE_USB;
-		ISER0 = ISER0_ISE_DMA;
 		msleep(100);
 	}
+
+	// disable USB interrupts
+	ICER0 = ICER0_ICE_USB;
 }
 
 void rx_generic_sync(void) {
