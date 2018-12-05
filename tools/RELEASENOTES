@@ -1,49 +1,32 @@
-Ubertooth 2018-08-R1 Release Notes
+Ubertooth 2018-12-R1 Release Notes
 ==============================
-The Ubertooth host utilities in this release require libbtbb-2018-08-R1
-(https://github.com/greatscottgadgets/libbtbb/releases/tag/2018-08-R1) or
+The Ubertooth host utilities in this release require libbtbb-2018-12-R1
+(https://github.com/greatscottgadgets/libbtbb/releases/tag/2018-12-R1) or
 greater.
 
 Changes
 -------
 
-**New LE sniffing engine** - The BLE sniffing engine has been completely
-rewritten using interrupts to drive an event-based core. The new
-sniffing engine is considerably more robust than previous versions and
-should have a higher packet capture rate. This code has received less
-testing than previous versions, but in the experience of the author has
-been exceptionally stable and is superior to previous versions in almost
-every way.
+**Uberducky triggering** - Uberducky is a new project built on Ubertooth
+hardware that acts like a USB Rubber Ducky. You can use a second
+Ubertooth to trigger it to inject keystrokes using the `ubertooth-ducky`
+command. See the [Uberducky repo](https://github.com/mikeryan/uberducky)
+for more info.
 
-**Partial channel map support** - As part of the new BLE sniffing
-engine, there is now support for partial channel maps when an LE
-connection is established as well as support for the Channel Map Update
-Link Layer Procedure. This allows capturing connections from virtually
-all modern BLE devices.
+**Spectrum Analyzer UI improvements** - Thank you Steven Haussmann and
+Andrew Browning!
 
-**Connection update support** - Support for Connection Update Link Layer
-Procedure has been reimplemented as of this update. This was a feature
-degradation in 2018-06-R1 but has been fixed.
-
-**Improved filtering** - LE filtering now applies to all advertising
-packets, not just connections. Packets that do not match the filter are
-silently dropped. Filters can include a CIDR-style netmask, allowing as
-few as 1 or as many as 48 bits to be included in the BD ADDR filter.
-
-**No-follow mode** - In LE, it is now a first-class operation to only
-log advertising packets (inhibit connection following). The previous
-mechanism of using a filter of 00:00:00:00:00:00 is no longer
-functional, and this new feature should be used instead.
+**Bug fixes** - Improvements to `ubertooth-btle`'s faux slave mode.
 
 **USB API version** - As with the previous release, we are using USB API
 versioning to improve the experience of failures due to mismatched
 firmware and host code. As of this release, the USB API has been bumped
-to 1.05. If the Ubertooth tools complain that your firmware is out of
+to 1.06. If the Ubertooth tools complain that your firmware is out of
 date, please update your firmware. Updating firmware is simple and
 reliable, please follow the instructions on the wiki
 https://github.com/greatscottgadgets/ubertooth/wiki/Firmware
 A release archive with precompiled firmware is available from
-https://github.com/greatscottgadgets/ubertooth/releases/download/2018-08-R1/ubertooth-2018-08-R1.tar.xz
+https://github.com/greatscottgadgets/ubertooth/releases/download/2018-12-R1/ubertooth-2018-12-R1.tar.xz
 
 Support
 -------

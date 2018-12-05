@@ -1,3 +1,11 @@
+ubertooth (2018-12-R1) unstable; urgency=low
+  * Trigger an Uberducky with ubertooth-ducky
+  * Bugfixes in ubertooth-btle slave mode
+  * Improvements to spectrum analyzer UI
+  * USB API version bumped to 1.06
+
+ -- Mike Ryan <mikeryan@lacklustre.net>  04 Dec 2018 21:50:00 -0800
+
 ubertooth (2018-08-R1) unstable; urgency=low
   * Support for partial channel map updates
   * LE no-follow mode (advertising packets only)
