@@ -39,6 +39,6 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then DYLIB_SUFFIX=dylib; else DYLIB_SUFFIX=so; fi
   - cmake -DLIBBTBB_INCLUDE_DIR=/tmp/libbtbb-install/include -DLIBBTBB_LIBRARIES=/tmp/libbtbb-install/lib/libbtbb.$DYLIB_SUFFIX ..
   - make
- - popd
- - pushd firmware
- - CROSS_COMPILE="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-" DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
+  - popd
+  - pushd firmware
+  - CROSS_COMPILE="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-" DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
