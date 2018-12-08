@@ -47,6 +47,7 @@ script:
   - cmake ..
   - make
   - sudo make install
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ldconfig; fi
   # Firmware
   - cd $TRAVIS_BUILD_DIR/firmware
   - make
