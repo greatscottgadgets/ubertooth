@@ -10,6 +10,12 @@ matrix:
     - os: osx
       compiler: clang
 
+env:
+  global:
+    - BUILD_NAME="Ubertooth-$TRAVIS_OS_NAME-`date --iso-8601`-$TRAVIS_COMMIT"
+    - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
+    - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
+
 addons:
   apt:
     packages:
@@ -25,27 +31,35 @@ addons:
        - gcc-arm-none-eabi
 
 before_script:
-  - pushd /tmp
+  - cd /tmp
   - mkdir libbtbb-install
   - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip -O /tmp/libbtbb-master.zip
   - unzip libbtbb-master.zip
   - mkdir libbtbb-master/build
-  - pushd libbtbb-master/build
+  - cd libbtbb-master/build
   - cmake -DCMAKE_INSTALL_PREFIX:PATH=/tmp/libbtbb-install ..
   - make
   - make install
-  - popd
-  - popd
   - export CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array"
 
 script:
   # Host code
-  - mkdir host/build
-  - pushd host/build
+  - mkdir $TRAVIS_BUILD_DIR/ubertooth/host/build
+  - cd $TRAVIS_BUILD_DIR/ubertooth/host/build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then DYLIB_SUFFIX=dylib; else DYLIB_SUFFIX=so; fi
   - cmake -DLIBBTBB_INCLUDE_DIR=/tmp/libbtbb-install/include -DLIBBTBB_LIBRARIES=/tmp/libbtbb-install/lib/libbtbb.$DYLIB_SUFFIX ..
   - make
   # Firmware
-  - popd
-  - pushd firmware
+  - cd cd $TRAVIS_BUILD_DIR/ubertooth/firmware
   - DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
+
+deploy:
+  provider: pages
+  verbose: true
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: true
+  repo: greatscottgadgets/nightly-builds
+  local-dir: $ARTEFACT_BASE
+  on:
+    branch: master
