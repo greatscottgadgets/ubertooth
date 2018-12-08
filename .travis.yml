@@ -31,27 +31,25 @@ addons:
        - gcc-arm-none-eabi
 
 before_script:
-  - cd /tmp
-  - mkdir libbtbb-install
-  - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip -O /tmp/libbtbb-master.zip
+  - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip -O libbtbb-master.zip
   - unzip libbtbb-master.zip
   - mkdir libbtbb-master/build
   - cd libbtbb-master/build
-  - cmake -DCMAKE_INSTALL_PREFIX:PATH=/tmp/libbtbb-install ..
+  - cmake ..
   - make
-  - make install
+  - sudo make install
   - export CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array"
 
 script:
   # Host code
-  - mkdir $TRAVIS_BUILD_DIR/ubertooth/host/build
-  - cd $TRAVIS_BUILD_DIR/ubertooth/host/build
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then DYLIB_SUFFIX=dylib; else DYLIB_SUFFIX=so; fi
-  - cmake -DLIBBTBB_INCLUDE_DIR=/tmp/libbtbb-install/include -DLIBBTBB_LIBRARIES=/tmp/libbtbb-install/lib/libbtbb.$DYLIB_SUFFIX ..
+  - mkdir $TRAVIS_BUILD_DIR/host/build
+  - cd $TRAVIS_BUILD_DIR/host/build
+  - cmake ..
   - make
+  - sudo make install
   # Firmware
-  - cd cd $TRAVIS_BUILD_DIR/ubertooth/firmware
-  - DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
+  - cd $TRAVIS_BUILD_DIR/firmware
+  - make
 
 deploy:
   provider: pages
