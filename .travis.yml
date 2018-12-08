@@ -22,9 +22,7 @@ addons:
   homebrew:
     taps: PX4/homebrew-px4
     packages:
-       - fftw
        - gcc-arm-none-eabi
-       - dfu-util
 
 before_script:
   - pushd /tmp
