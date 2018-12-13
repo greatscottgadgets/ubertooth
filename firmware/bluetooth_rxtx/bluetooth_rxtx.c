@@ -1108,20 +1108,16 @@ static void cc2400_tx_sync(uint32_t sync)
  * should not be pre-whitened, but the CRC should be calculated and
  * included in the data length.
  *
- * FIXME: Total packet len must be <= 32 bytes for Reasons. Longer
- * packets will be quietly truncated.
  */
 void le_transmit(u32 aa, u8 len, u8 *data)
 {
-	unsigned i, j;
+	unsigned int fifo_space, i, j;
 	int bit;
-	u8 txbuf[32];
+	u8 txbuf[LE_ADV_MAX_LEN];
+	u8 tx_len;
 	u8 byte;
 	uint32_t sync = rbit(aa);
-
-	// lol
-	if (len > 32)
-		len = 32;
+	u16 gio_save;
 
 	// whiten the data and copy it into the txbuf
 	int idx = whitening_index[btle_channel_index(channel)];
@@ -1152,11 +1148,15 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	cc2400_set(FSDIV,   channel);
 	cc2400_set(FREND,   0b1011);    // amplifier level (-7 dBm, picked from hat)
 	cc2400_set(MDMCTRL, 0x0040);    // 250 kHz frequency deviation
-	cc2400_set(INT,     0x0014);    // FIFO_THRESHOLD: 20 bytes
+	cc2400_set(INT,     0x0010);    // FIFO_THRESHOLD: 16 bytes
 
 	// set sync word to bit-reversed AA
 	cc2400_set(SYNCL,   sync & 0xffff);
 	cc2400_set(SYNCH,   (sync >> 16) & 0xffff);
+
+	// set GIO to FIFO_FULL
+	gio_save = cc2400_get(IOCFG);
+	cc2400_set(IOCFG, (GIO_FIFO_EMPTY << 9) | (gio_save & 0x1ff));
 
 	// turn on the radio
 	while (!(cc2400_status() & XOSC16M_STABLE));
@@ -1167,11 +1167,34 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	PAEN_SET;
 #endif
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
-
-	// copy the packet to the FIFO and strobe STX
-	cc2400_fifo_write(len, txbuf);
-	cc2400_strobe(STX);
-
+	/*
+		This is the correct way of talking to the CC2400 FIFO, the algorithm is as follows:
+	 	While i need to send more data:
+	 		1. Wait for FIFO to drain according to FIFO_THRESHOLD, (or if first iteration immediately)
+	 		2. Fill the FIFO with the correct amount of data to send (fifo_space is an indicator for how much data has "drained" from the fifo and is now available for us to fill up again)
+	 		3. Signal FIFO to send data
+	*/
+	fifo_space = 32; // We start at 32, because the C2400 FIFO overall size is 32 bytes.
+	i = 0;
+	while (len != 0)
+	{
+		// Wait for the FIFO to drain (when FIFO_FULL is false)	
+		while (!GIO6);
+		// Decide how much we should send in this iteration
+		if (len >= fifo_space) {
+			len -= fifo_space;
+			tx_len = fifo_space;
+		} else {
+			tx_len = len;
+			len = 0;
+		}
+		// Signal FIFO to send data
+		cc2400_fifo_write(tx_len, txbuf + i);
+		cc2400_strobe(STX);
+		i += tx_len;
+		// From now on, we only get interrupt on GIO6, which means that we work according to FIFO_THRESHOLD now, the fifo is only half full.
+		fifo_space = 16;
+	}
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	TXLED_CLR;
 
@@ -1181,6 +1204,8 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 #ifdef UBERTOOTH_ONE
 	PAEN_CLR;
 #endif
+	// Restore GIO
+ 	cc2400_set(IOCFG, gio_save);
 }
 
 void le_jam(void) {
