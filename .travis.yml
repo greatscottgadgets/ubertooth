@@ -53,8 +53,8 @@ script:
   # RX only firmware
   - mkdir rx_only
   - DISABLE_TX=1 make bluetooth_rxtx
-  - mv bluetooth_rxtx.bin rx_only/bluetooth_rx_only.bin
-  - mv bluetooth_rxtx.dfu rx_only/bluetooth_rx_only.dfu
+  - mv bluetooth_rxtx/bluetooth_rxtx.bin rx_only/bluetooth_rx_only.bin
+  - mv bluetooth_rxtx/bluetooth_rxtx.dfu rx_only/bluetooth_rx_only.dfu
   # Regular firmware
   - make clean
   - make bluetooth_rxtx
