@@ -31,14 +31,14 @@ addons:
        - gcc-arm-none-eabi
 
 before_script:
-  - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip -O libbtbb-master.zip
-  - unzip libbtbb-master.zip
-  - mkdir libbtbb-master/build
-  - cd libbtbb-master/build
+  # build and install latest libbtbb
+  - git clone https://github.com/greatscottgadgets/libbtbb.git
+  - mkdir libbtbb/build
+  - cd libbtbb/build
   - cmake ..
   - make
   - sudo make install
-  - export CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array"
+  - export CFLAGS="-Wall -Wextra -Werror -Wno-zero-length-array"
 
 script:
   # Host code
@@ -50,7 +50,30 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ldconfig; fi
   # Firmware
   - cd $TRAVIS_BUILD_DIR/firmware
+  # RX only firmware
+  - mkdir rx_only
+  - DISABLE_TX=1 make bluetooth_rxtx
+  - mv bluetooth_rxtx.bin rx_only/bluetooth_rx_only.bin
+  - mv bluetooth_rxtx.dfu rx_only/bluetooth_rx_only.dfu
+  # Regular firmware
+  - make clean
+  - make bluetooth_rxtx
+  # Bootloader firmware
+  - cd bootloader
   - make
+
+after_success:
+  # Construct archive for deploying to ubertooth-nightlies
+  - mkdir -p $ARTEFACT_PATH/firmware-bin/
+  - cd $TRAVIS_BUILD_DIR/libbtbb/
+  - git archive --format=tar --prefix=libbtbb/ HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  - cd $TRAVIS_BUILD_DIR/
+  - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth.bin $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth.dfu $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bootloader/bootloader.bin $ARTEFACT_PATH/firmware-bin/
 
 deploy:
   provider: pages
@@ -58,7 +81,7 @@ deploy:
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
   keep-history: true
-  repo: greatscottgadgets/nightly-builds
+  repo: greatscottgadgets/ubertooth-nightlies
   local-dir: $ARTEFACT_BASE
   on:
-    branch: master
+    branch: travis
