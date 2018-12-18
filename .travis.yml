@@ -12,7 +12,7 @@ matrix:
 
 env:
   global:
-    - BUILD_NAME="Ubertooth-`date +%Y-%m-%d_%H-%M`-$TRAVIS_COMMIT"
+    - BUILD_NAME="Ubertooth-`date +%Y-%m-%d_%H-%M`-`git rev-parse --short HEAD`"
     - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
     - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
 
