@@ -80,7 +80,7 @@ after_success:
   - ls $ARTEFACT_PATH/firmware-bin/
   - cd $ARTEFACT_BASE
   - pwd
-  - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz $ARTEFACT_PATH/
+  - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz .
 
 deploy:
   provider: pages
