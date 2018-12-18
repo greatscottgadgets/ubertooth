@@ -12,7 +12,7 @@ matrix:
 
 env:
   global:
-    - BUILD_NAME="Ubertooth-$TRAVIS_OS_NAME-`date --iso-8601`-$TRAVIS_COMMIT"
+    - BUILD_NAME="Ubertooth-`date --iso-8601`-$TRAVIS_COMMIT"
     - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
     - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
 
@@ -58,6 +58,7 @@ script:
   # Regular firmware
   - make clean
   - make bluetooth_rxtx
+  - ls $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/
   # Bootloader firmware
   - cd bootloader
   - make
@@ -71,9 +72,12 @@ after_success:
   - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
+  - ls $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/
   - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth.dfu $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/bootloader/bootloader.bin $ARTEFACT_PATH/firmware-bin/
+  - ls $ARTEFACT_PATH
+  - ls $ARTEFACT_PATH/firmware-bin/
 
 deploy:
   provider: pages
