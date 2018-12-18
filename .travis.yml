@@ -12,7 +12,9 @@ matrix:
 
 env:
   global:
-    - BUILD_NAME="Ubertooth-`date +%Y-%m-%d_%H-%M`-`git rev-parse --short HEAD`"
+    - SHORT_COMMIT_HASH=`git rev-parse --short HEAD`
+    - VERSION_STRING=nightly-$SHORT_COMMIT_HASH
+    - BUILD_NAME="Ubertooth-`date +%Y-%m-%d_%H-%M`-$SHORT_COMMIT_HASH"
     - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
     - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
 
@@ -50,6 +52,8 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ldconfig; fi
   # Firmware
   - cd $TRAVIS_BUILD_DIR/firmware
+  # Set version string
+  - sed -e "s/GIT_REVISION=\".*\"/GIT_REVISION=\"$VERSION_STRING\"/" -i common.mk
   # RX only firmware
   - mkdir rx_only
   - DISABLE_TX=1 make bluetooth_rxtx
@@ -71,6 +75,8 @@ after_success:
   # Export Ubertooth git repo
   - cd $TRAVIS_BUILD_DIR/
   - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  # Set version string
+  - sed -e "s/set(RELEASE.*/set(RELEASE \"$VERSION_STRING\")/" -i $ARTEFACT_PATH/host/libubertooth/src/CMakeLists.txt
   # Copy firmware to firmware-bin directory
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
