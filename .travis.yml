@@ -73,8 +73,8 @@ after_success:
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
   - ls $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/
-  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth.bin $ARTEFACT_PATH/firmware-bin/
-  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth.dfu $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth_rxtx.bin $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth_rxtx.dfu $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/bootloader/bootloader.bin $ARTEFACT_PATH/firmware-bin/
   - ls $ARTEFACT_PATH
   - ls $ARTEFACT_PATH/firmware-bin/
