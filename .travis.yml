@@ -65,19 +65,24 @@ script:
 after_success:
   # Construct archive for deploying to ubertooth-nightlies
   - mkdir -p $ARTEFACT_PATH/firmware-bin/
+  # Put libbtbb in to the archive
   - cd $TRAVIS_BUILD_DIR/libbtbb/
   - git archive --format=tar --prefix=libbtbb/ HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  # Export Ubertooth git repo
   - cd $TRAVIS_BUILD_DIR/
   - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  # Copy firmware to firmware-bin directory
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
   - ls $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/
   - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth_rxtx.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth_rxtx.dfu $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/bootloader/bootloader.bin $ARTEFACT_PATH/firmware-bin/
+  # Build the archive
   - cd $ARTEFACT_BASE
   - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz $BUILD_NAME
-  - rm -rf $BUILD_NAME
+  # Clean up
+  # - rm -rf $BUILD_NAME
 
 deploy:
   provider: pages
