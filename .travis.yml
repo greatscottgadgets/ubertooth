@@ -82,7 +82,7 @@ after_success:
   - cd $ARTEFACT_BASE
   - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz $BUILD_NAME
   # Clean up
-  # - rm -rf $BUILD_NAME
+  - rm -rf $BUILD_NAME
 
 deploy:
   provider: pages
