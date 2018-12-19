@@ -15,12 +15,14 @@ echo "
 	<title>Ubertooth Nightly Builds</title>
 </head>
 <body>
+<h2>Ubertooth Nightly Builds</h2>
 " > index.html
 
 URL=https://greatscottgadgets.github.io/ubertooth-nightlies/
 
-for i in `ls -tr | grep -v index.html`; do
-    echo "<a href=\"$URL\$i\">$i</a>" >> index.html
+for commit in `git log --oneline | awk '{print $1}'`; do
+    FILENAME=`find . -maxdepth 1  -name "*-$commit.tar.xz"`
+    echo "<a href=\"$URL\$FILENAME\">$FILENAME</a><br />" >> index.html
 done
 
 echo "
