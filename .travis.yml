@@ -92,7 +92,6 @@ after_success:
 
 deploy:
   provider: script
-  script: bash tools/deploy-nightlies.sh
-  repo: greatscottgadgets/ubertooth-nightlies
+  script: bash $TRAVIS_BUILD_DIR/tools/deploy-nightlies.sh
   on:
     branch: travis
