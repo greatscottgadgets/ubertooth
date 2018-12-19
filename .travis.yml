@@ -53,7 +53,7 @@ script:
   # Firmware
   - cd $TRAVIS_BUILD_DIR/firmware
   # Set version string
-  - sed -e "s/GIT_REVISION=\".*\"/GIT_REVISION=\"$VERSION_STRING\"/" -i .bak common.mk
+  - sed -e "s/GIT_REVISION=\".*\"/GIT_REVISION=\"$VERSION_STRING\"/" -i".bak" common.mk
   # RX only firmware
   - mkdir rx_only
   - DISABLE_TX=1 make bluetooth_rxtx
@@ -76,7 +76,7 @@ after_success:
   - cd $TRAVIS_BUILD_DIR/
   - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
   # Set version string
-  - sed -e "s/set(RELEASE.*/set(RELEASE \"$VERSION_STRING\")/" -i .bak $ARTEFACT_PATH/host/libubertooth/src/CMakeLists.txt
+  - sed -e "s/set(RELEASE.*/set(RELEASE \"$VERSION_STRING\")/" -i".bak" $ARTEFACT_PATH/host/libubertooth/src/CMakeLists.txt
   # Copy firmware to firmware-bin directory
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
