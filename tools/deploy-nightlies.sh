@@ -7,19 +7,26 @@ git clone --branch=$PUBLICATION_BRANCH https://${GITHUB_TOKEN}@github.com/$REPO.
 cd publish
 # Update pages
 cp $ARTEFACT_BASE/$BUILD_NAME.tar.xz .
-FILES=`ls -ltr | grep -v index.html | xargs`
-INDEX=`cat <<EOF
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+# Write index page
+echo "
+<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">
 <html><head>
-	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">
 	<title>Ubertooth Nightly Builds</title>
 </head>
 <body>
-$FILES
+" > index.html
+
+URL=https://greatscottgadgets.github.io/ubertooth-nightlies/
+
+for i in `ls -tr | grep -v index.html`; do
+    echo "<a href=\"$URL\$i\">$i</a>" >> index.html
+done
+
+echo "
 </body></html>
-EOF
-`
-echo $INDEX > index.html
+" >> index.html
+
 # Commit and push latest version
 git add $BUILD_NAME.tar.xz index.html
 git config user.name  "Travis"
