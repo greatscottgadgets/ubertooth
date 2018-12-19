@@ -3,6 +3,7 @@ REPO=greatscottgadgets/ubertooth-nightlies
 PUBLICATION_BRANCH=gh-pages
 FILE_TO_DEPLOY=$ARTEFACT_BASE/$BUILD_NAME.tar.xz
 set -x
+cd $HOME
 # Checkout the branch
 git clone --branch=$PUBLICATION_BRANCH https://${GITHUB_TOKEN}@github.com/$REPO publish 2>&1 > /dev/null
 cd publish
