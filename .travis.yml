@@ -91,6 +91,6 @@ after_success:
 deploy:
   provider: script
   skip-cleanup: true
-  script: bash $TRAVIS_BUILD_DIR/tools/deploy-nighty.sh
+  script: bash $TRAVIS_BUILD_DIR/tools/deploy-nightly.sh
   on:
     branch: master
