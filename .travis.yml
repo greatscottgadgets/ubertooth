@@ -92,6 +92,7 @@ after_success:
 
 deploy:
   provider: script
+  skip-cleanup: true
   script: bash $TRAVIS_BUILD_DIR/tools/deploy-nightlies.sh
   on:
     branch: travis
