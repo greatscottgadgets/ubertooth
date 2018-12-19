@@ -2,12 +2,14 @@
 REPO=greatscottgadgets/ubertooth-nightlies
 PUBLICATION_BRANCH=gh-pages
 set -x
+cd $HOME
 # Checkout the branch
 git clone --branch=$PUBLICATION_BRANCH https://${GITHUB_TOKEN}@github.com/$REPO.git publish
 cd publish
 # Update pages
 cp $ARTEFACT_BASE/$BUILD_NAME.tar.xz .
 # Write index page
+cd $TRAVIS_BUILD_DIR
 echo "
 <!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">
 <html><head>
@@ -34,6 +36,8 @@ echo "
 " >> index.html
 
 # Commit and push latest version
+cd $HOME/publish
+cp $TRAVIS_BUILD_DIR/index.html .
 git add $BUILD_NAME.tar.xz index.html
 git config user.name  "Travis"
 git config user.email "travis@travis-ci.org"
