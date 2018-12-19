@@ -76,7 +76,7 @@ after_success:
   - cd $TRAVIS_BUILD_DIR/
   - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
   # Set version string
-  - sed -e "s/set(RELEASE.*/set(RELEASE \"$VERSION_STRING\")/" -i.bak $ARTEFACT_PATH/host/libubertooth/src/CMakeLists.txt
+  - sed -e "s/set(RELEASE.*/set(RELEASE \"$VERSION_STRING\")/" -i .bak $ARTEFACT_PATH/host/libubertooth/src/CMakeLists.txt
   # Copy firmware to firmware-bin directory
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
   - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
