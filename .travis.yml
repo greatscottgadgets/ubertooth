@@ -91,12 +91,8 @@ after_success:
   - rm -rf $BUILD_NAME
 
 deploy:
-  provider: pages
-  verbose: true
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN
-  keep-history: true
+  provider: script
+  script: bash tools/deploy-nightlies.sh
   repo: greatscottgadgets/ubertooth-nightlies
-  local-dir: $ARTEFACT_BASE
   on:
     branch: travis
