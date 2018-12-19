@@ -1,62 +1,96 @@
 language: c
 
-cache: apt
-
-sudo: false
-dist: trusty
-
-os:
-  - linux
-  - osx
-
-compiler:
-  - gcc
-  - clang
-
 matrix:
-  exclude:
-    - os: linux
-    - os: osx
   include:
     - os: linux
       compiler: gcc
+      cache: apt
+      dist: xenial
+
     - os: osx
       compiler: clang
+
+env:
+  global:
+    - SHORT_COMMIT_HASH=`git rev-parse --short HEAD`
+    - VERSION_STRING=nightly-$SHORT_COMMIT_HASH
+    - BUILD_NAME="Ubertooth-`date +%Y-%m-%d`-$SHORT_COMMIT_HASH"
+    - ARTEFACT_BASE=$TRAVIS_BUILD_DIR/artefacts/
+    - ARTEFACT_PATH=$ARTEFACT_BASE/$BUILD_NAME
 
 addons:
   apt:
     packages:
       - libbluetooth-dev
       - libusb-1.0-0-dev
+      - gcc-arm-none-eabi
+      - libnewlib-arm-none-eabi
+      - libstdc++-arm-none-eabi-newlib
+
+  homebrew:
+    taps: PX4/homebrew-px4
+    packages:
+       - gcc-arm-none-eabi
 
 before_script:
-  - pushd /tmp
-#  - wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -O /tmp/gcc-arm.tar.bz2
-#  - tar -xvf /tmp/gcc-arm.tar.bz2
-#  - export PATH=/tmp/gcc-arm-none-eabi-5_2-2015q4/bin:$PATH
-  - mkdir libbtbb-install
-  - wget https://github.com/greatscottgadgets/libbtbb/archive/master.zip -O /tmp/libbtbb-master.zip
-  - unzip libbtbb-master.zip
-  - mkdir libbtbb-master/build
-  - pushd libbtbb-master/build
-  - cmake -DCMAKE_INSTALL_PREFIX:PATH=/tmp/libbtbb-install ..
+  # build and install latest libbtbb
+  - git clone https://github.com/greatscottgadgets/libbtbb.git
+  - mkdir libbtbb/build
+  - cd libbtbb/build
+  - cmake ..
   - make
-  - make install
-  - popd
-  - popd
-  - export CFLAGS="-g -Wall -Wextra -Werror -Wno-zero-length-array"
-
-# It looks as though libusb is already installed by default, so this errors
-#before_install:
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libusb; fi
+  - sudo make install
+  - export CFLAGS="-Wall -Wextra -Werror -Wno-zero-length-array"
 
 script:
-  - mkdir host/build
-  - pushd host/build
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then DYLIB_SUFFIX=dylib; else DYLIB_SUFFIX=so; fi
-  - cmake -DLIBBTBB_INCLUDE_DIR=/tmp/libbtbb-install/include -DLIBBTBB_LIBRARIES=/tmp/libbtbb-install/lib/libbtbb.$DYLIB_SUFFIX ..
+  # Host code
+  - mkdir $TRAVIS_BUILD_DIR/host/build
+  - cd $TRAVIS_BUILD_DIR/host/build
+  - cmake ..
   - make
-#  - popd
-#  - pushd firmware
-#  - CROSS_COMPILE="/tmp/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-" DFU_TOOL="../../host/build/ubertooth-tools/src/ubertooth-dfu" make
+  - sudo make install
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ldconfig; fi
+  # Firmware
+  - cd $TRAVIS_BUILD_DIR/firmware
+  # Set version string
+  - sed -e "s/GIT_REVISION=\".*\"/GIT_REVISION=\"$VERSION_STRING\"/" -i".bak" common.mk
+  # RX only firmware
+  - mkdir rx_only
+  - DISABLE_TX=1 make bluetooth_rxtx
+  - mv bluetooth_rxtx/bluetooth_rxtx.bin rx_only/bluetooth_rx_only.bin
+  - mv bluetooth_rxtx/bluetooth_rxtx.dfu rx_only/bluetooth_rx_only.dfu
+  # Regular firmware
+  - make clean
+  - make bluetooth_rxtx
+  # Bootloader firmware
+  - cd bootloader
+  - make
+
+after_success:
+  # Construct archive for deploying to ubertooth-nightlies
+  - mkdir -p $ARTEFACT_PATH/firmware-bin/
+  # Put libbtbb in to the archive
+  - cd $TRAVIS_BUILD_DIR/libbtbb/
+  - git archive --format=tar --prefix=libbtbb/ HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  # Export Ubertooth git repo
+  - cd $TRAVIS_BUILD_DIR/
+  - git archive --format=tar HEAD | (cd $ARTEFACT_PATH && tar xf -)
+  # Set version string
+  - sed -e "s/set(RELEASE.*/set(RELEASE \"$VERSION_STRING\")/" -i".bak" $ARTEFACT_PATH/host/libubertooth/src/CMakeLists.txt
+  # Copy firmware to firmware-bin directory
+  - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.bin $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/rx_only/bluetooth_rx_only.dfu $ARTEFACT_PATH/firmware-bin/
+  - ls $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/
+  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth_rxtx.bin $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bluetooth_rxtx/bluetooth_rxtx.dfu $ARTEFACT_PATH/firmware-bin/
+  - cp $TRAVIS_BUILD_DIR/firmware/bootloader/bootloader.bin $ARTEFACT_PATH/firmware-bin/
+  # Build the archive
+  - cd $ARTEFACT_BASE
+  - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz $BUILD_NAME
+
+deploy:
+  provider: script
+  skip-cleanup: true
+  script: bash $TRAVIS_BUILD_DIR/tools/deploy-nightly.sh
+  on:
+    branch: master
