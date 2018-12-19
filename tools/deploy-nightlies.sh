@@ -1,7 +1,7 @@
 #!/bin/bash
 REPO=greatscottgadgets/ubertooth-nightlies
-PUBLICATION_BRANCH=gh-pages
-set -x
+PUBLICATION_BRANCH=master
+# set -x
 cd $HOME
 # Checkout the branch
 git clone --branch=$PUBLICATION_BRANCH https://${GITHUB_TOKEN}@github.com/$REPO.git publish
@@ -22,11 +22,9 @@ echo "
 <h2>Ubertooth Nightly Builds</h2>
 " > index.html
 
-URL=https://greatscottgadgets.github.io/ubertooth-nightlies/
+URL=https://greatscottgadgets.github.io/ubertooth-nightlies
 
 for commit in $COMMITS; do
-    echo $commit
-
     FILENAME=`find . -maxdepth 1  -name "*-$commit.tar.xz"`
     if [ "$FILENAME" != "" ]; then
         FN=${FILENAME:2}
