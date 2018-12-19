@@ -10,6 +10,8 @@ cd publish
 cp $ARTEFACT_BASE/$BUILD_NAME.tar.xz .
 # Write index page
 cd $TRAVIS_BUILD_DIR
+COMMITS=`git log --oneline | awk '{print $1}'`
+cd $HOME/publish
 echo "
 <!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">
 <html><head>
@@ -22,7 +24,7 @@ echo "
 
 URL=https://greatscottgadgets.github.io/ubertooth-nightlies/
 
-for commit in `git log --oneline | awk '{print $1}'`; do
+for commit in $COMMITS; do
     echo $commit
     FILENAME=`find . -maxdepth 1  -name "*-$commit.tar.xz"`
     if [ "$FILENAME" != "" ]; then
@@ -36,8 +38,6 @@ echo "
 " >> index.html
 
 # Commit and push latest version
-cd $HOME/publish
-cp $TRAVIS_BUILD_DIR/index.html .
 git add $BUILD_NAME.tar.xz index.html
 git config user.name  "Travis"
 git config user.email "travis@travis-ci.org"
