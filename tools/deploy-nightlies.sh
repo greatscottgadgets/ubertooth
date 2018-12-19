@@ -22,7 +22,7 @@ URL=https://greatscottgadgets.github.io/ubertooth-nightlies/
 
 for commit in `git log --oneline | awk '{print $1}'`; do
     FILENAME=`find . -maxdepth 1  -name "*-$commit.tar.xz"`
-    echo "<a href=\"$URL\$FILENAME\">$FILENAME</a><br />" >> index.html
+    echo "<a href=\"$URL/$FILENAME\">$FILENAME</a><br />" >> index.html
 done
 
 echo "
