@@ -26,9 +26,11 @@ URL=https://greatscottgadgets.github.io/ubertooth-nightlies/
 
 for commit in $COMMITS; do
     echo $commit
+
     FILENAME=`find . -maxdepth 1  -name "*-$commit.tar.xz"`
     if [ "$FILENAME" != "" ]; then
-        echo "<a href=\"$URL/$FILENAME\">$FILENAME</a><br />" >> index.html
+        FN=${FILENAME:2}
+        echo "<a href=\"$URL/$FN\">$FN</a><br />" >> index.html
     fi
     
 done
