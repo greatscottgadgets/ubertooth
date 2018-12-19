@@ -1,5 +1,5 @@
 #!/bin/bash
-REPO=greatscottgadgets/ubertooth-nightlies
+REPO=greatscottgadgets/ubertooth-nightly
 PUBLICATION_BRANCH=master
 # set -x
 cd $HOME
@@ -22,7 +22,7 @@ echo "
 <h2>Ubertooth Nightly Builds</h2>
 " > index.html
 
-URL=https://greatscottgadgets.github.io/ubertooth-nightlies
+URL=https://greatscottgadgets.github.io/ubertooth-nightly
 
 for commit in $COMMITS; do
     FILENAME=`find . -maxdepth 1  -name "*-$commit.tar.xz"`
