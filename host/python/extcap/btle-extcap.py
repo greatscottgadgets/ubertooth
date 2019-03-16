@@ -117,7 +117,8 @@ def list_interfaces():
 
 
 def list_dlts():
-    print("dlt {number=147}{name=USER0}{display=Bluetooth Low Energy}")
+    # -c emits DLT_PPI + DLT_BLUETOOTH_LE_LL
+    print("dlt {number=192}{name=PPI}{display=Bluetooth Low Energy}")
 
 
 def config():
