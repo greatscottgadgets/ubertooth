@@ -23,6 +23,7 @@
 #include "ubertooth_callback.h"
 #include <ctype.h>
 #include <err.h>
+#include <fcntl.h>
 #include <getopt.h>
 #include <string.h>
 #include <unistd.h>
@@ -102,6 +103,36 @@ int convert_mac_address(char *s, uint8_t *o, uint8_t *mask_out) {
 	}
 
 	return 1;
+}
+
+// accept "-" as an alias for stdout, silencing all regular output
+static char *handle_special_filename(const char *in_file) {
+	if (strcmp(in_file, "-") != 0) {
+		return strdup(in_file);
+	}
+
+	if (isatty(STDOUT_FILENO)) {
+		fprintf(stderr, "Error: stdout is a tty, refusing to capture to it\n");
+		return NULL;
+	}
+
+	// close stdout, so that status messages don't pollute our capture
+	int newfd = dup(STDOUT_FILENO);
+	close(STDOUT_FILENO);
+	if (open("/dev/null", O_WRONLY) != STDOUT_FILENO) {
+		fprintf(stderr, "Error: failed to close stdout\n");
+		return NULL;
+	}
+
+	int size = snprintf(NULL, 0, "/proc/self/fd/%d", newfd) + 1;
+	char *out_file = malloc(size);
+	snprintf(out_file, size, "/proc/self/fd/%d", newfd);
+
+	if (access(out_file, W_OK) == -1) {
+		fprintf(stderr, "Error: cannot capture to stdout without procfs\n");
+		return NULL;
+	}
+	return out_file;
 }
 
 static void usage(void)
@@ -188,6 +219,10 @@ int main(int argc, char *argv[])
 			ubertooth_device = atoi(optarg);
 			break;
 		case 'r':
+			if (strcmp(optarg, "-") == 0) {
+				printf("Error: cannot use stdout with PCAPNG captures\n");
+				return 1;
+			}
 			if (!ut->h_pcapng_le) {
 				if (lell_pcapng_create_file(optarg, "Ubertooth", &ut->h_pcapng_le)) {
 					err(1, "lell_pcapng_create_file: ");
@@ -199,9 +234,14 @@ int main(int argc, char *argv[])
 			break;
 		case 'q':
 			if (!ut->h_pcap_le) {
-				if (lell_pcap_create_file(optarg, &ut->h_pcap_le)) {
+				char *file = handle_special_filename(optarg);
+                                if (!file) {
+                                        return 1;
+                                }
+				if (lell_pcap_create_file(file, &ut->h_pcap_le)) {
 					err(1, "lell_pcap_create_file: ");
 				}
+				free(file);
 			}
 			else {
 				printf("Ignoring extra capture file: %s\n", optarg);
@@ -209,9 +249,14 @@ int main(int argc, char *argv[])
 			break;
 		case 'c':
 			if (!ut->h_pcap_le) {
-				if (lell_pcap_ppi_create_file(optarg, 0, &ut->h_pcap_le)) {
+				char *file = handle_special_filename(optarg);
+				if (!file) {
+					return 1;
+				}
+				if (lell_pcap_ppi_create_file(file, 0, &ut->h_pcap_le)) {
 					err(1, "lell_pcap_ppi_create_file: ");
 				}
+				free(file);
 			}
 			else {
 				printf("Ignoring extra capture file: %s\n", optarg);
