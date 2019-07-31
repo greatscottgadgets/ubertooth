@@ -39,7 +39,8 @@ void dma_poweron(void) {
 	// refer to UM10360 LPC17xx User Manual Ch 31 Sec 31.6.1, PDF page 616
 	PCONP |= PCONP_PCGPDMA;
 
-	// enable DMA interrupts
+	// enable DMA interrupts at lowest priority
+	IPR6 |= IPR6_IP_DMA; // hack, sets it to 31 (lowest)
 	ISER0 = ISER0_ISE_DMA;
 
 	// disable active channels
