@@ -352,6 +352,9 @@ void le_DMA_IRQHandler(void) {
 					uint8_t tmp = (uint8_t)DIO_SSP_DR;
 				}
 
+				// XXX disable DMA interrupt as a workaround
+				ICER0 = ICER0_ICE_DMA;
+
 				// TODO error transition on queue_insert
 				queue_insert(&packet_queue, current_rxbuf);
 
@@ -670,6 +673,7 @@ void TIMER1_IRQHandler(void) {
 			// restart DMA and SSP
 			le_dma_init();
 			dio_ssp_start();
+			ISER0 = ISER0_ISE_DMA;
 
 			le_cc2400_strobe_rx();
 			T1MCR &= ~TMCR_MR2I;
@@ -693,6 +697,7 @@ void TIMER1_IRQHandler(void) {
 				// restart DMA and SSP
 				le_dma_init();
 				dio_ssp_start();
+				ISER0 = ISER0_ISE_DMA;
 
 				le_cc2400_strobe_rx();
 			} else {
