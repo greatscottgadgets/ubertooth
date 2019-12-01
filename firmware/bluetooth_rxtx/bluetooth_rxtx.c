@@ -2569,6 +2569,9 @@ void led_specan()
 
 int main()
 {
+	// enable all fault handlers (see fault.c)
+	SCB_SHCSR = (1 << 18) | (1 << 17) | (1 << 16);
+
 	ubertooth_init();
 	clkn_init();
 	ubertooth_usb_init(vendor_request_handler);

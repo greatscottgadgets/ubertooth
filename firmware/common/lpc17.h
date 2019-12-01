@@ -575,11 +575,11 @@
 #define SCB_SHPR1   LPC17_REG(0xE000ED18) /* System Handler Priority - register 1 */
 #define SCB_SHPR2   LPC17_REG(0xE000ED1C) /* System Handler Priority - register 2 */
 #define SCB_SHPR3   LPC17_REG(0xE000ED20) /* System Handler Priority - register 3 */
-#define SCB_SHCRS   LPC17_REG(0xE000ED24) /* System Handler Control and State Register */
+#define SCB_SHCSR   LPC17_REG(0xE000ED24) /* System Handler Control and State Register */
 #define SCB_CFSR    LPC17_REG(0xE000ED28) /* Configurable Fault Status Register */
-//#define SCB_MMSR    LPC17_REG(0xE000ED28) /* Memory Management Fault Status Register (CFSR sub-register) */
-//#define SCB_BFSR    LPC17_REG(0xE000ED29) /* Bus Fault Status Register (CFSR sub-register) */
-//#define SCB_UFSR    LPC17_REG(0xE000ED2A) /* Usage Fault Status Register (CFSR sub-register) */
+#define SCB_MMSR    LPC17_REG8(0xE000ED28) /* Memory Management Fault Status Register (CFSR sub-register) */
+#define SCB_BFSR    LPC17_REG8(0xE000ED29) /* Bus Fault Status Register (CFSR sub-register) */
+#define SCB_UFSR    LPC17_REG16(0xE000ED2A) /* Usage Fault Status Register (CFSR sub-register) */
 #define SCB_HFSR    LPC17_REG(0xE000ED2C) /* Hard Fault Status Register */
 #define SCB_MMFAR   LPC17_REG(0xE000ED34) /* Memory Management Fault Address Register */
 #define SCB_BFAR    LPC17_REG(0xE000ED38) /* Bus Fault Address Register */

@@ -18,6 +18,7 @@ SRC = $(TARGET).c \
 	ego.c \
 	debug_uart.c \
 	tinyprintf.c \
+	fault.c \
 	$(LIBS_PATH)/usb_serial.c \
 	$(LIBS_PATH)/serial_fifo.c \
 	$(LIBS_PATH)/LPC17xx_Startup.c \
