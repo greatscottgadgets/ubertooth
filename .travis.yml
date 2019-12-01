@@ -9,6 +9,8 @@ matrix:
 
     - os: osx
       compiler: clang
+      osx_image: xcode10.2
+      # workaround for https://travis-ci.community/t/xcode-8-3-homebrew-outdated-error/3798
 
 env:
   global:
