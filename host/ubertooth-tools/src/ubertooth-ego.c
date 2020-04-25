@@ -29,6 +29,12 @@
 #include <stdlib.h>
 
 ubertooth_t* ut = NULL;
+int running = 1;
+
+void quit(int signo)
+{
+	running = 0;
+}
 
 static void usage(void)
 {
@@ -88,8 +94,10 @@ int main(int argc, char *argv[])
 	if (r < 0)
 		return 1;
 
-	/* Clean up on exit. */
-	register_cleanup_handler(ut, 1);
+	// quit on ctrl-C
+	signal(SIGINT, quit);
+	signal(SIGQUIT, quit);
+	signal(SIGTERM, quit);
 
 	if (do_mode >= 0) {
 		usb_pkt_rx rx;
@@ -106,7 +114,8 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		while (1) {
+		// running set to 0 in signal handlers
+		while (running) {
 			int r = cmd_poll(ut->devh, &rx);
 			if (r < 0) {
 				printf("USB error\n");
