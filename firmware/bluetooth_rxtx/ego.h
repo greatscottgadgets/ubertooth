@@ -31,5 +31,6 @@ typedef enum _ego_mode_t {
 } ego_mode_t;
 
 void ego_main(ego_mode_t mode);
+int rfcat_subcommand(uint16_t cmd, uint8_t *body, int body_len);
 
 #endif /* __EGO_H */

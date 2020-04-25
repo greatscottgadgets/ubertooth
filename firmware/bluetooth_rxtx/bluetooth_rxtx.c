@@ -717,6 +717,10 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		ego_mode = request_params[0];
 		break;
 
+	case UBERTOOTH_RFCAT_SUBCMD:
+		return rfcat_subcommand(request_params[0], data, *data_len);
+		break;
+
 	default:
 		return 0;
 	}

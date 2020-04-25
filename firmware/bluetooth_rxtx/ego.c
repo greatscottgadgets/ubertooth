@@ -20,6 +20,7 @@
  */
 
 #include "ego.h"
+#include "ubertooth_clock.h"
 
 /*
  * This code performs several functions related to the Yuneec E-GO electric
@@ -37,6 +38,11 @@ extern volatile u8 requested_mode;
 extern volatile u16 channel;
 
 static const uint16_t channels[4] = { 2408, 2418, 2423, 2469 };
+
+// global mutable state
+// FIXME: put this in a struct and reset it properly
+uint32_t access_code = 0x630f9ffe;
+int access_code_len = 4;
 
 typedef enum _ego_state_t {
 	EGO_ST_INIT = 0,
@@ -61,9 +67,10 @@ typedef struct _ego_fsm_state_t {
 
 typedef void (*ego_st_handler)(ego_fsm_state_t *);
 
-#define EGO_PACKET_LEN 36
+uint8_t packet_len = 18;
+#define EGO_MAX_PACKET_LEN 48
 typedef struct _ego_packet_t {
-	u8 rxbuf[EGO_PACKET_LEN];
+	u8 rxbuf[EGO_MAX_PACKET_LEN];
 	u32 rxtime;
 } ego_packet_t;
 
@@ -103,20 +110,20 @@ static void rf_on(void) {
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x134b); // without PRNG
-	cc2400_set(GRMDM,   0x04c0); // un-buffered mode, 2FSK
-	// 0 00 00 1 001 10 0 00 0 0
+	cc2400_set(GRMDM,   0x04e0); // un-buffered mode, 2FSK
+	// 0 00 00 1 001 11 0 00 0 0
 	//      |  | |   |  +--------> CRC off
-	//      |  | |   +-----------> sync word: 24 MSB bits of SYNC_WORD
+	//      |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
 	//      |  | +---------------> 1 byte of 01010101
 	//      |  +-----------------> packet mode
 	//      +--------------------> un-buffered mode
 	cc2400_set(FSDIV,   channel - 1); // 1 MHz IF
-	cc2400_set(MDMCTRL, 0x0026); // 150 kHz frequency deviation
+	cc2400_set(MDMCTRL, 0x0040); // 250 kHz frequency deviation
 	cc2400_set(GRDEC,  3);       // 250 kbit
 
-    // 630f9ffe86
-	cc2400_set(SYNCH,   0x630f);
-	cc2400_set(SYNCL,   0x9ffe);
+        // TODO handle access code length above
+	cc2400_set(SYNCH, (access_code >> 16) & 0xffff);
+	cc2400_set(SYNCL, (access_code >>  0) & 0xffff);
 
 	while (!(cc2400_status() & XOSC16M_STABLE));
 
@@ -131,7 +138,7 @@ static void rf_on(void) {
 
 static void do_rx(ego_packet_t *packet) {
 	int i;
-	for (i = 0; i < EGO_PACKET_LEN; i++) {
+	for (i = 0; i < packet_len; i++) {
 		// make sure there are bytes ready
 		while (!(SSP1SR & SSPSR_RNE)) ;
 		packet->rxbuf[i] = (u8)DIO_SSP_DR;
@@ -367,6 +374,8 @@ void ego_main(ego_mode_t mode) {
 		jamming_state,
 	};
 
+	clkn_start(); // FIXME replace with a different timer
+
 	switch (mode) {
 		case EGO_FOLLOW:
 			handler = follow_handler;
@@ -393,4 +402,37 @@ void ego_main(ego_mode_t mode) {
 	}
 
 	ego_deinit();
+}
+
+/**
+ * Process a subcommand for rfcat-like functionality.
+ * Returns 1 on success, 0 on failure.
+ */
+int rfcat_subcommand(uint16_t cmd, uint8_t *body, int body_len) {
+	int i;
+	switch (cmd) {
+		// set aa
+		case RFCAT_SET_AA:
+			if (body_len < 1 || body_len > 4)
+				return 0;
+			for (i = 0; i < 4; ++i) {
+				access_code <<= 8;
+				if (i < access_code_len)
+					access_code |= body[i];
+			}
+			access_code_len = body_len;
+			break;
+
+			// set length
+		case RFCAT_CAP_LEN:
+			if (body_len != 1)
+				return 0;
+			packet_len = body[0];
+			break;
+
+		default:
+			// error
+			return 0;
+	}
+	return 1;
 }

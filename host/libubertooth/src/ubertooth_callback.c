@@ -430,9 +430,10 @@ void cb_btle(ubertooth_t* ut, void* args)
 /*
  * Sniff E-GO packets
  */
-void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)))
+void cb_ego(ubertooth_t* ut, void* args)
 {
 	int i;
+	uint8_t len = *(uint8_t *)args;
 	static u32 prev_ts = 0;
 	usb_pkt_rx usb = fifo_pop(ut->fifo);
 	usb_pkt_rx* rx = &usb;
@@ -445,8 +446,6 @@ void cb_ego(ubertooth_t* ut, void* args __attribute__((unused)))
 	printf("time=%u delta_t=%.06f ms freq=%d \n",
 	       rx->clk100ns, ts_diff / 10000.0,
 	       rx->channel + 2402);
-
-	int len = 36; // FIXME
 
 	for (i = 0; i < len; ++i)
 		printf("%02x ", rx->data[i]);

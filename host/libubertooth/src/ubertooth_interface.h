@@ -112,6 +112,13 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_FIX_CLOCK_DRIFT    = 69,
 	UBERTOOTH_CANCEL_FOLLOW      = 70,
 	UBERTOOTH_LE_SET_ADV_DATA    = 71,
+	UBERTOOTH_RFCAT_SUBCMD       = 72,
+};
+
+enum rfcat24_subcommands {
+	RFCAT_RESERVED               = 0,
+	RFCAT_SET_AA                 = 1,
+	RFCAT_CAP_LEN                = 2,
 };
 
 // maximum adv data len: 32 - (2 + 6 + 3)
