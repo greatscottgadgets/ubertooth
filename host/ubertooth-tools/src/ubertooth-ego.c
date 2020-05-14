@@ -27,6 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 
 ubertooth_t* ut = NULL;
 int running = 1;
