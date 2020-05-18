@@ -77,7 +77,7 @@ static int page_scan_rx_fhs_cb(msg_t *msg, void *arg, int time_offset)
 			cprintf("(bad type %d)", pkt->bb_hdr.type);
 			goto end;
 		}
-		// TODO: parse fhs to get bdaddr/clkn/ltaddr
+		// Parse fhs to get bdaddr/clkn/ltaddr
 		bbpkt_decode_fhs(pkt->bt_data, &page_scan_state.fhs_info);
 
 
