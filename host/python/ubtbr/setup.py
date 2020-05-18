@@ -12,7 +12,7 @@ setup(
 	long_description_content_type="text/markdown",
 	install_requires=['libusb1'],
 	scripts=["ubertooth-btbr"],
-	url="https://todo",
+	url="https://github.com/greatscottgadgets/ubertooth/",
 	author="Etienne Helluy-Lafont",
 	python_requires='>=3',
 	classifiers=[
