@@ -7,7 +7,7 @@ setup(
 	packages=['ubtbr'],
 	description="Ubtbr firmware control library",
 	install_requires=['libusb1'],
-	url="https://todo",
+	url="https://github.com/greatscottgadgets/ubertooth/",
 	author="Etienne Helluy-Lafont",
 	python_requires='>=3',
 	classifiers=[
