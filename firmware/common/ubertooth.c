@@ -284,9 +284,8 @@ u32 cc2400_spi(u8 len, u32 data)
 		data <<= 1;
 
 		SCLK_SET;
-		if (MISO)
-			data |= 1;
-
+		/* Save a few cycles by avoiding the compare/branch */
+		data |= !!MISO;
 		SCLK_CLR;
 	}
 

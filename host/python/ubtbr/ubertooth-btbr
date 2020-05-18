@@ -1,0 +1,162 @@
+#!/usr/bin/python3
+from cmd import Cmd
+from ubtbr.btctl import *
+
+class BTCtlL2Ping(BTCtlPagingCmd):
+	def __init__(self, bt, bdaddr):
+		super().__init__(bt, bdaddr)
+		self._l2cap_command_id = 0xc8
+
+	def _send_l2cap_echo_req(self):
+		self.send_acl(LLID_L2CAP_START, 
+			p16(8)	# length
+			+p16(1)	# cid l2cap sig channel
+			+p8(8)	# command code 2: echo req
+			+p8(self._l2cap_command_id) # command id
+			+p16(4)	# command length: 4
+			+b"ECHO"
+		)
+		self._l2cap_command_id += 1
+		if self._l2cap_command_id > 0xff:
+			self._l2cap_command_id = 0xc8
+
+	def handle_setup_complete(self):
+		log.info("LMP setup complete")
+		# send dummy l2cap packet
+		self._send_l2cap_echo_req()
+
+	def _handle_l2cap(self, pkt):
+		acl = pkt.bt_data
+		log.info("RX L2CAP: %s"%acl)
+		self._send_l2cap_echo_req()
+
+class BTCtlPrompt(Cmd):
+	prompt = "bt> "
+	intro = "Type ? to list commands"
+
+	def __init__(self, bt):
+		self._bt = bt
+		self._cmd = None
+		super().__init__()
+
+	def _parse_bdaddr(self, inp):
+		bdaddr = None
+		try:
+			bdaddr = int(inp.replace(":",""),16)
+		except:
+			pass
+		if bdaddr is None or bdaddr < 0 or bdaddr >= (1<<48):
+			print("Invalid BD_ADDR")
+		else:
+			return bdaddr
+
+	def start_cmd(self, cls, *args):
+		if self._cmd is not None:
+			log.info ("Not idle")
+			return
+		log.info("Starting %s"%cls.__name__)
+		args = [self._bt]+list(args)
+		self._cmd = cls(*args)
+		self._cmd.start()
+		return self._cmd
+
+	def stop_cmd(self):
+		if self._cmd is not None:
+			self._cmd.stop()
+			self._cmd.join()
+			self._cmd = None
+
+	def cmdloop(self, intro=None):
+		print(self.intro)
+		while True:
+			try:
+				super().cmdloop(intro="")
+				break
+			except KeyboardInterrupt:
+				self.do_idle()
+
+	def default(self, inp):
+		if inp in ('x','q'):
+			return self.do_exit()
+
+	def do_exit(self, inp):
+		self._bt.close()
+		return True
+
+	def help_exit(self):
+		print("Exit the application")
+
+	def do_page(self, inp):
+		bdaddr = self._parse_bdaddr(inp)
+		if bdaddr is not None:
+			self.start_cmd(BTCtlPagingCmd, bdaddr)
+		
+	def help_page(self):
+		print ("page <BD_ADDR>: Establish connection with given device")
+
+	def do_inquiry(self, inp):
+		self.start_cmd(BTCtlInquiryCmd)
+
+	def help_inquiry(self):
+		print("inquiry: Discover nearby devices")
+
+	def do_inquiry_scan(self, inp):
+		self.start_cmd(BTCtlInquiryScanCmd)
+
+	def help_inquiry_scan(self):
+		print("inquiry_scan: Become visible to nearby devices")
+
+	def do_page_scan(self, inp):
+		self.start_cmd(BTCtlPageScanCmd)
+
+	def help_page_scan(self):
+		print("page_scan: Become connectable to nearby devices")
+
+	def do_discoverable(self, inp):
+		self.start_cmd(BTCtlDiscoverableCmd)
+
+	def help_discoverable(self):
+		print("discoverable: Become visible and connectable to nearby devices")
+
+	def do_idle(self, inp=None):
+		self.stop_cmd()
+
+	def help_idle(self):
+		print ("idle: Stop current operation and go standby")
+
+	def do_bdaddr(self, inp):
+		bdaddr = self._parse_bdaddr(inp)
+		if bdaddr is not None:
+			self._bt.send_set_bdaddr_cmd(bdaddr)
+
+	def help_bdaddr(self):
+		print("bdaddr <BD_ADDR>: Set device bluetooth address")
+
+	def do_l2ping(self, inp):
+		bdaddr = self._parse_bdaddr(inp)
+		if bdaddr is not None:
+			self.start_cmd(BTCtlL2Ping, bdaddr)
+
+	def help_l2ping(self):
+		print("l2ping <BD_ADDR>: Page given device and perform l2ping")
+
+	def emptyline(self):
+		pass
+
+	do_EOF = do_exit
+	help_EOF = help_exit
+
+def main():
+	freq_off = 2
+	bt = BTCtl.find()
+	bt.connect()
+	bt.send_set_freq_off_cmd(freq_off)
+	eir = BTCtlEIR([
+		(BTCtlEIR.EIR_COMPLETE_LOCAL_NAME, b"Ubertooth"),
+	])
+	bt.send_set_eir_cmd(eir.pack())
+	sleep(0.02)
+	prompt = BTCtlPrompt(bt)
+	prompt.cmdloop()
+
+if __name__ == '__main__': main()

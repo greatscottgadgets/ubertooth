@@ -26,6 +26,7 @@ if(NOT PYTHONINTERP_FOUND)
 else()
 	add_subdirectory(specan_ui)
 #	add_subdirectory(usb_dfu)
+	add_subdirectory(ubtbr)
 endif()
 
 # Create uninstall target

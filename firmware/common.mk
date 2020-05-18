@@ -105,7 +105,9 @@ OBJDIR = .
 # Optimization level, can be [0, 1, 2, 3, s].
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See libc FAQ.)
+ifeq ($(OPT),)
 OPT = s
+endif
 
 # Debugging format.
 DEBUG = dwarf-2 -g3
@@ -228,7 +230,7 @@ EXTRALIBDIRS = $(LIBS_PATH)
 #  -Wl,...:     tell GCC to pass this to linker.
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
-LDFLAGS = -Wl,-Map=$(TARGET).map
+LDFLAGS = -Wl,-Map=$(TARGET).map $(LINKER_OPTS)
 #LDFLAGS += -Wl,--relax
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))

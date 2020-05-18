@@ -204,4 +204,117 @@ typedef struct {
 	uint8_t  data[DMA_SIZE];
 } generic_tx_packet;
 
+/* BTBR USB interface */
+enum {
+	BTUSB_MSG_START = 'S',
+	BTUSB_MSG_CONT = 'C',
+	BTUSB_EARLY_PRINT = 'P'
+};
+
+/* BTCTL interface */
+typedef enum btctl_state_e {
+	BTCTL_STATE_STANDBY	= 0,
+	BTCTL_STATE_INQUIRY	= 1,
+	BTCTL_STATE_PAGE	= 2,
+	BTCTL_STATE_CONNECTED	= 3,
+	BTCTL_STATE_TEST	= 4,
+	BTCTL_STATE_INQUIRY_SCAN = 5,
+	BTCTL_STATE_PAGE_SCAN	= 6,
+	BTCTL_STATE_COUNT
+} btctl_state_t;
+
+typedef enum btctl_reason_e {
+	BTCTL_REASON_SUCCESS	= 0,
+	BTCTL_REASON_TIMEOUT	= 1,
+	/* REASON_PAGED indicates that device entered CONNECTED state,
+	 * but the slave did not answer yet */
+	BTCTL_REASON_PAGED	= 2
+} btctl_reason_t;
+
+typedef enum {
+	BTCTL_DEBUG		= 0,
+	/* Any -> Device */
+	BTCTL_RESET_REQ		= 20,
+	BTCTL_IDLE_REQ		= 21,
+	/* Host -> Device */
+	BTCTL_SET_FREQ_OFF_REQ	= 22,
+	BTCTL_SET_BDADDR_REQ	= 23,
+	BTCTL_INQUIRY_REQ	= 24,
+	BTCTL_PAGING_REQ	= 25,
+	BTCTL_TXTEST_REQ	= 26,
+	BTCTL_TX_ACL_REQ	= 27,
+	BTCTL_INQUIRY_SCAN_REQ	= 28,
+	BTCTL_PAGE_SCAN_REQ	= 29,
+	BTCTL_SET_EIR_REQ	= 30,// in a btctl_tx_pkt_t
+	BTCTL_SET_AFH_REQ	= 31,
+	/* Device -> Host */
+	BTCTL_RX_PKT		= 40,
+	BTCTL_STATE_RESP	= 41
+} btctl_cmd_type_t ;
+
+typedef struct btctl_hdr_s {
+	uint8_t type;
+	uint8_t padding[3];
+	uint8_t data[0];
+} __attribute__((packed)) btctl_hdr_t;
+
+typedef struct btctl_paging_req_s {
+	uint64_t bdaddr;
+} btctl_paging_req_t;
+
+typedef struct btctl_set_freq_off_req_s {
+	uint8_t offset;
+} btctl_set_freq_off_req_t;
+
+typedef struct btctl_set_bdaddr_req_s {
+	uint64_t bdaddr;
+} btctl_set_bdaddr_req_t;
+
+typedef struct btctl_set_afh_req_s {
+	uint32_t instant;
+	uint8_t mode;
+	uint8_t map[10];
+} __attribute__((packed)) btctl_set_afh_req_t;
+
+typedef struct btctl_state_resp_s {
+	uint8_t state;
+	uint8_t reason;
+} btctl_state_resp_t;
+
+typedef struct bthdr_s {
+	uint8_t lt_addr;
+	uint8_t type;
+	uint8_t flags;
+	uint8_t hec;
+} __attribute__((packed)) bbhdr_t;
+
+#define BTHDR_FLOW 0
+#define BTHDR_ARQN 1
+#define BTHDR_SEQN 2
+
+#define BBPKT_F_HAS_PKT		0
+#define BBPKT_F_HAS_HDR		1
+#define BBPKT_F_HAS_CRC		2
+#define BBPKT_F_GOOD_CRC	3
+#define BBPKT_HAS_PKT(p)	(((p)->flags & (1<<BBPKT_F_HAS_PKT))!=0)
+#define BBPKT_HAS_HDR(p)	(((p)->flags & (1<<BBPKT_F_HAS_HDR))!=0)
+#define BBPKT_HAS_CRC(p)	(((p)->flags & (1<<BBPKT_F_HAS_CRC))!=0)
+#define BBPKT_GOOD_CRC(p)	(((p)->flags & (1<<BBPKT_F_GOOD_CRC))!=0)
+
+#define MAX_ACL_PACKET_SIZE 344
+
+typedef struct {
+	uint32_t clkn;		// Clkn sampled at start of rx
+	uint8_t chan;		// Channel number
+	uint8_t flags;		// Decode flags
+	uint16_t data_size;	// Size of bt_data field
+	bbhdr_t bb_hdr;		// decoded header
+	uint8_t bt_data[0];	// maximum data size for an ACL packet
+} __attribute__((packed)) btctl_rx_pkt_t;
+
+typedef struct {
+	bbhdr_t bb_hdr;		// header (only lt_addr/type/flags are relevant)
+	uint8_t bt_data[0];	// maximum data size for an ACL packet
+} __attribute__((packed)) btctl_tx_pkt_t;
+
 #endif /* __UBERTOOTH_INTERFACE_H */

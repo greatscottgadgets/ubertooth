@@ -19,7 +19,7 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-DIRS = blinky bluetooth_rxtx cc2400_test clock_test usb_test assembly_test
+DIRS = blinky bluetooth_rxtx cc2400_test clock_test usb_test assembly_test btbr
 
 all: $(DIRS)
 
