@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Dominic Spill
- * Copyright 2020 Etienne Helluy-Lafont
+ * Copyright 2020 Etienne Helluy-Lafont, Univ. Lille, CNRS.
  *
  * This file is part of Project Ubertooth.
  *

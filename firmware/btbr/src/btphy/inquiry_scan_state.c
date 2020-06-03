@@ -1,6 +1,6 @@
 /* Inquiry scan state
  *
- * Copyright 2020 Etienne Helluy-Lafont
+ * Copyright 2020 Etienne Helluy-Lafont, Univ. Lille, CNRS.
  *
  * This file is part of Project Ubertooth.
  *

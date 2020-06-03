@@ -13,7 +13,7 @@ setup(
 	install_requires=['libusb1'],
 	scripts=["ubertooth-btbr"],
 	url="https://github.com/greatscottgadgets/ubertooth/",
-	author="Etienne Helluy-Lafont",
+	author="Etienne Helluy-Lafont, Univ. Lille, CNRS",
 	python_requires='>=3',
 	classifiers=[
 		'Development Status :: 5 - Beta',

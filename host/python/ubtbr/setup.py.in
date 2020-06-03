@@ -8,7 +8,7 @@ setup(
 	description="Ubtbr firmware control library",
 	install_requires=['libusb1'],
 	url="https://github.com/greatscottgadgets/ubertooth/",
-	author="Etienne Helluy-Lafont",
+	author="Etienne Helluy-Lafont, Univ. Lille, CNRS",
 	python_requires='>=3',
 	classifiers=[
 		'Development Status :: 5 - Beta',
