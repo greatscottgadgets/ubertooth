@@ -18,5 +18,7 @@ This firmware implements partial support of the Bluetooth BR/EDR physical layer.
 
 ## Host code
 The *ubtbr* python modules contains the host control interface and a minimal implementation of the LMP protocol. 
+
 UBTBR can be controlled using the *ubtbr* python module, and the ubertooth-btbr tool.
+
 See host/python/ubtbr/README.
