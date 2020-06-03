@@ -1,5 +1,5 @@
 # Ubtbr
-A python library to interact with the ubtbr firwmare.
+A python library to control the ubtbr firmware.
 Implements communication with the firmware, and provide a simple
 LMP layer to setup an unencrypted connection.
 
