@@ -27,7 +27,7 @@
 
 #include "ubertooth_callback.h"
 
-unsigned int packet_counter_max;
+extern unsigned int packet_counter_max;
 
 static int8_t cc2400_rssi_to_dbm( const int8_t rssi )
 {
