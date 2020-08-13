@@ -246,10 +246,17 @@ static void continuous_cap_state(ego_fsm_state_t *state) {
 		enqueue_with_ts(EGO_PACKET, packet.rxbuf, packet.rxtime);
 		RXLED_CLR;
 
+		ssp_stop();
 		// restart cap with radio warm
 		cc2400_strobe(SFSON);
 		while (!(cc2400_status() & FS_LOCK));
 		while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
+
+		while (SSP1SR & SSPSR_RNE) {
+			uint8_t tmp = (uint8_t)DIO_SSP_DR;
+		}
+		ssp_start();
+
 		cc2400_strobe(SRX);
 	}
 }
