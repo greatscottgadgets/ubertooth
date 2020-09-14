@@ -5,7 +5,7 @@ from threading import Thread, Event, Lock
 from queue import Queue
 from struct import pack, unpack
 from time import sleep
-from ubtbr.lmp import LMPMaster, LMPSlave, p32, p16, p8
+from ubtbr.lmp import *
 import logging
 log = logging.getLogger("btctl")
 log.setLevel(logging.DEBUG)
@@ -36,6 +36,7 @@ BTCTL_INQUIRY_SCAN_REQ	= 28
 BTCTL_PAGE_SCAN_REQ	= 29
 BTCTL_SET_EIR_REQ	= 30
 BTCTL_SET_AFH_REQ	= 31
+BTCTL_MONITOR_REQ	= 32
 # Device -> Host 
 BTCTL_RX_PKT		= 40
 BTCTL_STATE_RESP	= 41
@@ -400,6 +401,9 @@ class BTCtlCmd(Thread):
 		self._bt.unregister_msg_handler(self._put_msg)
 		return
 
+	def done(self):
+		return self._done
+
 	def __str__(self):
 		return self.__class__.__name__
 
@@ -569,6 +573,52 @@ class BTCtlDiscoverableCmd(BTCtlSuperCmd):
 			sleep(0.5)
 		self._stop_cmd()
 
+class BTCtlMonitorCmd(BTCtlCmd):
+	def __init__(self, bt, slave_bdaddr):
+		super().__init__(bt)
+		self._bdaddr = slave_bdaddr
+
+	def _start(self):
+		self._bt.send_monitor_cmd(self._bdaddr)
+
+	def _handle_state(self, state, reason):
+		lt_addr = reason>>5
+		reason &= 0x1f;
+		if state == BTCTL_STATE_PAGE_SCAN:
+			log.info("Monitor started")
+		elif state == BTCTL_STATE_CONNECTED:
+			self._ready = True
+			log.info ("Connection status %d"%reason)
+		else:
+			if state != BTCTL_STATE_STANDBY:
+				log.info("Invalid state!")
+				print_state(state, reason)
+			self._done = True
+			log.info("Monitor done")
+
+	def _handle_fhs(self, pkt):
+		role = "slave" if (pkt.clkn & 2) else "master"
+		log.info("RX FHS (%6s:%d): %s"%(role,pkt.clkn,pkt.bt_data))
+
+	def _handle_lmp(self, pkt):
+		pdu = pkt.bt_data.data
+		if not pdu: return
+		op = u8(pdu[0])>>1
+		if op == LMP_SET_AFH:
+			data = pdu[1:]
+			instant = u32(data[:4])
+			mode = data[4]
+			chan_map = data[5:]
+			self._bt.send_set_afh_cmd(instant<<1, mode, chan_map)
+			log.info("AFH req: instant=%d, (cur %d), mode=%d"%(
+				instant<<1, pkt.clkn, mode))
+		role = "slave" if (pkt.clkn & 2) else "master"
+		log.info("RX LMP (%6s:%d): %s | %s"%(role,pkt.clkn, pkt.bb_hdr, pdu2str(pdu)))
+
+	def _handle_l2cap(self, pkt):
+		role = "slave" if (pkt.clkn & 2) else "master"
+		log.info("RX L2CAP (%6s:%d): %s"%(role,pkt.clkn,pkt.bt_data))
+
 class BTCtl:
 	DATA_IN = 0x82
 	DATA_OUT = 0x05
@@ -717,6 +767,9 @@ class BTCtl:
 
 	def send_paging_cmd(self, bdaddr):
 		self._send_cmd(BTCTL_PAGING_REQ, pack("<Q", bdaddr))
+
+	def send_monitor_cmd(self, bdaddr):
+		self._send_cmd(BTCTL_MONITOR_REQ, pack("<Q", bdaddr))
 
 	def send_page_scan_cmd(self):
 		self._send_cmd(BTCTL_PAGE_SCAN_REQ)

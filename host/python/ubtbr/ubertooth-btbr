@@ -52,8 +52,12 @@ class BTCtlPrompt(Cmd):
 
 	def start_cmd(self, cls, *args):
 		if self._cmd is not None:
-			log.info ("Not idle")
-			return
+			if self._cmd.done():
+				self.stop_cmd()
+			else:
+				log.info ("Not idle")
+				return
+
 		log.info("Starting %s"%cls.__name__)
 		args = [self._bt]+list(args)
 		self._cmd = cls(*args)
@@ -139,6 +143,14 @@ class BTCtlPrompt(Cmd):
 
 	def help_l2ping(self):
 		print("l2ping <BD_ADDR>: Page given device and perform l2ping")
+
+	def do_monitor(self, inp):
+		slave_bdaddr = self._parse_bdaddr(inp)
+		if slave_bdaddr is not None:
+			self.start_cmd(BTCtlMonitorCmd, slave_bdaddr)
+		
+	def help_monitor(self):
+		print ("monitor <SLAVE_BD_ADDR>: Sniff connection establishment to given device")
 
 	def emptyline(self):
 		pass
