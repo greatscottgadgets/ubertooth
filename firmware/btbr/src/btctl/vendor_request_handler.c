@@ -108,7 +108,6 @@ int vendor_request_handler(uint8_t request, uint16_t* request_params, uint8_t* d
 		get_device_serial(data, data_len);
 		break;
 
-#if 0
 #ifdef UBERTOOTH_ONE
 	case UBERTOOTH_GET_PAEN:
 		data[0] = (PAEN) ? 1 : 0;
@@ -133,7 +132,6 @@ int vendor_request_handler(uint8_t request, uint16_t* request_params, uint8_t* d
 		else
 			HGM_CLR;
 		break;
-#endif
 
 	case UBERTOOTH_GET_PALEVEL:
 		data[0] = cc2400_get(FREND) & 0x7;
