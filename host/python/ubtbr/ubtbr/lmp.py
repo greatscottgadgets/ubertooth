@@ -1,6 +1,7 @@
 from time import time, sleep
 import logging
 from binascii import unhexlify, hexlify
+from struct import pack, unpack
 log = logging.getLogger("btctl")
 LLID_LMP = 3
 
@@ -197,14 +198,13 @@ LMP_OPEXT2STR = {
 
 def u8(d):	return d
 def u16(d):
-	assert (len(d)==2)
-	return d[0]+(d[1]<<8)
+	return unpack("<H", d)[0]
 def u32(d):
-	assert (len(d)==4)
-	return d[0]+(d[1]<<8)+(d[2]<<16)+(d[3]<<24)
-def p16(n):	return bytes((n&0xff,(n>>8)&0xff))
-def p32(n):	return bytes((n&0xff,(n>>8)&0xff,(n>>16)&0xff,(n>>24)&0xff))
-def p8(n):	return bytes((n,))
+	return unpack("<I", d)[0]
+def p8(n):	return pack("<B", n)
+def p16(n):	return pack("<H", n)
+def p32(n):	return pack("<I", n)
+def p64(n):	return pack("<Q", n)
 
 def pdu2str(pdu):
 	opcode = u8(pdu[0])
