@@ -1,4 +1,4 @@
-from time import time, sleep
+from time import time
 import logging
 from binascii import unhexlify, hexlify
 from struct import pack, unpack
@@ -293,8 +293,7 @@ class LMP:
 	def handle_name_req(self, op, data):
 		offset = u8(data[0])
 		name = b"Ubertooth"
-		sleep(0.1)
-		return self.lmp_send_name_res(offset, len(name), name)
+		return self.lmp_send_name_res(offset, len(name), name[offset:offset+14])
 
 	def handle_feat_req(self, op, data):	
 		log.info("handle_feat_req")
@@ -351,9 +350,9 @@ class LMP:
 		# Opcode
 		if is_req:	op = LMP_VERSION_REQ
 		else:		op = LMP_VERSION_RES
-		data = p8(6)		# version num
-		data += p16(29)		# Qualcomm
-		data += p16(2003)	# sub version num
+		data = p8(1)		# version num
+		data += p16(0xffff)	# Company identifier: none
+		data += p16(2020)	# sub version num: 2020
 		return self.lmp_send(op, data, **kwargs)
 		
 	def lmp_send_feat(self, is_req, **kwargs):
