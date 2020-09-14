@@ -161,11 +161,21 @@ class BBHdr:
 	def pack(self):
 		return bytes((self.lt_addr, self.type, self.flags, self.hec))
 
+	def flagstr(self):
+		s = ""
+		if self.flags & 1:
+			s += "F" # flow
+		if self.flags & 2:
+			s += "A" # arqn
+		if self.flags & 4:
+			s += "S" # seqn
+		return s
+
 	def __str__(self):
 		t = ACL_TYPES_TO_STR[self.type]
 		if t is None: t = "%d"%t
-		s = "BBHdr(lt_addr=%d, type=%s, flags=0x%x)"%(
-			self.lt_addr, t, self.flags)
+		s = "BBHdr(lt_addr=%d, type=%s, flags=%s)"%(
+			self.lt_addr, t, self.flagstr())
 		return s
 
 class BTCtlEIR:
