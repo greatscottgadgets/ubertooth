@@ -159,7 +159,7 @@ class BTCtlPrompt(Cmd):
 	help_EOF = help_exit
 
 def main():
-	freq_off = 2
+	freq_off = 0
 	bt = BTCtl.find()
 	bt.connect()
 	bt.send_set_freq_off_cmd(freq_off)
