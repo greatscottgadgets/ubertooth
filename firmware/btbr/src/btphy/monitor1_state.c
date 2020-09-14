@@ -115,7 +115,7 @@ static void monitor1_rx_id_cb(int sw_detected, void *arg)
 	if (sw_detected)
 	{
 		/* we should be at slave_clk = 0, prepare in one slot*/
-		cprintf("!");
+		console_putc('!');
 		/* Schedule TX ID(2) */
 		delay = 3&(TX_PREPARE_IDX-CUR_SLAVE_SLOT_IDX());
 		tx_task_schedule(delay,

@@ -76,7 +76,7 @@ static void inquiry_scan_rx_cb(int sw_detected, void *arg)
 
 	if (sw_detected)
 	{
-		cprintf("!");
+		console_putc('!');
 		/* Schedule TX FHS
 		 * We're in the scan_wait, in same tick as rx.
 		 * we must prepare in next tick to start tx at rx+2 */
