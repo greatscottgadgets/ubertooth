@@ -247,6 +247,7 @@ typedef enum {
 	BTCTL_PAGE_SCAN_REQ	= 29,
 	BTCTL_SET_EIR_REQ	= 30,// in a btctl_tx_pkt_t
 	BTCTL_SET_AFH_REQ	= 31,
+	BTCTL_MONITOR_REQ	= 32,
 	/* Device -> Host */
 	BTCTL_RX_PKT		= 40,
 	BTCTL_STATE_RESP	= 41
