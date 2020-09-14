@@ -26,7 +26,7 @@
 #include <ubtbr/bb.h>
 #include <ubtbr/codec.h>
 
-const bbcodec_types_t bbcodec_acl_types[] = {
+const bbcodec_types_t bbcodec_acl_types[16] = {
 /* 				ns   	hlen 	plen 	fec23 	crc	*/
 	[BB_TYPE_NULL]	= {	1,	0,	0,	0,	0},
 	[BB_TYPE_POLL]	= {	1,	0,	0,	0,	0},
