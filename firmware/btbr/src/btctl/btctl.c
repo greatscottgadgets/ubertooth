@@ -29,7 +29,6 @@
 #include <ubtbr/inquiry_state.h>
 #include <ubtbr/paging_state.h>
 #include <ubtbr/master_state.h>
-#include <ubtbr/test_state.h>
 #include <ubtbr/inquiry_scan_state.h>
 #include <ubtbr/page_scan_state.h>
 #include <ubtbr/monitor_state.h>
@@ -121,11 +120,6 @@ static void btctl_handle_tx_acl_req(msg_t *msg)
 	btctl_acl_tx_enqueue(msg);
 }
 
-static void btctl_handle_txtest_req(msg_t *msg)
-{
-	tx_test_state_setup();
-}
-
 static void btctl_handle_inquiry_scan_req(msg_t *msg)
 {
 	inquiry_scan_state_setup();
@@ -201,9 +195,6 @@ static void btctl_handle_msg(msg_t *msg)
 		btctl_handle_tx_acl_req(msg);
 		// don't free tx messages
 		goto end_nofree;
-	case BTCTL_TXTEST_REQ:
-		btctl_handle_txtest_req(msg);
-		break;
 	case BTCTL_INQUIRY_SCAN_REQ:
 		btctl_handle_inquiry_scan_req(msg);
 		break;
