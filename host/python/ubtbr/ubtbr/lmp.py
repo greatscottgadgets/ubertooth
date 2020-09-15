@@ -221,9 +221,8 @@ def pdu2str(pdu):
 
 class LMP:
 	# Features supported (Core v5.2 | Vol 2, Part C, table 3.2 p585)
-	#FEATURES = b"\x03\x00\x00\x00\x08\x08\x19\x80" # With AFH
-	FEATURES = b"\x03\x00\x00\x00\x00\x00\x19\x80" # No AFH
-	FEATURES_EXT = b"\x01\x01\x07"
+	#FEATURES = b"\x03\x00\x00\x00\x08\x08\x19\x00" # With AFH
+	FEATURES = b"\x03\x00\x00\x00\x00\x00\x19\x00" # No AFH
 
 	def __init__(self, con, debug=True):
 		self._debug = debug
@@ -301,7 +300,7 @@ class LMP:
 
 	def handle_feat_req_ext(self, op, data):
 		log.info("handle_feat_req_ext")
-		self.lmp_send_feat_ext(False)
+		self.lmp_send_feat_ext(False, num=u8(data[0]))
 
 	def handle_vers_req(self, op, data):	
 		log.info("handle_vers_req")
@@ -360,16 +359,23 @@ class LMP:
 		else:		op = LMP_FEATURES_RES
 		return self.lmp_send(op, self.FEATURES, **kwargs)
 		
-	def lmp_send_feat_ext(self, is_req, **kwargs):
+	def lmp_send_feat_ext(self, is_req, num=1, **kwargs):
 		# Ext opcode
 		if is_req:	data = p8(LMP_FEATURES_REQ_EXT)
 		else:		data = p8(LMP_FEATURES_RES_EXT)
-		data += self.FEATURES_EXT
-		data = data.ljust(11, b"\x00")
+		data += p8(num)	# page 
+		data += p8(num)	# Max supported page
+		data = data.ljust(11, b"\x00")	# We support none 
 		return self.lmp_send(LMP_ESCAPE_4, data, **kwargs)
 
 	def lmp_send_setup_complete(self, **kwargs):
 		return self.lmp_send(LMP_SETUP_COMPLETE, b'', **kwargs)
+
+	def lmp_send_set_afh(self, instant, mode, cmap):
+		assert(len(cmap)==10)
+		log.info("Send AFH req: instant=%d, (cur %d), mode=%d"%(
+			instant, self._clkn, mode))
+		return self.lmp_send(LMP_SET_AFH, p32(instant>>1)+p8(mode)+cmap)
 
 class LMPMaster(LMP):
 	def __init__(self, con):
