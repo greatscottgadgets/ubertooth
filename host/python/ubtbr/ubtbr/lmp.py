@@ -396,6 +396,7 @@ class LMPMaster(LMP):
 				LMP_SWITCH_REQ:		(self.handle_switch_req,),
 				LMP_ACCEPTED:		(self.handle_accepted,),
 				LMP_SETUP_COMPLETE:	(self.handle_setup_complete,),
+				LMP_ENCRYPTION_KEY_SIZE_MASK_RES: (self.handle_info_res,),
 			},
 		}
 		self._state = 1
@@ -404,6 +405,7 @@ class LMPMaster(LMP):
 		self.rmt_iocap = None
 		self.rmt_version = None
 		self.rmt_name = None
+		self.rmt_enc_key_size_mask = None
 		super().__init__(con)
 
 	def start(self):
@@ -438,7 +440,9 @@ class LMPMaster(LMP):
 		if self.rmt_name is None:
 			self.lmp_send_name_req(0)
 			return
-		log.info("got all infos")
+		if self.rmt_enc_key_size_mask is None:
+			self.lmp_send(LMP_ENCRYPTION_KEY_SIZE_MASK_REQ, b'')
+			return
 		self.lmp_send(LMP_HOST_CONNECTION_REQ,b'')
 
 	def handle_info_res(self, op, data):
@@ -450,6 +454,8 @@ class LMPMaster(LMP):
 			self.rmt_features_ext = data
 		elif op == LMP_NAME_RES:
 			self.rmt_name = data
+		elif op == LMP_ENCRYPTION_KEY_SIZE_MASK_RES:
+			self.rmt_enc_key_size_mask = data
 		self.send_info_req()
 
 	def handle_setup_complete(self, op, data):
