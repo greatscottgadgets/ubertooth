@@ -529,6 +529,31 @@ void hec_precal(void)
         }
 	printf("};\n");
 }
+
+static inline uint16_t unfec23_10bits(uint16_t in)
+{
+	uint16_t data, err, cor;
+
+	data = in & 0x3ff;
+	err = (in>>10)^fec23_tbl[data];
+	if (err)
+	{
+		/* single bit error */
+		if (err & (err-1))
+		{
+			cor = fec23_cor[err];
+			if (cor == 0)
+			{
+				return 0x400;
+			}
+			data ^= cor;
+		}
+		else{
+			return 0x400;
+		}
+	}
+	return data;
+}
 #endif
 void null_decode(uint8_t *out, uint8_t *in, unsigned in_of, unsigned byte_count)
 {
@@ -677,32 +702,8 @@ static const uint16_t fec23_cor[32] = {
 	[0x15] = 0x200
 };
 
+/* FIXME: handle ber */
 static inline uint16_t unfec23_10bits(uint16_t in)
-{
-	uint16_t data, err, cor;
-
-	data = in & 0x3ff;
-	err = (in>>10)^fec23_tbl[data];
-	if (err)
-	{
-		/* single bit error */
-		if (err & (err-1))
-		{
-			cor = fec23_cor[err];
-			if (cor == 0)
-			{
-				return 0x400;
-			}
-			data ^= cor;
-		}
-		else{
-			return 0x400;
-		}
-	}
-	return data;
-}
-
-static inline uint16_t unfec23_10bits_fast(uint16_t in)
 {
 	uint16_t data, err, cor;
 
@@ -781,7 +782,7 @@ int unfec23(uint8_t *out, uint8_t *in, unsigned in_of, unsigned nbits)
 		case 6: data = EXTRACT15_6(in+byte_pos); break;
 		default:data = EXTRACT15_7(in+byte_pos); break;
 		}
-		data = unfec23_10bits_fast(data);
+		data = unfec23_10bits(data);
 		rc |= (data>>10);
 		data &= 0x3ff;
 		/* write output */
