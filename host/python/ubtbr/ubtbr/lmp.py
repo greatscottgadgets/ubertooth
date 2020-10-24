@@ -395,6 +395,7 @@ class LMPMaster(LMP):
 				LMP_SLOT_OFFSET:	(self.handle_slot_offset,),
 				LMP_SWITCH_REQ:		(self.handle_switch_req,),
 				LMP_ACCEPTED:		(self.handle_accepted,),
+				LMP_NOT_ACCEPTED:		(self.handle_not_accepted,),
 				LMP_SETUP_COMPLETE:	(self.handle_setup_complete,),
 				LMP_ENCRYPTION_KEY_SIZE_MASK_RES: (self.handle_info_res,),
 			},
@@ -411,10 +412,11 @@ class LMPMaster(LMP):
 	def start(self):
 		self.send_info_req()
 
+	def handle_not_accepted(self, op, data):
+		pass
+
 	def handle_accepted(self, op, data):
-		o = data[0]
-		if o == LMP_HOST_CONNECTION_REQ:
-			pass
+		pass
 
 	def handle_slot_offset(self, op, data):
 		offset = u16(data[:2])
