@@ -47,14 +47,14 @@ static inline void btphy_rf_rx(void)
 static inline void btphy_rf_cfg_rx(void)
 {
 	/* un-buffered mode, packet w/ sync word detection */
-	cc2400_set(GRMDM,   0x64E1);
-	// 0 11 00 1 001 11 0 00 0 1
+	cc2400_set(GRMDM,   0x24E1);
+	// 0 01 00 1 001 11 0 00 0 1
 	//   |  |  | |   |  +--------> CRC off
 	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
 	//   |  |  | +---------------> 1 preamble bytes of (0)1010101
 	//   |  |  +-----------------> packet mode
 	//   |  +--------------------> un-buffered mode // use sync word to trigger 
-	//   +-----------------------> sync error bits allowed: 3
+	//   +-----------------------> sync error bits allowed: 1
 	cc2400_set(IOCFG, 0x170|(GIO_PKT<<9));
 }
 
