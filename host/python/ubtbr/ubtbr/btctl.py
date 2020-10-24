@@ -274,7 +274,7 @@ class BTCtlACLPkt:
 		self.data = data
 		self.flow = flow
 		if bt_type is None:
-			# Determine bb type according to data size
+			# Determine bb type according to data size
 			size = len(self.data)
 			tp = acl_type_for_size(size)
 		else:
@@ -302,7 +302,7 @@ class BTCtlACLPkt:
 		return BTCtlACLPkt(llid, data, flow, bt_type)
 
 	def pack(self):
-		# Pack payload header
+		# Pack payload header
 		data_hdr = pack("<"+(self.hlen == 1 and "B" or "H"),
 			(len(self.data)<<3) | ((self.flow&1)<<2) | (self.llid&3))
 		return data_hdr + self.data
@@ -531,12 +531,12 @@ class BTCtlPageScanCmd(BTCtlCmd):
 		pass
 
 class BTCtlPagingCmd(BTCtlCmd):
+	LMP_CLS = LMPMaster
 	def __init__(self, bt, bdaddr):
 		super().__init__(bt)
 		self._bdaddr = bdaddr
-		self._lmp = LMPMaster(self)
+		self._lmp = self.LMP_CLS(self)
 		self.lt_addr = None
-		self._l2cap_command_id = 0xc8
 
 	def _start(self):
 		self._bt.send_paging_cmd(self._bdaddr)
@@ -723,6 +723,8 @@ class BTCtl:
 		self._rx_thread.start()
 		log.info("USB connected")
 		self._con = True
+		self.send_idle_cmd()
+		sleep(1)
 
 	def connected(self):
 		return self._con
@@ -784,8 +786,8 @@ class BTCtl:
 	def send_page_scan_cmd(self):
 		self._send_cmd(BTCTL_PAGE_SCAN_REQ)
 
-	def send_acl_cmd(self, llid, data, flow=1, lt_addr=1):
-		acl = BTCtlACLPkt(llid, data, flow)
+	def send_acl_cmd(self, llid, data, flow=1, lt_addr=1, bt_type=None):
+		acl = BTCtlACLPkt(llid, data, flow, bt_type)
 		bb_hdr = BBHdr(lt_addr, acl.bt_type)
 		payload = bb_hdr.pack() + acl.pack()
 		log.debug("send bb %s, acl: %s"%(bb_hdr,acl))
