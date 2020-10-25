@@ -280,7 +280,6 @@ class BTCtlACLPkt:
 		else:
 			tp = acl_type_find(bt_type)
 		bt_type, hlen, plen, fec = tp
-		assert(len(data) <= plen)
 		self.bt_type = bt_type
 		self.hlen = hlen
 
@@ -298,7 +297,6 @@ class BTCtlACLPkt:
 		llid = 3&hdr
 		flow = 1&(hdr>>2)
 		size = hdr>>3
-		assert(size == len(data))
 		return BTCtlACLPkt(llid, data, flow, bt_type)
 
 	def pack(self):
@@ -608,7 +606,7 @@ class BTCtlMonitorCmd(BTCtlCmd):
 
 	def _handle_fhs(self, pkt):
 		role = "slave" if (pkt.clkn & 2) else "master"
-		log.info("RX FHS (%6s:%d): %s"%(role,pkt.clkn,pkt.bt_data))
+		log.info("RX FHS (%6s:%7x): %s"%(role,pkt.clkn,pkt.bt_data))
 
 	def _handle_lmp(self, pkt):
 		pdu = pkt.bt_data.data
@@ -623,11 +621,11 @@ class BTCtlMonitorCmd(BTCtlCmd):
 			log.info("AFH req: instant=%d, (cur %d), mode=%d"%(
 				instant<<1, pkt.clkn, mode))
 		role = "slave" if (pkt.clkn & 2) else "master"
-		log.info("RX LMP (%6s:%d): %s | %s"%(role,pkt.clkn, pkt.bb_hdr, pdu2str(pdu)))
+		log.info("RX LMP (%6s:%7x): %s | %s"%(role,pkt.clkn, pkt.bb_hdr, pdu2str(pdu)))
 
 	def _handle_l2cap(self, pkt):
 		role = "slave" if (pkt.clkn & 2) else "master"
-		log.info("RX L2CAP (%6s:%d): %s"%(role,pkt.clkn,pkt.bt_data))
+		log.info("RX L2CAP (%6s:%7x): %s"%(role,pkt.clkn,pkt))
 
 class BTCtl:
 	DATA_IN = 0x82
@@ -786,9 +784,9 @@ class BTCtl:
 	def send_page_scan_cmd(self):
 		self._send_cmd(BTCTL_PAGE_SCAN_REQ)
 
-	def send_acl_cmd(self, llid, data, flow=1, lt_addr=1, bt_type=None):
+	def send_acl_cmd(self, llid, data, flow=1, lt_addr=1, flags=0, bt_type=None):
 		acl = BTCtlACLPkt(llid, data, flow, bt_type)
-		bb_hdr = BBHdr(lt_addr, acl.bt_type)
+		bb_hdr = BBHdr(lt_addr, acl.bt_type, flags)
 		payload = bb_hdr.pack() + acl.pack()
 		log.debug("send bb %s, acl: %s"%(bb_hdr,acl))
 		self._send_cmd(BTCTL_TX_ACL_REQ, payload)
