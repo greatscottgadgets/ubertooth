@@ -26,19 +26,15 @@
 #include <ubtbr/tdma_sched.h>
 #include <ubtbr/bb.h>
 #include <ubtbr/rx_task.h>
-#include <ubtbr/tx_task.h>
-#include <ubtbr/ll.h>
 
 #define RX_PREPARE_IDX	1  //  We will receive at clkn0 = 0
 
 static struct {
 	/* Parameters */
 	uint64_t master_bdaddr;
-	link_layer_t ll;
 } monitor2_state;
 
 static void monitor2_state_schedule_rx(unsigned skip_slots);
-static void monitor2_state_schedule_tx(unsigned skip_slots);
 
 static int monitor2_state_canceled(void)
 {
@@ -53,7 +49,6 @@ static int monitor2_rx_cb(msg_t *msg, void *arg, int time_offset)
 
 	if (monitor2_state_canceled())
 	{
-		ll_reset(&monitor2_state.ll);
 		msg_free(msg);
 		return 0;
 	}
@@ -73,12 +68,13 @@ static int monitor2_rx_cb(msg_t *msg, void *arg, int time_offset)
 		/* Resync to master */
 		btphy_adj_clkn_delay(time_offset);
 	}
-	// TODO: Handle packets
+#if 1
 	if (pkt->bb_hdr.type < 3) // NULL / POLL / FHS
 	{
-		//cprintf("(lt:%d,ht:%d)", pkt->bb_hdr.lt_addr,pkt->bb_hdr.type);
+		cprintf("(%c,%x,%x)","NPF"[pkt->bb_hdr.type], pkt->clkn&0xff,pkt->bb_hdr.flags);
 	}
-	if (BBPKT_GOOD_CRC(pkt))
+#endif
+	if (BBPKT_HAS_CRC(pkt))
 	{
 		if(btctl_tx_enqueue(msg) != 0)
 		{
@@ -87,12 +83,6 @@ static int monitor2_rx_cb(msg_t *msg, void *arg, int time_offset)
 		//console_putc('G');
 		goto end_nofree;
 	}
-	else if (BBPKT_HAS_CRC(pkt))
-	{
-		console_putc('B');
-	}
-
-	// Rx next time
 end:
 	msg_free(msg);
 end_nofree:
@@ -100,21 +90,16 @@ end_nofree:
 	return 0;
 }
 
-static void tx_done_cb(void* arg)
-{
-	monitor2_state_schedule_rx(0);
-}
-
 static void monitor2_state_schedule_rx(unsigned skip_slots)
 {
 	/* listen for a reply in next rx slot */
-	unsigned delay = 2*skip_slots + RX_PREPARE_IDX - (btphy.slave_clkn&1);
+	unsigned delay = 2*skip_slots + (1&(RX_PREPARE_IDX - (btphy.slave_clkn&1)));
 
 	/* Schedule rx: */
 	rx_task_schedule(delay,
 		monitor2_rx_cb, NULL,	// ID rx callback
-		1			// wait for header 
-	);
+		(1<<RX_F_PAYLOAD)	// wait for header 
+		|(1<<RX_F_RAW));	// ignore size and crc in payload
 }
 
 void monitor2_state_init(uint64_t master_bdaddr)

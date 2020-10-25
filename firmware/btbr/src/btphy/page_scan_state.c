@@ -121,7 +121,7 @@ static void page_scan_rx_id_cb(int sw_detected, void *arg)
 		/* Schedule rx FHS */
 		rx_task_schedule(delay+2,
 			page_scan_rx_fhs_cb, NULL,	// ID rx callback
-			1			// FHS packet has payload
+			1<<RX_F_PAYLOAD			// FHS packet has payload
 			);
 	}
 	else

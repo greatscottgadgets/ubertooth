@@ -26,6 +26,8 @@
 #include <ubtbr/bb.h>
 #include <ubtbr/codec.h>
 
+#include <ubtbr/btphy.h>
+
 const bbcodec_types_t bbcodec_acl_types[16] = {
 /* 				ns   	hlen 	plen 	fec23 	crc	*/
 	[BB_TYPE_NULL]	= {	1,	0,	0,	0,	0},
@@ -50,34 +52,43 @@ static inline void bbcodec_unwhiten(uint8_t *whiten_state, uint8_t *out, uint8_t
 /* Payload must contain at least two decoded bytes */
 static void bbcodec_calc_payload_length(bbcodec_t *codec, uint8_t *payload)
 {
+	const bbcodec_types_t *t = codec->t;
 	unsigned payload_bits, hdr_len;
-	if (codec->t->payload_bytes != 0 && payload == NULL)
+
+	if (t->payload_bytes != 0 && payload == NULL)
 		DIE("No payload for type %p\n", codec->t);
 
-	hdr_len = codec->t->payload_header_bytes;
+	hdr_len = t->payload_header_bytes;
 
-	switch(hdr_len)
+	if (codec->rx_raw)
 	{
-	case 1:
-		codec->payload_length = payload[0]>>3;
-		break;
-	case 2:
-		codec->payload_length = 0x3ff & ((payload[0]|(payload[1]<<8))>>3);
-		break;
-	default: // 0
-		codec->payload_length = codec->t->payload_bytes;
-		break;
+		codec->payload_length = t->payload_bytes;
 	}
-	if (codec->payload_length > codec->t->payload_bytes)
+	else
 	{
-		BB_DEBUG("(Bad size %d for type %d)", codec->payload_length,
-			codec->t->payload_bytes);
-		codec->payload_length = 0;
+		switch(hdr_len)
+		{
+		case 1:
+			codec->payload_length = payload[0]>>3;
+			break;
+		case 2:
+			codec->payload_length = 0x3ff & ((payload[0]|(payload[1]<<8))>>3);
+			break;
+		default: // 0
+			codec->payload_length = t->payload_bytes;
+			break;
+		}
+		if (codec->payload_length > t->payload_bytes)
+		{
+			BB_DEBUG("(Bad size %d for type %d)", codec->payload_length,
+				t->payload_bytes);
+			codec->payload_length = 0;
+		}
 	}
 	codec->coded_total = (hdr_len + codec->payload_length);
-	if (codec->t->has_crc)
+	if (t->has_crc)
 		codec->coded_total += 2;
-	if (codec->t->has_fec23)
+	if (t->has_fec23)
 		payload_bits = codec->coded_total*12;
 	else
 		payload_bits = codec->coded_total*8;
@@ -197,7 +208,7 @@ void bbcodec_encode_chunk(bbcodec_t *codec, uint8_t *air_data, bbhdr_t *in_hdr, 
 		return;
 
 	/* If the crc calculation is not done yet */
-	if (t->has_crc && byte_left > 2)
+	if (!codec->rx_raw && t->has_crc && byte_left > 2)
 	{
 		/* Num bytes we're going to crc */
 		crc_num = MIN(byte_left-2, CODEC_TX_CHUNK_SIZE);
@@ -340,7 +351,7 @@ uint8_t bbcodec_decode_finalize(bbcodec_t *codec, uint8_t *out, uint16_t *out_si
 		DIE("Pkt not decoded? %d:%d\n",
 			codec->coded_pos, codec->coded_total);
 	}
-	if (t->has_crc)
+	if (!codec->rx_raw && t->has_crc)
 	{
 		/* Verify crc */
 		crc = out[codec->coded_total-2]|(out[codec->coded_total-1]<<8);

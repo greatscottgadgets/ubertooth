@@ -80,7 +80,7 @@ static void master_state_schedule_rx(unsigned skip_slots)
 	/* Schedule rx: */
 	rx_task_schedule(delay,
 		master_rx_cb, NULL,	// ID rx callback
-		1			// wait for header 
+		1<<RX_F_PAYLOAD		// wait for header
 	);
 }
 

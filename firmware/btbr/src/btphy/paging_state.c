@@ -116,7 +116,7 @@ static int paging_rx_cb(msg_t *msg, void *arg, int time_offset)
 		/* Schedule rx slave's ID(3) page response: */
 		rx_task_schedule(delay+2,
 			paging_rx_ack_cb, NULL,	// ID rx callback
-			0			// no payload for an ID packet
+			0			// no payload
 			);
 	}
 	else
