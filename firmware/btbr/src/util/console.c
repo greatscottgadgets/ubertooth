@@ -29,6 +29,7 @@ static msg_t *cur_msg = NULL;
 
 void console_flush(void)
 {
+#ifdef USE_CONSOLE
 	uint32_t flags = irq_save_disable();
 	char *p;
 	if (!cur_msg)
@@ -42,10 +43,12 @@ void console_flush(void)
 	cur_msg = NULL;
 end:
 	irq_restore(flags);
+#endif
 }
 
 void console_putc(char c)
 {
+#ifdef USE_CONSOLE
 	uint32_t flags = irq_save_disable();
 	char *p;
 
@@ -61,4 +64,5 @@ void console_putc(char c)
 		console_flush();
 	}
 	irq_restore(flags);
+#endif
 }
