@@ -9,8 +9,7 @@ matrix:
 
     - os: osx
       compiler: clang
-      osx_image: xcode10.2
-      # workaround for https://travis-ci.community/t/xcode-8-3-homebrew-outdated-error/3798
+      osx_image: xcode11
 
 env:
   global:
@@ -33,7 +32,6 @@ addons:
     taps: PX4/homebrew-px4
     packages:
        - gcc-arm-none-eabi
-    update: true
 
 before_script:
   # build and install latest libbtbb
