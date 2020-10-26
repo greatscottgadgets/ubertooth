@@ -131,9 +131,9 @@ static void btctl_handle_page_scan_req(msg_t *msg)
 	page_scan_state_setup();
 }
 
-static uint8_t afh_buf[11];
 static void btctl_handle_set_afh_req(msg_t *msg)
 {
+	static uint8_t afh_buf[11];
 	uint32_t flags = irq_save_disable();
 	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
 	btctl_set_afh_req_t *req = (btctl_set_afh_req_t*)hdr->data;

@@ -324,7 +324,7 @@ int bbcodec_decode_chunk(bbcodec_t *codec, uint8_t *out, bbhdr_t *in_hdr, uint8_
 		bbcodec_calc_payload_length(codec, out);
 	}
 	/* update crc */
-	if (t->has_crc)
+	if (!codec->rx_raw && t->has_crc)
 	{
 		bbcodec_decode_update_crc(codec, out);
 	}
