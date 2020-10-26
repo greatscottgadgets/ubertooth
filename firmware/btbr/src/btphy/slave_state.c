@@ -60,8 +60,6 @@ static int slave_rx_cb(msg_t *msg, void *arg, int time_offset)
 		return 0;
 	}
 	/* Check if a packet was received, to adjust clock if needed */
-	if (h->type != BTCTL_RX_PKT)
-		DIE("rx : expect acl rx");
 	pkt = (btctl_rx_pkt_t *)h->data;
 
 	if (BBPKT_HAS_PKT(pkt))
@@ -95,12 +93,11 @@ static void tx_done_cb(void* arg)
 
 static void slave_state_schedule_tx(unsigned skip_slots)
 {
-	/* listen for a reply in next rx slot */
+	/* Wait for next tx slot */
 	unsigned delay = 4*skip_slots+(3&(TX_PREPARE_IDX-CUR_SLAVE_SLOT_IDX()));
 	bbhdr_t *tx_hdr;
 	uint8_t *tx_data;
 
-	/* Wait for next master tx slot */
 	ll_prepare_tx(&slave_state.ll, &tx_hdr, &tx_data);
 
 	tx_task_schedule(delay,
@@ -110,7 +107,7 @@ static void slave_state_schedule_tx(unsigned skip_slots)
 
 static void slave_state_schedule_rx(unsigned skip_slots)
 {
-	/* listen for a reply in next rx slot */
+	/* Wait for next rx slot */
 	unsigned delay = 4*skip_slots+(3&(RX_PREPARE_IDX-CUR_SLAVE_SLOT_IDX()));
 
 	/* Schedule rx: */

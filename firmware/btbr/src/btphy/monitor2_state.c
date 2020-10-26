@@ -27,7 +27,7 @@
 #include <ubtbr/bb.h>
 #include <ubtbr/rx_task.h>
 
-#define RX_PREPARE_IDX	1  //  We will receive at clkn0 = 0
+#define RX_PREPARE_IDX	1  //  We will receive in all timeslots where clkn1_0 = 0
 
 static struct {
 	/* Parameters */
@@ -68,6 +68,11 @@ static int monitor2_rx_cb(msg_t *msg, void *arg, int time_offset)
 		/* Resync to master */
 		btphy_adj_clkn_delay(time_offset);
 	}
+
+	if (!BBPKT_HAS_HDR(pkt))
+	{
+		goto end;
+	}
 #if 1
 	if (pkt->bb_hdr.type < 3) // NULL / POLL / FHS
 	{
@@ -80,7 +85,6 @@ static int monitor2_rx_cb(msg_t *msg, void *arg, int time_offset)
 		{
 			DIE("mon2: txq full");
 		}
-		//console_putc('G');
 		goto end_nofree;
 	}
 end:
@@ -92,7 +96,7 @@ end_nofree:
 
 static void monitor2_state_schedule_rx(unsigned skip_slots)
 {
-	/* listen for a reply in next rx slot */
+	/* Listen for a packet in next rx slot */
 	unsigned delay = 2*skip_slots + (1&(RX_PREPARE_IDX - (btphy.slave_clkn&1)));
 
 	/* Schedule rx: */

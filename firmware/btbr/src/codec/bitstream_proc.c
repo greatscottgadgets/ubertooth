@@ -443,7 +443,6 @@ static const uint16_t fec23_cor[32] = {
 	[0x15] = 0x200
 };
 
-/* FIXME: handle ber */
 static inline uint16_t unfec23_10bits(uint16_t in)
 {
 	uint16_t data, err, cor;
@@ -452,6 +451,7 @@ static inline uint16_t unfec23_10bits(uint16_t in)
 	err = 0x1f & ((in>>10)^fec23_tbl[data]);
 	cor = fec23_cor[err];
 	data ^= cor;
+	/* FIXME: handle ber */
 	return data;
 }
 
@@ -480,7 +480,9 @@ int unfec23_10bytes(uint8_t *out, uint8_t *in)
 	ENCODE10_4(out+7,in7&0x3ff);
 	ENCODE10_6(out+8,in8&0x3ff);
 
-	return -((in1 | in2 | in3 | in4 | in5 | in6 | in7 | in8) >> 10);
+	/* FIXME: return bit error count */
+	//return ((in1 | in2 | in3 | in4 | in5 | in6 | in7 | in8) >> 10);
+	return 0;
 
 }
 int unfec23(uint8_t *out, uint8_t *in, unsigned in_of, unsigned nbits)

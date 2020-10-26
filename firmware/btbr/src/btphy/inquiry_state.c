@@ -83,7 +83,6 @@ static int inquiry_rx_cb(msg_t *msg, void *arg, int time_offset)
 		{
 			DIE("txq full in inquiry\n");
 		}
-		//cprintf("enq %p\n", pkt);
 	}
 	return 0;
 }

@@ -67,8 +67,6 @@ static int page_scan_rx_fhs_cb(msg_t *msg, void *arg, int time_offset)
 		cprintf("page scan canceled\n");
 		goto end;
 	}
-	if (h->type != BTCTL_RX_PKT)
-		DIE("paging : expect acl rx");
 	pkt = (btctl_rx_pkt_t *)h->data;
 	if (BBPKT_GOOD_CRC(pkt))
 	{

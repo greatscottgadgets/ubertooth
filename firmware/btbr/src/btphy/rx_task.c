@@ -79,11 +79,12 @@ static unsigned rx_buf_update(void)
 {
 	unsigned i, size = dma_get_rx_offset();
 
-	/* Reverse bytes to host order (skip 4 bytes of sw)*/
+	/* Reverse bytes to host order */
 	for(i=rx_task.rx_offset;i<size;i++)
 		rx_task.rx_dma_buf[i] = reverse8(rx_task.rx_dma_buf[i]);
 	rx_task.rx_offset = size;
 
+	/* Skip 32-bits of syncword*/
 	if (size > 4)
 		return size-4;
 	return 0;
@@ -169,7 +170,7 @@ static int rx_prepare(uint8_t p1, uint8_t p2, uint16_t p3)
 	rx_task.pkt_time = 0;
 	rx_task.rx_done = 0;
 	rx_task.rx_offset = 0;
-	/* Configure DMA RX (skip 4 hi bytes of sw) */
+	/* Configure DMA RX */
 	dma_init_rx_single(rx_task.rx_dma_buf, sizeof(rx_task.rx_dma_buf));
 
 	/* Start SPI DMA */
@@ -187,7 +188,7 @@ static int rx_pkt_hdr_callback(void)
 	/* Wait for 32 bits sw + 4bits trailer + 54 bits header*/
 	while((size=rx_buf_update()) < NUM_PKT_HDR_BYTES);
 
-	/* Decode pkt's header (skipping 32-bits of sw) & configure codec */
+	/* Decode pkt's header (skipping 32-bits of syncword in the dma_buf) & configure codec */
 	if(bbcodec_decode_header(&rx_task.codec, &pkt->bb_hdr, rx_task.rx_dma_buf+4))
 	{
 		return -1;
@@ -347,7 +348,7 @@ void rx_task_schedule(unsigned delay, rx_task_cb_t cb, void*cbarg, unsigned flag
 	rx_task.cb_arg = cbarg;
 	/* Does the packet have a payload ? (else it's an ID) */
 	rx_task.do_rx_payload = flags & (1<<RX_F_PAYLOAD);
-	/* Receive raw burts for monitor state */
+	/* Receive raw bursts for monitor state */
 	rx_task.rx_raw = flags & (1<<RX_F_RAW);
 
 	tdma_schedule_set(delay, rx_sched_set, 0);
