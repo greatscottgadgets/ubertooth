@@ -26,8 +26,13 @@ if(NOT PYTHONINTERP_FOUND)
 else()
 	add_subdirectory(specan_ui)
 #	add_subdirectory(usb_dfu)
+endif()
+
+find_package(Python3)
+if(Python3_Interpreter_FOUND)
 	add_subdirectory(ubtbr)
 endif()
+
 
 # Create uninstall target
 if(NOT ubertooth_all_SOURCE_DIR)
