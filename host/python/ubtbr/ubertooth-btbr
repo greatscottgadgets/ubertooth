@@ -166,7 +166,6 @@ def main():
 	bt.connect()
 	bt.send_set_freq_off_cmd(freq_off)
 	bt.send_set_bdaddr_cmd(0x112233445566)
-	# Thats the name indeed
 	eir = BTCtlEIR([
 		(BTCtlEIR.EIR_COMPLETE_LOCAL_NAME, b"Ubertooth"),
 	])
