@@ -699,7 +699,8 @@ class BTCtlMonitorCmd(BTCtlCmd):
 		crc_cal = crc_compute(data[:-2], reverse8(self._uap)<<8)
 		if crc != crc_cal:
 			return self._handle_bad(pkt)
-		#log.info("lmp : %s"%pdu2str(acl.raw_data[1:]))
+		# Fix acl data
+		acl.data = data[acl.hlen:-2]
 		if acl.llid == LLID_LMP:
 			self._handle_lmp(pkt)
 		else:
