@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from cmd import Cmd
 from ubtbr.btctl import *
+from getopt import getopt
 
 class BTCtlL2Ping(BTCtlPagingCmd):
 	def __init__(self, bt, bdaddr):
@@ -160,11 +161,31 @@ class BTCtlPrompt(Cmd):
 	do_EOF = do_exit
 	help_EOF = help_exit
 
+def usage():
+	print ("Usage: ubertooth-btbr OPTIONS\n"
+		+ "Options:\n"
+		+ "  -f freq_offset: Set MOD_OFFSET register\n"
+		+ "  -b max_ac_errors: Max bit errors in Syncword detection"
+		)
+	sys.exit(1)
+
 def main():
-	freq_off = 0
+	try:
+		opt, args = getopt(sys.argv[1:], "f:b:")
+	except:
+		usage()
+	if args:
+		usage()
+
 	bt = BTCtl.find()
 	bt.connect()
-	bt.send_set_freq_off_cmd(freq_off)
+
+	for o, v in opt:
+		if o == '-f':
+			bt.send_set_freq_off_cmd(int(v))
+		elif o == '-b':
+			bt.send_set_max_ac_errors_cmd(int(v))
+
 	bt.send_set_bdaddr_cmd(0x112233445566)
 	eir = BTCtlEIR([
 		(BTCtlEIR.EIR_COMPLETE_LOCAL_NAME, b"Ubertooth"),

@@ -26,11 +26,7 @@
 #include <ubtbr/ubertooth_dma.h>
 #include <ubtbr/system.h>
 
-static volatile struct {
-	uint16_t freq_off_reg;
-	btbr_int_cb_t int_handler;
-	void *int_arg;
-} rf_state = {0};
+volatile rf_state_t rf_state = {0};
 
 /* Interrupt handler for GIO6 */
 void EINT3_IRQHandler(void)
@@ -87,6 +83,12 @@ void btphy_rf_set_freq_off(uint8_t off)
 	cprintf("freq off reg: %d\n", rf_state.freq_off_reg);
 }
 
+void btphy_rf_set_max_ac_errors(uint8_t max_ac_errors)
+{
+	rf_state.max_ac_errors = max_ac_errors;
+	cprintf("max ac errors: %d\n", rf_state.max_ac_errors);
+}
+
 void btphy_rf_cfg_sync(uint32_t sync)
 {
 	cc2400_set(SYNCL,   sync & 0xffff);
@@ -101,6 +103,7 @@ void btphy_rf_init(void)
 	dma_poweron();
 	dio_ssp_init();
 
+	rf_state.max_ac_errors = MAX_AC_ERRORS_DEFAULT;
 
 	btphy_rf_idle();
 	WAIT_CC2400_STATE(STATE_IDLE);

@@ -34,7 +34,7 @@ BTCTL_SET_FREQ_OFF_REQ 	= 22
 BTCTL_SET_BDADDR_REQ 	= 23
 BTCTL_INQUIRY_REQ	= 24
 BTCTL_PAGING_REQ	= 25
-BTCTL_TXTEST_REQ	= 26
+BTCTL_SET_MAX_AC_ERRORS_REQ	= 26
 BTCTL_TX_ACL_REQ	= 27
 BTCTL_INQUIRY_SCAN_REQ	= 28
 BTCTL_PAGE_SCAN_REQ	= 29
@@ -50,9 +50,8 @@ BTCTL_STATE_STANDBY	= 0
 BTCTL_STATE_INQUIRY	= 1
 BTCTL_STATE_PAGE	= 2
 BTCTL_STATE_CONNECTED	= 3
-BTCTL_STATE_TEST	= 4
-BTCTL_STATE_INQUIRY_SCAN = 5
-BTCTL_STATE_PAGE_SCAN	= 6
+BTCTL_STATE_INQUIRY_SCAN = 4
+BTCTL_STATE_PAGE_SCAN	= 5
 
 # Reasons
 BTCTL_REASON_SUCCESS	= 0
@@ -65,7 +64,6 @@ STATE_TO_STR = {
 	BTCTL_STATE_STANDBY:	"STANDBY",
 	BTCTL_STATE_INQUIRY:	"INQUIRY",
 	BTCTL_STATE_PAGE:	"PAGE",
-	BTCTL_STATE_TEST:	"TEST"
 }
 
 REASON_TO_STR = {
@@ -867,7 +865,10 @@ class BTCtl:
 		self._send_cmd(BTCTL_IDLE_REQ)
 
 	def send_set_freq_off_cmd(self, off):
-		self._send_cmd(BTCTL_SET_FREQ_OFF_REQ, pack("<B", off))
+		self._send_cmd(BTCTL_SET_FREQ_OFF_REQ, p16(off))
+
+	def send_set_max_ac_errors_cmd(self, max_ac_errors):
+		self._send_cmd(BTCTL_SET_MAX_AC_ERRORS_REQ, p16(max_ac_errors))
 
 	def send_set_bdaddr_cmd(self, bdaddr):
 		self._send_cmd(BTCTL_SET_BDADDR_REQ, pack("<Q", bdaddr))

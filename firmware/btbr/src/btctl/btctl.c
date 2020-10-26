@@ -75,9 +75,17 @@ static void btctl_handle_idle_req(msg_t *msg)
 static void btctl_handle_set_freq_off_req(msg_t *msg)
 {
 	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
-	btctl_set_freq_off_req_t *req = (btctl_set_freq_off_req_t*)hdr->data;
+	btctl_set_reg_req_t *req = (btctl_set_reg_req_t*)hdr->data;
 
-	btphy_rf_set_freq_off(req->offset&0x3f);
+	btphy_rf_set_freq_off(req->reg&0x3f);
+}
+
+static void btctl_handle_set_max_ac_errors_req(msg_t *msg)
+{
+	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
+	btctl_set_reg_req_t *req = (btctl_set_reg_req_t*)hdr->data;
+
+	btphy_rf_set_max_ac_errors(req->reg&3);
 }
 
 static void btctl_handle_set_bdaddr_req(msg_t *msg)
@@ -182,6 +190,9 @@ static void btctl_handle_msg(msg_t *msg)
 	case BTCTL_SET_FREQ_OFF_REQ:
 		btctl_handle_set_freq_off_req(msg);
 		break;
+	case BTCTL_SET_MAX_AC_ERRORS_REQ:
+		btctl_handle_set_max_ac_errors_req(msg);
+		break;
 	case BTCTL_SET_BDADDR_REQ:
 		btctl_handle_set_bdaddr_req(msg);
 		break;
@@ -265,7 +276,6 @@ static const char* btctl_state_name(btctl_state_t state)
 		[BTCTL_STATE_INQUIRY]	= "INQUIRY",
 		[BTCTL_STATE_PAGE]	= "PAGE",
 		[BTCTL_STATE_CONNECTED]	= "CONNECTED",
-		[BTCTL_STATE_TEST]	= "TEST",
 		[BTCTL_STATE_INQUIRY_SCAN] = "INQUIRY_SCAN",
 		[BTCTL_STATE_PAGE_SCAN] = "PAGE_SCAN"
 	};

@@ -15,9 +15,20 @@
 
 typedef void (*btbr_int_cb_t)(void *arg);
 
+#define MAX_AC_ERRORS_DEFAULT	1
+typedef struct {
+	uint16_t freq_off_reg;
+	uint16_t max_ac_errors;
+	btbr_int_cb_t int_handler;
+	void *int_arg;
+} rf_state_t;
+
+extern volatile rf_state_t rf_state;
+
 void btphy_rf_init(void);
 void btphy_rf_off(void);
 void btphy_rf_set_freq_off(uint8_t off);
+void btphy_rf_set_max_ac_errors(uint8_t max_ac_errors);
 void btphy_rf_cfg_sync(uint32_t sync);
 void btphy_rf_tune_chan(uint16_t channel, int tx);
 void btphy_rf_fifo_write(uint8_t *data, unsigned len);
@@ -47,14 +58,14 @@ static inline void btphy_rf_rx(void)
 static inline void btphy_rf_cfg_rx(void)
 {
 	/* un-buffered mode, packet w/ sync word detection */
-	cc2400_set(GRMDM,   0x24E1);
-	// 0 01 00 1 001 11 0 00 0 1
+	cc2400_set(GRMDM,   0x4E1|(rf_state.max_ac_errors<<13));
+	// 0 XX 00 1 001 11 0 00 0 1
 	//   |  |  | |   |  +--------> CRC off
 	//   |  |  | |   +-----------> sync word: 32 MSB bits of SYNC_WORD
 	//   |  |  | +---------------> 1 preamble bytes of (0)1010101
 	//   |  |  +-----------------> packet mode
 	//   |  +--------------------> un-buffered mode // use sync word to trigger 
-	//   +-----------------------> sync error bits allowed: 1
+	//   +-----------------------> sync error bits allowed: N
 	cc2400_set(IOCFG, 0x170|(GIO_PKT<<9));
 }
 
