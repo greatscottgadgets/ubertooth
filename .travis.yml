@@ -27,6 +27,7 @@ addons:
       - gcc-arm-none-eabi
       - libnewlib-arm-none-eabi
       - libstdc++-arm-none-eabi-newlib
+      - python3-setuptools
 
   homebrew:
     taps: PX4/homebrew-px4
