@@ -139,9 +139,6 @@ const uint8_t whiten_state_tbl[8][128] = {
 0x1e, 0x3c, 0x5a, 0x78, 0x07, 0x25, 0x43, 0x61, 0x2c, 0x0e, 0x68, 0x4a, 0x35, 0x17, 0x71, 0x53, 
 }};
 
-#define FEC13_VAL(ia,ib,ic) (((ia)&(ib))|((ib)&(ic))|((ic)&(ia)))
-#define FEC13_ERR(ia,ib,ic) (((ia)^(ic))|((ib)^(ic))|((ic)^(ia)))
-
 /* F13 Lut to encode 8 bits */
 const uint32_t fec13_tbl[256] = {
 	0x000000, 0x000007, 0x000038, 0x00003f, 0x0001c0, 0x0001c7, 0x0001f8, 0x0001ff, 
@@ -299,237 +296,6 @@ const uint8_t hec_tbl[32] = {
 	0x72, 0xbc, 0x25, 0xeb, 0xdc, 0x12, 0x8b, 0x45, 
 };
 
-#ifdef DEBUG_CODE
-void print_hex(uint8_t *pkt, unsigned size)
-{
-	int i;
-	for (i=0;i<size;i++)
-		BB_DEBUG("%02x ", pkt[i]);
-}
-
-uint8_t *pack_chars(char *src, unsigned *size)
-{
-	unsigned i,j,k,nbits,nbytes;
-	uint8_t byte,bit, *bytes;
-
-	nbits = strlen(src);
-	if (nbits==0)
-	{
-		*size=0;
-		return NULL;
-	}
-	nbytes = BYTE_ALIGN(nbits);
-	bytes = malloc(nbytes);
-	
-	for (i=0;i<nbytes;i++)
-	{
-		byte =0;
-		for(k=0,j=i*8;k<8 && j<nbits;j++,k++)
-		{
-			bit = (unsigned char)(src[j]-'0');
-			if (bit > 1)
-			{
-				BB_DEBUG("invalid syms\n");
-				exit(1);
-			}
-			byte |= (bit<<(k));
-		}
-		bytes[i] = byte;
-	}
-	*size = nbits;
-	return bytes;
-}
-
-void whiten_precal_st(void)
-{
-	int n;
-	int s, next, i, wb;
-
-	BB_DEBUG("static const uint8_t whiten_state_tbl[8][128] = {");
-	for(n=1;n<=8;n++)
-	{
-		BB_DEBUG("\n{");
-		/* precompute whiten state in n bits */
-		for(s=0;s<128;s++)
-		{
-			/* next = s + n steps */
-			for(next=s,i=0;i<n;i++)
-			{
-				wb = (next>>6)&1;
-				next = ((next) << 1) & 0x7f ;
-				if (wb)
-					next ^= 021;
-			}
-			BB_DEBUG("0x%02x, ", next);
-			if ((((s+1) & 0xf) == 0) )
-				BB_DEBUG("\n");
-		}
-		BB_DEBUG("},");
-	}
-	BB_DEBUG("};");
-}
-
-void whiten_precal_word(void)
-{
-	int i;
-	uint8_t wb;
-	unsigned s, state, word;
-
-	BB_DEBUG("static const uint8_t whiten_word_tbl[128] = {\n\t");
-	for(s=0;s<128;s++)
-	{
-		word = 0;
-		for(state=s, i=0;i<8;i++)
-		{
-			wb = (state>>6)&1;
-			state = ((state) << 1) & 0x7f ;
-			if (wb)
-				state ^= 021;
-			word |= (wb<<i);
-		}
-		BB_DEBUG("0x%02x, ", word);
-		if (((s+1)&0x7)==0)BB_DEBUG("\n\t");
-	}
-	BB_DEBUG("};\n");
-}
-
-/* Precalc fec13 table to decode 6 bits at the time */
-void unfec13_precal(void)
-{
-	unsigned a1,b1,c1, a2,b2,c2, o1, o2, er1, er2, res;
-	unsigned idx;
-
-	BB_DEBUG("static const uint8_t unfec13_tbl[512] = {\n\t");
-	for (idx = 0; idx < 64;idx++)
-	{
-		a1 = (idx>>0)&1;
-		b1 = (idx>>1)&1;
-		c1 = (idx>>2)&1;
-
-		a2 = (idx>>3)&1;
-		b2 = (idx>>4)&1;
-		c2 = (idx>>5)&1;
-
-		o1 = FEC13_VAL(a1,b1,c1);
-		er1 = FEC13_ERR(a1,b1,c1);
-
-		o2 = FEC13_VAL(a2,b2,c2);
-		er2 = FEC13_ERR(a2,b2,c2);
-		res = (o1)|(o2<<1)|((er1+er2)<<14);
-	
-		BB_DEBUG("0x%04x, ", res);
-		if ((idx+1)%8==0)BB_DEBUG("\n\t");
-	}
-	BB_DEBUG("};\n");
-}
-
-/* Output 3bytes for one byte
-*/
-void fec13_slow(uint8_t *out, uint8_t *in, uint8_t nbits)
-{
-	uint8_t bit;
-	int i;
-
-	for (i=0;i<nbits;i++)
-	{
-		bit = get_bit(in, i);
-		set_bit(out, 3*i, bit);
-		set_bit(out, 3*i+1, bit);
-		set_bit(out, 3*i+2, bit);
-	}
-}
-
-void fec13_precal(void)
-{
-	uint16_t i;
-	uint32_t word;
-	uint8_t b[3];
-
-	BB_DEBUG("static const uint32_t fec13_tbl[256] = {\n\t");
-	for (i=0;i<256;i++)
-	{
-		fec13_slow(b, (uint8_t*)&i, 8);
-		//BB_DEBUG("0x%02x, 0x%02x, 0x%02x, 0,", b[0], b[1], b[2]);
-		word = b[0] | (b[1]<<8) | (b[2]<<16);
-		BB_DEBUG("0x%06x, ", word);
-		if (((i+1)&7)==0)BB_DEBUG("\n\t");
-	}
-	BB_DEBUG("};\n");
-}
-
-static uint16_t btbb_fec23(uint16_t data)
-{
-	/* from libbtbb */
-	static const uint16_t fec23_gen_matrix[] = {
-		0x2c01, 0x5802, 0x1c04, 0x3808, 0x7010,
-		0x4c20, 0x3440, 0x6880, 0x7d00, 0x5600};
-        int i;
-        uint16_t codeword = 0; 
-
-        /* host order, not air order */
-        for (i = 0; i < 10; i++) 
-                if (data & (1 << i))
-                        codeword ^= fec23_gen_matrix[i];
-
-        return codeword;
-}
-void fec23_precal(void)
-{
-	uint16_t i, w;
-
-	BB_DEBUG("static const uint8_t fec23_tbl[1024] = {\n\t");
-	for (i=0;i<1024;i++)
-	{
-		w = btbb_fec23(i);
-		BB_DEBUG("0x%02x, ", w>>10);
-		if (((i+1)&0xf)==0)BB_DEBUG("\n\t");
-	}
-	BB_DEBUG("};\n");
-}
-void crc_precal(void)
-{
-	uint32_t i,x,c, b;
-
-	printf("static const uint16_t crc_tbl[256] = {\n\t");
-	/* precompute xor word of crc for byte^crc_low=x */
-	for(x=0;x<256;x++)
-	{
-		c = x;
-		for(i=0;i<8;i++)
-		{
-			b = c&1;
-			c>>=1;
-			if (b)
-				c ^= 0x8408;
-		}
-		printf("0x%04x, ", c&0xffff);
-		if (((x+1)&0x7)==0)printf("\n\t");
-	}
-	printf("};\n");
-}
-
-/* compute hec output 5 bits ahed */
-void hec_precal(void) 
-{
-	unsigned x, hec, b, i;
-
-	printf("static const uint8_t hec_tbl[32] = {\n\t");
-	for (x=0;x<32;x++)
-	{
-		hec = x;
-		for (i = 0; i < 5; i++) {
-			b = hec&1;
-			hec>>=1;
-			if (b)
-				hec ^= 0xe5;
-		}
-		printf("0x%02x, ", hec_tbl[x]);
-		if(((x+1)&7)==0)
-			printf("\n\t");
-        }
-	printf("};\n");
-}
-#endif
 void null_decode(uint8_t *out, uint8_t *in, unsigned in_of, unsigned byte_count)
 {
 	unsigned i;
@@ -682,34 +448,10 @@ static inline uint16_t unfec23_10bits(uint16_t in)
 	uint16_t data, err, cor;
 
 	data = in & 0x3ff;
-	err = (in>>10)^fec23_tbl[data];
-	if (err)
-	{
-		/* single bit error */
-		if (err & (err-1))
-		{
-			cor = fec23_cor[err];
-			if (cor == 0)
-			{
-				return 0x400;
-			}
-			data ^= cor;
-		}
-		else{
-			return 0x400;
-		}
-	}
-	return data;
-}
-
-static inline uint16_t unfec23_10bits_fast(uint16_t in)
-{
-	uint16_t data, err, cor;
-
-	data = in & 0x3ff;
 	err = 0x1f & ((in>>10)^fec23_tbl[data]);
 	cor = fec23_cor[err];
 	data ^= cor;
+	/* FIXME: handle ber */
 	return data;
 }
 
@@ -738,7 +480,9 @@ int unfec23_10bytes(uint8_t *out, uint8_t *in)
 	ENCODE10_4(out+7,in7&0x3ff);
 	ENCODE10_6(out+8,in8&0x3ff);
 
-	return -((in1 | in2 | in3 | in4 | in5 | in6 | in7 | in8) >> 10);
+	/* FIXME: return bit error count */
+	//return ((in1 | in2 | in3 | in4 | in5 | in6 | in7 | in8) >> 10);
+	return 0;
 
 }
 int unfec23(uint8_t *out, uint8_t *in, unsigned in_of, unsigned nbits)
@@ -781,7 +525,7 @@ int unfec23(uint8_t *out, uint8_t *in, unsigned in_of, unsigned nbits)
 		case 6: data = EXTRACT15_6(in+byte_pos); break;
 		default:data = EXTRACT15_7(in+byte_pos); break;
 		}
-		data = unfec23_10bits_fast(data);
+		data = unfec23_10bits(data);
 		rc |= (data>>10);
 		data &= 0x3ff;
 		/* write output */

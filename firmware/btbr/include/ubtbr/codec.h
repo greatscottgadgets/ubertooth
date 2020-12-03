@@ -19,6 +19,7 @@ typedef struct bbcodec_s {
 	// common params 
 	uint8_t uap;	
 	int use_whiten;
+	int rx_raw;
 	uint8_t whiten_state;
 	uint16_t crc_state;
 	uint16_t crc_pos;
@@ -38,10 +39,12 @@ typedef struct bbcodec_s {
 static inline void bbcodec_init(bbcodec_t *codec,
 		uint32_t whiten_init,
 		uint8_t uap,
-		int use_whiten)
+		int use_whiten,
+		int rx_raw)
 {
 	codec->uap = uap;
 	codec->use_whiten = use_whiten;
+	codec->rx_raw = rx_raw;
 	codec->crc_state = reverse8(uap)<<8;
 	codec->crc_pos = 0;
 	codec->whiten_state = whiten_init;

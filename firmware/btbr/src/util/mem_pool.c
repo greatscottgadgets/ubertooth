@@ -27,7 +27,7 @@
 
 //#define MEM_DEBUG // this was to fix a small double free
 
-#define BUF_NUM 8
+#define BUF_NUM 16
 
 /* shoult be enough for any ACL packet */
 #define BUF_SIZE (sizeof(msg_t)+sizeof(btctl_hdr_t)+sizeof(btctl_rx_pkt_t)+344)

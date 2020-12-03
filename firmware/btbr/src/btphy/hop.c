@@ -107,18 +107,19 @@ static void hop_set_afh_map(uint8_t *afh_map)
 
 void hop_cfg_afh(uint8_t* buf)
 {
-	uint8_t enabled = buf[0];
+	uint8_t enabled = buf[0] & 1;
 	uint8_t *map = buf+1;
-	cprintf("(afh %d)",enabled);
 
 	if (enabled)
 	{
+		cprintf("(+afh)");
 		hop_set_afh_map(map);
 		hop_state.bank = hop_state.afh_bank;
 		hop_state.chan_count = hop_state.afh_chan_count;
 	}
 	else
 	{
+		cprintf("(-afh)");
 		hop_state.bank = hop_state.basic_bank;
 		hop_state.chan_count = NUM_BREDR_CHANNELS;
 	}
@@ -129,7 +130,11 @@ uint8_t hop_basic(uint32_t clk)
 {
 	uint8_t clk1, sel;
 
-	clk1 = 1&(clk>>1);
+	// Same-channel mechanism for AFH (FIXME: is this correct ?)
+	if (hop_state.afh_enabled)
+		clk1 = 0;
+	else
+		clk1 = 1&(clk>>1);
 
 	sel = hop_selection_kernel(
 		0x1f & (clk>>2),			// X = clk6_2

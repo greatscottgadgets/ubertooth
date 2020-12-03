@@ -71,7 +71,7 @@ static int inquiry_rx_cb(msg_t *msg, void *arg, int time_offset)
 			/* Schedule rx EFHS for next RX slot*/
 			rx_task_schedule(2,
 				inquiry_rx_cb, NULL,	// efhs rx callback
-				1			// wait for payload
+				1<<RX_F_PAYLOAD		// wait for payload
 			);
 		}
 		else
@@ -83,7 +83,6 @@ static int inquiry_rx_cb(msg_t *msg, void *arg, int time_offset)
 		{
 			DIE("txq full in inquiry\n");
 		}
-		//cprintf("enq %p\n", pkt);
 	}
 	return 0;
 }
@@ -106,7 +105,7 @@ static void inquiry_schedule(unsigned delay)
 	/* Schedule rx fhs: */
 	rx_task_schedule(delay+2,
 		inquiry_rx_cb, NULL,	// fhs rx callback
-		1			// wait for payload
+		1<<RX_F_PAYLOAD		// wait for payload
 		);
 }
 

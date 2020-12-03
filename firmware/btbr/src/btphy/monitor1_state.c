@@ -1,4 +1,4 @@
-/* Page scan state
+/* Monitor paging state
  *
  * Copyright 2020 Etienne Helluy-Lafont, Univ. Lille, CNRS.
  *
@@ -28,7 +28,7 @@
 #include <ubtbr/scan_task.h>
 #include <ubtbr/rx_task.h>
 #include <ubtbr/tx_task.h>
-#include <ubtbr/slave_state.h>
+#include <ubtbr/monitor_state.h>
 
 #define PAGE_SCAN_MAX_TICKS (CLKN_RATE*60)
 #define TX_PREPARE_IDX	1  // We will transmit at clkn1_0 = 2
@@ -36,35 +36,35 @@
 struct {
 	fhs_info_t fhs_info;
 	uint32_t clkn_start;
-} page_scan_state;
+} monitor1_state;
 
-static void page_scan_schedule(unsigned delay);
+static void monitor1_schedule(unsigned delay);
 
-static int page_scan_canceled(void)
+static int monitor1_canceled(void)
 {
 	return btctl_get_state() != BTCTL_STATE_PAGE_SCAN;
 }
 
-static void page_scan_tx_cb(void *arg)
+static int start_monitor2(uint8_t p1, uint8_t p2, uint16_t p3)
 {
 	cprintf("fhs: ba=%llx clk27_2=%x lta=%d\n",
-		page_scan_state.fhs_info.bdaddr,
-		page_scan_state.fhs_info.clk27_2,
-		page_scan_state.fhs_info.lt_addr);
+		monitor1_state.fhs_info.bdaddr,
+		monitor1_state.fhs_info.clk27_2,
+		monitor1_state.fhs_info.lt_addr);
 
-	slave_state_init(page_scan_state.fhs_info.bdaddr,
-			page_scan_state.fhs_info.lt_addr);
+	monitor2_state_init(monitor1_state.fhs_info.bdaddr);
+	return 0;
 }
 
 /* RX FHS cb */
-static int page_scan_rx_fhs_cb(msg_t *msg, void *arg, int time_offset)
+static int monitor1_rx_fhs_cb(msg_t *msg, void *arg, int time_offset)
 {
 	btctl_hdr_t *h = (btctl_hdr_t*)msg->data;
 	btctl_rx_pkt_t *pkt;
 
-	if (page_scan_canceled())
+	if (monitor1_canceled())
 	{
-		cprintf("page scan canceled\n");
+		cprintf("monitor1 canceled\n");
 		goto end;
 	}
 	pkt = (btctl_rx_pkt_t *)h->data;
@@ -76,34 +76,38 @@ static int page_scan_rx_fhs_cb(msg_t *msg, void *arg, int time_offset)
 			goto end;
 		}
 		// Parse fhs to get bdaddr/clkn/ltaddr
-		bbpkt_decode_fhs(pkt->bt_data, &page_scan_state.fhs_info);
+		bbpkt_decode_fhs(pkt->bt_data, &monitor1_state.fhs_info);
 
 
 		// Set slave clkn
-		btphy.slave_clkn = (page_scan_state.fhs_info.clk27_2<<2)
+		btphy.slave_clkn = (monitor1_state.fhs_info.clk27_2<<2)
 				 + (btphy.slave_clkn-pkt->clkn);
 		
-		/* Schedule TX ID(3)*/
-		tx_task_schedule(3&(TX_PREPARE_IDX-CUR_SLAVE_SLOT_IDX()),
-			page_scan_tx_cb, NULL,
-			NULL, NULL); 	// no header / no payload
-		
+		// Start hopping in next timeslot
+		tdma_schedule(1, start_monitor2, 0, 0, 0, -3);
+
+		// Send FHS to host
+		btctl_tx_enqueue(msg);
+		goto end_nofree;
 	}
 	else{
-		page_scan_schedule(0);
+		if (BBPKT_HAS_HDR(pkt) && pkt->bb_hdr.type)
+			console_putc('0'+pkt->bb_hdr.type);
+		monitor1_schedule(0);
 	}
 end:
 	msg_free(msg);
+end_nofree:
 	return 0;
 }
 
 /* RX ID(1) cb */
-static void page_scan_rx_id_cb(int sw_detected, void *arg)
+static void monitor1_rx_id_cb(int sw_detected, void *arg)
 {
 	unsigned delay;
-	if(page_scan_canceled())
+	if(monitor1_canceled())
 	{
-		cprintf("page scan canceled\n");
+		cprintf("monitor1 canceled\n");
 		return;
 	}
 	if (sw_detected)
@@ -118,34 +122,40 @@ static void page_scan_rx_id_cb(int sw_detected, void *arg)
 
 		/* Schedule rx FHS */
 		rx_task_schedule(delay+2,
-			page_scan_rx_fhs_cb, NULL,	// ID rx callback
+			monitor1_rx_fhs_cb, NULL,	// ID rx callback
 			1<<RX_F_PAYLOAD			// FHS packet has payload
 			);
 	}
 	else
 	{
-		page_scan_schedule(0);
+		monitor1_schedule(0);
 	}
 }
 
-static void page_scan_schedule(unsigned delay)
+static void monitor1_schedule(unsigned delay)
 {
-	if (MASTER_CLKN >= page_scan_state.clkn_start + PAGE_SCAN_MAX_TICKS)
+	if (MASTER_CLKN >= monitor1_state.clkn_start + PAGE_SCAN_MAX_TICKS)
 	{
-		cprintf("page scan timeout\n");
+		cprintf("monitor1 timeout\n");
 		btctl_set_state(BTCTL_STATE_STANDBY, BTCTL_REASON_TIMEOUT);
 		return;
 	}
-	scan_task_schedule(delay, page_scan_rx_id_cb, NULL);
+	scan_task_schedule(delay, monitor1_rx_id_cb, NULL);
 }
 
 /*
- * Page slave
+ * Monitor paging in a nutshell:
+ * 1 - Wait for ID(1) with target's lap
+ * 2 - Reply with ID(2)
+ * 3 - Receive FHS, do not send ID(3) (thats the trick!!)
+ * 4 - Start hopping on piconet and wait for real connection to establish
+ * 5 - Sniff all timeslots
  */
-void page_scan_state_setup(void)
+void monitor1_state_setup(uint64_t slave_bdaddr)
 {
+	btphy_set_bdaddr(slave_bdaddr);
 	btphy_set_mode(BT_MODE_PAGE_SCAN, btphy.my_lap, btphy.my_uap);
 	btctl_set_state(BTCTL_STATE_PAGE_SCAN, BTCTL_REASON_SUCCESS);
-	page_scan_state.clkn_start = MASTER_CLKN+1;
-	page_scan_schedule(1);
+	monitor1_state.clkn_start = MASTER_CLKN+1;
+	monitor1_schedule(1);
 }

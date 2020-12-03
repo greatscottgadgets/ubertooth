@@ -69,6 +69,7 @@ static struct {
 	unsigned rx_offset;
 	uint8_t rx_done;
 	uint8_t slot_num;
+	uint8_t rx_raw;
 } rx_task; 
 
 static int rx_decode(uint8_t p1, uint8_t p2, uint16_t p3);
@@ -78,11 +79,12 @@ static unsigned rx_buf_update(void)
 {
 	unsigned i, size = dma_get_rx_offset();
 
-	/* Reverse bytes to host order (skip 4 bytes of sw)*/
+	/* Reverse bytes to host order */
 	for(i=rx_task.rx_offset;i<size;i++)
 		rx_task.rx_dma_buf[i] = reverse8(rx_task.rx_dma_buf[i]);
 	rx_task.rx_offset = size;
 
+	/* Skip 32-bits of syncword*/
 	if (size > 4)
 		return size-4;
 	return 0;
@@ -164,11 +166,11 @@ static int rx_prepare(uint8_t p1, uint8_t p2, uint16_t p3)
 	pkt->clkn = rx_clkn; // clkn at time of execute
 	pkt->flags = 0;
 
-	bbcodec_init(&rx_task.codec, btphy_whiten_seed(rx_clkn), btphy.chan_uap, 1);
+	bbcodec_init(&rx_task.codec, btphy_whiten_seed(rx_clkn), btphy.chan_uap, 1, rx_task.rx_raw);
 	rx_task.pkt_time = 0;
 	rx_task.rx_done = 0;
 	rx_task.rx_offset = 0;
-	/* Configure DMA RX (skip 4 hi bytes of sw) */
+	/* Configure DMA RX */
 	dma_init_rx_single(rx_task.rx_dma_buf, sizeof(rx_task.rx_dma_buf));
 
 	/* Start SPI DMA */
@@ -183,13 +185,10 @@ static int rx_pkt_hdr_callback(void)
 	unsigned size;
 	btctl_rx_pkt_t *pkt = rx_task.rx_pkt;
 
-	if (pkt == NULL)
-		DIE("rxnph: no pkt");
-
 	/* Wait for 32 bits sw + 4bits trailer + 54 bits header*/
 	while((size=rx_buf_update()) < NUM_PKT_HDR_BYTES);
 
-	/* Decode pkt's header (skipping 32-bits of sw) & configure codec */
+	/* Decode pkt's header (skipping 32-bits of syncword in the dma_buf) & configure codec */
 	if(bbcodec_decode_header(&rx_task.codec, &pkt->bb_hdr, rx_task.rx_dma_buf+4))
 	{
 		return -1;
@@ -208,9 +207,6 @@ static void rx_data_hdr_callback(void)
 	int rc;
 	unsigned size;
 	btctl_rx_pkt_t *pkt = rx_task.rx_pkt;
-
-	if (pkt == NULL)
-		DIE("rxndh: no pkt");
 
 	/* Wait for a full chunk */
 	while((size=rx_buf_update()) < NUM_DATA_HDR_BYTES);
@@ -231,9 +227,6 @@ static int rx_execute(uint8_t p1, uint8_t p2, uint16_t p3)
 {
 	unsigned i, delay;
 	btctl_rx_pkt_t *pkt = rx_task.rx_pkt;
-
-	if (pkt == NULL)
-		DIE("rxne: no pkt");
 
 	if ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_RX)
 	{
@@ -288,13 +281,10 @@ static int rx_decode(uint8_t p1, uint8_t p2, uint16_t p3)
 {
 	unsigned i, size, bytes_left;
 	int rc, last;
-	btctl_rx_pkt_t *pkt;
+	btctl_rx_pkt_t *pkt = rx_task.rx_pkt;
 
 	/* Check if we're in the last slot according to BT spec table 6.2 */
 	last = --rx_task.slot_num == 0;
-
-	if ((pkt = rx_task.rx_pkt) == NULL)
-		DIE("rxdec: no pkt");
 
 	/* Reverse the dma buf */
 	size=rx_buf_update();
@@ -323,10 +313,6 @@ static int rx_decode(uint8_t p1, uint8_t p2, uint16_t p3)
 	}
 	else
 	{
-		/* In the last slot, decode must be done now */
-		if (last)
-			DIE("rx_dec err %d\n",rc);
-
 		/* Schedule one more decode */
 		tdma_schedule(1, rx_decode, 0, 0, 0, 0);
 	}
@@ -349,7 +335,7 @@ void rx_task_reset(void)
 	}
 }
 
-void rx_task_schedule(unsigned delay, rx_task_cb_t cb, void*cbarg, uint8_t do_rx_payload)
+void rx_task_schedule(unsigned delay, rx_task_cb_t cb, void*cbarg, unsigned flags)
 {
 	btctl_rx_pkt_t *pkt;
 
@@ -361,7 +347,9 @@ void rx_task_schedule(unsigned delay, rx_task_cb_t cb, void*cbarg, uint8_t do_rx
 	rx_task.pkt_cb = cb;
 	rx_task.cb_arg = cbarg;
 	/* Does the packet have a payload ? (else it's an ID) */
-	rx_task.do_rx_payload = do_rx_payload;
+	rx_task.do_rx_payload = flags & (1<<RX_F_PAYLOAD);
+	/* Receive raw bursts for monitor state */
+	rx_task.rx_raw = flags & (1<<RX_F_RAW);
 
 	tdma_schedule_set(delay, rx_sched_set, 0);
 }

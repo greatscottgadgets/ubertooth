@@ -65,8 +65,6 @@ static int paging_rx_ack_cb(msg_t *msg, void *arg, int time_offset)
 		msg_free(msg);
 		return 0;
 	}
-	if (h->type != BTCTL_RX_PKT)
-		DIE("paging : expect acl rx");
 	pkt = (btctl_rx_pkt_t *)h->data;
 
 	if (BBPKT_HAS_PKT(pkt))
@@ -91,8 +89,6 @@ static int paging_rx_cb(msg_t *msg, void *arg, int time_offset)
 
 	if (paging_canceled())
 		goto end;
-	if (h->type != BTCTL_RX_PKT)
-		DIE("paging : expect acl rx");
 	pkt = (btctl_rx_pkt_t *)h->data;
 
 	if (BBPKT_HAS_PKT(pkt))
@@ -116,7 +112,7 @@ static int paging_rx_cb(msg_t *msg, void *arg, int time_offset)
 		/* Schedule rx slave's ID(3) page response: */
 		rx_task_schedule(delay+2,
 			paging_rx_ack_cb, NULL,	// ID rx callback
-			0			// no payload for an ID packet
+			0			// no payload
 			);
 	}
 	else
@@ -190,8 +186,8 @@ void paging_state_setup(uint32_t lap, uint8_t uap)
 		btphy.my_lap,		// master's bdaddr
 		btphy.my_uap,		// 
 		btphy.my_nap,		// 
-		0x5A020C,			// class: FIXME I have no idea what this is
-		1,				// fixme: fixed ltaddr = 1		
+		0x5A020C,		// class: FIXME make this configurable
+		1,			// lt_addr: FIXME: fixed ltaddr = 1
 		0 // No eir
 		);
 

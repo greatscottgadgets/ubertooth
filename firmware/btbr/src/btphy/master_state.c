@@ -74,13 +74,13 @@ static int master_rx_cb(msg_t *msg, void *arg, int time_offset)
 
 static void master_state_schedule_rx(unsigned skip_slots)
 {
-	/* listen for a reply in next rx slot */
+	/* Wait for next rx slot */
 	unsigned delay = 4*skip_slots+(3&(RX_PREPARE_IDX-CUR_MASTER_SLOT_IDX()));
 
 	/* Schedule rx: */
 	rx_task_schedule(delay,
 		master_rx_cb, NULL,	// ID rx callback
-		1			// wait for header 
+		1<<RX_F_PAYLOAD		// wait for header
 	);
 }
 
@@ -91,12 +91,11 @@ static void tx_done_cb(void* arg)
 
 static void master_state_schedule_tx(unsigned skip_slots)
 {
-	/* Wait for next master tx slot */
+	/* Wait for next tx slot */
 	unsigned delay = skip_slots * 4 + (3&(TX_PREPARE_IDX-CUR_MASTER_SLOT_IDX()));
 	bbhdr_t *tx_hdr;
 	uint8_t *tx_data;
 
-	/* Wait for next master tx slot */
 	ll_prepare_tx(&master_state.ll, &tx_hdr, &tx_data);
 
 	tx_task_schedule(delay,

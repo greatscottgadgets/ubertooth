@@ -1,6 +1,7 @@
-from time import time, sleep
+from time import time
 import logging
 from binascii import unhexlify, hexlify
+from struct import pack, unpack
 log = logging.getLogger("btctl")
 LLID_LMP = 3
 
@@ -197,14 +198,13 @@ LMP_OPEXT2STR = {
 
 def u8(d):	return d
 def u16(d):
-	assert (len(d)==2)
-	return d[0]+(d[1]<<8)
+	return unpack("<H", d)[0]
 def u32(d):
-	assert (len(d)==4)
-	return d[0]+(d[1]<<8)+(d[2]<<16)+(d[3]<<24)
-def p16(n):	return bytes((n&0xff,(n>>8)&0xff))
-def p32(n):	return bytes((n&0xff,(n>>8)&0xff,(n>>16)&0xff,(n>>24)&0xff))
-def p8(n):	return bytes((n,))
+	return unpack("<I", d)[0]
+def p8(n):	return pack("<B", n)
+def p16(n):	return pack("<H", n)
+def p32(n):	return pack("<I", n)
+def p64(n):	return pack("<Q", n)
 
 def pdu2str(pdu):
 	opcode = u8(pdu[0])
@@ -221,9 +221,8 @@ def pdu2str(pdu):
 
 class LMP:
 	# Features supported (Core v5.2 | Vol 2, Part C, table 3.2 p585)
-	#FEATURES = b"\x03\x00\x00\x00\x08\x08\x19\x80" # With AFH
-	FEATURES = b"\x03\x00\x00\x00\x00\x00\x19\x80" # No AFH
-	FEATURES_EXT = b"\x01\x01\x07"
+	#FEATURES = b"\x03\x00\x00\x00\x08\x08\x19\x00" # With AFH
+	FEATURES = b"\x03\x00\x00\x00\x00\x00\x19\x00" # No AFH
 
 	def __init__(self, con, debug=True):
 		self._debug = debug
@@ -293,8 +292,7 @@ class LMP:
 	def handle_name_req(self, op, data):
 		offset = u8(data[0])
 		name = b"Ubertooth"
-		sleep(0.1)
-		return self.lmp_send_name_res(offset, len(name), name)
+		return self.lmp_send_name_res(offset, len(name), name[offset:offset+14])
 
 	def handle_feat_req(self, op, data):	
 		log.info("handle_feat_req")
@@ -302,7 +300,7 @@ class LMP:
 
 	def handle_feat_req_ext(self, op, data):
 		log.info("handle_feat_req_ext")
-		self.lmp_send_feat_ext(False)
+		self.lmp_send_feat_ext(False, num=u8(data[0]))
 
 	def handle_vers_req(self, op, data):	
 		log.info("handle_vers_req")
@@ -351,9 +349,9 @@ class LMP:
 		# Opcode
 		if is_req:	op = LMP_VERSION_REQ
 		else:		op = LMP_VERSION_RES
-		data = p8(6)		# version num
-		data += p16(29)		# Qualcomm
-		data += p16(2003)	# sub version num
+		data = p8(1)		# version num
+		data += p16(0xffff)	# Company identifier: none
+		data += p16(2020)	# sub version num: 2020
 		return self.lmp_send(op, data, **kwargs)
 		
 	def lmp_send_feat(self, is_req, **kwargs):
@@ -361,16 +359,23 @@ class LMP:
 		else:		op = LMP_FEATURES_RES
 		return self.lmp_send(op, self.FEATURES, **kwargs)
 		
-	def lmp_send_feat_ext(self, is_req, **kwargs):
+	def lmp_send_feat_ext(self, is_req, num=1, **kwargs):
 		# Ext opcode
 		if is_req:	data = p8(LMP_FEATURES_REQ_EXT)
 		else:		data = p8(LMP_FEATURES_RES_EXT)
-		data += self.FEATURES_EXT
-		data = data.ljust(11, b"\x00")
+		data += p8(num)	# page 
+		data += p8(num)	# Max supported page
+		data = data.ljust(11, b"\x00")	# We support none 
 		return self.lmp_send(LMP_ESCAPE_4, data, **kwargs)
 
 	def lmp_send_setup_complete(self, **kwargs):
 		return self.lmp_send(LMP_SETUP_COMPLETE, b'', **kwargs)
+
+	def lmp_send_set_afh(self, instant, mode, cmap):
+		assert(len(cmap)==10)
+		log.info("Send AFH req: instant=%d, (cur %d), mode=%d"%(
+			instant, self._clkn, mode))
+		return self.lmp_send(LMP_SET_AFH, p32(instant>>1)+p8(mode)+cmap)
 
 class LMPMaster(LMP):
 	def __init__(self, con):
@@ -390,7 +395,9 @@ class LMPMaster(LMP):
 				LMP_SLOT_OFFSET:	(self.handle_slot_offset,),
 				LMP_SWITCH_REQ:		(self.handle_switch_req,),
 				LMP_ACCEPTED:		(self.handle_accepted,),
+				LMP_NOT_ACCEPTED:		(self.handle_not_accepted,),
 				LMP_SETUP_COMPLETE:	(self.handle_setup_complete,),
+				LMP_ENCRYPTION_KEY_SIZE_MASK_RES: (self.handle_info_res,),
 			},
 		}
 		self._state = 1
@@ -399,15 +406,17 @@ class LMPMaster(LMP):
 		self.rmt_iocap = None
 		self.rmt_version = None
 		self.rmt_name = None
+		self.rmt_enc_key_size_mask = None
 		super().__init__(con)
 
 	def start(self):
 		self.send_info_req()
 
+	def handle_not_accepted(self, op, data):
+		pass
+
 	def handle_accepted(self, op, data):
-		o = data[0]
-		if o == LMP_HOST_CONNECTION_REQ:
-			pass
+		pass
 
 	def handle_slot_offset(self, op, data):
 		offset = u16(data[:2])
@@ -433,7 +442,9 @@ class LMPMaster(LMP):
 		if self.rmt_name is None:
 			self.lmp_send_name_req(0)
 			return
-		log.info("got all infos")
+		if self.rmt_enc_key_size_mask is None:
+			self.lmp_send(LMP_ENCRYPTION_KEY_SIZE_MASK_REQ, b'')
+			return
 		self.lmp_send(LMP_HOST_CONNECTION_REQ,b'')
 
 	def handle_info_res(self, op, data):
@@ -445,6 +456,8 @@ class LMPMaster(LMP):
 			self.rmt_features_ext = data
 		elif op == LMP_NAME_RES:
 			self.rmt_name = data
+		elif op == LMP_ENCRYPTION_KEY_SIZE_MASK_RES:
+			self.rmt_enc_key_size_mask = data
 		self.send_info_req()
 
 	def handle_setup_complete(self, op, data):

@@ -29,9 +29,9 @@
 #include <ubtbr/inquiry_state.h>
 #include <ubtbr/paging_state.h>
 #include <ubtbr/master_state.h>
-#include <ubtbr/test_state.h>
 #include <ubtbr/inquiry_scan_state.h>
 #include <ubtbr/page_scan_state.h>
+#include <ubtbr/monitor_state.h>
 
 btctl_t btctl;
 
@@ -75,9 +75,17 @@ static void btctl_handle_idle_req(msg_t *msg)
 static void btctl_handle_set_freq_off_req(msg_t *msg)
 {
 	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
-	btctl_set_freq_off_req_t *req = (btctl_set_freq_off_req_t*)hdr->data;
+	btctl_set_reg_req_t *req = (btctl_set_reg_req_t*)hdr->data;
 
-	btphy_rf_set_freq_off(req->offset&0x3f);
+	btphy_rf_set_freq_off(req->reg&0x3f);
+}
+
+static void btctl_handle_set_max_ac_errors_req(msg_t *msg)
+{
+	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
+	btctl_set_reg_req_t *req = (btctl_set_reg_req_t*)hdr->data;
+
+	btphy_rf_set_max_ac_errors(req->reg&3);
 }
 
 static void btctl_handle_set_bdaddr_req(msg_t *msg)
@@ -106,14 +114,18 @@ static void btctl_handle_paging_req(msg_t *msg)
 	paging_state_setup(lap, uap);
 }
 
+static void btctl_handle_monitor_req(msg_t *msg)
+{
+	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
+	btctl_paging_req_t *req = (btctl_paging_req_t*)hdr->data;
+
+	/* Start paging monitor */
+	monitor1_state_setup(req->bdaddr);
+}
+
 static void btctl_handle_tx_acl_req(msg_t *msg)
 {
 	btctl_acl_tx_enqueue(msg);
-}
-
-static void btctl_handle_txtest_req(msg_t *msg)
-{
-	tx_test_state_setup();
 }
 
 static void btctl_handle_inquiry_scan_req(msg_t *msg)
@@ -127,9 +139,9 @@ static void btctl_handle_page_scan_req(msg_t *msg)
 	page_scan_state_setup();
 }
 
-static uint8_t afh_buf[11];
 static void btctl_handle_set_afh_req(msg_t *msg)
 {
+	static uint8_t afh_buf[11];
 	uint32_t flags = irq_save_disable();
 	btctl_hdr_t *hdr = (btctl_hdr_t*)msg->data;
 	btctl_set_afh_req_t *req = (btctl_set_afh_req_t*)hdr->data;
@@ -178,6 +190,9 @@ static void btctl_handle_msg(msg_t *msg)
 	case BTCTL_SET_FREQ_OFF_REQ:
 		btctl_handle_set_freq_off_req(msg);
 		break;
+	case BTCTL_SET_MAX_AC_ERRORS_REQ:
+		btctl_handle_set_max_ac_errors_req(msg);
+		break;
 	case BTCTL_SET_BDADDR_REQ:
 		btctl_handle_set_bdaddr_req(msg);
 		break;
@@ -191,14 +206,14 @@ static void btctl_handle_msg(msg_t *msg)
 		btctl_handle_tx_acl_req(msg);
 		// don't free tx messages
 		goto end_nofree;
-	case BTCTL_TXTEST_REQ:
-		btctl_handle_txtest_req(msg);
-		break;
 	case BTCTL_INQUIRY_SCAN_REQ:
 		btctl_handle_inquiry_scan_req(msg);
 		break;
 	case BTCTL_PAGE_SCAN_REQ:
 		btctl_handle_page_scan_req(msg);
+		break;
+	case BTCTL_MONITOR_REQ:
+		btctl_handle_monitor_req(msg);
 		break;
 	case BTCTL_SET_EIR_REQ:
 		btctl_handle_set_eir_req(msg);
@@ -261,7 +276,6 @@ static const char* btctl_state_name(btctl_state_t state)
 		[BTCTL_STATE_INQUIRY]	= "INQUIRY",
 		[BTCTL_STATE_PAGE]	= "PAGE",
 		[BTCTL_STATE_CONNECTED]	= "CONNECTED",
-		[BTCTL_STATE_TEST]	= "TEST",
 		[BTCTL_STATE_INQUIRY_SCAN] = "INQUIRY_SCAN",
 		[BTCTL_STATE_PAGE_SCAN] = "PAGE_SCAN"
 	};

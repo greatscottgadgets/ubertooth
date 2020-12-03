@@ -18,5 +18,6 @@ SRC = $(shell find src -name '*.c') \
 	$(LPCUSB_PATH)/usbhw_lpc.c \
 	$(LPCUSB_PATH)/usbstdreq.c
 
+OPT = 3
 
 include ../common.mk

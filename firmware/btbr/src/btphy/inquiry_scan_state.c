@@ -76,7 +76,7 @@ static void inquiry_scan_rx_cb(int sw_detected, void *arg)
 
 	if (sw_detected)
 	{
-		cprintf("!");
+		console_putc('!');
 		/* Schedule TX FHS
 		 * We're in the scan_wait, in same tick as rx.
 		 * we must prepare in next tick to start tx at rx+2 */
@@ -118,18 +118,18 @@ void inquiry_scan_state_setup(void)
 	btctl_set_state(BTCTL_STATE_INQUIRY_SCAN, BTCTL_REASON_SUCCESS);
 
 	/* A simple Header for our fhs */ 
-	inquiry_scan_state.fhs_hdr.lt_addr = 0;		//  This seems right
+	inquiry_scan_state.fhs_hdr.lt_addr = 0;
 	inquiry_scan_state.fhs_hdr.type = BB_TYPE_FHS;
 	inquiry_scan_state.fhs_hdr.flags = 0; 		// Depends on devices, some sends BTHDR_FLOW|BTHDR_SEQN, others send 0, both seems right
 
 	/* Prepare constant part of FHS payload */
 	bbpkt_fhs_prepare_payload(inquiry_scan_state.fhs_data,
-		btphy.my_sw&0xffffffff, 	// parity: low32 bits of master's sw
+		btphy.my_sw&0xffffffff,	// parity: low32 bits of master's sw
 		btphy.my_lap,		// master's bdaddr
 		btphy.my_uap,		// 
 		btphy.my_nap,		// 
-		0x5A020C,			// class: FIXME I have no idea what this is
-		0,				// fixme: fixed ltaddr = 1		
+		0x5A020C,		// class: FIXME: make this configurable
+		0,			// lt_addr
 		btctl_get_eir() != NULL
 		);
 

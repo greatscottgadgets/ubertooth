@@ -217,9 +217,8 @@ typedef enum btctl_state_e {
 	BTCTL_STATE_INQUIRY	= 1,
 	BTCTL_STATE_PAGE	= 2,
 	BTCTL_STATE_CONNECTED	= 3,
-	BTCTL_STATE_TEST	= 4,
-	BTCTL_STATE_INQUIRY_SCAN = 5,
-	BTCTL_STATE_PAGE_SCAN	= 6,
+	BTCTL_STATE_INQUIRY_SCAN = 4,
+	BTCTL_STATE_PAGE_SCAN	= 5,
 	BTCTL_STATE_COUNT
 } btctl_state_t;
 
@@ -241,12 +240,13 @@ typedef enum {
 	BTCTL_SET_BDADDR_REQ	= 23,
 	BTCTL_INQUIRY_REQ	= 24,
 	BTCTL_PAGING_REQ	= 25,
-	BTCTL_TXTEST_REQ	= 26,
+	BTCTL_SET_MAX_AC_ERRORS_REQ = 26,
 	BTCTL_TX_ACL_REQ	= 27,
 	BTCTL_INQUIRY_SCAN_REQ	= 28,
 	BTCTL_PAGE_SCAN_REQ	= 29,
 	BTCTL_SET_EIR_REQ	= 30,// in a btctl_tx_pkt_t
 	BTCTL_SET_AFH_REQ	= 31,
+	BTCTL_MONITOR_REQ	= 32,
 	/* Device -> Host */
 	BTCTL_RX_PKT		= 40,
 	BTCTL_STATE_RESP	= 41
@@ -262,9 +262,9 @@ typedef struct btctl_paging_req_s {
 	uint64_t bdaddr;
 } btctl_paging_req_t;
 
-typedef struct btctl_set_freq_off_req_s {
-	uint8_t offset;
-} btctl_set_freq_off_req_t;
+typedef struct btctl_set_reg_req_s {
+	uint16_t reg;
+} btctl_set_reg_req_t;
 
 typedef struct btctl_set_bdaddr_req_s {
 	uint64_t bdaddr;

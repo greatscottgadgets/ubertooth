@@ -94,7 +94,7 @@ static int tx_prepare(uint8_t p1, uint8_t p2, uint16_t p3)
 	{
 		bbcodec_init(&tx_task.codec,
 			btphy_whiten_seed(tx_clkn),
-			btphy.chan_uap, 1);
+			btphy.chan_uap, 1, 0);
 
 		memset(tx_task.air_data, 0, sizeof(tx_task.air_data));
 		/* encode the header in tx buffer & configure codec */
