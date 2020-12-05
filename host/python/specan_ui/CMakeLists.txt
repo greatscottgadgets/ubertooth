@@ -26,12 +26,12 @@ set(OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/build)
 configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
 add_custom_command(OUTPUT ${OUTPUT}/timestamp
-                   COMMAND ${PYTHON_EXECUTABLE} setup.py build
+                   COMMAND ${Python3_EXECUTABLE} setup.py build
                    COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}/timestamp
                    DEPENDS ${DEPS})
 
 add_custom_target(specan ALL DEPENDS ${OUTPUT}/timestamp)
-install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build -b ${OUTPUT} install)")
+install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build -b ${OUTPUT} install)")
 
 add_custom_target(ubertooth-specan-ui ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth-specan-ui)
 install(PROGRAMS ubertooth-specan-ui DESTINATION ${INSTALL_DEFAULT_BINDIR})

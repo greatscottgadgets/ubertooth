@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2011 Jared Boone
 #
@@ -26,8 +26,8 @@ import numpy
 
 from argparse import ArgumentParser
 
-from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtCore import Qt, QPointF, QLineF
+from qtpy import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 

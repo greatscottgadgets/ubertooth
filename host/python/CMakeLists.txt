@@ -20,8 +20,8 @@
 project(ubertooth-python)
 
 # Check for python installation
-find_package(PythonInterp)
-if(NOT PYTHONINTERP_FOUND)
+find_package(Python3)
+if(NOT Python3_FOUND)
 	return()
 else()
 	add_subdirectory(specan_ui)
