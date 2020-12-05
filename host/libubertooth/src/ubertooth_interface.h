@@ -121,9 +121,8 @@ enum rfcat24_subcommands {
 	RFCAT_CAP_LEN                = 2,
 };
 
-// maximum adv data len: 32 - (2 + 6 + 3)
-#define LE_ADV_MAX_LEN 21
-
+// maximum adv data by the 5.0 specs 
+#define LE_ADV_MAX_LEN 255
 enum jam_modes {
 	JAM_NONE       = 0,
 	JAM_ONCE       = 1,
