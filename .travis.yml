@@ -34,6 +34,7 @@ addons:
     taps: PX4/homebrew-px4
     packages:
        - gcc-arm-none-eabi
+    update: true
 
 before_script:
   # build and install latest libbtbb
