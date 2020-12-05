@@ -32,7 +32,7 @@
 ubertooth_t* ut = NULL;
 int running = 1;
 
-void quit(int signo)
+void quit(int signo __attribute__((unused)))
 {
 	running = 0;
 }
