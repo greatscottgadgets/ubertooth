@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
 
 	dev_id = hci_devid(bt_dev);
 	sock = hci_open_dev(dev_id);
-	hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
 
 	if ((have_lap != 1) || (have_uap != 1)) {
 		printf("No address given, reading address from device\n");
@@ -176,13 +175,8 @@ int main(int argc, char *argv[])
 			perror("Can't create connection");
 			return 1;
 		}
-		sleep(1);
 		cc = 1;
 
-		if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-			perror("Reading clock offset failed");
-		}
-		clock += offset;
 	} else {
 			usage();
 			return 1;
@@ -209,10 +203,6 @@ int main(int argc, char *argv[])
 		}
 	} else {
 		printf("Not use AFH\n");
-	}
-	if (cc) {
-		usleep(10000);
-		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
 	}
 
 	/* Clean up on exit. */
@@ -245,6 +235,15 @@ int main(int argc, char *argv[])
 	cmd_set_clock(ut->devh, 0);
 	if(afh_enabled)
 		cmd_set_afh_map(ut->devh, afh_map);
+    
+    // Read clocks here to ensure clock is closest to real value
+    hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+    if (cc) {
+        if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+            perror("Reading clock offset failed\n");
+        }
+        clock += (offset<<2);   // Correct offset
+    }
 	btbb_piconet_set_clk_offset(pn, clock+delay);
 	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
 	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
@@ -253,6 +252,10 @@ int main(int argc, char *argv[])
 	r = cmd_start_hopping(ut->devh, btbb_piconet_get_clk_offset(pn), 0);
 	if (r < 0)
 		return r;
+
+    if (cc) {
+		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+	}
 
 	// receive and process each packet
 	while(!ut->stop_ubertooth) {
