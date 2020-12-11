@@ -34,6 +34,7 @@
 #include "cc2400_rangetest.h"
 #include "ego.h"
 #include "debug_uart.h"
+#include "xmas.h"
 
 #define MIN(x,y)	((x)<(y)?(x):(y))
 #define MAX(x,y)	((x)>(y)?(x):(y))
@@ -2674,6 +2675,10 @@ int main()
 					break;
 				case MODE_TX_GENERIC:
 					tx_generic();
+					break;
+				case MODE_XMAS:
+					mode = MODE_XMAS;
+					xmas_main();
 					break;
 				case MODE_IDLE:
 					cc2400_idle();
