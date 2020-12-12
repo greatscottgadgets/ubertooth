@@ -710,12 +710,12 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 #endif
 
 	case UBERTOOTH_EGO:
+		ego_mode = request_params[0];
 #ifndef TX_ENABLE
 		if (ego_mode == EGO_JAM)
 			return 0;
 #endif
 		requested_mode = MODE_EGO;
-		ego_mode = request_params[0];
 		break;
 
 	case UBERTOOTH_RFCAT_SUBCMD:
