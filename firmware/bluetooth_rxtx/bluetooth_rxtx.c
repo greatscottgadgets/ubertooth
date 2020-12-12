@@ -207,11 +207,13 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		*data_len = 0;
 		break;
 
+#ifdef TX_ENABLE
 	case UBERTOOTH_TX_SYMBOLS:
 		hop_mode = HOP_BLUETOOTH;
 		requested_mode = MODE_TX_SYMBOLS;
 		*data_len = 0;
 		break;
+#endif
 
 	case UBERTOOTH_GET_USRLED:
 		data[0] = (USRLED) ? 1 : 0;
@@ -637,6 +639,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		*data_len = MAX_READ_REG*3;
 		break;
 
+#ifdef TX_ENABLE
 	case UBERTOOTH_TX_GENERIC_PACKET:
 		i = 7 + data[6];
 		memcpy(&tx_pkt, data, i);
@@ -649,6 +652,7 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		memcpy(slave_mac_address, data, 6);
 		requested_mode = MODE_BT_SLAVE_LE;
 		break;
+#endif
 
 	case UBERTOOTH_LE_SET_ADV_DATA:
 		// make sure the data fits in our buffer
@@ -1063,9 +1067,9 @@ static void cc2400_rx_sync(u32 sync)
 }
 
 /* start buffered tx */
+#ifdef TX_ENABLE
 static void cc2400_tx_sync(uint32_t sync)
 {
-#ifdef TX_ENABLE
 	// Bluetooth-like modulation
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
@@ -1107,8 +1111,8 @@ static void cc2400_tx_sync(uint32_t sync)
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	cc2400_strobe(STX);
 
-#endif
 }
+#endif
 
 /*
  * Transmit a BTLE packet with the specified access address.
@@ -1118,6 +1122,7 @@ static void cc2400_tx_sync(uint32_t sync)
  * included in the data length.
  *
  */
+#ifdef TX_ENABLE
 void le_transmit(u32 aa, u8 len, u8 *data)
 {
 	unsigned int fifo_space, i, j;
@@ -1216,9 +1221,10 @@ void le_transmit(u32 aa, u8 len, u8 *data)
 	// Restore GIO
  	cc2400_set(IOCFG, gio_save);
 }
+#endif
 
-void le_jam(void) {
 #ifdef TX_ENABLE
+void le_jam(void) {
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);    // LNA and receive mixers test register
 	cc2400_set(MDMTST0, 0x234b);    // PRNG, 1 MHz offset
@@ -1244,8 +1250,8 @@ void le_jam(void) {
 #endif
 	while ((cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	cc2400_strobe(STX);
-#endif
 }
+#endif
 
 /* TODO - return whether hop happened, or should caller have to keep
  * track of this? */
@@ -1313,10 +1319,13 @@ void hop(void)
 
 	dma_discard = 1;
 
-	if(mode == MODE_TX_SYMBOLS)
+	if(mode == MODE_TX_SYMBOLS) {
+#ifdef TX_ENABLE
 		cc2400_strobe(STX);
-	else
+#endif
+	} else {
 		cc2400_strobe(SRX);
+	}
 }
 
 /* Bluetooth packet monitoring */
@@ -1443,6 +1452,7 @@ static uint16_t reverse16(uint16_t data)
  *
  * All modulation parameters are set within this function.
  */
+#ifdef TX_ENABLE
 void br_transmit()
 {
 	uint16_t gio_save;
@@ -1519,6 +1529,7 @@ void br_transmit()
 	// reset GIO
 	cc2400_set(IOCFG, gio_save);
 }
+#endif
 
 /* set LE access address */
 static void le_set_access_address(u32 aa) {
@@ -1881,7 +1892,9 @@ void bt_le_sync(u8 active_mode)
 
 		// ♪ you can jam but you keep turning off the light ♪
 		if (le_jam_count > 0) {
+#ifdef TX_ENABLE
 			le_jam();
+#endif
 			--le_jam_count;
 		} else {
 			/* RX mode */
@@ -2344,6 +2357,7 @@ void bt_promisc_le() {
 	}
 }
 
+#ifdef TX_ENABLE
 void bt_slave_le() {
 	u32 calc_crc;
 	int i;
@@ -2387,6 +2401,7 @@ void bt_slave_le() {
 	// disable USB interrupts
 	ICER0 = ICER0_ICE_USB;
 }
+#endif
 
 void rx_generic_sync(void) {
 	u8 len = 32;
@@ -2437,6 +2452,7 @@ void rx_generic(void) {
 	}
 }
 
+#ifdef TX_ENABLE
 void tx_generic(void) {
 	u16 synch, syncl;
 	u8 prev_mode = mode;
@@ -2482,6 +2498,7 @@ void tx_generic(void) {
 	cc2400_set(SYNCL, syncl);
 	requested_mode = prev_mode;
 }
+#endif
 
 /* spectrum analysis */
 void specan()
@@ -2632,10 +2649,12 @@ int main()
 					mode = MODE_RX_SYMBOLS;
 					bt_stream_rx();
 					break;
+#ifdef TX_ENABLE
 				case MODE_TX_SYMBOLS:
 					mode = MODE_TX_SYMBOLS;
 					br_transmit();
 					break;
+#endif
 				case MODE_BT_FOLLOW:
 					mode = MODE_BT_FOLLOW;
 					bt_stream_rx();
@@ -2647,6 +2666,7 @@ int main()
 				case MODE_BT_PROMISC_LE:
 					bt_promisc_le();
 					break;
+#ifdef TX_ENABLE
 				case MODE_BT_SLAVE_LE:
 					bt_slave_le();
 					break;
@@ -2663,6 +2683,7 @@ int main()
 					mode = MODE_REPEATER;
 					cc2400_repeater(&channel);
 					break;
+#endif
 				case MODE_SPECAN:
 					specan();
 					break;
@@ -2677,9 +2698,11 @@ int main()
 					mode = MODE_RX_GENERIC;
 					rx_generic();
 					break;
+#ifdef TX_ENABLE
 				case MODE_TX_GENERIC:
 					tx_generic();
 					break;
+#endif
 				case MODE_XMAS:
 					mode = MODE_XMAS;
 					xmas_main();

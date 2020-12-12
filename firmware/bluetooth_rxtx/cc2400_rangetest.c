@@ -46,9 +46,9 @@
  *   crc: 2 bytes
  */
 
+#ifdef TX_ENABLE
 void cc2400_rangetest(volatile u16 *chan_ptr)
 {
-#ifdef TX_ENABLE
 	u32 command[5];
 	u32 result[5];
 	int i;
@@ -161,13 +161,13 @@ void cc2400_rangetest(volatile u16 *chan_ptr)
 			rr.valid = 2 + i;
 
 	USRLED_CLR;
-#endif
 }
+#endif
 
 /* This is the repeater implementation to be used with cc2400_rangetest(). */
+#ifdef TX_ENABLE
 void cc2400_repeater(volatile u16 *chan_ptr)
 {
-#ifdef TX_ENABLE
 	int i;
 	int j;
 	u8 len = 22;
@@ -231,12 +231,12 @@ void cc2400_repeater(volatile u16 *chan_ptr)
 		cc2400_strobe(SRFOFF);
 		while ((cc2400_status() & FS_LOCK));
 	}
-#endif
 }
+#endif
 
+#ifdef TX_ENABLE
 void cc2400_txtest(volatile u8 *mod_ptr, volatile u16 *chan_ptr)
 {
-#ifdef TX_ENABLE
 	u16 mdmctrl;
 	if (*mod_ptr == MOD_BT_BASIC_RATE) {
 		mdmctrl = 0x0029; // 160 kHz frequency deviation
@@ -260,5 +260,5 @@ void cc2400_txtest(volatile u8 *mod_ptr, volatile u16 *chan_ptr)
 #ifdef UBERTOOTH_ONE
 	PAEN_SET;
 #endif
-#endif
 }
+#endif

@@ -261,6 +261,7 @@ static void continuous_cap_state(ego_fsm_state_t *state) {
 	}
 }
 
+#ifdef TX_ENABLE
 // jammer states
 static void jam_cap_state(ego_fsm_state_t *state) {
 	if (sync_received()) {
@@ -282,7 +283,6 @@ static void jam_cap_state(ego_fsm_state_t *state) {
 }
 
 static void start_jamming_state(ego_fsm_state_t *state) {
-#ifdef TX_ENABLE
 	cc2400_set(MANAND,  0x7fff);
 	cc2400_set(LMTST,   0x2b22);
 	cc2400_set(MDMTST0, 0x334b); // with PRNG
@@ -311,7 +311,6 @@ static void start_jamming_state(ego_fsm_state_t *state) {
 
 	cc2400_strobe(STX);
 	TXLED_SET;
-#endif
 
 	state->state = EGO_ST_JAMMING;
 	sleep_ms_anchor(state, 2);
@@ -341,6 +340,7 @@ static void jam_sleep_state(ego_fsm_state_t *state) {
 		sleep_ms_anchor(state, 11);
 	}
 }
+#endif
 
 void ego_main(ego_mode_t mode) {
 	const ego_st_handler *handler; // set depending on mode
@@ -371,6 +371,7 @@ void ego_main(ego_mode_t mode) {
 		nop_state,
 	};
 
+#ifdef TX_ENABLE
 	// jamming
 	static const ego_st_handler jam_handler[] = {
 		init_state,
@@ -380,6 +381,7 @@ void ego_main(ego_mode_t mode) {
 		start_jamming_state,
 		jamming_state,
 	};
+#endif
 
 	clkn_start(); // FIXME replace with a different timer
 
