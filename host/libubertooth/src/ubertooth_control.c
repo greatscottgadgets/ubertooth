@@ -1072,6 +1072,23 @@ int cmd_rfcat_subcmd(struct libusb_device_handle* devh, int cmd, uint8_t *body, 
 	return 0;
 }
 
+int cmd_xmas(struct libusb_device_handle* devh) {
+	int r;
+
+	r = libusb_control_transfer(devh, CTRL_OUT, UBERTOOTH_XMAS, 0, 0,
+			NULL, 0, 1000);
+	if (r < 0) {
+		if (r == LIBUSB_ERROR_PIPE) {
+			fprintf(stderr, "control message unsupported\n");
+		} else {
+			show_libusb_error(r);
+		}
+		return r;
+	}
+
+	return 0;
+}
+
 int ubertooth_cmd_sync(struct libusb_device_handle* devh,
                        uint8_t type,
                        uint8_t command,

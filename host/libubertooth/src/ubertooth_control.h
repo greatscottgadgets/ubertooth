@@ -143,5 +143,6 @@ int cmd_afh(struct libusb_device_handle* devh);
 int cmd_hop(struct libusb_device_handle* devh);
 int cmd_cancel_follow(struct libusb_device_handle* devh);
 int cmd_rfcat_subcmd(struct libusb_device_handle* devh, int cmd, uint8_t *body, size_t body_len);
+int cmd_xmas(struct libusb_device_handle* devh);
 
 #endif /* __UBERTOOTH_CONTROL_H__ */

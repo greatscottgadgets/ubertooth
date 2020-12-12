@@ -65,6 +65,7 @@ static void usage(FILE *output)
 	fprintf(output, "\t-b get hardware board id number\n");
 	fprintf(output, "\t-p get microcontroller Part ID\n");
 	fprintf(output, "\t-s get microcontroller serial number\n");
+	fprintf(output, "\t-x xmas lights\n");
 }
 
 #define MAX_VERSION_STRING_LEN 255
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
 	int do_range_result, do_all_leds, do_identify;
 	int do_set_squelch, do_get_squelch, squelch_level;
 	int do_something, do_compile_info;
-	int do_number;
+	int do_number, do_xmas;
 	int ubertooth_device = -1;
 	char version_string[MAX_VERSION_STRING_LEN];
 
@@ -94,9 +95,9 @@ int main(int argc, char *argv[])
 	do_range_result= do_all_leds= do_identify= -1;
 	do_set_squelch= -1, do_get_squelch= -1; squelch_level= 0;
 	do_something= 0; do_compile_info= -1;
-	do_number= 0;
+	do_number= 0; do_xmas= 0;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9VN")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9VNx")) != EOF) {
 		switch(opt) {
 		case 'U':
 			ubertooth_device = atoi(optarg);
@@ -194,6 +195,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'N':
 			do_number = 1;
+			break;
+		case 'x':
+			do_xmas = 1;
 			break;
 		case 'h':
 			usage(stdout);
@@ -347,6 +351,9 @@ int main(int argc, char *argv[])
 	if(do_get_squelch > 0) {
 		r = cmd_get_squelch(ut->devh);
 		fprintf(stdout, "Squelch set to %d\n", (int8_t)r);
+	}
+	if(do_xmas) {
+		return cmd_xmas(ut->devh);
 	}
 	if(do_something) {
 		unsigned char buf[4] = { 0x55, 0x55, 0x55, 0x55 };

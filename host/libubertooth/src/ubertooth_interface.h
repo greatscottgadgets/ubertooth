@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 // increment on every API change
-#define UBERTOOTH_API_VERSION 0x0106
+#define UBERTOOTH_API_VERSION 0x0107
 
 #define DMA_SIZE 50
 
@@ -113,6 +113,7 @@ enum ubertooth_usb_commands {
 	UBERTOOTH_CANCEL_FOLLOW      = 70,
 	UBERTOOTH_LE_SET_ADV_DATA    = 71,
 	UBERTOOTH_RFCAT_SUBCMD       = 72,
+	UBERTOOTH_XMAS               = 73,
 };
 
 enum rfcat24_subcommands {

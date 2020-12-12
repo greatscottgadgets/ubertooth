@@ -722,6 +722,10 @@ static int vendor_request_handler(uint8_t request, uint16_t* request_params, uin
 		return rfcat_subcommand(request_params[0], data, *data_len);
 		break;
 
+	case UBERTOOTH_XMAS:
+		requested_mode = MODE_XMAS;
+		break;
+
 	default:
 		return 0;
 	}
