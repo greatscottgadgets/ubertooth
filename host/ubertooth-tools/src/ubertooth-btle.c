@@ -130,7 +130,7 @@ static void usage(void)
 	printf("    Misc:\n");
 	printf("\t-r<filename> capture packets to PCAPNG file\n");
 	printf("\t-q<filename> capture packets to PCAP file (DLT_BLUETOOTH_LE_LL_WITH_PHDR)\n");
-	printf("\t-c<filename> capture packets to PCAP file (DLT_PPI)\n");
+	printf("\t-c<filename> capture packets to PCAP file (DLT_PPI + DLT_BLUETOOTH_LE_LL)\n");
 	printf("\t-A<index> advertising channel index (default 37)\n");
 	printf("\t-v[01] verify CRC mode, get status or enable/disable\n");
 	printf("\t-x<n> allow n access address offenses (default 32)\n");
