@@ -109,9 +109,8 @@ static void track_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 static uint64_t now_ns_from_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
 {
 	track_clk100ns( ut, rx );
-	return ut->abs_start_ns +
-	       100ull*(uint64_t)((rx->clk100ns - ut->start_clk100ns) & 0xffffffff) +
-	       ((100ull*ut->clk100ns_upper)<<32);
+	return ut->abs_start_ns + 100ull *
+	       (uint64_t)((ut->clk100ns_upper<<32)|rx->clk100ns) - ut->start_clk100ns;
 }
 
 /* Sniff for LAPs. If a piconet is provided, use the given LAP to
