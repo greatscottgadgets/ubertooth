@@ -87,19 +87,9 @@ static void determine_signal_and_noise( usb_pkt_rx *rx, int8_t * sig, int8_t * n
 
 static uint64_t now_ns( void )
 {
-/* As per Apple QA1398 */
-#if defined( __APPLE__ )
-	static mach_timebase_info_data_t sTimebaseInfo;
-	uint64_t ts = mach_absolute_time( );
-	if (sTimebaseInfo.denom == 0) {
-		(void) mach_timebase_info(&sTimebaseInfo);
-	}
-	return (ts*sTimebaseInfo.numer/sTimebaseInfo.denom);
-#else
 	struct timespec ts = { 0, 0 };
 	(void) clock_gettime( CLOCK_REALTIME, &ts );
 	return (1000000000ull*(uint64_t) ts.tv_sec) + (uint64_t) ts.tv_nsec;
-#endif
 }
 
 static void track_clk100ns( ubertooth_t* ut, const usb_pkt_rx* rx )
