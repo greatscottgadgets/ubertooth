@@ -91,10 +91,3 @@ after_success:
   # Build the archive
   - cd $ARTEFACT_BASE
   - tar -cJvf $ARTEFACT_BASE/$BUILD_NAME.tar.xz $BUILD_NAME
-
-deploy:
-  provider: script
-  skip-cleanup: true
-  script: bash $TRAVIS_BUILD_DIR/tools/deploy-nightly.sh
-  on:
-    branch: master
