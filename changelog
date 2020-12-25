@@ -1,3 +1,14 @@
+ubertooth (2020-12-R1) unstable; urgency=low
+  * Bluetooth classic sniffing and link layer support (see btbr)
+  * Upgraded to Python 3
+  * Christmas lights!
+  * Bugfix: ubertooth-btle will no longer freeze in high traffic environments
+  * Bugfix: time discontinuities in PCAP files
+  * Bugfix: BLE faux slave can now transmit more than 32 bytes
+  * USB API version bumped to 1.07
+
+ -- Mike Ryan <mikeryan@lacklustre.net>  25 Dec 2020 13:30:00 -0800
+
 ubertooth (2018-12-R1) unstable; urgency=low
   * Trigger an Uberducky with ubertooth-ducky
   * Bugfixes in ubertooth-btle slave mode

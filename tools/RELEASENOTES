@@ -1,32 +1,39 @@
-Ubertooth 2018-12-R1 Release Notes
+Ubertooth 2020-12-R1 Release Notes
 ==============================
-The Ubertooth host utilities in this release require libbtbb-2018-12-R1
-(https://github.com/greatscottgadgets/libbtbb/releases/tag/2018-12-R1) or
+The Ubertooth host utilities in this release require libbtbb-2020-12-R1
+(https://github.com/greatscottgadgets/libbtbb/releases/tag/2020-12-R1) or
 greater.
 
 Changes
 -------
 
-**Uberducky triggering** - Uberducky is a new project built on Ubertooth
-hardware that acts like a USB Rubber Ducky. You can use a second
-Ubertooth to trigger it to inject keystrokes using the `ubertooth-ducky`
-command. See the [Uberducky repo](https://github.com/mikeryan/uberducky)
-for more info.
+**Bluetooth classic sniffing and link layer** - An entirely new firmware
+built specifically for sniffing classic Bluetooth connections. Also contains
+code to act as a basic classic Bluetooth device, including l2ping, inquiry
+scanning, and page scanning. Check out `ubertooth-btbr` and the
+corresponding `firmware/btbr` directory. Many thanks to @eti1 for this.
 
-**Spectrum Analyzer UI improvements** - Thank you Steven Haussmann and
-Andrew Browning!
+**Christmas lights** - Check out `ubertooth-util -x` for a holiday light
+display that's sure to put a seasonal smile on your face.
 
-**Bug fixes** - Improvements to `ubertooth-btle`'s faux slave mode.
+**Python 3** - A long time coming, Ubertooth and libbtbb finally support
+Python 3. All aspects of this release, including the spectrum analyzer
+GUI, should work on all modern distros.
+
+**Bug fixes** - `ubertooth-btle` should no longer freeze in areas of
+heavy traffic. Time discontinuities in PCAP files are no longer present.
+Finally `ubertooth-btle`'s faux slave mode now supports packets longer
+than 32 bytes. Thanks to @dor-zusman for the last one.
 
 **USB API version** - As with the previous release, we are using USB API
 versioning to improve the experience of failures due to mismatched
 firmware and host code. As of this release, the USB API has been bumped
-to 1.06. If the Ubertooth tools complain that your firmware is out of
+to 1.07. If the Ubertooth tools complain that your firmware is out of
 date, please update your firmware. Updating firmware is simple and
 reliable, please follow the instructions on the wiki
 https://github.com/greatscottgadgets/ubertooth/wiki/Firmware
 A release archive with precompiled firmware is available from
-https://github.com/greatscottgadgets/ubertooth/releases/download/2018-12-R1/ubertooth-2018-12-R1.tar.xz
+https://github.com/greatscottgadgets/ubertooth/releases/download/2020-12-R1/ubertooth-2020-12-R1.tar.xz
 
 Support
 -------
