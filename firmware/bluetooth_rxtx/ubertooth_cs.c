@@ -23,6 +23,11 @@
 #include "ubertooth.h"
 #include "ubertooth_rssi.h"
 
+uint8_t cs_no_squelch;       // rx all packets if set
+int8_t cs_threshold_req;     // requested CS threshold in dBm
+int8_t cs_threshold_cur;     // current CS threshold in dBm
+volatile uint8_t cs_trigger; // set by intr on P2.2 falling (CS)
+
 typedef enum {
 	CS_SAMPLES_1 = 1,
 	CS_SAMPLES_2 = 2,

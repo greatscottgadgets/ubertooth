@@ -46,6 +46,8 @@
  *   crc: 2 bytes
  */
 
+rangetest_result rr;
+
 #ifdef TX_ENABLE
 void cc2400_rangetest(volatile u16 *chan_ptr)
 {

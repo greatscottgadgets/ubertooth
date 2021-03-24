@@ -26,10 +26,10 @@
 
 #define CS_HOLD_TIME  2      // min pkts to send on trig (>=1)
 
-uint8_t cs_no_squelch;       // rx all packets if set
-int8_t cs_threshold_req;     // requested CS threshold in dBm
-int8_t cs_threshold_cur;     // current CS threshold in dBm
-volatile uint8_t cs_trigger; // set by intr on P2.2 falling (CS)
+extern uint8_t cs_no_squelch;       // rx all packets if set
+extern int8_t cs_threshold_req;     // requested CS threshold in dBm
+extern int8_t cs_threshold_cur;     // current CS threshold in dBm
+extern volatile uint8_t cs_trigger; // set by intr on P2.2 falling (CS)
 
 void cs_threshold_calc_and_set(uint16_t channel);
 void cs_trigger_enable(void);
