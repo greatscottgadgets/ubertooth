@@ -1,0 +1,76 @@
+====================================================
+One minute to understand BLE connection data package
+====================================================
+
+#. Profile During connection procedure of BLE, there are three packages: SCAN_REQ, SCAN_RSP and CONNECT_REQ.
+
+	**SCAN_REQ:** Scan request, issued by MASTER DEVICE, send to SLAVE DEVICE，sent by the Link Layer in the Scanning State, received by a Link Layer in the Advertising State.
+
+	**SCAN_RSP:** Sent by the Link Layer in the Advertising State, received by a Link Layer in the Scanning State, it's Sanother function is as a complement of advertising data, slave device could transfer more advertising data to master device, for example, device name could be inside this package instead of advertising package.
+
+	**CONNECT_REQ:** Issued by master device. This PDU is sent by the Link Layer in the Initiating State and received by the Link Layer in the Advertising State. Once slave device received this PDU, the connection will be set immediately and enter connection state (master device and slave device will exchange effective PDU or empty PDU.
+
+	Detail description see below.
+
+#. Keywords：Hollong BLE Sniffer，BLE analyzer，BLE data acquiring, BLE Data Analyzer，BLE Capture
+
+#. Preparation before capturing BLE data
+
+	* Hardware: One BLE device (as slave device) and one master device(such as lightblue or redwoods app in iOS or Android)； One HOLLONG BLE SNIFFER.
+
+	* Software: Hollong BLE sniffer and protocol analyzer.
+
+#. SCAN_REQ PDU
+
+	#. Complete data
+
+	#. Access Address:  for advertising PDU, it is fixed length (4 bytes) and fixed contents（0x8e89bed6) which master and slave device could be addressed. 
+
+	#. Header Info: fxied (2 bytes)：used as 16 bites
+    
+		* BIT[0:3]：advertising PDU type：
+
+			* PDU Type
+
+			* b3b2b1b0 Packet Name
+
+			* 0000 ADV_IND： connectable undirected advertising event
+
+			* 0001 ADV_DIRECT_IND：connectable directed advertising event
+
+			* 0010 ADV_NONCONN_IND：non-connectable undirected advertising event
+
+			* 0011 SCAN_REQ：scan request
+
+			* 0100 SCAN_RSP: scan response
+
+			* 0101 CONNECT_REQ：connection request
+
+			* 0110 ADV_SCAN_IND：scannable undirected advertising event
+
+			* 0111-1111 Reserved
+
+		* BIT[4:5]：Reserved
+
+		* BIT[6]：RxAdd
+
+		* BIT[7]：TxAdd
+
+		* BIT[8:13]：advertising data length （Maximum 37 bytes)
+
+		* BIT[14:15]：Reserved
+
+	#. Master device address
+
+	#. Slave device address
+
+	#. CRC
+
+#. SCAN_RSP PDU
+
+
+
+
+
+
+

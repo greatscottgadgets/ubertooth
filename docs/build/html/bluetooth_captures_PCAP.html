@@ -1,0 +1,944 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Bluetooth Captures in PCAP &mdash; Ubertooth  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Build Guide" href="build_guide.html" />
+    <link rel="prev" title="Assembling Hardware" href="assembling_hardware.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Ubertooth
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Ubertooth</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="assembling_hardware.html">Assembling Hardware</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bluetooth Captures in PCAP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#aspects-of-bluetooth-capture">Aspects of Bluetooth Capture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#capture-use-cases-summarized">Capture Use Cases Summarized</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#br-edr">BR/EDR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#le">LE</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#session-meta-information-proposed">Session Meta Information (Proposed)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bredr-bd-addr">BREDR_BD_ADDR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#option-structure">Option Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#c-structure">C Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#bredr-clk">BREDR_CLK</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Option Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">C Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#bt-wideband-rf-info">BT_WIDEBAND_RF_INFO</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">Option Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">C Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#le-ll-connection-info">LE_LL_CONNECTION_INFO</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id7">Option Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">C Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#under-development">Under Development</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#allocated-dlts">Allocated DLTs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#linktype-bluetooth-bredr-bb">LINKTYPE_BLUETOOTH_BREDR_BB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#packet-structure">Packet Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">C Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#linktype-bluetooth-le-ll-with-phdr">LINKTYPE_BLUETOOTH_LE_LL_WITH_PHDR</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id12">Packet Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14">C Structure</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="build_guide.html">Build Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_from_git.html">Building from git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capturing_BLE_Wireshark.html">Capturing BLE in Wireshark</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="firmware.html">Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_help.html">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="programming.html">Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2015-10-R1.html">Release 2015-10-R1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2017_03_R2.html">Release 2017-03-R2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2018-08-R1.html">Release 2018-08-R1: the DEFCON release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2018-12-R1.html">Release 2018-12-R1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_procedure.html">Release Procedure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="third_party_software.html">Third Party Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="to_do.html">ToDo List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ubertooth_one.html">Ubertooth One</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ubertooth</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Bluetooth Captures in PCAP</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/bluetooth_captures_PCAP.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="bluetooth-captures-in-pcap">
+<h1>Bluetooth Captures in PCAP<a class="headerlink" href="#bluetooth-captures-in-pcap" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Classic PCAP files store a sequence of packets of a single link type. Published link types are <a class="reference external" href="http://www.tcpdump.org/linktypes.html">here</a>. The <a class="reference external" href="http://www.winpcap.org/ntar/draft/PCAP-DumpFileFormat.html">pcapng</a> format also uses these same link types and the per-packet formatting as PCAP.</p>
+<p>Early versions of libbtbb and ubertooth saved PCAP files with the DLT_PPI format, which was expedient but is considered deprecated by the libpcap folks. Best practice is to allocate a DLT for a particular link-layer and define a pseudo-header for that DLT that precedes each packet in the file. Early versions of this article formed a place to collect such a proposal. Now that the DLTs are allocated, and this article serves to collect implementation alternatives and details.</p>
+<p>It was possible, and somewhat consistent with DLT_BLUETOOTH_HCI_H4_WITH_PHDR, to allocate a single DLT_BLUETOOTH_LOW_LEVEL to indicate any Bluetooth capture (BR/EDR or LE). However, the preference was to have separate DLT’s for BR/EDR baseband and LE link-layer (as per the terms used in the Bluetooth spec).</p>
+<p>Since PCAP has general applicability to packet capture, it made sense to provide a vendor-neutral, generic view of Bluetooth capture. The allocated DLTs can be applied to current and future versions of both ubertooth and gr-bluetooth, and potentially other RF capture tools as well.</p>
+</div>
+<div class="section" id="aspects-of-bluetooth-capture">
+<h2>Aspects of Bluetooth Capture<a class="headerlink" href="#aspects-of-bluetooth-capture" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes we want to capture and record malformed, truncated, or garbled packets along with ostensibly valid or pristine ones. We also want to capture packets when some link parameters are unknown. When operating promiscuously, the capture tool may accept noise bursts as candidate Bluetooth packets. In extreme cases, the capture tool may not even de-whiten the packets, preferring to do that as a post-processing step. It was therefore important to include some of the receiver metrics in the capture metadata so post-processing and display tools like Wireshark can easily filter out unwanted packets, or avoid redundantly checking packet integrity when it’s already known.</p>
+<p>Five areas of receiver metadata were contemplated to assist in packet classification:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>signal and noise strength</li>
+<li>flags and metrics on the validity of unprotected fields (BR sync word, LE access address)</li>
+<li>error-correction on BR/EDR when subject to FEC</li>
+<li>whether all or portions of the packet is de-whitened</li>
+<li>packet-level error-checking already performed at capture (CRC, HEC, MIC)</li>
+</ol>
+</div></blockquote>
+<p>Since the current ubertooth can recover BR and LE packets, but not EDR payloads, there was also a need to indicate whether the EDR data is present in the packet capture.</p>
+</div>
+<div class="section" id="capture-use-cases-summarized">
+<h2>Capture Use Cases Summarized<a class="headerlink" href="#capture-use-cases-summarized" title="Permalink to this headline">¶</a></h2>
+<p>The following use cases apply to both full-band and narrowband capture strategies. There are no particular restrictions imposed under full-band captures. However, for a narrowband captures (e.g. Ubertooth):</p>
+<blockquote>
+<div><ul class="simple">
+<li>learning implies the tool transitions from receiving a static channel, or surveying channels, to following particular hop sequence(s), and</li>
+<li>limited hop sequence(s) (piconets/access addresses) may be followed at a given time.</li>
+</ul>
+</div></blockquote>
+<p>Hybrid captures are also supported by these use cases and capture formats. For example, one may configure several narrowband (e.g. Ubertooth) or partial-band (e.g. gr-bluetooth) captures, on static channels, and perform post-processing on the set of capture files (either PCAP or PCAPNG). A similar hybrid arrangement is possible to post-process several narrowband capture tools following different hop sequences.</p>
+<p>Use cases involving encryption are TBD.</p>
+<div class="section" id="br-edr">
+<h3>BR/EDR<a class="headerlink" href="#br-edr" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Description</th>
+<th class="head">Comments</th>
+<th class="head">Packets De-whitened?</th>
+<th class="head">Reference LAP</th>
+<th class="head">Reference UAP</th>
+<th class="head">HEC/CRC checking</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Promiscuous capture without learning</td>
+<td>All packets that meet the configured RF criteria (e.g. signal strength or SNR), and meet the configured criteria for access-code offenses (e.g. preamble, trailer must be valid), are decoded and stored in the capture file.</td>
+<td>Either PCAP or PCAPNG is equally useful. Capture file may be very large. Post-processing necessary to recover UAP per LAP, and CLK per LAP/UAP, and filter packets of interest.</td>
+<td>No</td>
+<td>Invalid</td>
+<td>Invalid</td>
+<td>No</td>
+</tr>
+<tr class="row-odd"><td>Promiscuous capture with learning</td>
+<td>Initially operates as above, but as capture tool recovers LAPs, and the associated UAP, and CLK parameters, it is able to perform more processing per packet.</td>
+<td>PCAP or PCAPNG may be used, but the latter is more useful since it includes a record of the capture tool’s learning process. Post-processing similar to above may back-annotate, de-whiten, and integrity-check packets captured before the parameters were learned. Essentially, the post-processing mentioned above is split between capture-time and post-capture-time.</td>
+<td>Initially no, later yes</td>
+<td>Initially invalid, later known</td>
+<td>Initially invalid, later known</td>
+<td>Initially no, later optionally performed</td>
+</tr>
+<tr class="row-even"><td>Capture of targeted LAPs, with and without learning</td>
+<td>Only captures packets with an access code that includes the targeted LAPs, with a configured tolerance for access code bit errors. The capture tool may or may not attempt to learn the UAP and CLK parameters per configured LAP.</td>
+<td>This is simply a stricter version of the promiscuous captures, where the access code triggering capture is targeted, resulting in a much smaller capture file for the same traffic pattern. Whether the capture tool learns or not, post-processing is useful to back-annotate, modify, and filter packets.</td>
+<td>Initially no, later yes with learning</td>
+<td>Valid</td>
+<td>Initially invalid, later known with learning</td>
+<td>Initially no, later optionally performed with learning</td>
+</tr>
+<tr class="row-odd"><td>Capture of targeted LAP/UAPs, with and without learning</td>
+<td>Operates as above, except the configured LAP/UAPs are used for all packet capture processing. The capture tool may or may not attempt to learn the CLK alignment per LAP/UAP.</td>
+<td>This is an accelerated version of targeted LAPs, where the associated UAP is not learned.</td>
+<td>Initially no, later yes with learning</td>
+<td>Valid</td>
+<td>Valid</td>
+<td>Initially no, later optionally performed with learning</td>
+</tr>
+<tr class="row-even"><td>Capture of known master devices</td>
+<td>Operates as above, except the master devices’ internal state (BD_ADDR, CLK) is known at capture time.</td>
+<td>There is no need to passively learn any piconet parameters.</td>
+<td>Yes</td>
+<td>Valid</td>
+<td>Valid</td>
+<td>Optionally performed</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="le">
+<h3>LE<a class="headerlink" href="#le" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Description</th>
+<th class="head">Comments</th>
+<th class="head">Packets De-whitened?</th>
+<th class="head">Reference AA</th>
+<th class="head">CRC checking</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Promiscuous capture without learning</td>
+<td>All packets that meet the configured RF criteria (e.g. signal strength or SNR), and meet the configured criteria for access address offenses (e.g. preamble must be valid, access address must be well-formed), are stored in the capture file. The captured packets are optionally de-whitened.</td>
+<td>Either PCAP or PCAPNG is equally useful. Capture file may be very large. Post-processing necessary to recover connection parameters, and filter packets of interest.</td>
+<td>Optional</td>
+<td>Valid for Advertising channels only</td>
+<td>Optionally performed for Advertising channels only</td>
+</tr>
+<tr class="row-odd"><td>Promiscuous capture with learning</td>
+<td>Initially operates as above, except access addresses are learned by the capture tool, e.g. by accumulating candidates on Data channels or processing CONNECT_REQ PDUs on Advertising channels.</td>
+<td>Access addresses learned by profiling Data channels cannot be CRC-checked, because the CRCInit parameter is unknown.</td>
+<td>Yes (but optional)</td>
+<td>Initially valid for Advertising channels only, but later valid for Data channels as access addresses are learned</td>
+<td>Optionally performed for Advertising channels or Data channels where CRCInit is known for the access address</td>
+</tr>
+<tr class="row-even"><td>Targeted capture</td>
+<td>Specific BD_ADDRs are selected, and the associated access addresses are whitelisted for capture when data from a CONNECT_REQ PDU involving those BD_ADDRs is processed</td>
+<td>The contents of the CONNECT_REQ PDU may be found by capturing Advertising channels or configured into the capture tool directly.</td>
+<td>Yes (but optional)</td>
+<td>Valid</td>
+<td>Optionally performed</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="session-meta-information-proposed">
+<h2>Session Meta Information (Proposed)<a class="headerlink" href="#session-meta-information-proposed" title="Permalink to this headline">¶</a></h2>
+<p>Often there is meta-information that is recovered during the Bluetooth air capture, during post-processing, or provided out-of-band. Here we enumerate <a class="reference external" href="http://www.winpcap.org/ntar/draft/PCAP-DumpFileFormat.html#sectionopt">PCAPNG options</a> for use within the <a class="reference external" href="http://www.winpcap.org/ntar/draft/PCAP-DumpFileFormat.html#sectionidb">interface description block</a> for Bluetooth captures.</p>
+<p>Some of these session-oriented data have time-windows that bound their applicability. A timestamp pair is used to define such a window. Timestamps are stored in same precision as indicated in ts_resol field of the <a class="reference external" href="http://www.winpcap.org/ntar/draft/PCAP-DumpFileFormat.html#sectionidb">capture interface</a>. When both timestamps are equal (e.g. both zero), the meta-datum applies for the entire capture session.</p>
+<p>PCAPNG options with MSB set are available for local use. We simply state that the interface options enumerated below are local to the DLTs allocated for Bluetooth RF captures. The most-significant byte for all interface option codes below is 0xd3, which was selected as unlikely to conflict with other local interface options that might be in use in PCAPNG generally. The ranges of least-significant bytes allocated below to option codes are: general Bluetooth is 0x0-0x3f, BR/EDR is 0x40-0x7f, and LE is 0x80-0xbf, with 0xc0-0xff reserved.</p>
+<div class="section" id="bredr-bd-addr">
+<h3>BREDR_BD_ADDR<a class="headerlink" href="#bredr-bd-addr" title="Permalink to this headline">¶</a></h3>
+<p>This record provides Bluetooth device addresses (BD_ADDRs) that may be present in the packet capture. BD_ADDRs are useful in post-processing or display tools to provide unique identification of the devices involved in piconet communication.</p>
+<p>Device addresses may be recovered by the capture tool or provided by the user as a parameter to the capture session. In either case, this BREDR_BD_ADDR record may appear in the PCAPNG capture file.</p>
+<p>When recovered by the capture tool, the UAP may be partly recovered by determining the channel hop sequence. Only the 4 least-significant bits of the UAP are used in hop-sequence determination. UAPs are also used in the BR/EDR Header Error Check, and payload Cyclic Redundancy Check generation, and may be recovered by accumulating candidates from the captured Bluetooth packets. In these cases, the UAP recorded may be masked to indicate which bits are known with certainty.</p>
+<p>The UAP and NAP are available in the clear as fields within the FHS Packet. When captured directly, or when provided as a capture session parameter, the UAP and NAP may be recorded with certainty (all mask bits set).</p>
+<p>The capture tool may store multiple records for the same BD_ADDR, as long as subsequent records indicate more certainty in the known UAP bits or add a known NAP. This sort of situation might occur if a capture tool starts out without knowing any UAP bits, then determines some UAP bits from hop-sequence following, more UAP bits from HEC and CRC prediction, and finally the full BD_ADDR contents after capturing an applicable FHS packet.</p>
+<div class="section" id="option-structure">
+<h4>Option Structure<a class="headerlink" href="#option-structure" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="mi">0</span>                   <span class="mi">1</span>                   <span class="mi">2</span>                   <span class="mi">3</span>
+ <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>            <span class="mh">0xd340</span>             <span class="o">|</span>               <span class="mi">8</span>               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                    <span class="n">LAP</span>                        <span class="o">|</span>      <span class="n">UAP</span>      <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>              <span class="n">NAP</span>              <span class="o">|</span>   <span class="n">UAP_mask</span>    <span class="o">|</span>   <span class="n">NAP_valid</span>   <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h4>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h4>
+<p>The option code and length are expressed in the native endianness used by PCAPNG. All multi-octet fields defined below are expressed in little-endian format.</p>
+<p>The <strong>LAP</strong> field is the Lower Address Part of the the Bluetooth device address, as per Bluetooth spec Volume 2, Part B, Section 1.2.</p>
+<p>The <strong>UAP</strong> field is the Upper Address Part of the the Bluetooth device address, as per Bluetooth spec Volume 2, Part B, Section 1.2.</p>
+<p>The <strong>NAP</strong> field is the Network Address Part of the the Bluetooth device address, as per Bluetooth spec Volume 2, Part B, Section 1.2.</p>
+<p>The <strong>UAP_mask</strong> field has its bits set to indicate which bits of the UAP are known with certainty.</p>
+<p>The <strong>NAP_valid</strong> field is a flag in the least-significant bit that indicates whether the NAP field is populated with valid data. All other bits of this field are reserved and must be zero.</p>
+</div>
+<div class="section" id="c-structure">
+<h4>C Structure<a class="headerlink" href="#c-structure" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">_brder_bdaddr</span> <span class="p">{</span>
+        <span class="n">uint8_t</span>  <span class="n">LAP</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+        <span class="n">uint8_t</span>  <span class="n">UAP</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">NAP</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">UAP_mask</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">NAP_valid</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">bredr_bdaddr</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="bredr-clk">
+<h3>BREDR_CLK<a class="headerlink" href="#bredr-clk" title="Permalink to this headline">¶</a></h3>
+<p>This record provides Bluetooth Clock alignment information. The alignment timestamp used in this record is the same precision as the PCAPNG interface header indicates.</p>
+<p>Some capture tools estimate the master device clock by inspecting packets and building confidence in the estimate. This record provides a mask that has bits set for known master clock bits. This distinguishes known bits from unknown bits as the master clock estimate improves. Consequently, multiple BREDR_CLK records may appear in the PCAPNG capture file for the same LAP/UAP, provided that subsequent entries offer a better estimate of the device clock.</p>
+<p>The information record may be formed as a result of capturing a Bluetooth FHS packet, in which case the CLK_mask should indicate all CLK bits are known.</p>
+<div class="section" id="id1">
+<h4>Option Structure<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="mi">0</span>                   <span class="mi">1</span>                   <span class="mi">2</span>                   <span class="mi">3</span>
+ <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>            <span class="mh">0xd341</span>             <span class="o">|</span>              <span class="mi">20</span>               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">|</span>                      <span class="n">alignment</span> <span class="n">timestamp</span>                      <span class="o">|</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                    <span class="n">LAP</span>                        <span class="o">|</span>      <span class="n">UAP</span>      <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                              <span class="n">CLK</span>                              <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                            <span class="n">CLK_mask</span>                           <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h4>Description<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<p>The option code and length are expressed in the native endianness used by PCAPNG. All multi-octet fields defined below are expressed in little-endian format.</p>
+<p>The <strong>Alignment Timestamp</strong> is a PCAPNG-resolution timestamp that serves as a reference point for <strong>CLK</strong> associated with the Bluetooth master device referenced by <strong>LAP</strong> and <strong>UAP</strong>.</p>
+<p>The <strong>LAP</strong> field is the Lower Address Part of the the Bluetooth device address, as per Bluetooth spec Volume 2, Part B, Section 1.2.</p>
+<p>The <strong>UAP</strong> field is the Upper Address Part of the the Bluetooth device address, as per Bluetooth spec Volume 2, Part B, Section 1.2.</p>
+<p>The <strong>CLK</strong> field is the native clock of the Bluetooth device, with bits 0-1 and bits 28-31 always zero.</p>
+<p>The <strong>CLK_mask</strong> field determines which bits of <strong>CLK</strong> are valid, with bits 0-1 and bits 28-31 always zero.</p>
+</div>
+<div class="section" id="id3">
+<h4>C Structure<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">_brder_bdaddr</span> <span class="p">{</span>
+        <span class="n">uint64_t</span> <span class="n">ns</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">LAP</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+        <span class="n">uint8_t</span>  <span class="n">UAP</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">CLK</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">CLK_mask</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">bredr_bdaddr</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="bt-wideband-rf-info">
+<h3>BT_WIDEBAND_RF_INFO<a class="headerlink" href="#bt-wideband-rf-info" title="Permalink to this headline">¶</a></h3>
+<p>Some capture tools, e.g. gr-bluetooth, allow for intentional aliasing such that multiple Bluetooth channels appear as superimposed images within a relatively narrow baseband.</p>
+<p>Here we define a generic wideband RF information structure so aliasing conditions may be recorded in the PCAPNG capture file.</p>
+<p>A post-processing or display tool might use this information to indicate the set of possible RF channels ascribed to each captured packet. BT_WIDEBAND_RF_INFO only applies to packets captured under the applicable interface, where the packet’s Flags field indicates the RF channel was subject to aliasing.</p>
+<div class="section" id="id4">
+<h4>Option Structure<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="mi">0</span>                   <span class="mi">1</span>                   <span class="mi">2</span>                   <span class="mi">3</span>
+ <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>            <span class="mh">0xd300</span>             <span class="o">|</span>              <span class="mi">16</span>               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                   <span class="n">centre</span> <span class="n">frequency</span> <span class="ow">in</span> <span class="n">Hz</span>                      <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                   <span class="n">analog</span> <span class="n">bandwidth</span> <span class="ow">in</span> <span class="n">Hz</span>                      <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                 <span class="n">intermediate</span> <span class="n">frequency</span> <span class="ow">in</span> <span class="n">Hz</span>                  <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                  <span class="n">sampling</span> <span class="n">bandwidth</span> <span class="ow">in</span> <span class="n">Hz</span>                     <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h4>Description<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<p>The option code and length are expressed in the native endianness used by PCAPNG. All multi-octet fields defined below are expressed in little-endian format.</p>
+<p>The <strong>Centre Frequency</strong> field determines the centre of the RF capture, in Hz.</p>
+<p>The <strong>Analog Bandwidth</strong> field determines the passband width of the analog section employed in the capture tool. It is measured from band centre to the band edge, in Hz.</p>
+<p>The <strong>Intermediate Frequency</strong> field determines the intermediate carrier frequency used in the analog receiver, relative to the <strong>Centre Frequency</strong>, in Hz.</p>
+<p>The <strong>Sampling Bandwidth</strong> field determines the digital sampling bandwidth employed in the capture tool, in Hz.</p>
+</div>
+<div class="section" id="id6">
+<h4>C Structure<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">_bt_wideband_rf_info</span> <span class="p">{</span>
+        <span class="n">uint32_t</span> <span class="n">centre_freq_hz</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">analog_bw_hz</span><span class="p">;</span>
+        <span class="n">int32_t</span>  <span class="n">intermediate_freq_hz</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">sampling_bw_hz</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">bt_wideband_rf_info</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="le-ll-connection-info">
+<h3>LE_LL_CONNECTION_INFO<a class="headerlink" href="#le-ll-connection-info" title="Permalink to this headline">¶</a></h3>
+<p>This record provides context for a BTLE connection so that a post-processor or display tool may perform a more in-depth packet analysis. The following fields may be applied:</p>
+<blockquote>
+<div><ul class="simple">
+<li>InitA, the initiator’s public or random device address, may be used to connect packets with a device.</li>
+<li>AdvA, the advertiser’s public or random device address, may be used to connect packets with a device.</li>
+<li>AA, the access address, connects a given LE packet to the rest of the data in this record (since all LE packets contain an AA field).</li>
+<li>CRCInit, the 24-bit LFSR initial value, may be used to verify per-packet CRC integrity.</li>
+<li>WinSize, WinOffset, Interval, and Latency may be used to verify adherence to RF transmission rules.</li>
+<li>Timeout may be used to infer connection loss when packets are absent.</li>
+<li>ChM, the allowable RF channel map, and Hop, may be used to verify the RF hop sequence.</li>
+</ul>
+</div></blockquote>
+<p>The format of this record matches the CONNECT_REQ PDU used in the LE link layer. It is anticipated records of this nature would accrue in the capture file as follows:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p class="first">when a CONNECT_REQ PDU is captured, a record is stored with the PDU contents, and the capture tool considers the values current for the indicated AA.</p>
+</li>
+<li><p class="first">when a LL_CONNECTION_UPDATE_REQ PDU is captured after a CONNECT_REQ PDU, for the same AA:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>a new record is created, updating the WinSize, WinOffset, Interval, Latency, and Timeout fields.</li>
+<li>the valid-from timestamp is determined by the Instant parameter of the LL_CONNECTION_UPDATE_REQ PDU.</li>
+<li>the other parameters in this record are populated with those values already considered current.</li>
+<li>at the indicated instant, capture tool considers the updated values current for the indicated AA.</li>
+</ol>
+</div></blockquote>
+</li>
+<li><p class="first">when a LL_CHANNEL_MAP_REQ PDU is captured after a CONNECT_REQ PDU, for the same AA:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>a new record is created, updating the ChM field.</li>
+<li>the valid-from timestamp is determined by the Instant parameter of the LL_CHANNEL_MAP_REQ PDU.</li>
+<li>the other parameters in this record are populated with those values already considered current.</li>
+<li>at the indicated instant, capture tool considers the updated ChM current for the indicated AA.</li>
+</ol>
+</div></blockquote>
+</li>
+</ol>
+</div></blockquote>
+<p>It is noted that an LE packet capture may contain all the information necessary to synthesize these records. Therefore, these records may be created during capture or afterwards, as a post-processing step. In the latter case, a classic PCAP file may be converted to PCAPNG.</p>
+<div class="section" id="id7">
+<h4>Option Structure<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="mi">0</span>                   <span class="mi">1</span>                   <span class="mi">2</span>                   <span class="mi">3</span>
+ <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>            <span class="mh">0xd380</span>             <span class="o">|</span>              <span class="mi">42</span>               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">|</span>                    <span class="n">valid</span> <span class="kn">from</span> <span class="nn">timestamp</span>                       <span class="o">|</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">|</span>            <span class="n">InitA</span>              <span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                               <span class="o">|</span>                               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>             <span class="n">AdvA</span>              <span class="o">|</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                              <span class="n">AA</span>                               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                     <span class="n">CRCInit</span>                   <span class="o">|</span>    <span class="n">WinSize</span>    <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>            <span class="n">WinOffset</span>          <span class="o">|</span>           <span class="n">Interval</span>            <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>             <span class="n">Latency</span>           <span class="o">|</span>           <span class="n">Timeout</span>             <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>                                                               <span class="o">|</span>
+<span class="o">|</span>    <span class="n">ChM</span>        <span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="o">|</span>               <span class="o">|</span>   <span class="n">Hop</span><span class="o">+</span><span class="n">SCA</span>     <span class="o">|</span>             <span class="n">pad</span>               <span class="o">|</span>
+<span class="o">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h4>Description<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
+<p>The definition of the fields are found in the Bluetooth specification Volume 6, Part B, Sections 2.3.3.1, 2.4.2.1, and 2.4.2.2.</p>
+</div>
+<div class="section" id="id9">
+<h4>C Structure<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">_le_ll_connection_info</span> <span class="p">{</span>
+        <span class="n">uint64_t</span> <span class="n">valid_from_ts</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">InitA</span><span class="p">[</span><span class="mi">6</span><span class="p">];</span>
+        <span class="n">uint8_t</span>  <span class="n">AdvA</span><span class="p">[</span><span class="mi">6</span><span class="p">];</span>
+        <span class="n">uint32_t</span> <span class="n">AA</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">CRCInit</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+        <span class="n">uint8_t</span>  <span class="n">WinSize</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">WinOffset</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">Interval</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">Latency</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">Timeout</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">ChM</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
+        <span class="n">uint8_t</span>  <span class="n">HopAndSCA</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">le_ll_connection_info</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="under-development">
+<h3>Under Development<a class="headerlink" href="#under-development" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">BR/EDR</p>
+<blockquote>
+<div><ul class="simple">
+<li>link-key info: link-key (16 bytes) + 2 BR_ADDR (12 bytes) + 2 timestamps (16 bytes)</li>
+<li>E0 encryption info: BR_ADDR (6 bytes) + 2 timestamps (16 bytes) + keylen (1 bytes) + key (N bytes)</li>
+<li>AES-CCM session info: session key (16 bytes) + nonce (13 bytes) + BR_ADDR (6 bytes) + 2 timestamps (16 bytes)</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">LE</p>
+<blockquote>
+<div><ul class="simple">
+<li>AES-CCM session info: session key (16 bytes) + nonce (13 bytes) + AA (4 bytes) + 2 timestamps (16 bytes)</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="allocated-dlts">
+<h2>Allocated DLTs<a class="headerlink" href="#allocated-dlts" title="Permalink to this headline">¶</a></h2>
+<p>Common to the following pseudoheaders:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">mandatory fields:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a rf_channel field, although channels differ between BR/EDR and LE.</li>
+<li>a flags field that indicates which optional fields are present, and other boolean metadata.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">optional fields:</p>
+<blockquote>
+<div><ul class="simple">
+<li>signal power and noise power, probably used by more sophisticated capture tools.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>The remaining fields are specific to the BR/EDR and LE capture process, including the packet quality indicators mentioned above.</p>
+<div class="section" id="linktype-bluetooth-bredr-bb">
+<h3>LINKTYPE_BLUETOOTH_BREDR_BB<a class="headerlink" href="#linktype-bluetooth-bredr-bb" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">only covers BR/EDR baseband packets, Bluetooth spec Vol.2 Part B.</p>
+</li>
+<li><p class="first">each packet includes a packed pseudoheader described below, optionally followed by the decoded BR/EDR baseband PAYLOAD.</p>
+<blockquote>
+<div><ul class="simple">
+<li>here decoded is used in the same sense as Bluetooth spec Vol 2 Part B Section 7.</li>
+<li>BR/EDR PAYLOAD formats are described in Bluetooth spec Vol 2 Part B Section 6.1 and 6.6.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">the packet SYNC WORD (sec 6.3) is not stored, rather the LAP is recovered and stored in the pseudoheader.</p>
+</li>
+<li><p class="first">the packet HEADER (sec 6.4) is decoded and stored in the pseudoheader.</p>
+</li>
+<li><p class="first">further downstream receiver processing may or may not be performed on the PAYLOAD.</p>
+<blockquote>
+<div><ul class="simple">
+<li>refer to figure 7.2 of Bluetooth spec Vol 2 Part B.</li>
+<li>de-whitening, CRC checking, decryption, and MIC checking, are optional.</li>
+<li>flags in the pseudo-header indicate which of these have been performed.</li>
+<li>none of these optional processing steps affect the length of the stored packet PAYLOAD.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<div class="section" id="packet-structure">
+<h4>Packet Structure<a class="headerlink" href="#packet-structure" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+---------------------------+</span>
+<span class="o">|</span>         <span class="n">RF</span> <span class="n">Channel</span>        <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>        <span class="n">Signal</span> <span class="n">Power</span>       <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>        <span class="n">Noise</span> <span class="n">Power</span>        <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>    <span class="n">Access</span> <span class="n">Code</span> <span class="n">Offenses</span>   <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>   <span class="n">Payload</span> <span class="n">Transport</span> <span class="n">Rate</span>  <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>   <span class="n">Corrected</span> <span class="n">Header</span> <span class="n">Bits</span>   <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>  <span class="n">Corrected</span> <span class="n">Payload</span> <span class="n">Bits</span>   <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">2</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>    <span class="n">Lower</span> <span class="n">Address</span> <span class="n">Part</span>     <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">4</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>       <span class="n">Reference</span> <span class="n">LAP</span>       <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">3</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>       <span class="n">Reference</span> <span class="n">UAP</span>       <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>     <span class="n">BT</span> <span class="n">Packet</span> <span class="n">Header</span>      <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">4</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>          <span class="n">Flags</span>            <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">2</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>    <span class="n">BR</span> <span class="ow">or</span> <span class="n">EDR</span> <span class="n">Payload</span>      <span class="o">|</span>
+<span class="o">.</span>                           <span class="o">.</span>
+<span class="o">.</span>                           <span class="o">.</span>
+<span class="o">.</span>                           <span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h4>Description<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
+<p>All multi-octet fields are expressed in little-endian format. Fields with a corresponding <strong>Flags</strong> bit are only considered valid when the bit is set.</p>
+<p>The <strong>RF Channel</strong> field ranges 0 to 78. It reflects the value described in the Bluetooth specification Volume 2, Part A, Section 2.</p>
+<p>The <strong>Signal Power</strong> and <strong>Noise Power</strong> fields are signed integers expressing values in dBm.</p>
+<p>The <strong>Access Code Offenses</strong> field is an unsigned integer indicating the number of deviations from the valid access code that led to the packet capture. Access codes are interpreted as described in Bluetooth specification Volume 2, Part B, Section 6.3.</p>
+<p>The <strong>Payload Transport Rate</strong> field represents a column of Bluetooth specification Volume 2, Part B, Section 6.5, Table 6.2, and is interpreted as two nibbles as follows.</p>
+<blockquote>
+<div><ul class="simple">
+<li>0x.0 indicates the BT payload was BR and captured with GFSK demodulation</li>
+<li>0x.1 indicates the BT payload was EDR and captured with PI/2-DQPSK demodulation</li>
+<li>0x.2 indicates the BT payload was EDR and captured with 8DPSK demodulation</li>
+<li>0x0. indicates the packet logical transport is any (link parameters unknown)</li>
+<li>0x1. indicates the packet logical transport is SCO</li>
+<li>0x2. indicates the packet logical transport is eSCO</li>
+<li>0x3. indicates the packet logical transport is ACL</li>
+<li>0x4. indicates the packet logical transport is CSB</li>
+<li>0xff indicates this is an ID packet so BT Packet Header is ignored and there is no payload</li>
+</ul>
+</div></blockquote>
+<p>All other values of the <strong>Payload Transport Rate</strong> field are reserved.</p>
+<p>The <strong>Corrected Header Bits</strong> field is an unsigned integer indicating the number of corrected bits in the 18-bit <strong>BT Packet Header</strong>. The valid range is 0 to 18.</p>
+<p>The <strong>Corrected Payload Bits</strong> field is a signed integer indicating the number of errored and corrected bits in the captured BT payload. Interpretation of this field corresponds to the <strong>Payload Transport Rate</strong>. The value ranges from 0 to 80 when the BT payload was captured at R=1/3 as per Bluetooth specification Volume 2, Part B, Section 7.4. The value ranges from -360 to +180 when the BT payload was captured at R=2/3 as per Bluetooth specification Volume 2, Part B, Section 7.5. A negative number indicates the field absolute value is the sum of the number of corrected and uncorrectable bits.</p>
+<p>The <strong>Lower Address Part</strong> field is the 24-bit value recovered from the captured SYNC WORD as defined in Bluetooth specification Volume 2, Part B, Section 6.3.3. The most significant byte of this field is reserved and must be zero.</p>
+<p>The <strong>Reference LAP</strong> field corresponds to the <strong>Lower Address Part</strong> configured into the capture tool that led to the capture of this packet.</p>
+<p>The <strong>Reference UAP</strong> field corresponds to the <strong>Upper Address Part</strong> configured into the capture tool and corresponds to the <strong>Reference LAP</strong>.</p>
+<p>The <strong>BT Packet Header</strong> field is the 18-bit value recovered from the packet capture, and is defined in Bluetooth specification Volume 2, Part B, Section 6.4. The most significant 14 bits are reserved and must be zero.</p>
+<p>The <strong>Flags</strong> field represents packed bits defined as follows.</p>
+<blockquote>
+<div><ul class="simple">
+<li>0x0001 indicates the <strong>BT Packet Header</strong> and <strong>BR or EDR Payload</strong> are de-whitened.</li>
+<li>0x0002 indicates the <strong>Signal Power</strong> field is valid.</li>
+<li>0x0004 indicates the <strong>Noise Power</strong> field is valid.</li>
+<li>0x0008 indicates the <strong>BR or EDR Payload</strong> is decrypted</li>
+<li>0x0010 indicates the <strong>Reference LAP</strong> is valid and led to this packet being captured</li>
+<li>0x0020 indicates the <strong>BR or EDR Payload</strong> is present and follows this field</li>
+<li>0x0040 indicates the <strong>RF Channel</strong> field is subject to aliasing</li>
+<li>0x0080 indicates the <strong>Reference UAP</strong> field is valid for HEC and CRC checking</li>
+<li>0x0100 indicates the HEC portion of the <strong>BT Packet Header</strong> was checked</li>
+<li>0x0200 indicates the HEC portion of the <strong>BT Packet Header</strong> passed its check</li>
+<li>0x0400 indicates the CRC portion of the <strong>BR or EDR Payload</strong> was checked</li>
+<li>0x0800 indicates the CRC portion of the <strong>BR or EDR Payload</strong> passed its check</li>
+<li>0x1000 indicates the MIC portion of the decrypted <strong>BR or EDR Payload</strong> was checked</li>
+<li>0x2000 indicates the MIC portion of the decrypted <strong>BR or EDR Payload</strong> passed its check</li>
+</ul>
+</div></blockquote>
+<p>All other bit positions of the <strong>Flags</strong> field are reserved and must be zero.</p>
+<p>The decoded <strong>BR or EDR Payload</strong> optionally follows the previous fields, and is formatted as detailed in Bluetooth specification Volume 2, Part B, Section 6. The packet is decoded per Bluetooth specification Volume 2, Part B, Section 7. All multi-octet values in the <strong>BR or EDR Payload</strong> are always expressed in little-endian format, as is the normal Bluetooth practice.</p>
+</div>
+<div class="section" id="id11">
+<h4>C Structure<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">_pcap_bluetooth_bredr_bb_header</span> <span class="p">{</span>
+        <span class="n">uint8_t</span> <span class="n">rf_channel</span><span class="p">;</span>
+        <span class="n">int8_t</span> <span class="n">signal_power</span><span class="p">;</span>
+        <span class="n">int8_t</span> <span class="n">noise_power</span><span class="p">;</span>
+        <span class="n">uint8_t</span> <span class="n">access_code_offenses</span><span class="p">;</span>
+        <span class="n">uint8_t</span> <span class="n">payload_transport_rate</span><span class="p">;</span>
+        <span class="n">uint8_t</span> <span class="n">corrected_header_bits</span><span class="p">;</span>
+        <span class="n">int16_t</span> <span class="n">corrected_payload_bits</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">lap</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">ref_lap_uap</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">bt_header</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">flags</span><span class="p">;</span>
+        <span class="n">uint8_t</span>  <span class="n">br_edr_payload</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="p">}</span> <span class="n">pcap_bluetooth_bredr_bb_header</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="linktype-bluetooth-le-ll-with-phdr">
+<h3>LINKTYPE_BLUETOOTH_LE_LL_WITH_PHDR<a class="headerlink" href="#linktype-bluetooth-le-ll-with-phdr" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">supplements DLT_BLUETOOTH_LE_LL which already exists but is not used for RF captures.</p>
+</li>
+<li><p class="first">only covers LE link layer packets, Bluetooth spec Vol.6 Part B.</p>
+</li>
+<li><p class="first">each packet includes a packed pseudoheader described below, followed by the LE link-layer packet consisting of ACCESS ADDRESS, PDU, and CRC, but excluding the PREAMBLE.</p>
+<blockquote>
+<div><ul class="simple">
+<li>reference Bluetooth spec Vol.6 Part B sec 2 for formatting.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">not all receiver processing need be performed at capture time.</p>
+<blockquote>
+<div><ul class="simple">
+<li>refer to figures 3.1 of Bluetooth spec Vol 6 Part B.</li>
+<li>de-whitening, CRC checking, decryption, and MIC checking, are optional.</li>
+<li>flags in the pseudo-header indicate which of these have been performed.</li>
+<li>none of these optional processing steps affect the length of the stored packet data.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<div class="section" id="id12">
+<h4>Packet Structure<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+---------------------------+</span>
+<span class="o">|</span>         <span class="n">RF</span> <span class="n">Channel</span>        <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>        <span class="n">Signal</span> <span class="n">Power</span>       <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>        <span class="n">Noise</span> <span class="n">Power</span>        <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>  <span class="n">Access</span> <span class="n">Address</span> <span class="n">Offenses</span>  <span class="o">|</span>
+<span class="o">|</span>         <span class="p">(</span><span class="mi">1</span> <span class="n">Octet</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span> <span class="n">Reference</span> <span class="n">Access</span> <span class="n">Address</span>  <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">4</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>          <span class="n">Flags</span>            <span class="o">|</span>
+<span class="o">|</span>        <span class="p">(</span><span class="mi">2</span> <span class="n">Octets</span><span class="p">)</span>         <span class="o">|</span>
+<span class="o">+---------------------------+</span>
+<span class="o">|</span>  <span class="n">LE</span> <span class="n">Packet</span> <span class="p">(</span><span class="n">no</span> <span class="n">preamble</span><span class="p">)</span>  <span class="o">|</span>
+<span class="o">.</span>                           <span class="o">.</span>
+<span class="o">.</span>                           <span class="o">.</span>
+<span class="o">.</span>                           <span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id13">
+<h4>Description<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<p>All multi-octet fields are expressed in little-endian format. Fields with a corresponding <strong>Flags</strong> bit are only considered valid when the bit is set.</p>
+<p>The <strong>RF Channel</strong> field ranges 0 to 39. It reflects the value described in the Bluetooth specification Volume 6, Part A, Section 2.</p>
+<p>The <strong>Signal Power</strong> and <strong>Noise Power</strong> fields are signed integers expressing values in dBm.</p>
+<p>The <strong>Access Address Offenses</strong> field is an unsigned integer indicating the number of deviations from the valid access address that led to the packet capture. Access addresses are interpreted as described in Bluetooth specification Volume 6, Part B, Section 2.1.2.</p>
+<p>The <strong>Reference Access Address</strong> field corresponds to the Access Address configured into the capture tool that led to the capture of this packet.</p>
+<p>The <strong>Flags</strong> field represents packed bits defined as follows.</p>
+<blockquote>
+<div><ul class="simple">
+<li>0x0001 indicates the <strong>LE Packet</strong> is de-whitened.</li>
+<li>0x0002 indicates the <strong>Signal Power</strong> field is valid.</li>
+<li>0x0004 indicates the <strong>Noise Power</strong> field is valid.</li>
+<li>0x0008 indicates the <strong>LE Packet</strong> is decrypted.</li>
+<li>0x0010 indicates the <strong>Reference Access Address</strong> is valid and led to this packet being captured.</li>
+<li>0x0020 indicates the <strong>Access Address Offenses</strong> field contains valid data.</li>
+<li>0x0040 indicates the <strong>RF Channel</strong> field is subject to aliasing.</li>
+<li>0x0400 indicates the CRC portion of the <strong>LE Packet</strong> was checked.</li>
+<li>0x0800 indicates the CRC portion of the <strong>LE Packet</strong> passed its check.</li>
+<li>0x1000 indicates the MIC portion of the decrypted <strong>LE Packet</strong> was checked.</li>
+<li>0x2000 indicates the MIC portion of the decrypted <strong>LE Packet</strong> passed its check.</li>
+</ul>
+</div></blockquote>
+<p>All other bit positions of the <strong>Flags</strong> field are reserved and must be zero.</p>
+<p>The <strong>LE Packet</strong> follows the previous fields, and is formatted as detailed in Bluetooth specification Volume 6, Part B, Section 2, but does not include the preamble. All multi-octet values in the <strong>LE Packet</strong> are always expressed in little-endian format, as is the normal Bluetooth practice.</p>
+</div>
+<div class="section" id="id14">
+<h4>C Structure<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">_pcap_bluetooth_le_ll_header</span> <span class="p">{</span>
+        <span class="n">uint8_t</span> <span class="n">rf_channel</span><span class="p">;</span>
+        <span class="n">int8_t</span> <span class="n">signal_power</span><span class="p">;</span>
+        <span class="n">int8_t</span> <span class="n">noise_power</span><span class="p">;</span>
+        <span class="n">uint8_t</span> <span class="n">access_address_offenses</span><span class="p">;</span>
+        <span class="n">uint32_t</span> <span class="n">ref_access_address</span><span class="p">;</span>
+        <span class="n">uint16_t</span> <span class="n">flags</span><span class="p">;</span>
+        <span class="n">uint8_t</span> <span class="n">le_packet</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="p">}</span> <span class="n">pcap_bluetooth_le_ll_header</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="build_guide.html" class="btn btn-neutral float-right" title="Build Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="assembling_hardware.html" class="btn btn-neutral float-left" title="Assembling Hardware" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Great Scott Gadgets.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>One minute to understand BLE advertising data package &mdash; Ubertooth  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Ubertooth
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Ubertooth</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="assembling_hardware.html">Assembling Hardware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bluetooth_captures_PCAP.html">Bluetooth Captures in PCAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build_guide.html">Build Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_from_git.html">Building from git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capturing_BLE_Wireshark.html">Capturing BLE in Wireshark</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="firmware.html">Firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_help.html">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="programming.html">Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2015-10-R1.html">Release 2015-10-R1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2017_03_R2.html">Release 2017-03-R2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2018-08-R1.html">Release 2018-08-R1: the DEFCON release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Release_2018-12-R1.html">Release 2018-12-R1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_procedure.html">Release Procedure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="third_party_software.html">Third Party Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="to_do.html">ToDo List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ubertooth_one.html">Ubertooth One</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ubertooth_two_wishlist.html">Ubertooth Two Wishlist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ubertooth_zero.html">Ubertooth Zero</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ubertooth</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>One minute to understand BLE advertising data package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/BLE_advertising_data_package.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="one-minute-to-understand-ble-advertising-data-package">
+<h1>One minute to understand BLE advertising data package<a class="headerlink" href="#one-minute-to-understand-ble-advertising-data-package" title="Permalink to this headline">¶</a></h1>
+<p>Note: only registered user could see all pictures by log in. One minute to understand BLE advertising data package BLE =》 BTLE （Bluetooth Low Energy）</p>
+<ol class="arabic">
+<li><p class="first">How to capture BLE advertising data (full channel at 37,38,39 simutanueously)</p>
+<blockquote>
+<div><ul class="simple">
+<li>Hardware：One BLE device (has feature of advertising); One HOLLONG BLE SNIFFER</li>
+<li>Software：Hollong BLE sniffer software</li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+<p>[Download](<a class="reference external" href="http://www.viewtool.com/index.ph">http://www.viewtool.com/index.ph</a> … 0option=com_content)</p>
+<ol class="arabic">
+<li><p class="first">Profile BLE Advertising package introduction：</p>
+<blockquote>
+<div><ul>
+<li><p class="first">Payload data maximum length： 37 bytes</p>
+</li>
+<li><p class="first">Advertising channels：37，38，39 （hopping）</p>
+</li>
+<li><p class="first">Transmission power：usually 0dBm, Maximum 10dBm</p>
+<blockquote>
+<div><p>In each section below, pay attention on blue color marked portion (the raw data captured) and related data interpret portion（data interpretation）</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Access Address It is fixed length (4 bytes) and fixed data (0x8e89bed6) used for master device access address identification.</p>
+</li>
+<li><p class="first">Header Info Fixed 2 bytes：used by 16 bits BIT[0:3]：Advertising package（PDUs) type，there are following PDU Types：</p>
+<blockquote>
+<div><div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>PDU Type
+b3b2b1b0 Packet Name
+<span class="m">0000</span> ADV_IND： connectable undirected advertising event
+<span class="m">0001</span> ADV_DIRECT_IND：connectable directed advertising event
+<span class="m">0010</span> ADV_NONCONN_IND：non-connectable undirected advertising event
+<span class="m">0011</span> SCAN_REQ：scan request
+<span class="m">0100</span> SCAN_RSP: scan response
+<span class="m">0101</span> CONNECT_REQ：connection request
+<span class="m">0110</span> ADV_SCAN_IND：scannable undirected advertising event
+<span class="m">0111</span>-1111 Reserved
+</pre></div>
+</div>
+<p>BIT[4:5]：Reserved BIT[6]：RxAdd BIT[7]：TxAdd BIT[8:13]：advertising data length （Maximum 37 bytes) BIT[14:15]：Reserved</p>
+</div></blockquote>
+</li>
+<li><p class="first">MAC Address Fixed 6 bytes</p>
+</li>
+<li><p class="first">Advertising data：flag field 02 01 06 02：field length 2 bytes 　 01: as flag 06：BIT1,BIT2 = 1， based on definition below, interept as： 　　　* LE General Discoverable Mode</p>
+<blockquote>
+<div><ul>
+<li><p class="first">BR/EDR Not Supported (i.e. bit 37 of LMP Extended Feature bits Page 0)</p>
+<blockquote>
+<div><p>0 LE Limited Discoverable Mode 1 LE General Discoverable Mode 2 BR/EDR Not Supported (i.e. bit 37 of LMP Extended Feature bits Page 0) 3 Simultaneous LE and BR/EDR to Same Device Capa- ble (Controller) (i.e. bit 49 of LMP Extended Feature bits Page 0) 4 Simultaneous LE and BR/EDR to Same Device Capa- ble (Host) (i.e. bit 66 of LMP Extended Feature bits Page 1) 5..7 Reserved</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Service tag field 03 03 02 18 03：field length 2 bytes 　 03: service tag field 02 18：=》18 02 =&gt; Immediate Alert Service</p>
+</li>
+<li><p class="first">Device name field 0e 09 45 …. 6d 65 0e: field length 14 bytes 09：device name field 45，。。。6d 65: device name (ASCII)</p>
+</li>
+<li><p class="first">CRC： Fixed 3 bytes</p>
+</li>
+</ol>
+<p><a class="reference external" href="http://www.viewtool.com/index.php/en/">Get complete Hollong BLE Sniffer captured data file</a>.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Great Scott Gadgets.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

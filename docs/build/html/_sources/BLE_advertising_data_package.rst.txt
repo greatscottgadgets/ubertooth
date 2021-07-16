@@ -1,0 +1,58 @@
+=====================================================
+One minute to understand BLE advertising data package
+=====================================================
+
+Note: only registered user could see all pictures by log in. One minute to understand BLE advertising data package BLE =》 BTLE （Bluetooth Low Energy）
+
+#. How to capture BLE advertising data (full channel at 37,38,39 simutanueously)
+
+    * Hardware：One BLE device (has feature of advertising); One HOLLONG BLE SNIFFER
+
+    * Software：Hollong BLE sniffer software
+
+[Download](`http://www.viewtool.com/index.ph <http://www.viewtool.com/index.ph>`__ ... 0option=com_content)
+
+#. Profile BLE Advertising package introduction：
+
+    * Payload data maximum length： 37 bytes
+
+    * Advertising channels：37，38，39 （hopping）
+
+    * Transmission power：usually 0dBm, Maximum 10dBm
+
+	In each section below, pay attention on blue color marked portion (the raw data captured) and related data interpret portion（data interpretation）
+
+#. Access Address It is fixed length (4 bytes) and fixed data (0x8e89bed6) used for master device access address identification.
+
+#. Header Info Fixed 2 bytes：used by 16 bits BIT[0:3]：Advertising package（PDUs) type，there are following PDU Types：
+
+	.. code-block:: sh
+
+		 PDU Type
+		 b3b2b1b0 Packet Name
+		 0000 ADV_IND： connectable undirected advertising event
+		 0001 ADV_DIRECT_IND：connectable directed advertising event
+		 0010 ADV_NONCONN_IND：non-connectable undirected advertising event
+		 0011 SCAN_REQ：scan request
+		 0100 SCAN_RSP: scan response
+		 0101 CONNECT_REQ：connection request
+		 0110 ADV_SCAN_IND：scannable undirected advertising event
+		 0111-1111 Reserved	
+
+	BIT[4:5]：Reserved BIT[6]：RxAdd BIT[7]：TxAdd BIT[8:13]：advertising data length （Maximum 37 bytes) BIT[14:15]：Reserved
+
+#. MAC Address Fixed 6 bytes
+
+#. Advertising data：flag field 02 01 06 02：field length 2 bytes 　 01: as flag 06：BIT1,BIT2 = 1， based on definition below, interept as： 　　　* LE General Discoverable Mode
+        
+    * BR/EDR Not Supported (i.e. bit 37 of LMP Extended Feature bits Page 0)
+
+	0 LE Limited Discoverable Mode 1 LE General Discoverable Mode 2 BR/EDR Not Supported (i.e. bit 37 of LMP Extended Feature bits Page 0) 3 Simultaneous LE and BR/EDR to Same Device Capa- ble (Controller) (i.e. bit 49 of LMP Extended Feature bits Page 0) 4 Simultaneous LE and BR/EDR to Same Device Capa- ble (Host) (i.e. bit 66 of LMP Extended Feature bits Page 1) 5..7 Reserved
+
+#. Service tag field 03 03 02 18 03：field length 2 bytes 　 03: service tag field 02 18：=》18 02 => Immediate Alert Service
+
+#. Device name field 0e 09 45 .... 6d 65 0e: field length 14 bytes 09：device name field 45，。。。6d 65: device name (ASCII)
+
+#. CRC： Fixed 3 bytes
+
+`Get complete Hollong BLE Sniffer captured data file <http://www.viewtool.com/index.php/en/>`__.

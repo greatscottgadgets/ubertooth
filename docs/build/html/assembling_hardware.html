@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Assembling Hardware &mdash; Ubertooth  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bluetooth Captures in PCAP" href="bluetooth_captures_PCAP.html" />
+    <link rel="prev" title="Ubertooth" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Ubertooth
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Advanced:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Assembling Hardware</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#step-0-read-these-instructions">Step 0: read these instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-order-a-pcb">Step 1: order a PCB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-order-a-stencil">Step 2: order a stencil</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-order-the-parts">Step 3: order the parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-prepare-your-tools-and-materials">Step 4: prepare your tools and materials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-5-apply-solder-paste">Step 5: apply solder paste</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-6-place-the-parts">Step 6: place the parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-7-reflow">Step 7: reflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-8-rework">Step 8: rework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-9-inspection">Step 9: inspection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-10-hand-soldering">Step 10: hand soldering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-11-power-on-test">Step 11: power-on test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-12-further-testing">Step 12: further testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-13-boast">Step 13: boast</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bluetooth_captures_PCAP.html">Bluetooth Captures in PCAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build_guide.html">Build Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ubertooth</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Assembling Hardware</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/assembling_hardware.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="assembling-hardware">
+<h1>Assembling Hardware<a class="headerlink" href="#assembling-hardware" title="Permalink to this headline">¶</a></h1>
+<p>The quickest and easiest way to get Ubertooth hardware is to buy it. A list of resellers is available from the <a class="reference external" href="http://greatscottgadgets.com/ubertoothone/">Great Scott Gadgets website</a>. If you choose to build your own hardware, the following steps should help.</p>
+<div class="section" id="step-0-read-these-instructions">
+<h2>Step 0: read these instructions<a class="headerlink" href="#step-0-read-these-instructions" title="Permalink to this headline">¶</a></h2>
+<p>Seriously. There are probably things in the later steps that you should know about before getting started.</p>
+</div>
+<div class="section" id="step-1-order-a-pcb">
+<h2>Step 1: order a PCB<a class="headerlink" href="#step-1-order-a-pcb" title="Permalink to this headline">¶</a></h2>
+<p>You will need a four layer printed circuit board. We recommend using <a class="reference external" href="https://oshpark.com/">OSH Park</a>. Take the Ubertooth One Gerber files from the most recent Project Ubertooth release package (or generate them with KiCad) and send them to your chosen PCB manufacturer. The board is 1.8 square inches, so it will cost ~$18 per set of three. That’s one for yourself, one for a friend, and one to screw up! Pogoprog is a two layer board.</p>
+<p>If you are building an Ubertooth One, you should also consider building a Pogoprog unless you already have a plan for how you will <a class="reference external" href="https://github.com/greatscottgadgets/ubertooth/wiki/Programming">program</a> your board.</p>
+</div>
+<div class="section" id="step-2-order-a-stencil">
+<h2>Step 2: order a stencil<a class="headerlink" href="#step-2-order-a-stencil" title="Permalink to this headline">¶</a></h2>
+<p>Surface mount soldering is fun and easy if you use a stencil to apply solder paste to your circuit board! Send the top paste Gerber file (ubertooth-one-SoldP_Front.gtp) to a stencil manufacturer such as <a class="reference external" href="http://ohararp.com/stencils">OHARARP</a>, <a class="reference external" href="https://www.oshstencils.com/">OSH Stencils</a>, or <a class="reference external" href="https://www.pololu.com/product/446">Pololu</a>. Alternatively you might plan to use a syringe or a toothpick to apply solder paste, but this is not recommended. You might instead just use a soldering iron, but this is strongly discouraged unless you have successfully soldered QFNs with required ground pads before (and, if you have, you probably aren’t reading these instructions anyway).</p>
+</div>
+<div class="section" id="step-3-order-the-parts">
+<h2>Step 3: order the parts<a class="headerlink" href="#step-3-order-the-parts" title="Permalink to this headline">¶</a></h2>
+<p>Take the bill of materials (bom) from the most recent Project Ubertooth release (or generate it with KiCad) and order the parts. The parts should all be available from one or more online electronics suppliers such as <a class="reference external" href="http://www.mouser.com/">Mouser</a> or <a class="reference external" href="http://www.digikey.com/">Digi-key</a>. It is important to order some extra parts (especially the tiny ones which fortunately are cheap) in case you lose or damage any components.</p>
+<p>You may want to order an antenna too. The <a class="reference external" href="http://www.pulseelectronics.com/products/old_antennas/products__solutions/antennas_for_wireless_devices/wd_antennas/w1030_external_24_ghz_high_gain_short">Pulse W1030</a> is a nice size, but you can also find compatible antennas on many commercial Wi-Fi and Bluetooth products. Most any antenna intended for the 2.4 GHz band (such as 802.11b/g/n) is suitable as long as it has an RP-SMA connector, adapter, or pigtail. You could choose an SMA connector instead of RP-SMA; this might especially be convenient for interfacing with benchtop test gear. RP-SMA was selected as the default choice for Project Ubertooth because there are more RP-SMA than SMA antennas floating around on consumer Wi-Fi and Bluetooth gear.</p>
+<p>You might prefer to select alternative parts, but be careful of the 1% resistors and all of the 0402 inductors and capacitors in the RF section which have been selected for their particular characteristics. Any LPC175x microcontroller will do, but it is recommended that you choose one with at least 128 kB RAM. And, really, if you’re going through all this trouble, why not go with 512 kB?</p>
+</div>
+<div class="section" id="step-4-prepare-your-tools-and-materials">
+<h2>Step 4: prepare your tools and materials<a class="headerlink" href="#step-4-prepare-your-tools-and-materials" title="Permalink to this headline">¶</a></h2>
+<p>Essential:</p>
+<blockquote>
+<div><ul class="simple">
+<li>an electric skillet, one that you don’t intend to use for food ever again</li>
+<li>solder paste (no-clean lead-based solder paste is recommended)</li>
+<li>a small putty knife or razor blade</li>
+<li>fine tipped tweezers</li>
+<li>any soldering iron</li>
+<li>solder</li>
+</ul>
+</div></blockquote>
+<p>Strongly recommended:</p>
+<blockquote>
+<div><ul class="simple">
+<li>good ventilation</li>
+<li>a temperature controlled soldering iron: this is more than just having a knob; it should have a temperature sensor in the iron</li>
+<li>an embossing tool or other high temperature heat gun (even better: a proper hot air rework station)</li>
+<li>a multitester with LED/diode test mode</li>
+<li>desoldering braid</li>
+<li>brass sponge</li>
+<li>helping hands</li>
+<li>magnifying glass</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="step-5-apply-solder-paste">
+<h2>Step 5: apply solder paste<a class="headerlink" href="#step-5-apply-solder-paste" title="Permalink to this headline">¶</a></h2>
+<p>Using your stencil and a putty knife, apply the solder paste as described in this <a class="reference external" href="https://www.sparkfun.com/tutorials/58">tutorial</a>.</p>
+</div>
+<div class="section" id="step-6-place-the-parts">
+<h2>Step 6: place the parts<a class="headerlink" href="#step-6-place-the-parts" title="Permalink to this headline">¶</a></h2>
+<p>With fine tipped tweezers, carefully place the parts on the board. If you have to move a part, pick it up and place it again rather than sliding it around a lot. Otherwise the paste can get out of place. Most of the 0402 and 0603 parts can be placed in either direction, but the LEDs are exceptions. You must place them with ground in the direction of the arrow on the circuit board. You may have to look at the design in KiCad to see which way the arrow goes, and you’ll probably have to test your LEDs with a multitester to find out which side is which. Don’t populate USB connectors, RP-SMA connectors, or pogo pins (in the case of Pogoprog) at this time.</p>
+</div>
+<div class="section" id="step-7-reflow">
+<h2>Step 7: reflow<a class="headerlink" href="#step-7-reflow" title="Permalink to this headline">¶</a></h2>
+<p>Carefully place the board in the electric skillet, and turn the skillet on. It is best to warm up the board to a moderate temperature before turning the skillet up to full power. Then turn up the heat until you can see the solder flow. If you see parts moving around to incorrect positions, resist the temptation to correct them at this time! As soon as the solder everywhere on the board appears liquid, cut the power completely. You may want to lift the board out of the skillet with a spatula at this point to allow it to cool faster. There is a danger of overheating the components, but this is unlikely unless you left the skillet on longer than necessary or used lead-free solder paste.</p>
+</div>
+<div class="section" id="step-8-rework">
+<h2>Step 8: rework<a class="headerlink" href="#step-8-rework" title="Permalink to this headline">¶</a></h2>
+<p>Here is where the embossing tool, a good soldering iron, desoldering braid, and a magnifying glass come in very handy. If there is anything wrong with the assembly, you will have to correct individual part placement as needed.</p>
+</div>
+<div class="section" id="step-9-inspection">
+<h2>Step 9: inspection<a class="headerlink" href="#step-9-inspection" title="Permalink to this headline">¶</a></h2>
+<p>Once all the parts appear to be soldered in place correctly, look again, this time with a magnifying glass. You should also do some continuity tests with a multitester at this point. Watch out in particular for supply shorts; the easiest way to test for these is to verify a lack of continuity across bypass capacitors (all the caps that are close to the ICs). If there is a short that you can’t see, it is probably under the pins of one of the ICs. Repeat steps 7 and 8 as necessary.</p>
+</div>
+<div class="section" id="step-10-hand-soldering">
+<h2>Step 10: hand soldering<a class="headerlink" href="#step-10-hand-soldering" title="Permalink to this headline">¶</a></h2>
+<p>There are a few parts that you should solder on by hand with an iron at this point. These are the USB and RP-SMA connectors on the Ubertooth boards and the pogo pins on Pogoprog.</p>
+</div>
+<div class="section" id="step-11-power-on-test">
+<h2>Step 11: power-on test<a class="headerlink" href="#step-11-power-on-test" title="Permalink to this headline">¶</a></h2>
+<p>Power on the device by plugging in the USB connection. An Ubertooth One or Zero should illuminate the RST LED. If this doesn’t happen, quickly unplug USB verify that the LED is oriented correctly, and go back to step 9. A Pogoprog should flash its TX and RX LEDs during USB enumeration. If this doesn’t happen, quickly unplug USB, verify the LED orientations, check your driver situation, and go back to step 8.</p>
+</div>
+<div class="section" id="step-12-further-testing">
+<h2>Step 12: further testing<a class="headerlink" href="#step-12-further-testing" title="Permalink to this headline">¶</a></h2>
+<p>If you are building a Pogoprog, you should make sure that an FTDI USB serial adapter has been detected by your host operating system. If so, you can try using it to <a class="reference external" href="https://github.com/greatscottgadgets/ubertooth/wiki/Programming">program</a> an Ubertooth board. If you are making an Ubertooth board, you should follow the procedure in firmware/assembly_test/README.</p>
+</div>
+<div class="section" id="step-13-boast">
+<h2>Step 13: boast<a class="headerlink" href="#step-13-boast" title="Permalink to this headline">¶</a></h2>
+<p>Tell us about your success on the Great Scott Gadgets <a class="reference external" href="https://discord.gg/rsfMw3rsU8">Discord</a>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="bluetooth_captures_PCAP.html" class="btn btn-neutral float-right" title="Bluetooth Captures in PCAP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Ubertooth" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Great Scott Gadgets.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
