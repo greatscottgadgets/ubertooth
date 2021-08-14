@@ -47,7 +47,7 @@ If you are having issues with a tool or believe you have found a bug,
 please file an issue on the project GitHub:
 <https://github.com/greatscottgadgets/ubertooth>
 
-For interactive support, join the `#ubertooth` IRC channel on Freenode.
+For interactive support, join the `#ubertooth` IRC channel on Libera Chat.
 
 ## COPYRIGHT
 
