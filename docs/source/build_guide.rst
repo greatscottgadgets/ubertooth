@@ -7,7 +7,7 @@ Build Guide
 Release 2020-12-R1
 ~~~~~~~~~~~~~~~~~~
 
-`for Release 2018-12-R1 see here <https://github.com/greatscottgadgets/ubertooth/wiki/Release-2018-12-R1>`__
+`for Release 2018-12-R1 see here <https://ubertooth.readthedocs.io/en/latest/Release_2018-12-R1.html>`__
 
 
 
@@ -125,7 +125,7 @@ Wireshark plugins
 
 Users of Wireshark version 2.2+ do not need to build any plugins at all and may skip this section (see `this comment <https://github.com/greatscottgadgets/libbtbb/issues/50#issuecomment-284128258>`__). This includes users of Debian 10+, Ubuntu 20.04+, Fedora 33+, RHEL 8.3+, and most other Linux distributions. You can check your version by clicking on Help --> About Wireshark.
 
-Wireshark version 1.12 and newer includes the Ubertooth BLE plugin by default. It is also possible to `capture BLE from Ubertooth directly into Wireshark <https://github.com/greatscottgadgets/ubertooth/wiki/Capturing-BLE-in-Wireshark>`__ with a little work.
+Wireshark version 1.12 and newer includes the Ubertooth BLE plugin by default. It is also possible to `capture BLE from Ubertooth directly into Wireshark <https://ubertooth.readthedocs.io/en/latest/capturing_BLE_Wireshark.html>`__ with a little work.
 
 The Wireshark BTBB and BR/EDR plugins allow Bluetooth baseband traffic that has been captured using Kismet to be analysed and disected within the Wireshark GUI. They are built separately from the rest of the Ubertooth and libbtbb software.
 
@@ -158,11 +158,11 @@ Then repeat for the BT BR/EDR plugin:
 Third Party Software
 ~~~~~~~~~~~~~~~~~~~~
 
-There are a number of pieces of `third party software <https://github.com/greatscottgadgets/ubertooth/wiki/Third-Party-Software>`__ that support the Ubertooth. Some support Ubertooth out of the box, while others require plugins to be built.
+There are a number of pieces of `third party software <https://ubertooth.readthedocs.io/en/latest/third_party_software.html>`__ that support the Ubertooth. Some support Ubertooth out of the box, while others require plugins to be built.
 
 
 
 Firmware
 ~~~~~~~~
 
-This completes the install of the Ubertooth tools, the next step is to look at the getting started guide. You should always `update the firmware <https://github.com/greatscottgadgets/ubertooth/wiki/Firmware>`__ on the Ubertooth device to match the software release version that you are using.
+This completes the install of the Ubertooth tools, the next step is to look at the getting started guide. You should always `update the firmware <https://ubertooth.readthedocs.io/en/latest/firmware.html>`__ on the Ubertooth device to match the software release version that you are using.

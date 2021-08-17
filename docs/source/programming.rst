@@ -2,7 +2,7 @@
 Programming
 ===========
 
-This page describes how to load compiled firmware onto an Ubertooth One. Other pages describe how to write `firmware <https://github.com/greatscottgadgets/ubertooth/wiki/Firmware>`__ or `host code <https://github.com/greatscottgadgets/ubertooth/wiki/Software>`__ for the platform.
+This page describes how to load compiled firmware onto an Ubertooth One. Other pages describe how to write `firmware <https://ubertooth.readthedocs.io/en/latest/firmware.html>`__ or `host code <https://ubertooth.readthedocs.io/en/latest/software.html>`__ for the platform.
 
 There are three ways to program an Ubertooth board: the USB bootloader, the ISP bootloader, and JTAG.
 

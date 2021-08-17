@@ -4,7 +4,7 @@ FAQ
 
 **Question: What is the latest release?**
 
-**Answer:** The latest release is 2018-08-R1: the DEFCON release, but you should check `this repo's releases <https://github.com/greatscottgadgets/ubertooth/releases>`__ for the most up to date information. See the `Build Guide <https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide>`__ for instructions on how to download and build the software.
+**Answer:** The latest release is 2018-08-R1: the DEFCON release, but you should check `this repo's releases <https://github.com/greatscottgadgets/ubertooth/releases>`__ for the most up to date information. See the `Build Guide <https://ubertooth.readthedocs.io/en/latest/build_guide.html>`__ for instructions on how to download and build the software.
 
 ----------
 
@@ -18,7 +18,7 @@ It **may** be possible to use Ubertooth from within a virtual machine. However, 
 
 **Question: How do I update firmware?**
 
-**Answer:** Refer to the wiki page `Firmware <https://github.com/greatscottgadgets/ubertooth/wiki/Firmware>`__.
+**Answer:** Refer to the wiki page `Firmware <https://ubertooth.readthedocs.io/en/latest/firmware.html#>`__.
 
 ----------
 

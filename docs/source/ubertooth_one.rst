@@ -2,7 +2,7 @@
 Ubertooth One
 =============
 
-Ubertooth One is the hardware platform of Project Ubertooth. It supersedes `Ubertooth Zero <https://github.com/greatscottgadgets/ubertooth/wiki/Ubertooth-Zero>`__ and is currently the preferred platform.
+Ubertooth One is the hardware platform of Project Ubertooth. It supersedes `Ubertooth Zero <https://ubertooth.readthedocs.io/en/latest/ubertooth_zero.htmls>`__ and is currently the preferred platform.
 
 	.. image:: ../images/ubertooth-one.jpeg
 
