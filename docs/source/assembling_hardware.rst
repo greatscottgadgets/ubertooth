@@ -18,7 +18,7 @@ Step 1: order a PCB
 
 You will need a four layer printed circuit board. We recommend using `OSH Park <https://oshpark.com/>`__. Take the Ubertooth One Gerber files from the most recent Project Ubertooth release package (or generate them with KiCad) and send them to your chosen PCB manufacturer. The board is 1.8 square inches, so it will cost ~$18 per set of three. That's one for yourself, one for a friend, and one to screw up! Pogoprog is a two layer board.
 
-If you are building an Ubertooth One, you should also consider building a Pogoprog unless you already have a plan for how you will `program <https://github.com/greatscottgadgets/ubertooth/wiki/Programming>`__ your board.
+If you are building an Ubertooth One, you should also consider building a Pogoprog unless you already have a plan for how you will `program <https://ubertooth.readthedocs.io/en/latest/programming.html>`__ your board.
 
 
 
@@ -117,7 +117,7 @@ Power on the device by plugging in the USB connection. An Ubertooth One or Zero 
 Step 12: further testing
 ------------------------
 
-If you are building a Pogoprog, you should make sure that an FTDI USB serial adapter has been detected by your host operating system. If so, you can try using it to `program <https://github.com/greatscottgadgets/ubertooth/wiki/Programming>`__ an Ubertooth board. If you are making an Ubertooth board, you should follow the procedure in firmware/assembly_test/README.
+If you are building a Pogoprog, you should make sure that an FTDI USB serial adapter has been detected by your host operating system. If so, you can try using it to `program <https://ubertooth.readthedocs.io/en/latest/programming.html>`__ an Ubertooth board. If you are making an Ubertooth board, you should follow the procedure in firmware/assembly_test/README.
 
 
 

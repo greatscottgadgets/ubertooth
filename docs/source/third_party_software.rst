@@ -9,7 +9,7 @@ The following are third party applications that support Ubertooth One, either na
 Kismet
 ~~~~~~
 
-The version of kismet provided by Debian/Ubuntu is 2008-05-R1, which is too old to support the Ubertooth plugin. In order to use Ubertooth with Kismet it is necessary to compile Kismet from source. First make sure that you have completed the instruction in the `build guide <https://github.com/greatscottgadgets/ubertooth/wiki/Build-Guide>`__ and then use the following instruction to build Kismet:
+The version of kismet provided by Debian/Ubuntu is 2008-05-R1, which is too old to support the Ubertooth plugin. In order to use Ubertooth with Kismet it is necessary to compile Kismet from source. First make sure that you have completed the instruction in the `build guide <https://ubertooth.readthedocs.io/en/latest/build_guide.html>`__ and then use the following instruction to build Kismet:
 
 	.. code-block:: sh
 
@@ -24,7 +24,7 @@ The version of kismet provided by Debian/Ubuntu is 2008-05-R1, which is too old 
 		sudo make plugins-install
 		Add "pcapbtbb" to the "logtypes=..." line in kismet.conf
 
-Support for the Kismet is provided by the Kismet project, but the plugins are part of the Ubertooth software releases. For queries about the Ubertooth plugins please see the `getting help <https://github.com/greatscottgadgets/ubertooth/wiki/Getting-Help>`__ page.
+Support for the Kismet is provided by the Kismet project, but the plugins are part of the Ubertooth software releases. For queries about the Ubertooth plugins please see the `getting help <https://ubertooth.readthedocs.io/en/latest/getting_help.html>`__ page.
 
 
 

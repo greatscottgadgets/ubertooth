@@ -5,7 +5,7 @@ Getting Help
 Asking Questions
 ~~~~~~~~~~~~~~~~
 
-If you have questions about using Ubertooth the first places to look are the `FAQ <https://github.com/greatscottgadgets/ubertooth/wiki/FAQ>`__ and the `mailing list archive <http://sourceforge.net/p/ubertooth/mailman/ubertooth-general/>`__.
+If you have questions about using Ubertooth the first places to look are the `FAQ <https://ubertooth.readthedocs.io/en/latest/faq.html>`__ and the `mailing list archive <http://sourceforge.net/p/ubertooth/mailman/ubertooth-general/>`__.
 
 If neither of these places hold the answer to your questions you should ask on the `mailing list <https://lists.sourceforge.net/lists/listinfo/ubertooth-general>`__.
 

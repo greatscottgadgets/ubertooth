@@ -5,9 +5,9 @@ ToDo List
 PCAP
 ~~~~
 
-* Obtain DLT/linktype from libPCAP devs for BTBB, see `here <https://github.com/greatscottgadgets/ubertooth/wiki/Bluetooth-Captures-in-PCAP>`__.
+* Obtain DLT/linktype from libPCAP devs for BTBB, see `here <https://ubertooth.readthedocs.io/en/latest/bluetooth_captures_PCAP.html>`__.
 
-* Define format for including meta-data (using PPI), see `here <https://github.com/greatscottgadgets/ubertooth/wiki/Bluetooth-Captures-in-PCAP>`__.
+* Define format for including meta-data (using PPI), see `here <https://ubertooth.readthedocs.io/en/latest/bluetooth_captures_PCAP.html>`__.
 
 * Move Wireshark plugins to Wireshark repo.
 

@@ -2,7 +2,7 @@
 Ubertooth Zero
 ==============
 
-Ubertooth Zero was the first working prototype hardware platform of Project Ubertooth. It has been superseded by `Ubertooth One <https://github.com/greatscottgadgets/ubertooth/wiki/Ubertooth-One>`__.
+Ubertooth Zero was the first working prototype hardware platform of Project Ubertooth. It has been superseded by `Ubertooth One <https://ubertooth.readthedocs.io/en/latest/ubertooth_one.html>`__.
 
 .. image:: ../images/ubertooth-zero.jpeg
 

@@ -65,7 +65,7 @@ Next the Bluetooth baseband library (libbtbb) needs to be built for the Ubertoot
 Wireshark
 ~~~~~~~~~
 
-Wireshark version 1.12 and newer includes the Ubertooth BLE plugin by default. It is also possible to `capture BLE from Ubertooth directly into Wireshark <https://github.com/greatscottgadgets/ubertooth/wiki/Capturing-BLE-in-Wireshark>`__ with a little work.
+Wireshark version 1.12 and newer includes the Ubertooth BLE plugin by default. It is also possible to `capture BLE from Ubertooth directly into Wireshark <https://ubertooth.readthedocs.io/en/latest/capturing_BLE_Wireshark.html>`__ with a little work.
 
 The Wireshark BTBB and BR/EDR plugins allow Bluetooth baseband traffic that has been captured using Kismet to be analysed and disected within the Wireshark GUI. They are built separately from the rest of the Ubertooth and libbtbb software. The directory passed to cmake as ``MAKE_INSTALL_LIBDIR`` varies from system to system, but it should be the location of existing Wireshark plugins, such as ``asn1.so`` and ``ethercat.so``.
 
@@ -96,11 +96,11 @@ Then repeat for the BT BR/EDR plugin:
 Third Party Software
 ~~~~~~~~~~~~~~~~~~~~
 
-There are a number of pieces of `third party software <https://github.com/greatscottgadgets/ubertooth/wiki/Third-Party-Software>`__ that support the Ubertooth. Some support Ubertooth out of the box, while others require plugins to be built.
+There are a number of pieces of `third party software <https://ubertooth.readthedocs.io/en/latest/third_party_software.html>`__ that support the Ubertooth. Some support Ubertooth out of the box, while others require plugins to be built.
 
 
 
 Firmware
 ^^^^^^^^
 
-This completes the install of the Ubertooth tools, the next step is to look at the getting started guide. You should always `update the firmware <https://github.com/greatscottgadgets/ubertooth/wiki/Firmware>`__ on the Ubertooth device to match the software release version that you are using.
+This completes the install of the Ubertooth tools, the next step is to look at the getting started guide. You should always `update the firmware <https://ubertooth.readthedocs.io/en/latest/firmware.html>`__ on the Ubertooth device to match the software release version that you are using.
