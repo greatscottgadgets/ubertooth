@@ -43,7 +43,7 @@ Features
 Design
 ~~~~~~
 
-Ubertooth One was designed in `KiCad <http://www.kicad-pcb.org/>`__, an open source electronic design automation software package, with surface mount components suitable for `reflow <http://www.sparkfun.com/tutorials/59>`__.
+Ubertooth One was designed in `KiCad <https://www.kicad.org/>`__, an open source electronic design automation software package, with surface mount components suitable for `reflow <http://www.sparkfun.com/tutorials/59>`__.
 
 
 
