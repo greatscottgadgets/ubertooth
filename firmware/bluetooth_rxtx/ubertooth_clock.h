@@ -32,18 +32,18 @@
  * It advances 3200 times per second.  Two clkn periods make a Bluetooth time
  * slot.
  */
-volatile uint32_t clkn;
-volatile uint32_t last_hop;
+extern volatile uint32_t clkn;
+extern volatile uint32_t last_hop;
 
-volatile uint32_t clkn_offset;
-volatile uint16_t clk100ns_offset;
+extern volatile uint32_t clkn_offset;
+extern volatile uint16_t clk100ns_offset;
 
 // linear clock drift
-volatile int16_t clk_drift_ppm;
-volatile uint16_t clk_drift_correction;
+extern volatile int16_t clk_drift_ppm;
+extern volatile uint16_t clk_drift_correction;
 
-volatile uint32_t clkn_last_drift_fix;
-volatile uint32_t clkn_next_drift_fix;
+extern volatile uint32_t clkn_last_drift_fix;
+extern volatile uint32_t clkn_next_drift_fix;
 
 #define CLK100NS (3125*(clkn & 0xfffff) + T0TC)
 #define LE_BASECLK (12500)                    // 1.25 ms in units of 100ns

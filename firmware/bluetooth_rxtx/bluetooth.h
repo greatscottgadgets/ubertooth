@@ -27,11 +27,11 @@
 
 #define MAX_SYNCWORD_ERRS 5
 
-bdaddr target;
-u64 syncword;
-u8 afh_enabled;
-u8 afh_map[10];
-u8 used_channels;
+extern bdaddr target;
+extern u64 syncword;
+extern u8 afh_enabled;
+extern u8 afh_map[10];
+extern u8 used_channels;
 
 /* Barker distance/correct gains us very little when sniffing a known AC
 static const u8 ao_barker_distance[] = {

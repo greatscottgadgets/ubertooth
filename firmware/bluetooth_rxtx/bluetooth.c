@@ -21,6 +21,12 @@
 
 #include "bluetooth.h"
 
+bdaddr target;
+u64 syncword;
+u8 afh_enabled;
+u8 afh_map[10];
+u8 used_channels;
+
 /* these values for hop() can be precalculated (at leastin part) */
 u8 a1, b, c1, e;
 u16 d1;

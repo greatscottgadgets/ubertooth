@@ -24,7 +24,7 @@
 
 #include "ubertooth.h"
 
-rangetest_result rr;
+extern rangetest_result rr;
 
 void cc2400_rangetest(volatile u16 *chan_ptr);
 

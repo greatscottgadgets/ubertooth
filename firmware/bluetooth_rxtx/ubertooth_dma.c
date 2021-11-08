@@ -21,6 +21,20 @@
 
 #include "ubertooth_dma.h"
 
+volatile uint8_t rxbuf1[DMA_SIZE];
+volatile uint8_t rxbuf2[DMA_SIZE];
+
+/*
+ * The active buffer is the one with an active DMA transfer.
+ * The idle buffer is the one we can read/write between transfers.
+ */
+volatile uint8_t* volatile active_rxbuf;
+volatile uint8_t* volatile idle_rxbuf;
+
+/* rx terminal count and error interrupt counters */
+volatile uint32_t rx_tc;
+volatile uint32_t rx_err;
+
 /* DMA linked list items */
 typedef struct {
 	uint32_t src;

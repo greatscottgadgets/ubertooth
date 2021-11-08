@@ -24,9 +24,9 @@
 
 #include "inttypes.h"
 
-int8_t rssi_max;
-int8_t rssi_min;
-uint8_t rssi_count;
+extern int8_t rssi_max;
+extern int8_t rssi_min;
+extern uint8_t rssi_count;
 
 void rssi_reset(void);
 void rssi_add(int8_t v);

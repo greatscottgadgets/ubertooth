@@ -25,6 +25,10 @@
 
 #define RSSI_IIR_ALPHA 3       // 3/256 = .012
 
+int8_t rssi_max;
+int8_t rssi_min;
+uint8_t rssi_count;
+
 int32_t rssi_sum;
 int16_t rssi_iir[79] = {0};
 

@@ -22,6 +22,19 @@
 #include "ubertooth_clock.h"
 #include "ubertooth.h"
 
+volatile uint32_t clkn;
+volatile uint32_t last_hop;
+
+volatile uint32_t clkn_offset;
+volatile uint16_t clk100ns_offset;
+
+// linear clock drift
+volatile int16_t clk_drift_ppm;
+volatile uint16_t clk_drift_correction;
+
+volatile uint32_t clkn_last_drift_fix;
+volatile uint32_t clkn_next_drift_fix;
+
 void clkn_stop()
 {
 	/* stop and reset the timer to zero */
