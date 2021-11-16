@@ -19,7 +19,7 @@ Architecture
 
 * `LPC175x <http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/lpc-cortex-m-mcus/lpc1700-cortex-m3:MC_1403790745385>`__ ARM Cortex-M3 microcontroller with Full-Speed USB 2.0.
 
-* USB A plug: connects to host computer running Kismet or other host code.
+* USB A plug: connects to host computer running `Kismet <https://www.kismetwireless.net/>`__ or other host code.
 
 
 
