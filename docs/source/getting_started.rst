@@ -6,7 +6,7 @@ There are three major components of Project Ubertooth:
 
     * hardware: The hardware design of Ubertooth One is quite stable. You can `build one <https://ubertooth.readthedocs.io/en/latest/assembling_hardware.html>`__ or `buy one <http://greatscottgadgets.com/ubertoothone>`__.
     * firmware: This is software that executes on the ARM processor on the Ubertooth One itself. This page assumes that you have the USB bootloader plus bluetooth_rxtx firmware installed on your board (which is typically what is installed at the time of assembly). The bluetooth_rxtx firmware is moderately stable but is likely to be enhanced as time goes on.
-    * host code: This is software running on a general purpose computer connected to the Ubertooth One via USB. The sample host code for Project Ubertooth is in active development and will likely change a great deal in the coming months. If you have not yet built the host code, please follow the `build guide <https://ubertooth.readthedocs.io/en/latest/build_guide.html>`__.
+    * host code: This is software running on a general purpose computer connected to the Ubertooth One via USB. If you have not yet built the host code, please follow the `build guide <https://ubertooth.readthedocs.io/en/latest/build_guide.html>`__.
 
 Ubertooth One is a development platform. The true power of the device is best realized when you start writing your own software and adapting it to your needs. If you are just getting to know the board, however, it can be helpful to try out open source code that others have made available. This guide will help you get started with your Ubertooth One by introducing you to some useful host code from the Ubertooth software repository.
 
@@ -97,4 +97,4 @@ Notice that Kismet-Ubertooth identifies not only the LAP but also the 8 bit Uppe
 Where to Go from Here
 ~~~~~~~~~~~~~~~~~~~~~
 
-I hope you have found this guide helpful in getting to know your Ubertooth One. The host code for Project Ubertooth is in active development and new features are being worked on all the time. If you are interested in contributing to the project, or if you need help or would just like to chat about Project Ubertooth, join the `ubertooth-general <https://lists.sourceforge.net/lists/listinfo/ubertooth-general>`__ mailing list. Happy hacking!
+I hope you have found this guide helpful in getting to know your Ubertooth One. If you are interested in contributing to the project, or if you need help or would just like to chat about Project Ubertooth, join the `#ubertooth channel on Discord <https://discord.gg/rsfMw3rsU8>`__. Happy hacking!
