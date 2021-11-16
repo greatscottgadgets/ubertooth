@@ -5,11 +5,9 @@ Getting Help
 Asking Questions
 ~~~~~~~~~~~~~~~~
 
-If you have questions about using Ubertooth the first places to look are the `FAQ <https://ubertooth.readthedocs.io/en/latest/faq.html>`__ and the `mailing list archive <http://sourceforge.net/p/ubertooth/mailman/ubertooth-general/>`__.
+If you have questions about using Ubertooth the first place to look is the `FAQ <https://ubertooth.readthedocs.io/en/latest/faq.html>`__.
 
-If neither of these places hold the answer to your questions you should ask on the `mailing list <https://lists.sourceforge.net/lists/listinfo/ubertooth-general>`__.
-
-Many Ubertooth developers and users are available in the `#ubertooth channel on Discord <https://discord.gg/rsfMw3rsU8>`__. This channel is bridged to `#ubertooth on Libera Chat <https://web.libera.chat/#ubertooth>`__ for folks who are more comfortable with IRC. Please remember that we work across many timezones and you may need to wait some time for a response to your question.
+Many Ubertooth developers and users are available in the `#ubertooth channel on Discord <https://discord.gg/rsfMw3rsU8>`__. Please remember that we work across many timezones and you may need to wait some time for a response to your question.
 
 
 
