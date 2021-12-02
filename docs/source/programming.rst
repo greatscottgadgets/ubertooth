@@ -21,7 +21,7 @@ The bootloader executes every time the device starts up from reset or power cycl
 
 The bootloader indicates DFU mode by flashing the LEDs in a distinctive pattern. It also identifies itself as "usb_bootloader" on USB.
 
-During DFU mode, firmware may be uploaded or downloaded using ubertooth-dfu. See host/usb_dfu/README for usage instructions.
+During DFU mode, firmware may be uploaded or downloaded using ubertooth-dfu.
 
 It is possible that soft bootloader entry may be broken by installing a faulty application or an application that does not provide a method of triggering soft entry. In this case, pin entry must be used (e.g. by holding a paper clip in the expansion header while plugging in the device) to "unbrick" the unit.
 
