@@ -19,7 +19,7 @@ Architecture
 
 * `LPC175x <http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/lpc-cortex-m-mcus/lpc1700-cortex-m3:MC_1403790745385>`__ ARM Cortex-M3 microcontroller with Full-Speed USB 2.0.
 
-* USB A plug: connects to host computer running Kismet or other host code.
+* USB A plug: connects to host computer running `Kismet <https://www.kismetwireless.net/>`__ or other host code.
 
 
 
@@ -76,8 +76,6 @@ Power Usage
 ^^^^^^^^^^^
 
 These measurements were taken using Ubertooth One running firmware revision 2014-02-R2. Zero_Chaos took these measurements using a Centech CT-USB-PW, available via `eBay <http://www.ebay.com/itm/Century-JAPAN-USB-Power-Meter-voltage-measuring-instrument-Centech-CT-USB-PW-/151281911884>`__ and `others <http://store.mcetech.com/Merchant2/merchant.mvc?Screen=PROD&Product_Code=CT-USB-PW&Category_Code=USBPERIPH>`__.
-
-Let's add another sentence.
 
 .. list-table :: 
   :header-rows: 1
