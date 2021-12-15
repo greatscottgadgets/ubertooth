@@ -24,7 +24,7 @@ Title "Artichoke"
 Date "11 jul 2011"
 Rev "$Rev$"
 Comp "Copyright 2010, 2011 Michael Ossmann"
-Comment1 "License: GPL v2, http://ubertooth.sourceforge.net/"
+Comment1 "License: GPL v2"
 Comment2 ""
 Comment3 ""
 Comment4 ""
@@ -3998,7 +3998,7 @@ Po 19890 20020 400 500 80 0
 De 21 1 0 Normal
 $EndTEXTPCB
 $TEXTPCB
-Te "ubertooth.sf.net"
+Te "Artichoke"
 Po 27880 17800 450 600 80 0
 De 20 0 0 Normal
 $EndTEXTPCB

@@ -7,7 +7,7 @@ device should be detected.  For example (on Linux):
 [134437.193956] usb 8-1.2: New USB device found, idVendor=ffff, idProduct=0005
 [134437.193962] usb 8-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
 [134437.193969] usb 8-1.2: Product: Ubertooth serial
-[134437.193974] usb 8-1.2: Manufacturer: http://ubertooth.sourceforge.net/
+[134437.193974] usb 8-1.2: Manufacturer: http://github.com/greatscottgadgets/ubertooth
 [134437.193980] usb 8-1.2: SerialNumber: 00000001
 
 The USBLED should be illuminated at this point.
