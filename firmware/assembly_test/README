@@ -72,7 +72,7 @@ Program EUT with assembly_test Firmware
   3. Hold Pogoprog against the "PROGRAM" pads on the underside of EUT as shown
   in the photograph:
 
-    http://ubertooth.sourceforge.net/hardware/program/
+    https://ubertooth.readthedocs.io/en/latest/programming.html#using-isp
 
   4. on the PC, execute:
 
@@ -81,7 +81,7 @@ Program EUT with assembly_test Firmware
   If you have not yet compiled the assembly_test firmware, you will need to
   have a gcc/arm environment set up.  See:
 
-    http://ubertooth.sourceforge.net/firmware/develop/
+    https://ubertooth.readthedocs.io/en/latest/firmware.html#developing-firmware
 
   5. The 'make program' command will indicate "Download Finished . . . Now
   launching the brand new code" if successful.  If it was not successful, check
@@ -162,4 +162,4 @@ Test Complete
 
   3. Follow the Getting Started guide:
 
-    http://ubertooth.sourceforge.net/usage/start/
+    https://ubertooth.readthedocs.io/en/latest/getting_started.html
