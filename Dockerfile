@@ -28,11 +28,14 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     python3-distutils \
     python3-numpy \
+    python3-pip \
     python3-qtpy \
     python3-setuptools \
     python-is-python3 \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install capablerobot_usbhub
 
 RUN wget https://github.com/greatscottgadgets/libbtbb/archive/2020-12-R1.tar.gz -O libbtbb-2020-12-R1.tar.gz &&\
     tar -xf libbtbb-2020-12-R1.tar.gz &&\

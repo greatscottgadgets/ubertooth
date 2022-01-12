@@ -39,6 +39,7 @@ pipeline {
                 sh '''#!/bin/bash
                     host/build/ubertooth-tools/src/ubertooth-util -b -p -s'''
                 sh '''#!/bin/bash
+                    usbhub power state --port 4 --reset
                     host/build/ubertooth-tools/src/ubertooth-dfu -d firmware/bluetooth_rxtx/bluetooth_rxtx.dfu -r'''
             }
         }
