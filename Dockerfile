@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     cmake \
     gcc \
     gcc-arm-none-eabi \
+    git \
     g++ \
     libbluetooth-dev \
     libnewlib-arm-none-eabi \
@@ -32,6 +33,16 @@ RUN apt-get update && apt-get install -y \
     python-is-python3 \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/greatscottgadgets/libbtbb/archive/2020-12-R1.tar.gz -O libbtbb-2020-12-R1.tar.gz &&\
+    tar -xf libbtbb-2020-12-R1.tar.gz &&\
+    cd libbtbb-2020-12-R1 &&\
+    mkdir build &&\
+    cd build &&\
+    cmake .. &&\
+    make &&\
+    make install &&\
+    ldconfig
 
 USER jenkins
 
