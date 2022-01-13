@@ -1,7 +1,7 @@
 #!/bin/bash
 usbhub power state --port 4 --reset
 sleep 1s
-greatfet_firmware --volatile-upload firmware/greatfet_usb/build/greatfet_usb.bin
+host/build/ubertooth-tools/src/ubertooth-dfu -d firmware/bluetooth_rxtx/bluetooth_rxtx.dfu
 EXIT_CODE="$?"
 if [ "$EXIT_CODE" == "0" ]
 then
