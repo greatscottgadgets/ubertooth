@@ -18,36 +18,29 @@ pipeline {
     stages {
         stage('Build (Host)') {
             steps {
-                sh '''#!/bin/bash
-                    mkdir host/build
-                    cd host/build
-                    cmake ..
-                    make
-                    cd ../..'''
+                sh './ci-scripts/build-host.sh'
             }
         }
         stage('Build (Firmware)') {
             steps {
-                sh '''#!/bin/bash
-                    cd firmware/bluetooth_rxtx
-                    make
-                    cd ../..'''
+                sh './ci-scripts/build-firmware.sh'
             }
         }
         stage('Test') {
             steps {
-                sh '''#!/bin/bash
-                    host/build/ubertooth-tools/src/ubertooth-util -b -p -s'''
-                sh '''#!/bin/bash
-                    usbhub power state --port 4 --reset
-                    host/build/ubertooth-tools/src/ubertooth-dfu -d firmware/bluetooth_rxtx/bluetooth_rxtx.dfu -r'''
+                sh './ci-scripts/test-hub.sh'
+                retry(3) {
+                    sh './ci-scripts/test-host.sh'
+                }
+                retry(3) {
+                    sh './ci-scripts/test-firmware.sh'
+                }
             }
         }
     }
     post {
         always {
             echo 'One way or another, I have finished'
-            sh 'rm -rf testing-venv/'
             // Clean after build
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,
