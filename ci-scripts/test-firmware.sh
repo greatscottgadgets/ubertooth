@@ -1,5 +1,5 @@
 #!/bin/bash
-usbhub power state --port 4 --reset
+usbhub --hub D9D1 power state --port 4 --reset
 sleep 1s
 host/build/ubertooth-tools/src/ubertooth-dfu -d firmware/bluetooth_rxtx/bluetooth_rxtx.dfu
 EXIT_CODE="$?"

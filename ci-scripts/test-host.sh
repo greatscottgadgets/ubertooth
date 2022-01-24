@@ -1,5 +1,5 @@
 #!/bin/bash 
-usbhub power state --port 4 --reset
+usbhub --hub D9D1 power state --port 4 --reset
 host/build/ubertooth-tools/src/ubertooth-util -b -p -s
 EXIT_CODE="$?"
 if [ "$EXIT_CODE" == "1" ]
