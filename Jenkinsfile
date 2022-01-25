@@ -30,18 +30,17 @@ pipeline {
             steps {
                 sh './ci-scripts/test-hub.sh'
                 retry(3) {
-                    sh './ci-scripts/test-host.sh'
+                    sh './ci-scripts/test-firmware.sh'
                 }
                 retry(3) {
-                    sh './ci-scripts/test-firmware.sh'
+                    sh './ci-scripts/test-host.sh'
                 }
             }
         }
     }
     post {
         always {
-            echo 'One way or another, I have finished'
-            // Clean after build
+            sh 'usbhub --hub D9D1 power state --port 4 --reset'
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,
                     disableDeferredWipeout: true,
