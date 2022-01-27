@@ -2620,7 +2620,6 @@ void led_specan()
 
 int main()
 {
-	while(1);
 	// enable all fault handlers (see fault.c)
 	SCB_SHCSR = (1 << 18) | (1 << 17) | (1 << 16);
 
