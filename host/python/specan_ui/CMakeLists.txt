@@ -31,7 +31,7 @@ add_custom_command(OUTPUT ${OUTPUT}/timestamp
                    DEPENDS ${DEPS})
 
 add_custom_target(specan ALL DEPENDS ${OUTPUT}/timestamp)
-install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build -b ${OUTPUT} install)")
+install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build -b ${OUTPUT} install --root=${CMAKE_SOURCE_DIR}/../debian/tmp --install-layout=deb)")
 
 add_custom_target(ubertooth-specan-ui ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth-specan-ui)
 install(PROGRAMS ubertooth-specan-ui DESTINATION ${INSTALL_DEFAULT_BINDIR})
