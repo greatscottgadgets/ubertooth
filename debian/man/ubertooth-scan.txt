@@ -1,0 +1,21 @@
+NAME
+  ubertooth-scan - device scan and inquiry supported by Ubertooth
+
+SYNOPSIS
+  ubertooth-scan [options]
+
+
+OPTIONS
+  -h   help
+  -U<0-7>   set ubertooth device to use
+  -s   hci Scan - perform HCI scan
+  -t <s>     scan Time (seconds) - length of time to sniff packets. [Default: 20s]
+  -x   eXtended scan - retrieve additional information about target devices
+  -b   Bluetooth device (hci0)
+ 
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

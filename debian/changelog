@@ -1,0 +1,238 @@
+ubertooth (2020-12-R1) unstable; urgency=low
+  * Bluetooth classic sniffing and link layer support (see btbr)
+  * Upgraded to Python 3
+  * Christmas lights!
+  * Bugfix: ubertooth-btle will no longer freeze in high traffic environments
+  * Bugfix: time discontinuities in PCAP files
+  * Bugfix: BLE faux slave can now transmit more than 32 bytes
+  * USB API version bumped to 1.07
+
+ -- Mike Ryan <mikeryan@lacklustre.net>  25 Dec 2020 13:30:00 -0800
+
+ubertooth (2018.12.R1-5) unstable; urgency=medium
+
+  * Fix build with GCC-10 by removing unused extra definition of variable
+    (Closes: #957891)
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Tue, 13 Oct 2020 10:30:08 +0200
+
+ubertooth (2018.12.R1-4) unstable; urgency=medium
+
+  * Bring pack ubertooth-specan-ui in package by running it in Python3 instead
+    of Python2 (Closes: #954976)
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Thu, 26 Mar 2020 11:49:06 +0100
+
+ubertooth (2018.12.R1-3) unstable; urgency=medium
+
+  * Drop Python 2 dependency (Closes: #938738) ubertooth-specan-ui removed from
+    package until it has been ported.
+  * debian/control:
+    - New standards version 4.4.1 - no changes
+    - Debhelper compat level 12
+    - Depend on specific newer version of libbtbb
+  * debian/compat: deleted file
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Mon, 23 Dec 2019 09:22:35 +0100
+
+ubertooth (2018.12.R1-2) unstable; urgency=medium
+
+  * debian/control:
+    - Fix dependencies ("Recommends") for ubertooth-specan-ui (Closes: #919388)
+      Replaced: python-pyside.qtcore and python-pyside.qtgui with
+      python-pyside2.qtgui, python-pyside2.qtwidgets and python-pyside2.qtcore.
+      (upstream has migrated the code to work with PySide2)
+    - New standards version 4.3.0 - no changes
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Sat, 19 Jan 2019 08:56:02 +0100
+
+ubertooth (2018.12.R1-1) unstable; urgency=medium
+
+  * New upstream release
+  * debian/control:
+    - Move Vcs from github to salsa
+  * debian/libubertooth1.symbols:
+    - Added new symbol in symbols file
+  * debian/gitlab-ci.yml:
+    - Enable CI on salsa.debian.org
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Thu, 20 Dec 2018 10:36:18 +0100
+
+ubertooth (2018.08.R1-4) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Fix FTCBFS: Annotate python-all with :any. (Closes: #912757)
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Tue, 27 Nov 2018 22:33:34 +0100
+
+ubertooth (2018.08.R1-3) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Demote Build-Depends: python-all-dev to python-all. (Closes: #909553)
+
+  [ Ruben Undheim ]
+  * debian/control:
+    - New standards version 4.2.1 - no changes
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Tue, 25 Sep 2018 10:40:00 +0200
+
+ubertooth (2018.08.R1-2) unstable; urgency=medium
+
+  * Move python-pyside.qtcore and python-pyside.qtgui from Depends to
+    Recommends since core functionality is not broken when they are not
+    present.
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Fri, 10 Aug 2018 13:32:26 +0200
+
+ubertooth (2018.08.R1-1) unstable; urgency=medium
+
+  * New upstream release
+    - Refreshed patches
+  * Simplify handling of revision patch so that it does not need
+    to be updated for every new upstream release.
+  * debian/source/lintian-overrides deleted since it is not needed anymore
+  * debian/compat: level 11
+  * debian/control:
+    - debhelper >= 11
+    - New standards version 4.2.0 - no changes
+  * debain/rules:
+    - Pass --no-parallel to dh_auto_build for firmware since it does not build
+      reliably with multiple threads.
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Fri, 10 Aug 2018 12:24:01 +0200
+
+ubertooth (2018.06.R1-2) unstable; urgency=medium
+
+  * debian/upstream/metadata added
+  * debian/patches/04_no_git_for_debian.patch:
+    - Fix setting GIT_REVISION in patch
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Thu, 09 Aug 2018 10:48:40 +0200
+
+ubertooth (2018.06.R1-1) unstable; urgency=medium
+
+  * New upstream release
+  * Refreshed patches. Using gbp-pq
+  * debian/control:
+    - Depend on newer version of libbtbb: 2018.06.R1
+  * debian/com.greatscottgadgets.ubertooth.metainfo.xml
+    - Fix formatting of vendor and product IDs
+  * debian/copyright:
+    - Copyright information for some new files
+    - Use https protocol in Format field
+  * debian/libubertooth1.symbols:
+    - Two new symbols
+  * debian/rules:
+    - Replace dpkg-parsechangelog with include /usr/share/dpkg/pkg-info.mk
+  * debian/source/lintian-overrides:
+    - ignore lintian for patch file which is used in debian/rules
+  * debian/ubertooth-firmware.lintian-overrides:
+    - ignore lintian for package name "-firmware", since it is firmware
+      for external USB device, and not for the Linux kernel.
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Fri, 13 Jul 2018 20:06:07 +0200
+
+ubertooth (2017.03.R2-3) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Demote firmware dependencies to Build-Depends-Indep. (Closes: #893906)
+
+  [ Ruben Undheim
+  * debian/control:
+    - Remove 'Testsuite: autopkgtest' since it is handled automatically now
+    - New standards version 4.1.5 - no changes
+  * Added debian/com.greatscottgadgets.ubertooth.metainfo.xml to announce
+    the hardware via AppStream
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Wed, 11 Jul 2018 22:26:41 +0200
+
+ubertooth (2017.03.R2-2) unstable; urgency=low
+
+  * debian/control:
+    - Add "Multi-Arch: foreign" to ubertooth-firmware
+  * debian/tests/buildfirmware:
+    - Pipe stderr to stdout for "make" invocation to prevent the CI test
+      from failing due to some build warnings.
+  * debian/tests/control:
+    - Explicitly include all test dependencies
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Sun, 16 Jul 2017 18:40:08 +0000
+
+ubertooth (2017.03.R2-1) unstable; urgency=low
+
+  * Upload to unstable
+  * debian/control:
+    - New standards version 4.0.0 - no changes
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Thu, 13 Jul 2017 23:03:25 +0200
+
+ubertooth (2017.03.R2-1~exp2) experimental; urgency=low
+
+  * debian/control:
+    - Updated long description for binary package ubertooth
+  * debian/tests/*:
+    - Added autopkgtest for building firmware from ubertooth-firmware-source.
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Sat, 01 Apr 2017 07:07:10 +0000
+
+ubertooth (2017.03.R2-1~exp1) experimental; urgency=medium
+
+  * New upstream version (Closes: #852141)
+  * libubertooth0 -> libubertooth1
+  * debian/libubertooth1.symbols:
+    - Added new symbols and removed some symbols
+  * debian/ubertooth.manpages: Use new upstream man pages instead
+  * debian/control:
+    - New standards version: 3.9.8
+    - Removed -dbg package (now handled automatically)
+    - Set versioned build-dependency on libbtbb-dev
+  * debian/copyright:
+    - Updated copyright information
+  * debian/man/ubertooth-tx.txt:
+    - New dummy man page for ubertooth-tx not yet
+      included in package
+  * debian/patches/0006-Try-fixing-two-lintians.patch
+    - Some of the upstream man pages needed to be patch to not
+      cause lintians
+  * debian/patches/*: All other patches refreshed
+  * debian/rules:
+    - No need to explicitly override dh_strip anymore
+    - Skip installing ubertooth-tx, since it does not do anything yet.
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Tue, 14 Mar 2017 20:35:32 +0100
+
+ubertooth (2015.09.R2-4) unstable; urgency=medium
+
+  * debian/copyright: Updated copyright year for Debian packaging
+  * debian/rules:
+    - Use UTC for the timestamp to firmware build as well
+    - Use --mode= for tar command to make tarball reproducible
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Tue, 23 Feb 2016 17:41:54 +0100
+
+ubertooth (2015.09.R2-3) unstable; urgency=medium
+
+  * debian/rules:
+    - Fix order in tarball to make it reproducible
+    - Make COMPILE_BY and COMPILE_HOST also deterministic when building
+      bluetooth_rxtx.dfu
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Tue, 23 Feb 2016 00:13:13 +0100
+
+ubertooth (2015.09.R2-2) unstable; urgency=medium
+
+  * Set changelog date to UTC with LC_ALL=C to make man pages reproducible.
+  * Add --mtime to tar command to make tar-ball reproducible.
+  * Set TIMESTAMP to "", to make firmware reproducible
+  * New standards version (3.9.7). No needed updates.
+  * Run "cme fix dpkg-control":
+    - Changed Vcs-Git to use secure URL.
+    - Various other ordering changes for fields in d/control
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Fri, 19 Feb 2016 17:52:46 +0100
+
+ubertooth (2015.09.R2-1) unstable; urgency=low
+
+  * Initial release (Closes: #772509)
+
+ -- Ruben Undheim <ruben.undheim@gmail.com>  Wed, 09 Sep 2015 20:21:57 +0200

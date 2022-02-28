@@ -1,0 +1,21 @@
+From: Ruben Undheim <ruben.undheim@gmail.com>
+Date: Fri, 13 Jul 2018 16:36:06 +0200
+Subject: Also build bootloader
+
+---
+ firmware/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index f600529..247b9e4 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -19,7 +19,7 @@
+ # the Free Software Foundation, Inc., 51 Franklin Street,
+ # Boston, MA 02110-1301, USA.
+ 
+-DIRS = blinky bluetooth_rxtx cc2400_test clock_test usb_test assembly_test btbr
++DIRS = blinky bluetooth_rxtx cc2400_test clock_test usb_test assembly_test btbr bootloader
+ 
+ all: $(DIRS)
+ 

@@ -1,0 +1,24 @@
+NAME
+  ubertooth-ego - Yuneec E-GO skateboard sniffing
+
+SYNOPSIS
+  ubertooth-ego [options]
+
+
+OPTIONS
+
+
+  -h         show help
+  -c <2402-2480>  set channel in MHz (for continuous RX)
+
+Modes:
+  -f         follow connections
+  -r         continuous rx on a single channel
+  -i         interfere
+
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

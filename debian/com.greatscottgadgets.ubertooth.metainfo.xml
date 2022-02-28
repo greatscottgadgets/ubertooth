@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+  <id>com.greatscottgadgets.ubertooth</id>
+  <metadata_license>MIT</metadata_license>
+  <name>ubertooth</name>
+  <summary>Software for the ubertooth device</summary>
+  <description>
+    <p>
+      Ubertooth is a USB 'dongle' for sniffing Bluetooth traffic.
+      This package contains everything needed to use the dongle.
+    </p>
+  </description>
+  <provides>
+    <modalias>usb:vFFFFp0004d*</modalias>
+    <modalias>usb:v1D50p6000d*</modalias>
+    <modalias>usb:v1D50p6001d*</modalias>
+    <modalias>usb:v1D50p6002d*</modalias>
+    <modalias>usb:v1D50p6003d*</modalias>
+  </provides>
+</component>

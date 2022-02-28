@@ -1,0 +1,27 @@
+NAME
+  ubertooth-specan - output a continuous stream of signal strengths 
+
+SYNOPSIS
+  ubertooth-specan [options]
+
+
+OPTIONS
+ 
+    -h                  this help
+    -v                  verbose (print debug information to stderr)
+    -g                  output suitable for feedgnuplot
+    -G                  output suitable for 3D feedgnuplot
+    -d <filename>       output to file
+    -l                  lower frequency (default 2402)
+    -u                  upper frequency (default 2480)
+    -U<0-7>             set ubertooth device to use
+
+
+SEE ALSO
+  ubertooth-specan-ui(1)
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

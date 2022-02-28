@@ -1,0 +1,274 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ubertooth
+Source: https://github.com/greatscottgadgets/ubertooth
+
+Files: *
+Copyright: 2010-2015 Jared Boone
+           2010-2017 Mike Ossmann, Dominic Spill
+           2012-2015 Will Code, Christopher Kilgour
+           2012-2018 Mike Ryan
+License: GPL-2+
+
+Files: firmware/common/lpcusb/target/usbhw_lpc.c
+       firmware/common/lpcusb/target/usbstruct.h
+       firmware/common/lpcusb/target/usbapi.h
+       firmware/common/lpcusb/target/usbcontrol.c
+       firmware/common/lpcusb/target/debug.h
+       firmware/common/lpcusb/target/usbstdreq.c
+       firmware/common/lpcusb/target/type.h
+       firmware/common/lpcusb/target/usbhw_lpc.h
+       firmware/common/lpcusb/target/usbinit.c
+       firmware/common/serial_fifo.c
+       firmware/common/serial_fifo.h
+Copyright: 2006 Bertrik Sikken (bertrik@sikken.nl)
+License: BSD-3-clause
+
+Files: firmware/bootloader/bootloader.cpp
+       firmware/assembly_test/assembly_test.c
+       firmware/bluetooth_rxtx/ubertooth_usb.h
+       firmware/common/usb_serial.h
+       firmware/common/usb_serial.c
+Copyright: 2006 Bertrik Sikken (bertrik@sikken.nl)
+           2010-2011 Michael Ossman <mike@ossmann.com>
+License: GPL-2+ and BSD-3-clause
+
+Files: firmware/bluetooth_rxtx/ubertooth_usb.c
+Copyright: 2006 Bertrik Sikken (bertrik@sikken.nl)
+           2010 Michael Ossman <mike@ossmann.com>
+           2013 Dominic Spill <dominicgs@gmail.com>
+License: GPL-2+ and BSD-3-clause
+
+Files: firmware/common/sections.ld
+Copyright: 2007 CodeSourcery
+License: CodeSourcery-license
+
+Files: firmware/common/LPC17xx_Interrupts.c
+Copyright: 2010 Opendous Inc. (www.MicropendousX.org)
+License: Opendous-License
+
+Files: firmware/tc13badge/Makefile
+       firmware/tc13badge/ivects.S
+       firmware/tc13badge/init.S
+Copyright: 2010 DJ Delorie <dj@redhat.com>
+           2011 Michael Ossmann <mike@ossmann.com>
+License: GPL-3+
+
+Files: firmware/tc13badge/mkports
+Copyright: 2010 DJ Delorie <dj@redhat.com>
+License: GPL-3+
+
+Files: firmware/bluetooth_rxtx/ubertooth_clock.c
+       firmware/bluetooth_rxtx/ubertooth_clock.h
+       firmware/bluetooth_rxtx/ubertooth_cs.c
+       firmware/bluetooth_rxtx/ubertooth_cs.h
+       firmware/bluetooth_rxtx/ubertooth_dma.c
+       firmware/bluetooth_rxtx/ubertooth_dma.h
+       firmware/bluetooth_rxtx/ubertooth_rssi.c
+       firmware/bluetooth_rxtx/ubertooth_rssi.h
+       host/libubertooth/src/ubertooth_callback.c
+       host/libubertooth/src/ubertooth_callback.h
+       host/libubertooth/src/ubertooth_fifo.c
+       host/libubertooth/src/ubertooth_fifo.h
+       host/ubertooth-tools/src/ubertooth-afh.c
+Copyright: 2015 Hannes Ellinger
+License: GPL-2+
+
+Files: host/cmake/modules/FindUSB1.cmake
+Copyright: 2006,2008 Laurent Montel <montel@kde.org>
+License: BSD-3-clause
+
+Files: host/cmake/modules/FindBLUETOOTH.cmake
+Copyright: 2006,2008 Laurent Montel <montel@kde.org>
+           2013 Dominic Spill <dominicgs@gmail.com>
+License: BSD-3-clause
+
+Files: host/cmake/modules/GetGitRevisionDescription.cmake.in
+       host/cmake/modules/GetGitRevisionDescription.cmake
+Copyright: 2009-2010 Iowa State University
+License: Boost-1.0
+
+Files: host/cmake/modules/FindPythonInterp.cmake
+Copyright: 2005-2010 Kitware, Inc.
+           2011 Bjoern Ricks <bjoern.ricks@gmail.com>
+           2012 Rolf Eike Beer <eike@sf-mail.de>
+License: BSD-3-clause
+
+Files: host/cmake/modules/FindPackageHandleStandardArgs.cmake
+Copyright: 2007-2009 Kitware, Inc.
+License: BSD-3-clause
+
+Files: host/kismet/plugin-ubertooth/ubertooth_ui.cc
+       host/kismet/plugin-ubertooth/packet_btbb.h
+       host/kismet/plugin-ubertooth/kismet_ubertooth.cc
+       host/kismet/plugin-ubertooth/packet_btbb.cc
+       host/kismet/plugin-ubertooth/packetsource_ubertooth.h
+       host/kismet/plugin-ubertooth/packetsource_ubertooth.cc
+       host/kismet/plugin-ubertooth/tracker_btbb.h
+       host/kismet/plugin-ubertooth-phyneutral/packet_btbb.h
+       host/kismet/plugin-ubertooth-phyneutral/kismet_ubertooth.cc
+       host/kismet/plugin-ubertooth-phyneutral/packet_btbb.cc
+       host/kismet/plugin-ubertooth-phyneutral/packetsource_ubertooth.h
+       host/kismet/plugin-ubertooth-phyneutral/packetsource_ubertooth.cc
+Copyright: 2009,2010 Mike Kershaw
+           2010,2011 Michael Ossmann
+License: GPL-2+
+
+Files: host/kismet/plugin-ubertooth-phyneutral/phy_btbb.h
+Copyright: 2009-2011 Mike Kershaw
+           2010,2011 Michael Ossmann
+License: GPL-2+
+
+Files: host/kismet/plugin-ubertooth-phyneutral/phy_btbb.cc
+Copyright: 2009,2010 Mike Kershaw
+           2010,2011 Michael Ossmann
+           2012,2013 Dominic Spill
+License: GPL-2+
+
+Files: host/ubertooth-tools/getopt/getopt.c host/ubertooth-tools/getopt/getopt.h
+Copyright: 1987,88,89,90,91,92,93,94,95,96,98,99,2000,2001 Free Software Foundation, Inc.
+License: LGPL-2.1+
+
+Files: firmware/bluetooth_rxtx/tinyprintf.c
+       firmware/bluetooth_rxtx/tinyprintf.h
+Copyright: 2004 Kustaa Nyholm
+License: LGPL-2.1+
+
+Files: debian/*
+Copyright: 2014-2018 Ruben Undheim <ruben.undheim@gmail.com>
+License: GPL-2+
+
+
+License: GPL-2+
+ This package is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
+
+
+License: GPL-3+
+ This package is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
+
+
+License: LGPL-2.1+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU Lesser General
+ Public License version 2.1 can be found in
+ "/usr/share/common-licenses/LGPL-2.1".
+
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. The name of the author may not be used to endorse or promote products
+    derived from this software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+License: CodeSourcery-license
+ The authors hereby grant permission to use, copy, modify, distribute,
+ and license this software and its documentation for any purpose, provided
+ that existing copyright notices are retained in all copies and that this
+ notice is included verbatim in any distributions. No written agreement,
+ license, or royalty fee is required for any of the authorized uses.
+ Modifications to this software may be copyrighted by their authors
+ and need not follow the licensing terms described here, provided that
+ the new terms are clearly indicated on the first page of each file where
+ they apply.
+
+
+License: Opendous-License
+ Permission to use, copy, modify, and distribute this software
+ and its documentation for any purpose and without fee is hereby
+ granted, provided that the above copyright notice appear in all
+ copies and that both that the copyright notice and this
+ permission notice and warranty disclaimer appear in supporting
+ documentation, and that the name of the author not be used in
+ advertising or publicity pertaining to distribution of the
+ software without specific, written prior permission.
+ .
+ The author disclaim all warranties with regard to this
+ software, including all implied warranties of merchantability
+ and fitness.  In no event shall the author be liable for any
+ special, indirect or consequential damages or any damages
+ whatsoever resulting from loss of use, data or profits, whether
+ in an action of contract, negligence or other tortious action,
+ arising out of or in connection with the use or performance of
+ this software.
+
+
+License: Boost-1.0
+ Permission is hereby granted, free of charge, to any person or organization
+ obtaining a copy of the software and accompanying documentation covered by
+ this license (the "Software") to use, reproduce, display, distribute,
+ execute, and transmit the Software, and to prepare derivative works of the
+ Software, and to permit third-parties to whom the Software is furnished to
+ do so, all subject to the following:
+ .
+ The copyright notices in the Software and this entire statement, including
+ the above license grant, this restriction and the following disclaimer,
+ must be included in all copies of the Software, in whole or in part, and
+ all derivative works of the Software, unless such copies or derivative
+ works are solely in the form of machine-executable object code generated by
+ a source language processor.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+ FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+

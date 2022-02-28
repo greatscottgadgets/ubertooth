@@ -1,0 +1,24 @@
+NAME
+  ubertooth-dfu - Ubertooth firmware update tool
+
+
+SYNOPSIS
+  ubertooth-dfu [options]
+
+
+
+OPTIONS
+
+    -h                  Show help
+    -s <filename>       add DFU suffix to binary firmware file
+    -u <filename>       upload - read firmware from device
+    -d <filename>       download - write DFU file to device
+    -r                  reset Ubertooth after other operations complete
+    -U <0-7>            set ubertooth device to use
+
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

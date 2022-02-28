@@ -1,0 +1,8 @@
+firmware/bootloader/bootloader.bin usr/share/ubertooth/firmware
+
+firmware/bluetooth_rxtx/bluetooth_rxtx.dfu usr/share/ubertooth/firmware
+firmware/assembly_test/assembly_test.dfu usr/share/ubertooth/firmware
+firmware/clock_test/clock_test.dfu usr/share/ubertooth/firmware
+firmware/blinky/blinky.dfu usr/share/ubertooth/firmware
+firmware/cc2400_test/cc2400_test.dfu usr/share/ubertooth/firmware
+firmware/usb_test/usb_test.dfu usr/share/ubertooth/firmware
