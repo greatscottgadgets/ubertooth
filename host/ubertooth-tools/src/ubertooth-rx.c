@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 
 	ubertooth_t* ut = ubertooth_init();
 
-	while ((opt=getopt(argc,argv,"hVi:l:u:U:d:e:r:sq:t:zc:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hVi:l:u:U:D:d:e:r:sq:t:zc:")) != EOF) {
 		switch(opt) {
 		case 'i':
 			infile = fopen(optarg, "r");

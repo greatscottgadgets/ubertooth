@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
 	ubertooth_t* ut = ubertooth_init();
 
-	while ((opt=getopt(argc,argv,"hVl:u:U:t:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hVl:u:U:D:t:")) != EOF) {
 		switch(opt) {
 		case 'l':
 			lap = strtol(optarg, &end, 16);

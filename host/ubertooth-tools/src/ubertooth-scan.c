@@ -21,318 +21,334 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
-#include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 
 #include "ubertooth.h"
 #include "ubertooth_callback.h"
 #include <btbb.h>
 #include <getopt.h>
 
-static void usage()
-{
-	printf("ubertooth-scan - active(Bluez) device scan and inquiry supported by Ubertooth\n");
-	printf("\n");
-	printf("This tool uses a normal Bluetooth dongle to perform Inquiry Scans and\n");
-	printf("Extended Inquiry scans of Bluetooth devices. It uses Ubertooth to\n");
-	printf("discover undiscoverable devices and can use BlueZ to scan for\n");
-	printf("discoverable devices.\n");
-	printf("\n");
-	printf("Usage:\n");
-	printf("    ubertooth-scan\n");
-	printf("        Use Ubertooth to discover devices and perform Inquiry Scan.\n");
-	printf("\n");
-	printf("    ubertooth-scan -s -x\n");
-	printf("        Use BlueZ and Ubertooth to discover devices and perform Inquiry Scan\n");
-	printf("        and Extended Inquiry Scan.\n");
-	printf("\n");
-	printf("Options:\n");
-	printf("\t-s hci Scan - use BlueZ to scan for discoverable devices\n");
-	printf("\t-x eXtended scan - retrieve additional information about target devices\n");
-	printf("\t-t scan Time (seconds) - length of time to sniff packets. [Default: 20s]\n");
-	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
-	printf("\t-b Bluetooth device (hci0)\n");
-	printf("\t-U<0-7> set Ubertooth device to use\n");
+static void usage() {
+    printf("ubertooth-scan - active(Bluez) device scan and inquiry supported "
+           "by Ubertooth\n");
+    printf("\n");
+    printf("This tool uses a normal Bluetooth dongle to perform Inquiry Scans "
+           "and\n");
+    printf(
+        "Extended Inquiry scans of Bluetooth devices. It uses Ubertooth to\n");
+    printf("discover undiscoverable devices and can use BlueZ to scan for\n");
+    printf("discoverable devices.\n");
+    printf("\n");
+    printf("Usage:\n");
+    printf("    ubertooth-scan\n");
+    printf("        Use Ubertooth to discover devices and perform Inquiry "
+           "Scan.\n");
+    printf("\n");
+    printf("    ubertooth-scan -s -x\n");
+    printf("        Use BlueZ and Ubertooth to discover devices and perform "
+           "Inquiry Scan\n");
+    printf("        and Extended Inquiry Scan.\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\t-s hci Scan - use BlueZ to scan for discoverable devices\n");
+    printf("\t-x eXtended scan - retrieve additional information about target "
+           "devices\n");
+    printf("\t-t scan Time (seconds) - length of time to sniff packets. "
+           "[Default: 20s]\n");
+    printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
+    printf("\t-b Bluetooth device (hci0)\n");
+    printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+    printf(
+        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
+void extra_info(int dd, int dev_id, bdaddr_t *bdaddr) {
+    uint16_t handle, offset;
+    uint8_t features[8], max_page = 0;
+    char name[249], *tmp;
+    char addr[19] = {0};
+    uint8_t mode, afh_map[10];
+    struct hci_version version;
+    struct hci_dev_info di;
+    struct hci_conn_info_req *cr;
+    int i, cc = 0;
 
-void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
-{
-	uint16_t handle, offset;
-	uint8_t features[8], max_page = 0;
-	char name[249], *tmp;
-	char addr[19] = { 0 };
-	uint8_t mode, afh_map[10];
-	struct hci_version version;
-	struct hci_dev_info di;
-	struct hci_conn_info_req *cr;
-	int i, cc = 0;
+    if (hci_devinfo(dev_id, &di) < 0) {
+        perror("Can't get device info");
+        exit(1);
+    }
 
-	if (hci_devinfo(dev_id, &di) < 0) {
-		perror("Can't get device info");
-		exit(1);
-	}
+    printf("Requesting information ...\n");
 
-	printf("Requesting information ...\n");
+    cr = malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
+    if (!cr) {
+        perror("Can't get connection info");
+        exit(1);
+    }
 
-	cr = malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
-	if (!cr) {
-		perror("Can't get connection info");
-		exit(1);
-	}
+    bacpy(&cr->bdaddr, bdaddr);
+    cr->type = ACL_LINK;
+    if (ioctl(dd, HCIGETCONNINFO, (unsigned long)cr) < 0) {
+        if (hci_create_connection(dd, bdaddr,
+                                  htobs(di.pkt_type & ACL_PTYPE_MASK), 0, 0x01,
+                                  &handle, 25000) < 0) {
+            perror("Can't create connection");
+            return;
+        }
+        sleep(1);
+        cc = 1;
+    } else
+        handle = htobs(cr->conn_info->handle);
 
-	bacpy(&cr->bdaddr, bdaddr);
-	cr->type = ACL_LINK;
-	if (ioctl(dd, HCIGETCONNINFO, (unsigned long) cr) < 0) {
-		if (hci_create_connection(dd, bdaddr,
-					htobs(di.pkt_type & ACL_PTYPE_MASK),
-					0, 0x01, &handle, 25000) < 0) {
-			perror("Can't create connection");
-			return;
-		}
-		sleep(1);
-		cc = 1;
-	} else
-		handle = htobs(cr->conn_info->handle);
+    ba2str(bdaddr, addr);
+    printf("\tBD Address:  %s\n", addr);
 
-	ba2str(bdaddr, addr);
-	printf("\tBD Address:  %s\n", addr);
+    if (hci_read_remote_name(dd, bdaddr, sizeof(name), name, 25000) == 0)
+        printf("\tDevice Name: %s\n", name);
 
-	if (hci_read_remote_name(dd, bdaddr, sizeof(name), name, 25000) == 0)
-		printf("\tDevice Name: %s\n", name);
+    if (hci_read_remote_version(dd, handle, &version, 20000) == 0) {
+        char *ver = lmp_vertostr(version.lmp_ver);
+        printf("\tLMP Version: %s (0x%x) LMP Subversion: 0x%x\n"
+               "\tManufacturer: %s (%d)\n",
+               ver ? ver : "n/a", version.lmp_ver, version.lmp_subver,
+               bt_compidtostr(version.manufacturer), version.manufacturer);
+        if (ver)
+            bt_free(ver);
+    }
 
-	if (hci_read_remote_version(dd, handle, &version, 20000) == 0) {
-		char *ver = lmp_vertostr(version.lmp_ver);
-		printf("\tLMP Version: %s (0x%x) LMP Subversion: 0x%x\n"
-			"\tManufacturer: %s (%d)\n",
-			ver ? ver : "n/a",
-			version.lmp_ver,
-			version.lmp_subver,
-			bt_compidtostr(version.manufacturer),
-			version.manufacturer);
-		if (ver)
-			bt_free(ver);
-	}
+    memset(features, 0, sizeof(features));
+    hci_read_remote_features(dd, handle, features, 20000);
 
-	memset(features, 0, sizeof(features));
-	hci_read_remote_features(dd, handle, features, 20000);
+    if ((di.features[7] & LMP_EXT_FEAT) && (features[7] & LMP_EXT_FEAT))
+        hci_read_remote_ext_features(dd, handle, 0, &max_page, features, 20000);
 
-	if ((di.features[7] & LMP_EXT_FEAT) && (features[7] & LMP_EXT_FEAT))
-		hci_read_remote_ext_features(dd, handle, 0, &max_page,
-							features, 20000);
+    printf("\tFeatures%s: 0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x "
+           "0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n",
+           (max_page > 0) ? " page 0" : "", features[0], features[1],
+           features[2], features[3], features[4], features[5], features[6],
+           features[7]);
 
-	printf("\tFeatures%s: 0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x "
-				"0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n",
-		(max_page > 0) ? " page 0" : "",
-		features[0], features[1], features[2], features[3],
-		features[4], features[5], features[6], features[7]);
+    tmp = lmp_featurestostr(features, "\t\t", 63);
+    printf("%s\n", tmp);
+    bt_free(tmp);
 
-	tmp = lmp_featurestostr(features, "\t\t", 63);
-	printf("%s\n", tmp);
-	bt_free(tmp);
+    for (i = 1; i <= max_page; i++) {
+        if (hci_read_remote_ext_features(dd, handle, i, NULL, features, 20000) <
+            0)
+            continue;
 
-	for (i = 1; i <= max_page; i++) {
-		if (hci_read_remote_ext_features(dd, handle, i, NULL,
-							features, 20000) < 0)
-			continue;
+        printf("\tFeatures page %d: 0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x "
+               "0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n",
+               i, features[0], features[1], features[2], features[3],
+               features[4], features[5], features[6], features[7]);
+    }
 
-		printf("\tFeatures page %d: 0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x "
-					"0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n", i,
-			features[0], features[1], features[2], features[3],
-			features[4], features[5], features[6], features[7]);
-	}
+    if (hci_read_clock_offset(dd, handle, &offset, 1000) < 0) {
+        perror("Reading clock offset failed");
+        exit(1);
+    }
 
-	if (hci_read_clock_offset(dd, handle, &offset, 1000) < 0) {
-		perror("Reading clock offset failed");
-		exit(1);
-	}
+    printf("\tClock offset: 0x%4.4x\n", btohs(offset));
 
-	printf("\tClock offset: 0x%4.4x\n", btohs(offset));
+    if (hci_read_afh_map(dd, handle, &mode, afh_map, 1000) < 0) {
+        perror("HCI read AFH map request failed");
+    }
+    if (mode == 0x01) {
+        // DGS: Replace with call to btbb_print_afh_map - need a piconet
+        printf("\tAFH Map: 0x");
+        for (i = 0; i < 10; i++)
+            printf("%02x", afh_map[i]);
+        printf("\n");
+    } else {
+        printf("AFH disabled.\n");
+    }
+    free(cr);
 
-	if(hci_read_afh_map(dd, handle, &mode, afh_map, 1000) < 0) {
-	perror("HCI read AFH map request failed");
-	}
-	if(mode == 0x01) {
-		// DGS: Replace with call to btbb_print_afh_map - need a piconet
-		printf("\tAFH Map: 0x");
-		for(i=0; i<10; i++)
-			printf("%02x", afh_map[i]);
-		printf("\n");
-	} else {
-		printf("AFH disabled.\n");
-	}
-	free(cr);
-
-	if (cc) {
-		usleep(10000);
-		hci_disconnect(dd, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-	}
+    if (cc) {
+        usleep(10000);
+        hci_disconnect(dd, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+    }
 }
 
 /* For a given BD_ADDR, print address, name and class */
 void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
-						  char* printable_addr, uint8_t extended)
-{
-	char name[248] = { 0 };
+                          char *printable_addr, uint8_t extended) {
+    char name[248] = {0};
 
-	if (hci_read_remote_name(dev_handle, bdaddr, sizeof(name), name, 0) < 0)
-			strcpy(name, "[unknown]");
+    if (hci_read_remote_name(dev_handle, bdaddr, sizeof(name), name, 0) < 0)
+        strcpy(name, "[unknown]");
 
-	printf("%s\t%s\n", printable_addr, name);
-	if (extended)
-		extra_info(dev_handle, dev_id, bdaddr);
+    printf("%s\t%s\n", printable_addr, name);
+    if (extended)
+        extra_info(dev_handle, dev_id, bdaddr);
 }
 
+int main(int argc, char *argv[]) {
+    inquiry_info *ii = NULL;
+    int r, i, rv, opt, dev_id, dev_handle, len, flags;
+    int max_rsp, num_rsp, lap, timeout = 20;
+    uint8_t uap, extended = 0;
+    uint8_t scan = 0;
+    int ubertooth_device = -1;
+    char serial[17] = {0};
+    int device_index = 0, device_serial = 0;
+    char *bt_dev = "hci0";
+    char addr[19] = {0};
+    ubertooth_t *ut = NULL;
+    btbb_piconet *pn;
+    bdaddr_t bdaddr;
 
-int main(int argc, char *argv[])
-{
-	inquiry_info *ii = NULL;
-	int r, i, rv, opt, dev_id, dev_handle, len, flags;
-	int max_rsp, num_rsp, lap, timeout = 20;
-	uint8_t uap, extended = 0;
-	uint8_t scan = 0;
-	int ubertooth_device = -1;
-	char *bt_dev = "hci0";
-	char addr[19] = { 0 };
-	ubertooth_t* ut = NULL;
-	btbb_piconet* pn;
-	bdaddr_t bdaddr;
+    while ((opt = getopt(argc, argv, "hU:D:t:e:xsb:")) != EOF) {
+        switch (opt) {
+        case 'D':
+            snprintf(serial, strlen(optarg), "%s", optarg);
+            device_serial = 1;
+            break;
+        case 'U':
+            ubertooth_device = atoi(optarg);
+            device_index = 1;
+            break;
+        case 'b':
+            bt_dev = optarg;
+            if (bt_dev == NULL) {
+                perror(optarg);
+                return 1;
+            }
+            break;
+        case 't':
+            timeout = atoi(optarg);
+            break;
+        case 'e':
+            max_ac_errors = atoi(optarg);
+            break;
+        case 'x':
+            extended = 1;
+            break;
+        case 's':
+            scan = 1;
+            break;
+        case 'h':
+        default:
+            usage();
+            return 1;
+        }
+    }
 
-	while ((opt=getopt(argc,argv,"hU:t:e:xsb:")) != EOF) {
-		switch(opt) {
-		case 'U':
-			ubertooth_device = atoi(optarg);
-			break;
-		case 'b':
-			bt_dev = optarg;
-			if (bt_dev == NULL) {
-				perror(optarg);
-				return 1;
-			}
-			break;
-		case 't':
-			timeout = atoi(optarg);
-			break;
-		case 'e':
-			max_ac_errors = atoi(optarg);
-			break;
-		case 'x':
-			extended = 1;
-			break;
-		case 's':
-			scan = 1;
-			break;
-		case 'h':
-		default:
-			usage();
-			return 1;
-		}
-	}
+    if (device_serial && device_index) {
+        printf("Error: Cannot use both index and serial simultaneously\n");
+        usage();
+        return 1;
+    }
 
-	dev_id = hci_devid(bt_dev);
-	if (dev_id < 0) {
-		printf("error: Unable to find %s (%d)\n", bt_dev, dev_id);
-		return 1;
-	}
+    dev_id = hci_devid(bt_dev);
+    if (dev_id < 0) {
+        printf("error: Unable to find %s (%d)\n", bt_dev, dev_id);
+        return 1;
+    }
 
-	dev_handle = hci_open_dev( dev_id );
-	if (dev_handle < 0) {
-		perror("HCI device open failed");
-		return 1;
-	}
+    dev_handle = hci_open_dev(dev_id);
+    if (dev_handle < 0) {
+        perror("HCI device open failed");
+        return 1;
+    }
 
-	ut = ubertooth_start(ubertooth_device);
-	if (ut == NULL) {
-		usage();
-		return 1;
-	}
-	rv = ubertooth_check_api(ut);
-	if (rv < 0)
-		return 1;
+    if (device_serial)
+        ut = ubertooth_start_serial(serial);
+    else
+        ut = ubertooth_start(ubertooth_device);
 
-	/* Set sweep mode - otherwise AFH map is useless */
-	cmd_set_channel(ut->devh, 9999);
+    if (ut == NULL) {
+        usage();
+        return 1;
+    }
+    rv = ubertooth_check_api(ut);
+    if (rv < 0)
+        return 1;
 
-	/* Clean up on exit. */
-	register_cleanup_handler(ut, 0);
+    /* Set sweep mode - otherwise AFH map is useless */
+    cmd_set_channel(ut->devh, 9999);
 
-	if (scan) {
-		/* Equivalent to "hcitool scan" */
-		printf("HCI scan\n");
-		len  = 8;
-		max_rsp = 255;
-		flags = IREQ_CACHE_FLUSH;
-		ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
+    /* Clean up on exit. */
+    register_cleanup_handler(ut, 0);
 
-		num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
-		if( num_rsp < 0 )
-			perror("hci_inquiry");
+    if (scan) {
+        /* Equivalent to "hcitool scan" */
+        printf("HCI scan\n");
+        len = 8;
+        max_rsp = 255;
+        flags = IREQ_CACHE_FLUSH;
+        ii = (inquiry_info *)malloc(max_rsp * sizeof(inquiry_info));
 
-		for (i = 0; i < num_rsp; i++) {
-			ba2str(&(ii+i)->bdaddr, addr);
-			print_name_and_class(dev_handle, dev_id, &(ii+i)->bdaddr, addr,
-			                     extended);
-		}
-		free(ii);
-	}
+        num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
+        if (num_rsp < 0)
+            perror("hci_inquiry");
 
-	/* Now find hidden piconets with Ubertooth */
-	printf("\nUbertooth scan\n");
+        for (i = 0; i < num_rsp; i++) {
+            ba2str(&(ii + i)->bdaddr, addr);
+            print_name_and_class(dev_handle, dev_id, &(ii + i)->bdaddr, addr,
+                                 extended);
+        }
+        free(ii);
+    }
 
-	btbb_init(max_ac_errors);
-	btbb_init_survey();
+    /* Now find hidden piconets with Ubertooth */
+    printf("\nUbertooth scan\n");
 
-	if (timeout)
-		ubertooth_set_timeout(ut, timeout);
+    btbb_init(max_ac_errors);
+    btbb_init_survey();
 
-	// init USB transfer
-	r = ubertooth_bulk_init(ut);
-	if (r < 0)
-		return r;
+    if (timeout)
+        ubertooth_set_timeout(ut, timeout);
 
-	r = ubertooth_bulk_thread_start();
-	if (r < 0)
-		return r;
+    // init USB transfer
+    r = ubertooth_bulk_init(ut);
+    if (r < 0)
+        return r;
 
-	// tell ubertooth to send packets
-	r = cmd_rx_syms(ut->devh);
-	if (r < 0)
-		return r;
+    r = ubertooth_bulk_thread_start();
+    if (r < 0)
+        return r;
 
-	// receive and process each packet
-	while(!ut->stop_ubertooth) {
-		ubertooth_bulk_receive(ut, cb_scan, NULL);
-	}
+    // tell ubertooth to send packets
+    r = cmd_rx_syms(ut->devh);
+    if (r < 0)
+        return r;
 
-	ubertooth_bulk_thread_stop();
+    // receive and process each packet
+    while (!ut->stop_ubertooth) {
+        ubertooth_bulk_receive(ut, cb_scan, NULL);
+    }
 
-	ubertooth_stop(ut);
+    ubertooth_bulk_thread_stop();
 
-	printf("\nScan results:\n");
-	while((pn=btbb_next_survey_result()) != NULL) {
-		lap = btbb_piconet_get_lap(pn);
-		if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
-			uap = btbb_piconet_get_uap(pn);
-			sprintf(addr, "00:00:%02X:%02X:%02X:%02X", uap,
-			        (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
-			str2ba(addr, &bdaddr);
-			/* Printable version showing that the NAP is unknown */
-			sprintf(addr, "??:??:%02X:%02X:%02X:%02X", uap,
-			        (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
-			print_name_and_class(dev_handle, dev_id, &bdaddr, addr, extended);
-		} else
-			printf("??:??:??:%02X:%02X:%02X\n", (lap >> 16) & 0xFF,
-			       (lap >> 8) & 0xFF, lap & 0xFF);
-		btbb_print_afh_map(pn);
-	}
+    ubertooth_stop(ut);
 
-	close(dev_handle);
-	return 0;
+    printf("\nScan results:\n");
+    while ((pn = btbb_next_survey_result()) != NULL) {
+        lap = btbb_piconet_get_lap(pn);
+        if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
+            uap = btbb_piconet_get_uap(pn);
+            sprintf(addr, "00:00:%02X:%02X:%02X:%02X", uap, (lap >> 16) & 0xFF,
+                    (lap >> 8) & 0xFF, lap & 0xFF);
+            str2ba(addr, &bdaddr);
+            /* Printable version showing that the NAP is unknown */
+            sprintf(addr, "??:??:%02X:%02X:%02X:%02X", uap, (lap >> 16) & 0xFF,
+                    (lap >> 8) & 0xFF, lap & 0xFF);
+            print_name_and_class(dev_handle, dev_id, &bdaddr, addr, extended);
+        } else
+            printf("??:??:??:%02X:%02X:%02X\n", (lap >> 16) & 0xFF,
+                   (lap >> 8) & 0xFF, lap & 0xFF);
+        btbb_print_afh_map(pn);
+    }
+
+    close(dev_handle);
+    return 0;
 }

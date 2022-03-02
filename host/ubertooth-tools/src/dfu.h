@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <inttypes.h>
+
 #define REQ_DETACH 0
 #define REQ_DNLOAD 1
 #define REQ_UPLOAD 2

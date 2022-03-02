@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	pn = btbb_piconet_new();
 	ubertooth_t* ut = ubertooth_init();
 
-	while ((opt=getopt(argc,argv,"hl:u:U:e:d:ab:w:r:q:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hl:u:U:D:e:d:ab:w:r:q:")) != EOF) {
 		switch(opt) {
 		case 'l':
 			lap = strtol(optarg, &end, 16);
