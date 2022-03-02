@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
     uint8_t uap, extended = 0;
     uint8_t scan = 0;
     int ubertooth_device = -1;
-    char serial[17] = {0};
+    char serial_c[34] = {0};
     int device_index = 0, device_serial = 0;
     char *bt_dev = "hci0";
     char addr[19] = {0};
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "hU:D:t:e:xsb:")) != EOF) {
         switch (opt) {
         case 'D':
-            snprintf(serial, strlen(optarg), "%s", optarg);
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
         case 'U':
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (device_serial)
-        ut = ubertooth_start_serial(serial);
+        ut = ubertooth_start_serial(serial_c);
     else
         ut = ubertooth_start(ubertooth_device);
 

@@ -157,7 +157,7 @@ static struct libusb_device_handle* find_ubertooth_device_by_serial(char *serial
 			libusb_get_device_descriptor(usb_list[i], &desc);
 			ret = libusb_open(usb_list[i], &devh);
 			if (ret) {
-				fprintf(stderr, "Error  Device %d: ", i);
+				fprintf(stderr, "Device %d: ", i);
 				show_libusb_error(ret);
 				devh = NULL;
 			}
@@ -168,12 +168,10 @@ static struct libusb_device_handle* find_ubertooth_device_by_serial(char *serial
 				if(r==0) {
 					for(i=1; i<17; i++) {
 						sprintf(&serial_c[(i-1)*2], "%02x", serial[i]);
-						fprintf(stderr,"%02x\n", serial[i]);
 					}
-					fprintf(stderr, "\nFound  Device %d: ", i);
+					fprintf(stderr, "Device %d: ", i);
 					print_serial(serial, stderr);
 				        /* compare desired sn to device's */
-				        fprintf(stderr, "Found Serial %s v Desired Serial %s\n",serial_c, serial_number);
 				        if (!strncmp(serial_number, serial_c, strlen(serial_c))) {
 				            break;
 				        }

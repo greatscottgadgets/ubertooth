@@ -424,7 +424,7 @@ int main(int argc, char **argv) {
     libusb_device_handle *devh = NULL;
     uint8_t functions = 0;
     int opt, ubertooth_device = -1;
-    char serial[17] = {0};
+    char serial_c[34] = {0};
     int device_index = 0, device_serial = 0;
     int r;
     ubertooth_t *ut = NULL;
@@ -470,7 +470,7 @@ int main(int argc, char **argv) {
             functions |= FUNC_RESET;
             break;
         case 'D':
-            snprintf(serial, strlen(optarg), "%s", optarg);
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
         case 'U':
@@ -501,7 +501,7 @@ int main(int argc, char **argv) {
         devh = find_ubertooth_dfu_device();
         if (devh == NULL) {
             if (device_serial)
-                ut = ubertooth_start_serial(serial);
+                ut = ubertooth_start_serial(serial_c);
             else
                 ut = ubertooth_start(ubertooth_device);
             if (ut == NULL) {

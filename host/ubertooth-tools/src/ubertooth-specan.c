@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     int opt, r = 0, output_mode = SPECAN_STDOUT;
     int lower = 2402, upper = 2480;
     int ubertooth_device = -1;
-    char serial[17] = {0};
+    char serial_c[34] = {0};
     int device_index = 0, device_serial = 0;
 
     ubertooth_t *ut = NULL;
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
                 printf("upper: %d\n", upper);
             break;
         case 'D':
-            snprintf(serial, strlen(optarg), "%s", optarg);
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
         case 'U':
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (device_serial)
-        ut = ubertooth_start_serial(serial);
+        ut = ubertooth_start_serial(serial_c);
     else
         ut = ubertooth_start(ubertooth_device);
 

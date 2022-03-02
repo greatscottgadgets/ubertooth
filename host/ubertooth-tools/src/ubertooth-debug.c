@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     ubertooth_t *ut = NULL;
     int do_read_register;
     int ubertooth_device = -1;
-    char serial[17] = {0};
+    char serial_c[34] = {0};
     int device_index = 0, device_serial = 0;
     int *regList = NULL;
     int regListN = 0;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
             usage();
             return 0;
         case 'D':
-            snprintf(serial, strlen(optarg), "%s", optarg);
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
         case 'U':
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
 
     /* initialise device */
     if (device_serial)
-        ut = ubertooth_start_serial(serial);
+        ut = ubertooth_start_serial(serial_c);
     else
         ut = ubertooth_start(ubertooth_device);
 

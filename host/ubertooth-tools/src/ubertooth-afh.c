@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
             timeout = atoi(optarg);
             break;
         case 'D':
-            snprintf(serial, strlen(optarg), "%s", optarg);
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
         case 'U':

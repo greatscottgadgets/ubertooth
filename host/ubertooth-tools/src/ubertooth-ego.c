@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     int do_mode = -1;
     int do_channel = 2418;
     int ubertooth_device = -1;
-    char serial[17] = {0};
+    char serial_c[34] = {0};
     int device_index = 0, device_serial = 0;
     uint8_t len = 18;
     char *access_code_str = NULL;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
             do_channel = atoi(optarg);
             break;
         case 'D':
-            snprintf(serial, strlen(optarg), "%s", optarg);
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
         case 'U':
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (device_serial)
-        ut = ubertooth_start_serial(serial);
+        ut = ubertooth_start_serial(serial_c);
     else
         ut = ubertooth_start(ubertooth_device);
 
