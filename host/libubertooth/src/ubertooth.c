@@ -132,7 +132,7 @@ unsigned ubertooth_count(void) {
 }
 
 
-static struct libusb_device_handle* find_ubertooth_device_by_serial(char *serial_number)
+static struct libusb_device_handle *find_ubertooth_device_by_serial(char *serial_number)
 {
 	struct libusb_device **usb_list = NULL;
 	struct libusb_context *ctx = NULL;
@@ -144,44 +144,48 @@ static struct libusb_device_handle* find_ubertooth_device_by_serial(char *serial
 	usb_devs = libusb_get_device_list(ctx, &usb_list);
 	ubertooth_devs = calloc(usb_devs, sizeof(int));
 
-	for(i = 0 ; i < usb_devs; ++i) {
+	for (i = 0; i < usb_devs; ++i) {
 		r = libusb_get_device_descriptor(usb_list[i], &desc);
-		if(r < 0) {
+		if (r < 0) {
 			fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
 			continue;
 		}
 		if ((desc.idVendor == TC13_VENDORID && desc.idProduct == TC13_PRODUCTID)
-		    || (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
-		    || (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
+			|| (desc.idVendor == U0_VENDORID && desc.idProduct == U0_PRODUCTID)
+			|| (desc.idVendor == U1_VENDORID && desc.idProduct == U1_PRODUCTID))
 		{
-			libusb_get_device_descriptor(usb_list[i], &desc);
-			ret = libusb_open(usb_list[i], &devh);
-			if (ret) {
-				fprintf(stderr, "Device %d: ", i);
-				show_libusb_error(ret);
-				devh = NULL;
-			}
-			else {
-			        uint8_t serial[17] = { 0 }, r;
-			        char serial_c[34] = { 0 };
-				r = cmd_get_serial(devh, serial);
-				if(r==0) {
-					for(i=1; i<17; i++) {
-						sprintf(&serial_c[(i-1)*2], "%02x", serial[i]);
-					}
-					fprintf(stderr, "Device %d: ", i);
-					print_serial(serial, stderr);
-				        /* compare desired sn to device's */
-				        if (!strncmp(serial_number, serial_c, strlen(serial_c))) {
-				            break;
-				        }
-				}
-				libusb_close(devh);
-				devh = NULL;
-			}
+			ubertooth_devs[uberteeth] = i;
+			uberteeth++;
 		}
 	}
-        libusb_free_device_list(usb_list,1);
+	for (i = 0; i < uberteeth; ++i) {
+		libusb_get_device_descriptor(usb_list[ubertooth_devs[i]], &desc);
+		ret = libusb_open(usb_list[ubertooth_devs[i]], &devh);
+		if (ret) {
+			fprintf(stderr, "Device %d: ", i);
+			show_libusb_error(ret);
+			devh = NULL;
+		} else {
+			uint8_t serial[17] = {0}, r;
+			char serial_c[34] = {0};
+			libusb_get_device_descriptor(usb_list[i], &desc);
+			r = cmd_get_serial(devh, serial);
+			if (r == 0) {
+				for (int j = 1; j < 17; j++) {
+					sprintf(&serial_c[(j - 1) * 2], "%02x", serial[j]);
+				}
+				/* compare desired sn to device's */
+				if (!strncmp(serial_number, serial_c, strlen(serial_c))) {
+					fprintf(stderr, "Device %d: ", ubertooth_devs[i]);
+					print_serial(serial, stderr);
+					break;
+				}
+			}
+			libusb_close(devh);
+			devh = NULL;
+		}
+	}
+	libusb_free_device_list(usb_list, 1);
 	return devh;
 }
 
