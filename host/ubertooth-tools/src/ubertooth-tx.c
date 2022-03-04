@@ -89,6 +89,13 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
+	}
+
+
 	if (device_serial)
 		r = ubertooth_connect_serial(ut, serial_c);
 	else
