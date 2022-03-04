@@ -24,7 +24,8 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-static void usage(void) {
+static void usage(void)
+{
     printf("ubertooth-dump - output a continuous stream of received bits\n");
     printf("Usage:\n");
     printf("\t-h this help\n");
@@ -32,11 +33,9 @@ static void usage(void) {
     printf("\t-c classic modulation\n");
     printf("\t-l LE modulation\n");
     printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf(
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
     printf("\t-d filename\n");
-    printf("\nThis program sends binary data to stdout.  You probably don't "
-           "want to\n");
+	printf("\nThis program sends binary data to stdout.  You probably don't want to\n");
     printf("run it from a terminal without redirecting the output.\n");
 }
 
@@ -48,7 +47,8 @@ static void usage(void) {
  * representing the symbol determined by the demodulator (GnuRadio style)
  */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int opt;
     int bitstream = 0;
     int modulation = MOD_BT_BASIC_RATE;

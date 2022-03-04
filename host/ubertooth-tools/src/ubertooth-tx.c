@@ -51,6 +51,8 @@ int main(int argc, char* argv[])
 	int timeout = 0;
 	char* end;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
 
@@ -66,8 +68,13 @@ int main(int argc, char* argv[])
 			uap = strtol(optarg, &end, 16);
 			have_uap++;
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 't':
 			timeout = atoi(optarg);
@@ -82,7 +89,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	r = ubertooth_connect(ut, ubertooth_device);
+	if (device_serial)
+		r = ubertooth_connect_serial(ut, serial_c);
+	else
+		r = ubertooth_connect(ut, ubertooth_device);
+
 	if (r < 0) {
 		usage();
 		return 1;

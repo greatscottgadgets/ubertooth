@@ -32,9 +32,13 @@
 ubertooth_t *ut = NULL;
 int running = 1;
 
-void quit(int signo __attribute__((unused))) { running = 0; }
+void quit(int signo __attribute__((unused)))
+{
+    running = 0;
+}
 
-static void usage(void) {
+static void usage(void)
+{
     printf("ubertooth-ego - Yuneec E-GO skateboard sniffing\n");
     printf("Usage:\n");
     printf("\t-h this help\n");
@@ -44,8 +48,7 @@ static void usage(void) {
     printf("\t-r continuous rx on a single channel\n");
     printf("\t-i interfere\n");
     printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf(
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
     printf("\n");
     printf("    Options:\n");
     printf("\t-c <2402-2480> set channel in MHz (for continuous rx)\n");
@@ -53,7 +56,8 @@ static void usage(void) {
     printf("\t-a <access_code> access code (default: 630f9ffe)\n");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int opt;
     int do_mode = -1;
     int do_channel = 2418;
@@ -117,8 +121,8 @@ int main(int argc, char *argv[]) {
     if (access_code_str != NULL) {
         int i;
         uint32_t ac[4];
-        access_code_len = sscanf(access_code_str, "%02x%02x%02x%02x", &ac[0],
-                                 &ac[1], &ac[2], &ac[3]);
+        access_code_len = sscanf(access_code_str, "%02x%02x%02x%02x",
+                &ac[0], &ac[1], &ac[2], &ac[3]);
         if (access_code_len < 1) {
             printf("Invalid access code\n");
             usage();
@@ -154,8 +158,7 @@ int main(int argc, char *argv[]) {
             cmd_set_channel(ut->devh, do_channel);
 
         if (access_code_str != NULL)
-            cmd_rfcat_subcmd(ut->devh, RFCAT_SET_AA, access_code,
-                             access_code_len);
+            cmd_rfcat_subcmd(ut->devh, RFCAT_SET_AA, access_code, access_code_len);
 
         cmd_rfcat_subcmd(ut->devh, RFCAT_CAP_LEN, &len, sizeof(len));
 
@@ -164,8 +167,7 @@ int main(int argc, char *argv[]) {
             if (do_mode == 0 || do_mode == 1)
                 printf("Error: E-GO not supported by this firmware\n");
             else
-                printf("Error: E-GO not supported by this firmware (or TX not "
-                       "enabled)\n");
+        printf("Error: E-GO not supported by this firmware (or TX not enabled)\n");
             return 1;
         }
 

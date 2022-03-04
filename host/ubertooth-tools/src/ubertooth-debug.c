@@ -32,21 +32,21 @@
 #include "arglist.h"
 #include "cc2400.h"
 
-static void usage() {
-    printf(
-        "ubertooth-debug - command line utility for debugging Ubertooth One\n");
+static void usage()
+{
+    printf
+	("ubertooth-debug - command line utility for debugging Ubertooth One\n");
     printf("Usage:\n");
     printf("\t-h this message\n");
-    printf(
-        "\t-r <reg>[,<reg>[,...]] read the contents of CC2400 register(s)\n");
+    printf("\t-r <reg>[,<reg>[,...]] read the contents of CC2400 register(s)\n");
     printf("\t-r <start>-<end> read a consecutive set of CC2400 register(s)\n");
     printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf(
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
     printf("\t-v<0-2> verbosity (default=1)\n");
 }
 
-int token_to_int(char *t, int *size) {
+int token_to_int(char *t, int *size)
+{
     int r = 0;
 
     r = cc2400_name2reg(t);
@@ -58,7 +58,8 @@ int token_to_int(char *t, int *size) {
     return r;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int opt;
     int r = 0;
     int verbose = 1;
@@ -103,8 +104,8 @@ int main(int argc, char *argv[]) {
                     if (regList[i] < 0 || regList[i] > 0xff)
                         do_read_register = -1;
             }
-            if (do_read_register < 0 || do_read_register > 0xff ||
-                regListN == -1) {
+	    if (do_read_register < 0 || do_read_register > 0xff
+			|| regListN == -1) {
                 fprintf(stderr,
                         "ERROR: register address must be > 0x00 and < 0xff\n");
                 return 1;

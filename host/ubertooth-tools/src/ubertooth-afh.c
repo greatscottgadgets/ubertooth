@@ -23,13 +23,14 @@
 #include <err.h>
 #include <getopt.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 
 extern int max_ac_errors;
 extern unsigned int packet_counter_max;
 
-static void usage() {
+static void usage()
+{
     printf("ubertooth-afh - passive detection of the AFH channel map\n");
     printf("\n");
     printf("Determine the AFH map for piconet ??:??:22:44:66:88:\n");
@@ -39,21 +40,18 @@ static void usage() {
     printf("\t-l <LAP> LAP of target piconet (3 bytes / 6 hex digits)\n");
     printf("\t-u <UAP> UAP of target piconet (1 byte / 2 hex digits)\n");
     printf("\t-m <int> threshold for channel removal (default: 5)\n");
-    printf("\t-r print AFH channel map once every second (default: print on "
-           "update)\n");
+    printf("\t-r print AFH channel map once every second (default: print on update)\n");
     printf("\n");
     printf("Other options\n");
-    printf("\t-t <seconds> timeout for initial AFH map detection (not "
-           "required)\n");
-    printf("\t-e maximum access code errors (default: %d, range: 0-4)\n",
-           max_ac_errors);
+    printf("\t-t <seconds> timeout for initial AFH map detection (not required)\n");
+    printf("\t-e maximum access code errors (default: %d, range: 0-4)\n", max_ac_errors);
     printf("\t-V print version information\n");
     printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf(
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
     int opt, have_lap = 0, have_uap = 0, timeout = 0; //, have_initial_afh = 0;
     // uint8_t initial_afh[10];
     char *end;

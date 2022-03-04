@@ -54,7 +54,9 @@ static void usage()
 	printf("\n");
 	printf("Miscellaneous:\n");
 	printf("\t-V print version information\n");
-	printf("\t-U <0-7> set ubertooth device to use\n");
+	printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+
 }
 
 int main(int argc, char* argv[])
@@ -65,6 +67,8 @@ int main(int argc, char* argv[])
 	int timeout = 0;
 	char* end;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	btbb_piconet* pn = NULL;
 	uint32_t lap = 0;
 	uint8_t uap = 0;
@@ -90,8 +94,13 @@ int main(int argc, char* argv[])
 			uap = strtol(optarg, &end, 16);
 			have_uap++;
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'r':
 			if (!ut->h_pcapng_bredr) {
@@ -151,8 +160,19 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
+	}
+
 	if (infile == NULL) {
-		r = ubertooth_connect(ut, ubertooth_device);
+		/* initialise device */
+		if (device_serial)
+			r = ubertooth_connect_serial(ut, serial_c);
+		else
+			r = ubertooth_connect(ut, ubertooth_device);
+
 		if (r < 0) {
 			usage();
 			return 1;

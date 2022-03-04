@@ -64,7 +64,8 @@ static int check_suffix(FILE *signedfile, DFU_suffix *suffix) {
     }
 
     // Suffix bytes are reversed
-    if (!((suffix->ucDfuSig[0] == 0x55) && (suffix->ucDfuSig[1] == 0x46) &&
+	if(!((suffix->ucDfuSig[0]==0x55) &&
+	     (suffix->ucDfuSig[1]==0x46) &&
           (suffix->ucDfuSig[2] == 0x44))) {
         fprintf(stderr, "DFU Signature mismatch: not a DFU file\n");
         return 1;
@@ -81,8 +82,7 @@ static int check_suffix(FILE *signedfile, DFU_suffix *suffix) {
     crc = crc32(data, data_length);
     free(data);
     if (crc != suffix->dwCRC) {
-        fprintf(stderr, "CRC mismatch: calculated: 0x%x, found: 0x%x\n", crc,
-                suffix->dwCRC);
+		fprintf(stderr, "CRC mismatch: calculated: 0x%x, found: 0x%x\n", crc, suffix->dwCRC);
         return 1;
     }
     return 0;
@@ -141,10 +141,9 @@ static struct libusb_device_handle *find_ubertooth_dfu_device() {
         r = libusb_get_device_descriptor(usb_list[i], &desc);
         if (r < 0)
             fprintf(stderr, "couldn't get usb descriptor for dev #%d!\n", i);
-        if ((desc.idVendor == TC13_VENDORID &&
-             desc.idProduct == TC13_PRODUCTID) ||
-            (desc.idVendor == U1_DFU_VENDORID &&
-             desc.idProduct == U1_DFU_PRODUCTID)) {
+		if ((desc.idVendor == TC13_VENDORID && desc.idProduct == TC13_PRODUCTID) ||
+		    (desc.idVendor == U1_DFU_VENDORID && desc.idProduct == U1_DFU_PRODUCTID))
+		{
             // FOUND AN UBERTOOTH
             ret = libusb_open(usb_list[i], &devh);
             if (ret)
@@ -156,7 +155,8 @@ static struct libusb_device_handle *find_ubertooth_dfu_device() {
     return devh;
 }
 
-void stop_device(struct libusb_device_handle *devh) {
+void stop_device(struct libusb_device_handle *devh)
+{
     if (devh != NULL)
         libusb_release_interface(devh, 0);
     libusb_close(devh);
@@ -166,15 +166,13 @@ void stop_device(struct libusb_device_handle *devh) {
 /*
  * DFU functions
  */
-#define DFU_IN                                                                 \
-    LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE
+#define DFU_IN LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE
 #define DFU_OUT LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE
 
 int dfu_get_state(libusb_device_handle *devh) {
     int rv;
     uint8_t state;
-    rv = libusb_control_transfer(devh, DFU_IN, REQ_GETSTATE, 0, 0, &state, 1,
-                                 1000);
+	rv = libusb_control_transfer(devh, DFU_IN, REQ_GETSTATE, 0, 0, &state, 1, 1000);
     if (rv < 0) {
         if (rv == LIBUSB_ERROR_PIPE)
             fprintf(stderr, "control message unsupported\n");
@@ -187,8 +185,7 @@ int dfu_get_state(libusb_device_handle *devh) {
 
 int dfu_clear_status(libusb_device_handle *devh) {
     int rv;
-    rv = libusb_control_transfer(devh, DFU_OUT, REQ_CLRSTATUS, 0, 0, NULL, 0,
-                                 1000);
+	rv = libusb_control_transfer(devh, DFU_OUT, REQ_CLRSTATUS, 0, 0, NULL, 0, 1000);
     if (rv < 0) {
         if (rv == LIBUSB_ERROR_PIPE)
             fprintf(stderr, "control message unsupported\n");
@@ -227,8 +224,7 @@ int enter_dfu_mode(libusb_device_handle *devh) {
         case STATE_DFU_MANIFEST:
             rv = dfu_abort(devh);
             if (rv < 0) {
-                fprintf(stderr, "Unable to abort transaction from state:%d\n",
-                        state);
+					fprintf(stderr, "Unable to abort transaction from state:%d\n", state);
                 return rv;
             }
             break;
@@ -258,8 +254,7 @@ int detach(libusb_device_handle *devh) {
     }
     state = dfu_get_state(devh);
     if (state == STATE_DFU_IDLE) {
-        rv = libusb_control_transfer(devh, DFU_OUT, REQ_DETACH, 0, 0, NULL, 0,
-                                     1000);
+		rv = libusb_control_transfer(devh, DFU_OUT, REQ_DETACH, 0, 0, NULL, 0, 1000);
         if (rv != LIBUSB_SUCCESS) {
             if (rv == LIBUSB_ERROR_PIPE) {
                 fprintf(stderr, "control message unsupported\n");
@@ -294,8 +289,8 @@ int upload(libusb_device_handle *devh, FILE *upfile) {
     }
 
     while (length > 0) {
-        rv = libusb_control_transfer(devh, DFU_IN, REQ_UPLOAD, block, 0, buffer,
-                                     BLOCK_SIZE, 1000);
+		rv = libusb_control_transfer(devh, DFU_IN, REQ_UPLOAD, block, 0,
+		                             buffer, BLOCK_SIZE, 1000);
         if (rv < 0) {
             if (rv == LIBUSB_ERROR_PIPE)
                 fprintf(stderr, "control message unsupported\n");
@@ -322,8 +317,7 @@ int upload(libusb_device_handle *devh, FILE *upfile) {
 int dfu_get_status(libusb_device_handle *devh) {
     uint8_t buffer[6];
     int rv;
-    rv = libusb_control_transfer(devh, DFU_IN, REQ_GETSTATUS, 0, 0, buffer, 6,
-                                 1000);
+	rv = libusb_control_transfer(devh, DFU_IN, REQ_GETSTATUS, 0, 0, buffer, 6, 1000);
     if (rv < 0) {
         if (rv == LIBUSB_ERROR_PIPE)
             fprintf(stderr, "control message unsupported\n");
@@ -392,7 +386,8 @@ static int get_outfile(char *infile, char **outfile) {
     }
 }
 
-static void usage() {
+static void usage()
+{
     printf("ubertooth-dfu - Ubertooth firmware update tool\n");
     printf("\n");
     printf("To update firmware, run:\n");
@@ -406,8 +401,7 @@ static void usage() {
     printf("Miscellaneous:\n");
     printf("\t-s <filename> add DFU suffix to binary firmware file\n");
     printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf(
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
 #define FUNC_DOWNLOAD (1 << 0)
@@ -504,6 +498,7 @@ int main(int argc, char **argv) {
                 ut = ubertooth_start_serial(serial_c);
             else
                 ut = ubertooth_start(ubertooth_device);
+
             if (ut == NULL) {
                 fprintf(stderr, "Unable to find Ubertooth\n");
                 return 1;
@@ -511,8 +506,7 @@ int main(int argc, char **argv) {
             devh = ut->devh;
             cmd_flash(devh);
             fprintf(stdout, "Switching to DFU mode...\n");
-            while (((devh = find_ubertooth_dfu_device()) == NULL) &&
-                   (count++) < 5)
+	    while(((devh = find_ubertooth_dfu_device()) == NULL) && (count++) < 5)
                 sleep(1);
             if (devh == NULL) {
                 fprintf(stderr, "Unable to find Ubertooth\n");
@@ -543,8 +537,7 @@ int main(int argc, char **argv) {
         DFU_suffix suffix;
         rv = check_suffix(downfile, &suffix);
         if (rv) {
-            fprintf(stderr,
-                    "Signature check failed, firmware will not be update\n");
+            fprintf(stderr, "Signature check failed, firmware will not be update\n");
             return rv;
         }
         rv = download(devh, downfile);

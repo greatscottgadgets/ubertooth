@@ -21,17 +21,17 @@
 
 #include "ubertooth.h"
 #include <string.h>
-#include <getopt.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <getopt.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 const char *board_names[] = {"Ubertooth Zero", "Ubertooth One",
                              "ToorCon 13 Badge"};
 
-static void usage(FILE *output) {
-    fprintf(output, "ubertooth-util - command line utility for Ubertooth Zero "
-                    "and Ubertooth One\n");
+static void usage(FILE *output)
+{
+	fprintf(output, "ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One\n");
     fprintf(output, "\n");
     fprintf(output, "Common options:\n");
     fprintf(output, "\t-v get firmware revision number\n");
@@ -41,20 +41,15 @@ static void usage(FILE *output) {
     fprintf(output, "\t-l[0-1] get/set USR LED\n");
     fprintf(output, "\t-S stop current operation\n");
     fprintf(output, "\t-r full reset\n");
-    fprintf(
-        output,
-        "\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    fprintf(
-        output,
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    fprintf(output, "\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+    fprintf(output, "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
     fprintf(output, "\t-N print total number of Uberteeth and exit\n");
     fprintf(output, "\n");
     fprintf(output, "Radio options:\n");
     fprintf(output, "\t-a[0-7] get/set power amplifier level\n");
     fprintf(output, "\t-c[2400-2483] get/set channel in MHz\n");
     fprintf(output, "\t-C[0-78] get/set channel\n");
-    fprintf(output,
-            "\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
+	fprintf(output, "\t-q[1-225 (RSSI threshold)] start LED spectrum analyzer\n");
     fprintf(output, "\t-t intitiate continuous transmit test\n");
     fprintf(output, "\t-z set squelch level\n");
     fprintf(output, "\n");
@@ -74,7 +69,8 @@ static void usage(FILE *output) {
 
 #define MAX_VERSION_STRING_LEN 255
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int opt;
     int r = 0;
     ubertooth_t *ut = NULL;
@@ -106,8 +102,7 @@ int main(int argc, char *argv[]) {
     do_number = 0;
     do_xmas = 0;
 
-    while ((opt = getopt(argc, argv,
-                         "U:D:hnmefiIprsStvbl::a::C::c::d::q::z::9VNx")) != EOF) {
+    while ((opt = getopt(argc, argv, "U:D:hnmefiIprsStvbl::a::C::c::d::q::z::9VNx")) != EOF) {
         switch (opt) {
         case 'D':
             snprintf(serial_c, sizeof(serial_c), "%s", optarg);
@@ -118,8 +113,7 @@ int main(int argc, char *argv[]) {
             device_index = 1;
             break;
         case 'f':
-            fprintf(stderr, "ubertooth-util -f is no longer required - use "
-                            "ubertooth-dfu instead\n");
+			fprintf(stderr, "ubertooth-util -f is no longer required - use ubertooth-dfu instead\n");
             do_flash = 0;
             break;
         case 'i':
@@ -198,7 +192,8 @@ int main(int argc, char *argv[]) {
             if (optarg) {
                 squelch_level = atoi(optarg);
                 do_set_squelch = 1;
-            } else {
+			}
+			else {
                 do_get_squelch = 1;
             }
             break;
@@ -245,9 +240,9 @@ int main(int argc, char *argv[]) {
         usage(stderr);
         return 1;
     }
+
     if (do_reset == 0) {
-        fprintf(stdout, "Resetting ubertooth device number %d\n",
-                (ubertooth_device >= 0) ? ubertooth_device : 0);
+		fprintf(stdout, "Resetting ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
         r = cmd_reset(ut->devh);
         sleep(2);
         if (device_serial)
@@ -255,9 +250,9 @@ int main(int argc, char *argv[]) {
         else
             ut = ubertooth_start(ubertooth_device);
     }
+
     if (do_stop == 0) {
-        fprintf(stdout, "Stopping ubertooth device number %d\n",
-                (ubertooth_device >= 0) ? ubertooth_device : 0);
+		fprintf(stdout, "Stopping ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
         r = cmd_stop(ut->devh);
     }
 
@@ -268,6 +263,7 @@ int main(int argc, char *argv[]) {
         r = cmd_set_txled(ut->devh, do_all_leds);
         r = (r >= 0) ? 0 : r;
     }
+
     if (do_channel > 0)
         r = cmd_set_channel(ut->devh, do_channel);
     if (do_leds == 0 || do_leds == 1)
@@ -288,8 +284,7 @@ int main(int argc, char *argv[]) {
     }
     if (do_channel == 0) {
         r = cmd_get_channel(ut->devh);
-        fprintf(stdout, "Current frequency: %d MHz (Bluetooth channel %d)\n", r,
-                r - 2402);
+		fprintf(stdout, "Current frequency: %d MHz (Bluetooth channel %d)\n", r, r - 2402);
     }
     if (do_firmware == 0) {
         uint16_t usb_version;
@@ -297,8 +292,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "Firmware version: %s", version_string);
         r = ubertooth_get_api(ut, &usb_version);
         if (r >= 0)
-            fprintf(stdout, " (API:%x.%02x)\n", (usb_version >> 8) & 0xFF,
-                    usb_version & 0xFF);
+			fprintf(stdout, " (API:%x.%02x)\n", (usb_version>>8)&0xFF, usb_version&0xFF);
         else
             fprintf(stdout, "\n");
     }
@@ -323,8 +317,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stdout, "reply PA level   : %d\n", rr.reply_pa);
                 fprintf(stdout, "reply number     : %d\n", rr.reply_num);
             } else if (rr.valid > 1) {
-                fprintf(stdout, "Invalid range test: mismatch on byte %d\n",
-                        rr.valid - 2);
+		fprintf(stdout, "Invalid range test: mismatch on byte %d\n", rr.valid-2);
             } else {
                 fprintf(stdout, "invalid range test result\n");
             }
@@ -346,8 +339,7 @@ int main(int argc, char *argv[]) {
         return cmd_flash(ut->devh);
     }
     if (do_identify == 0) {
-        fprintf(stdout, "Flashing LEDs on ubertooth device number %d\n",
-                (ubertooth_device >= 0) ? ubertooth_device : 0);
+	fprintf(stdout, "Flashing LEDs on ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
         while (42) {
             do_identify = !do_identify;
             cmd_set_usrled(ut->devh, do_identify);
@@ -392,8 +384,7 @@ int main(int argc, char *argv[]) {
         unsigned char buf[4] = {0x55, 0x55, 0x55, 0x55};
         cmd_do_something(ut->devh, NULL, 0);
         cmd_do_something_reply(ut->devh, buf, 4);
-        fprintf(stdout, "%02x %02x %02x %02x\n", buf[0], buf[1], buf[2],
-                buf[3]);
+	fprintf(stdout, "%02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3]);
         return 0;
     }
 

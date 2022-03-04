@@ -36,41 +36,35 @@
 #include <btbb.h>
 #include <getopt.h>
 
-static void usage() {
-    printf("ubertooth-scan - active(Bluez) device scan and inquiry supported "
-           "by Ubertooth\n");
+static void usage()
+{
+	printf("ubertooth-scan - active(Bluez) device scan and inquiry supported by Ubertooth\n");
     printf("\n");
-    printf("This tool uses a normal Bluetooth dongle to perform Inquiry Scans "
-           "and\n");
-    printf(
-        "Extended Inquiry scans of Bluetooth devices. It uses Ubertooth to\n");
+	printf("This tool uses a normal Bluetooth dongle to perform Inquiry Scans and\n");
+	printf("Extended Inquiry scans of Bluetooth devices. It uses Ubertooth to\n");
     printf("discover undiscoverable devices and can use BlueZ to scan for\n");
     printf("discoverable devices.\n");
     printf("\n");
     printf("Usage:\n");
     printf("    ubertooth-scan\n");
-    printf("        Use Ubertooth to discover devices and perform Inquiry "
-           "Scan.\n");
+	printf("        Use Ubertooth to discover devices and perform Inquiry Scan.\n");
     printf("\n");
     printf("    ubertooth-scan -s -x\n");
-    printf("        Use BlueZ and Ubertooth to discover devices and perform "
-           "Inquiry Scan\n");
+	printf("        Use BlueZ and Ubertooth to discover devices and perform Inquiry Scan\n");
     printf("        and Extended Inquiry Scan.\n");
     printf("\n");
     printf("Options:\n");
     printf("\t-s hci Scan - use BlueZ to scan for discoverable devices\n");
-    printf("\t-x eXtended scan - retrieve additional information about target "
-           "devices\n");
-    printf("\t-t scan Time (seconds) - length of time to sniff packets. "
-           "[Default: 20s]\n");
+    printf("\t-x eXtended scan - retrieve additional information about target devices\n");
+	printf("\t-t scan Time (seconds) - length of time to sniff packets. [Default: 20s]\n");
     printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
     printf("\t-b Bluetooth device (hci0)\n");
     printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf(
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
-void extra_info(int dd, int dev_id, bdaddr_t *bdaddr) {
+void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
+{
     uint16_t handle, offset;
     uint8_t features[8], max_page = 0;
     char name[249], *tmp;
@@ -98,8 +92,8 @@ void extra_info(int dd, int dev_id, bdaddr_t *bdaddr) {
     cr->type = ACL_LINK;
     if (ioctl(dd, HCIGETCONNINFO, (unsigned long)cr) < 0) {
         if (hci_create_connection(dd, bdaddr,
-                                  htobs(di.pkt_type & ACL_PTYPE_MASK), 0, 0x01,
-                                  &handle, 25000) < 0) {
+					htobs(di.pkt_type & ACL_PTYPE_MASK),
+					0, 0x01, &handle, 25000) < 0) {
             perror("Can't create connection");
             return;
         }
@@ -118,8 +112,11 @@ void extra_info(int dd, int dev_id, bdaddr_t *bdaddr) {
         char *ver = lmp_vertostr(version.lmp_ver);
         printf("\tLMP Version: %s (0x%x) LMP Subversion: 0x%x\n"
                "\tManufacturer: %s (%d)\n",
-               ver ? ver : "n/a", version.lmp_ver, version.lmp_subver,
-               bt_compidtostr(version.manufacturer), version.manufacturer);
+			ver ? ver : "n/a",
+			version.lmp_ver,
+			version.lmp_subver,
+			bt_compidtostr(version.manufacturer),
+			version.manufacturer);
         if (ver)
             bt_free(ver);
     }
@@ -128,26 +125,27 @@ void extra_info(int dd, int dev_id, bdaddr_t *bdaddr) {
     hci_read_remote_features(dd, handle, features, 20000);
 
     if ((di.features[7] & LMP_EXT_FEAT) && (features[7] & LMP_EXT_FEAT))
-        hci_read_remote_ext_features(dd, handle, 0, &max_page, features, 20000);
+		hci_read_remote_ext_features(dd, handle, 0, &max_page,
+							features, 20000);
 
     printf("\tFeatures%s: 0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x "
            "0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n",
-           (max_page > 0) ? " page 0" : "", features[0], features[1],
-           features[2], features[3], features[4], features[5], features[6],
-           features[7]);
+		(max_page > 0) ? " page 0" : "",
+		features[0], features[1], features[2], features[3],
+		features[4], features[5], features[6], features[7]);
 
     tmp = lmp_featurestostr(features, "\t\t", 63);
     printf("%s\n", tmp);
     bt_free(tmp);
 
     for (i = 1; i <= max_page; i++) {
-        if (hci_read_remote_ext_features(dd, handle, i, NULL, features, 20000) <
-            0)
+		if (hci_read_remote_ext_features(dd, handle, i, NULL,
+							features, 20000) < 0)
             continue;
 
         printf("\tFeatures page %d: 0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x "
-               "0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n",
-               i, features[0], features[1], features[2], features[3],
+					"0x%2.2x 0x%2.2x 0x%2.2x 0x%2.2x\n", i,
+			features[0], features[1], features[2], features[3],
                features[4], features[5], features[6], features[7]);
     }
 
@@ -180,7 +178,8 @@ void extra_info(int dd, int dev_id, bdaddr_t *bdaddr) {
 
 /* For a given BD_ADDR, print address, name and class */
 void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
-                          char *printable_addr, uint8_t extended) {
+						  char* printable_addr, uint8_t extended)
+{
     char name[248] = {0};
 
     if (hci_read_remote_name(dev_handle, bdaddr, sizeof(name), name, 0) < 0)
@@ -191,7 +190,8 @@ void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
         extra_info(dev_handle, dev_id, bdaddr);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     inquiry_info *ii = NULL;
     int r, i, rv, opt, dev_id, dev_handle, len, flags;
     int max_rsp, num_rsp, lap, timeout = 20;
@@ -336,12 +336,12 @@ int main(int argc, char *argv[]) {
         lap = btbb_piconet_get_lap(pn);
         if (btbb_piconet_get_flag(pn, BTBB_UAP_VALID)) {
             uap = btbb_piconet_get_uap(pn);
-            sprintf(addr, "00:00:%02X:%02X:%02X:%02X", uap, (lap >> 16) & 0xFF,
-                    (lap >> 8) & 0xFF, lap & 0xFF);
+			sprintf(addr, "00:00:%02X:%02X:%02X:%02X", uap,
+			        (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
             str2ba(addr, &bdaddr);
             /* Printable version showing that the NAP is unknown */
-            sprintf(addr, "??:??:%02X:%02X:%02X:%02X", uap, (lap >> 16) & 0xFF,
-                    (lap >> 8) & 0xFF, lap & 0xFF);
+			sprintf(addr, "??:??:%02X:%02X:%02X:%02X", uap,
+			        (lap >> 16) & 0xFF, (lap >> 8) & 0xFF, lap & 0xFF);
             print_name_and_class(dev_handle, dev_id, &bdaddr, addr, extended);
         } else
             printf("??:??:??:%02X:%02X:%02X\n", (lap >> 16) & 0xFF,

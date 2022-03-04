@@ -26,8 +26,10 @@
 
 uint8_t debug;
 
-void cb_specan(ubertooth_t *ut __attribute__((unused)), void *args) {
-    uint16_t high_freq = (((uint8_t *)args)[0]) | (((uint8_t *)args)[1] << 8);
+void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
+{
+	uint16_t high_freq = (((uint8_t*)args)[0]) |
+	                     (((uint8_t*)args)[1] << 8);
     uint8_t output_mode = ((uint8_t *)args)[2];
 
     usb_pkt_rx rx = fifo_pop(ut->fifo);
@@ -48,8 +50,8 @@ void cb_specan(ubertooth_t *ut __attribute__((unused)), void *args) {
             }
             break;
         case SPECAN_STDOUT:
-            printf("%f, %d, %d\n", ((double)rx.clk100ns) / 10000000, frequency,
-                   rssi);
+				printf("%f, %d, %d\n", ((double)rx.clk100ns)/10000000,
+				       frequency, rssi);
             break;
         case SPECAN_GNUPLOT_NORMAL:
             printf("%d %d\n", frequency, rssi);
@@ -57,13 +59,14 @@ void cb_specan(ubertooth_t *ut __attribute__((unused)), void *args) {
                 printf("\n");
             break;
         case SPECAN_GNUPLOT_3D:
-            printf("%f %d %d\n", ((double)rx.clk100ns) / 10000000, frequency,
-                   rssi);
+				printf("%f %d %d\n", ((double)rx.clk100ns)/10000000,
+				       frequency, rssi);
             if (frequency == high_freq)
                 printf("\n");
             break;
         default:
-            fprintf(stderr, "Unrecognised output mode (%d)\n", output_mode);
+				fprintf(stderr, "Unrecognised output mode (%d)\n",
+				        output_mode);
             return;
             break;
         }
@@ -71,10 +74,9 @@ void cb_specan(ubertooth_t *ut __attribute__((unused)), void *args) {
     fflush(stderr);
 }
 
-static void usage(FILE *file) {
-    fprintf(
-        file,
-        "ubertooth-specan - output a continuous stream of signal strengths\n");
+static void usage(FILE *file)
+{
+	fprintf(file, "ubertooth-specan - output a continuous stream of signal strengths\n");
     fprintf(file, "\n");
     fprintf(file, "!!!!!\n");
     fprintf(file, "NOTE: you probably want ubertooth-specan-ui\n");
@@ -88,15 +90,12 @@ static void usage(FILE *file) {
     fprintf(file, "\t-d <filename> output to file\n");
     fprintf(file, "\t-l lower frequency (default 2402)\n");
     fprintf(file, "\t-u upper frequency (default 2480)\n");
-    fprintf(
-        file,
-        "\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    fprintf(
-        file,
-        "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+    fprintf(file, "\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+    fprintf(file, "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int opt, r = 0, output_mode = SPECAN_STDOUT;
     int lower = 2402, upper = 2480;
     int ubertooth_device = -1;
@@ -180,8 +179,11 @@ int main(int argc, char *argv[]) {
     /* Clean up on exit. */
     register_cleanup_handler(ut, 0);
 
-    uint8_t specan_args[] = {(uint8_t)(upper & 0xff), (uint8_t)(upper >> 8),
-                             output_mode};
+	uint8_t specan_args[] = {
+		(uint8_t)(upper & 0xff),
+		(uint8_t)(upper >> 8),
+		output_mode
+	};
 
     // init USB transfer
     r = ubertooth_bulk_init(ut);
