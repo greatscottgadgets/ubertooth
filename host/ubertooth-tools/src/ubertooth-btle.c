@@ -285,9 +285,9 @@ int main(int argc, char *argv[])
 	}
 
 	if (device_serial)
-		ut = ubertooth_start_serial(serial_c);
+		r = ubertooth_connect_serial(ut, serial_c);
 	else
-		ut = ubertooth_start(ubertooth_device);
+		r = ubertooth_connect(ut, ubertooth_device);
 
 	if (r < 0) {
 		usage();

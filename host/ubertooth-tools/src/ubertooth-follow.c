@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 	int have_uap = 0;
 	int afh_enabled = 0;
 	uint8_t mode, afh_map[10];
+	int r;
 	char *end;
         int ubertooth_device = -1;
 	char *bt_dev = "hci0";
@@ -221,11 +222,11 @@ int main(int argc, char *argv[])
 
 	/* initialise device */
 	if (device_serial)
-		ut = ubertooth_start_serial(serial_c);
+		r = ubertooth_connect_serial(ut, serial_c);
 	else
-		ut = ubertooth_start(ubertooth_device);
+		r = ubertooth_connect(ut, ubertooth_device);
 
-	if (ut == NULL) {
+	if r < 0) {
 		usage();
 		return 1;
 	}
