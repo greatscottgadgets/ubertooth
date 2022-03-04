@@ -693,7 +693,7 @@ ubertooth_t *ubertooth_start_serial(char *serial_number)
 {
 	ubertooth_t *ut = ubertooth_init();
 
-	int r = ubertooth_connect_by_serial(ut, serial_number);
+	int r = ubertooth_connect_serial(ut, serial_number);
 	if (r < 0)
 		return NULL;
 

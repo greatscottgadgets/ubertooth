@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
 	int r;
 	char *end;
         int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
 	uint32_t clock;
