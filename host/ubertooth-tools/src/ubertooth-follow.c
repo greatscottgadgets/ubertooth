@@ -251,15 +251,15 @@ int main(int argc, char *argv[])
 	cmd_set_clock(ut->devh, 0);
 	if(afh_enabled)
 		cmd_set_afh_map(ut->devh, afh_map);
-    
-    // Read clocks here to ensure clock is closest to real value
-    hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
-    if (cc) {
-        if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-            perror("Reading clock offset failed\n");
-        }
-        clock += (offset<<2);   // Correct offset
-    }
+	
+	// Read clocks here to ensure clock is closest to real value
+	hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+	if (cc) {
+		if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+			perror("Reading clock offset failed\n");
+		}
+		clock += (offset<<2);   // Correct offset
+	}
 	btbb_piconet_set_clk_offset(pn, clock+delay);
 	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
 	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
 	if (r < 0)
 		return r;
 
-    if (cc) {
+	if (cc) {
 		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
 	}
 

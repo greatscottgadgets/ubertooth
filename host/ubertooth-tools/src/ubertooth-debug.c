@@ -22,15 +22,15 @@
 /* formated with: indent -kr */
 
 #include "ubertooth.h"
-#include <errno.h>
-#include <getopt.h>
 #include <stdio.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-#include "arglist.h"
 #include "cc2400.h"
+#include "arglist.h"
 
 static void usage()
 {
@@ -51,9 +51,9 @@ int token_to_int(char *t, int *size)
 
     r = cc2400_name2reg(t);
     if (r >= 0)
-        *size = strlen(cc2400_reg2name(r));
+	*size = strlen(cc2400_reg2name(r));
     else
-        *size = -1;
+	*size = -1;
 
     return r;
 }
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     int opt;
     int r = 0;
     int verbose = 1;
-    ubertooth_t *ut = NULL;
+    ubertooth_t* ut = NULL;
     int do_read_register;
     int ubertooth_device = -1;
     char serial_c[34] = {0};
@@ -77,44 +77,44 @@ int main(int argc, char *argv[])
     do_read_register = -1;
 
     while ((opt = getopt(argc, argv, "hU:D:r:v:")) != EOF) {
-        switch (opt) {
-        case 'h':
-            usage();
-            return 0;
-        case 'D':
+	switch (opt) {
+	case 'h':
+	    usage();
+	    return 0;
+	case 'D':
             snprintf(serial_c, strlen(optarg), "%s", optarg);
             device_serial = 1;
             break;
-        case 'U':
-            ubertooth_device = atoi(optarg);
+	case 'U':
+	    ubertooth_device = atoi(optarg);
             device_index = 1;
-            break;
-        case 'v':
-            verbose = atoi(optarg);
-            if (verbose < 0 || verbose > 2) {
-                fprintf(stderr, "ERROR: verbosity out of range\n");
-                return 1;
-            }
-            break;
-        case 'r':
-            regList = listOfInts(optarg, &regListN, token_to_int);
-            if (regListN > 0) {
-                do_read_register = 0;
-                for (i = 0; i < regListN; i++)
-                    if (regList[i] < 0 || regList[i] > 0xff)
-                        do_read_register = -1;
-            }
+	    break;
+	case 'v':
+	    verbose = atoi(optarg);
+	    if (verbose < 0 || verbose > 2) {
+		fprintf(stderr, "ERROR: verbosity out of range\n");
+		return 1;
+	    }
+	    break;
+	case 'r':
+	    regList = listOfInts(optarg, &regListN, token_to_int);
+	    if (regListN > 0) {
+			do_read_register = 0;
+			for (i = 0; i < regListN; i++)
+			    if (regList[i] < 0 || regList[i] > 0xff)
+			do_read_register = -1;
+	    }
 	    if (do_read_register < 0 || do_read_register > 0xff
 			|| regListN == -1) {
-                fprintf(stderr,
-                        "ERROR: register address must be > 0x00 and < 0xff\n");
-                return 1;
-            }
-            break;
-        default:
-            usage();
-            return 1;
-        }
+			fprintf(stderr,
+				"ERROR: register address must be > 0x00 and < 0xff\n");
+			return 1;
+	    }
+	    break;
+	default:
+	    usage();
+	    return 1;
+	}
     }
 
     if (regListN == 0) {
@@ -136,16 +136,16 @@ int main(int argc, char *argv[])
         ut = ubertooth_start(ubertooth_device);
 
     if (ut == NULL) {
-        usage();
-        return 1;
+	usage();
+	return 1;
     }
 
     if (do_read_register >= 0) {
-        for (i = 0; i < regListN; i++) {
-            r = cmd_read_register(ut->devh, regList[i]);
-            if (r >= 0)
-                cc2400_decode(stdout, regList[i], r, verbose);
-        }
+	for (i = 0; i < regListN; i++) {
+	    r = cmd_read_register(ut->devh, regList[i]);
+	    if (r >= 0)
+		cc2400_decode(stdout, regList[i], r, verbose);
+	}
     }
 
     return r;

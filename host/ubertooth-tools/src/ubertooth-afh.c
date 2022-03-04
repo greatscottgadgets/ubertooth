@@ -31,138 +31,138 @@ extern unsigned int packet_counter_max;
 
 static void usage()
 {
-    printf("ubertooth-afh - passive detection of the AFH channel map\n");
-    printf("\n");
-    printf("Determine the AFH map for piconet ??:??:22:44:66:88:\n");
-    printf("    ubertooth-afh -u 22 -l 446688\n");
-    printf("\n");
-    printf("Main options:\n");
-    printf("\t-l <LAP> LAP of target piconet (3 bytes / 6 hex digits)\n");
-    printf("\t-u <UAP> UAP of target piconet (1 byte / 2 hex digits)\n");
-    printf("\t-m <int> threshold for channel removal (default: 5)\n");
-    printf("\t-r print AFH channel map once every second (default: print on update)\n");
-    printf("\n");
-    printf("Other options\n");
-    printf("\t-t <seconds> timeout for initial AFH map detection (not required)\n");
-    printf("\t-e maximum access code errors (default: %d, range: 0-4)\n", max_ac_errors);
-    printf("\t-V print version information\n");
-    printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
-    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
+	printf("ubertooth-afh - passive detection of the AFH channel map\n");
+	printf("\n");
+	printf("Determine the AFH map for piconet ??:??:22:44:66:88:\n");
+	printf("    ubertooth-afh -u 22 -l 446688\n");
+	printf("\n");
+	printf("Main options:\n");
+	printf("\t-l <LAP> LAP of target piconet (3 bytes / 6 hex digits)\n");
+	printf("\t-u <UAP> UAP of target piconet (1 byte / 2 hex digits)\n");
+	printf("\t-m <int> threshold for channel removal (default: 5)\n");
+	printf("\t-r print AFH channel map once every second (default: print on update)\n");
+	printf("\n");
+	printf("Other options\n");
+	printf("\t-t <seconds> timeout for initial AFH map detection (not required)\n");
+	printf("\t-e maximum access code errors (default: %d, range: 0-4)\n", max_ac_errors);
+	printf("\t-V print version information\n");
+	printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
 int main(int argc, char* argv[])
 {
-    int opt, have_lap = 0, have_uap = 0, timeout = 0; //, have_initial_afh = 0;
-    // uint8_t initial_afh[10];
-    char *end;
-    int ubertooth_device = -1;
-    char serial_c[34] = {0};
-    int device_index = 0, device_serial = 0;
-    btbb_piconet *pn = NULL;
-    uint32_t lap = 0;
-    uint8_t uap = 0;
-    uint8_t use_r_format = 0;
+	int opt, have_lap = 0, have_uap = 0, timeout = 0;//, have_initial_afh = 0;
+	// uint8_t initial_afh[10];
+	char* end;
+	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
+	btbb_piconet* pn = NULL;
+	uint32_t lap = 0;
+	uint8_t uap = 0;
+	uint8_t use_r_format = 0;
 
-    ubertooth_t *ut = NULL;
-    int r;
+	ubertooth_t* ut = NULL;
+	int r;
 
-    // default value for '-m' channel timeout
-    packet_counter_max = 5;
+	// default value for '-m' channel timeout
+	packet_counter_max = 5;
 
-    while ((opt = getopt(argc, argv, "rhVl:u:U:D:e:a:t:m:")) != EOF) {
-        switch (opt) {
-        case 'l':
-            lap = strtol(optarg, &end, 16);
-            have_lap = 1;
-            break;
-        case 'u':
-            uap = strtol(optarg, &end, 16);
-            have_uap = 1;
-            break;
-        case 'a':
-            // for(int i=0; i<10; i++) {
-            // 	sscanf(2+optarg+2*i, "%2hhx", &initial_afh[i]);
-            // }
-            // have_initial_afh = 1;
-            break;
-        case 't':
-            timeout = atoi(optarg);
-            break;
-        case 'D':
-            snprintf(serial_c, strlen(optarg), "%s", optarg);
-            device_serial = 1;
-            break;
-        case 'U':
-            ubertooth_device = atoi(optarg);
-            device_index = 1;
-            break;
-        case 'e':
-            max_ac_errors = atoi(optarg);
-            break;
-        case 'm':
-            packet_counter_max = atoi(optarg);
-            break;
-        case 'V':
-            print_version();
-            return 0;
-        case 'r':
-            use_r_format = 1;
-            break;
-        case 'h':
-        default:
-            usage();
-            return 1;
-        }
-    }
+	while ((opt=getopt(argc,argv,"rhVl:u:U:D:e:a:t:m:")) != EOF) {
+		switch(opt) {
+		case 'l':
+			lap = strtol(optarg, &end, 16);
+			have_lap = 1;
+			break;
+		case 'u':
+			uap = strtol(optarg, &end, 16);
+			have_uap = 1;
+			break;
+		case 'a':
+			// for(int i=0; i<10; i++) {
+			// 	sscanf(2+optarg+2*i, "%2hhx", &initial_afh[i]);
+			// }
+			// have_initial_afh = 1;
+			break;
+		case 't':
+			timeout = atoi(optarg);
+			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
+		case 'U':
+			ubertooth_device = atoi(optarg);
+			device_index = 1;
+			break;
+		case 'e':
+			max_ac_errors = atoi(optarg);
+			break;
+		case 'm':
+			packet_counter_max = atoi(optarg);
+			break;
+		case 'V':
+			print_version();
+			return 0;
+		case 'r':
+			use_r_format = 1;
+			break;
+		case 'h':
+		default:
+			usage();
+			return 1;
+		}
+	}
 
-    if (have_lap && have_uap) {
-        pn = btbb_piconet_new();
-        btbb_init_piconet(pn, lap);
-        btbb_piconet_set_uap(pn, uap);
-        btbb_piconet_set_flag(pn, BTBB_IS_AFH, 1);
-        btbb_piconet_set_flag(pn, BTBB_LOOKS_LIKE_AFH, 1);
-        btbb_init_survey();
-    } else {
-        printf("Error: UAP or LAP not specified\n");
-        usage();
-        return 1;
-    }
+	if (have_lap && have_uap) {
+		pn = btbb_piconet_new();
+		btbb_init_piconet(pn, lap);
+		btbb_piconet_set_uap(pn, uap);
+		btbb_piconet_set_flag(pn, BTBB_IS_AFH, 1);
+		btbb_piconet_set_flag(pn, BTBB_LOOKS_LIKE_AFH, 1);
+		btbb_init_survey();
+	} else {
+		printf("Error: UAP or LAP not specified\n");
+		usage();
+		return 1;
+	}
 
-    if (packet_counter_max == 0) {
-        printf("Error: Threshold for unused channels not specified\n");
-        usage();
-        return 1;
-    }
+	if (packet_counter_max == 0) {
+		printf("Error: Threshold for unused channels not specified\n");
+		usage();
+		return 1;
+	}
 
-    if (device_serial && device_index) {
-        printf("Error: Cannot use both index and serial simultaneously\n");
-        usage();
-        return 1;
-    }
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
+	}
 
-    if (device_serial)
-        ut = ubertooth_start_serial(serial_c);
-    else
-        ut = ubertooth_start(ubertooth_device);
+	if (device_serial)
+		ut = ubertooth_start_serial(serial_c);
+	else
+		ut = ubertooth_start(ubertooth_device);
 
-    if (ut->devh == NULL) {
-        usage();
-        return 1;
-    }
+	if (ut->devh == NULL) {
+		usage();
+		return 1;
+	}
 
-    r = ubertooth_check_api(ut);
-    if (r < 0)
-        return 1;
+	r = ubertooth_check_api(ut);
+	if (r < 0)
+		return 1;
 
-    /* Clean up on exit. */
-    register_cleanup_handler(ut, 0);
+	/* Clean up on exit. */
+	register_cleanup_handler(ut, 0);
 
-    if (use_r_format)
-        rx_afh_r(ut, pn, timeout);
-    else
-        rx_afh(ut, pn, timeout);
+	if (use_r_format)
+		rx_afh_r(ut, pn, timeout);
+	else
+		rx_afh(ut, pn, timeout);
 
-    ubertooth_stop(ut);
+	ubertooth_stop(ut);
 
-    return 0;
+	return 0;
 }
