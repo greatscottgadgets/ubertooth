@@ -228,12 +228,12 @@ int main(int argc, char *argv[])
 	else
 		r = ubertooth_connect(ut, ubertooth_device);
 
-	if r < 0) {
+	if (r < 0) {
 		usage();
 		return 1;
 	}
 
-	int r = ubertooth_check_api(ut);
+	r = ubertooth_check_api(ut);
 	if (r < 0)
 		return 1;
 
