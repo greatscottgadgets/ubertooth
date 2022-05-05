@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install capablerobot_usbhub
+RUN pip3 install git+https://github.com/CapableRobot/CapableRobot_USBHub_Driver --upgrade
 
 RUN wget https://github.com/greatscottgadgets/libbtbb/archive/2020-12-R1.tar.gz -O libbtbb-2020-12-R1.tar.gz &&\
     tar -xf libbtbb-2020-12-R1.tar.gz &&\
