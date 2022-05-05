@@ -1,4 +1,4 @@
-# Use the official image as a parent image
+# Sandbox test environment for Ubertooth
 FROM ubuntu:20.04
 
 # Override interactive installations and install prerequisite programs
