@@ -69,7 +69,7 @@ Mac OS X users can use either MacPorts or Homebrew to install the required packa
 
 		brew install libusb wget cmake pkg-config
 		or
-		sudo port install libusb wget cmake python38 py38-numpy py38-qtpy
+		sudo port install libusb wget cmake python27 py27-numpy py27-pyside
 
 
 
