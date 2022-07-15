@@ -54,3 +54,9 @@ The following may be possible:
 **Question: Can I listen to my phone calls?**
 
 **Answer:** Not yet, this will require full frequency hopping support and possibly require breaking encryption by sniffing the connection process. It's on the todo list, but there's a lot of hard work to go before we get there. If you're interested in making it happen, you can get involved in the project.
+
+----------
+
+**Question: What is the max capture size of Bluetooth Low Energy (BLE) packets?**
+
+**Answer:** 50 bytes. Longer BLE packets are truncated to 50 bytes by the Ubertooth firmware. 
