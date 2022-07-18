@@ -6,6 +6,8 @@ This page describes how to load compiled firmware onto an Ubertooth One. Other p
 
 There are three ways to program an Ubertooth board: the USB bootloader, the ISP bootloader, and JTAG.
 
+Please note that it is not possible to replace the board's USB bootloader via ubertooth-dfu as there is software protection in place. 
+
 
 
 USB bootloader

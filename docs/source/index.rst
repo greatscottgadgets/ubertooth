@@ -12,6 +12,7 @@ Ubertooth
   getting_help
   capturing_BLE_Wireshark
   bluetooth_captures_PCAP
+  history
 
 
 
@@ -55,7 +56,7 @@ Ubertooth
 
 .. toctree::
   :maxdepth: 1
-  :caption: Internal / Old Content
+  :caption: Retired Content
 
   to_do
   release_procedure   
