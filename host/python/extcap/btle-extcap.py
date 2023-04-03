@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2013 Mike Ryan
+# Copyright 2013, 2023 Mike Ryan
 #
 # This file is part of Project Ubertooth.
 #
@@ -21,21 +21,29 @@
 
 import getopt
 import re
+import signal
 import sys
 from subprocess import Popen, PIPE
 
+child = None
+
+def sig_handler(sig, frame):
+    if child is not None:
+        child.terminate()
 
 def main():
+    signal.signal(signal.SIGTERM, sig_handler)
+
     try:
         opts, args = getopt.getopt(
             sys.argv[1:], "h",
             [
                 "help",
-                "list-interfaces",
-                "list-dlts",
-                "config",
+                "extcap-interfaces",
+                "extcap-dlts",
+                "extcap-config",
                 "capture",
-                "interface=",
+                "extcap-interface=",
                 "fifo=",
                 "channel=",
             ])
@@ -56,16 +64,16 @@ def main():
         if o in ("-h", "--help"):
             usage()
             sys.exit()
-        elif o == "--list-interfaces":
+        elif o == "--extcap-interfaces":
             list_interfaces()
             exit(0)
-        elif o == "--list-dlts":
+        elif o == "--extcap-dlts":
             do_list_dlts = True
-        elif o == "--config":
+        elif o == "--extcap-config":
             do_config = True
         elif o == "--capture":
             do_capture = True
-        elif o == "--interface":
+        elif o == "--extcap-interface":
             interface = a
         elif o == "--fifo":
             fifo = a
@@ -117,8 +125,7 @@ def list_interfaces():
 
 
 def list_dlts():
-    # -c emits DLT_PPI + DLT_BLUETOOTH_LE_LL
-    print("dlt {number=192}{name=PPI}{display=Bluetooth Low Energy}")
+    print("dlt {number=256}{name=DLT_BLUETOOTH_LE_LL_WITH_PHDR}{display=Bluetooth LE}\n");
 
 
 def config():
@@ -138,12 +145,14 @@ def config():
 
 
 def capture(interface, fifo, channel):
+    global child
     p = Popen([
         "ubertooth-btle", "-f",
         "-U%s" % interface,
-        "-c", fifo,
+        "-q", fifo,
         "-A", channel,
     ])
+    child = p
     p.wait()
 
 if __name__ == "__main__":
