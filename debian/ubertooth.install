@@ -1,0 +1,6 @@
+usr/bin/*
+usr/lib/python3/dist-packages/*/*.py
+usr/lib/python3/dist-packages/*-info
+lib/udev/rules.d/40-ubertooth.rules
+debian/com.greatscottgadgets.ubertooth.metainfo.xml usr/share/metainfo
+

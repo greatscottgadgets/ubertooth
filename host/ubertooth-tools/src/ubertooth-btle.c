@@ -125,7 +125,8 @@ static void usage(void)
 	printf("\t-I interfere continuously\n");
 	printf("\n");
 	printf("    Data source:\n");
-	printf("\t-U<0-7> set ubertooth device to use\n");
+	printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 	printf("\n");
 	printf("    Misc:\n");
 	printf("\t-r<filename> capture packets to PCAPNG file\n");
@@ -150,6 +151,8 @@ int main(int argc, char *argv[])
 	int do_target;
 	enum jam_modes jam_mode = JAM_NONE;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	ubertooth_t* ut = ubertooth_init();
 
 	btle_options cb_opts = { .allowed_access_address_errors = 32 };
@@ -165,7 +168,7 @@ int main(int argc, char *argv[])
 	do_adv_index = 37;
 	do_slave_mode = do_target = 0;
 
-	while ((opt=getopt(argc,argv,"a::r:hfnpU:v::A:s:t:x:c:q:jJiI")) != EOF) {
+	while ((opt=getopt(argc,argv,"a::r:hfnpU:D:v::A:s:t:x:c:q:jJiI")) != EOF) {
 		switch(opt) {
 		case 'a':
 			if (optarg == NULL) {
@@ -184,8 +187,13 @@ int main(int argc, char *argv[])
 		case 'p':
 			do_promisc = 1;
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'r':
 			if (!ut->h_pcapng_le) {
@@ -270,8 +278,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
+	}
 
-	r = ubertooth_connect(ut, ubertooth_device);
+	if (device_serial)
+		r = ubertooth_connect_serial(ut, serial_c);
+	else
+		r = ubertooth_connect(ut, ubertooth_device);
+
 	if (r < 0) {
 		usage();
 		return 1;

@@ -1,0 +1,21 @@
+NAME
+  ubertooth-specan-ui - spectrum analyzer for the 2.4 GHz ISM band
+
+SYNOPSIS
+  ubertooth-specan-ui
+
+DESCRIPTION
+  This shows a GUI window with a spectrum analyzer for the 2.4 GHz band. It is very useful to see at what frequencies
+  there are signals.
+
+OPTIONS
+  There are no command line options.
+ 
+SEE ALSO
+  ubertooth-specan(1)
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

@@ -47,6 +47,8 @@ static void usage(void)
 	printf("\t-f follow connections\n");
 	printf("\t-r continuous rx on a single channel\n");
 	printf("\t-i interfere\n");
+	printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 	printf("\n");
 	printf("    Options:\n");
 	printf("\t-c <2402-2480> set channel in MHz (for continuous rx)\n");
@@ -60,13 +62,15 @@ int main(int argc, char *argv[])
 	int do_mode = -1;
 	int do_channel = 2418;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	uint8_t len = 18;
 	char *access_code_str = NULL;
 	uint8_t access_code[4];
 	int access_code_len;
 	int r;
 
-	while ((opt=getopt(argc,argv,"frijc:U:a:l:h")) != EOF) {
+	while ((opt=getopt(argc,argv,"frijc:U:D:a:l:h")) != EOF) {
 		switch(opt) {
 		case 'f':
 			do_mode = 0;
@@ -81,8 +85,13 @@ int main(int argc, char *argv[])
 		case 'c':
 			do_channel = atoi(optarg);
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'a':
 			access_code_str = strdup(optarg);
@@ -102,6 +111,12 @@ int main(int argc, char *argv[])
 		usage();
 	}
 
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
+	}
+
 	// access code
 	if (access_code_str != NULL) {
 		int i;
@@ -117,7 +132,11 @@ int main(int argc, char *argv[])
 			access_code[i] = ac[i];
 	}
 
-	ut = ubertooth_start(ubertooth_device);
+	if (device_serial)
+		ut = ubertooth_start_serial(serial_c);
+	else
+		ut = ubertooth_start(ubertooth_device);
+
 	if (ut == NULL) {
 		usage();
 		return 1;

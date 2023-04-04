@@ -1,0 +1,26 @@
+NAME
+  ubertooth-follow - CLK discovery and follow for a particular UAP/LAP
+
+SYNOPSIS
+  ubertooth-follow [options]
+
+
+OPTIONS
+  -h    help
+  -l<LAP>   (in hexadecimal)
+  -u<UAP>   (in hexadecimal)
+  -U<0-7>    set ubertooth device to use
+  -r<filename>    capture packets to PCAPNG file
+  -q<filename>    capture packets to PCAP file
+  -e   max_ac_errors
+  -d   filename
+  -a   Enable AFH
+  -b   Bluetooth device (hci0)
+  -w <delay>    USB delay in 625us timeslots (default:5)
+ 
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

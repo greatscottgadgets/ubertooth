@@ -1,0 +1,2 @@
+version=3
+https://github.com/greatscottgadgets/ubertooth/releases /greatscottgadgets/ubertooth/archive/(\w+?)-(\w+?)-(\w+?)\.tar\.(?:bz2|gz|xz)

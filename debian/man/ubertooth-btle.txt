@@ -1,0 +1,40 @@
+NAME
+  ubertooth-btle - passive Bluetooth Low Energy monitoring
+
+SYNOPSIS
+  ubertooth-btle [options]
+
+
+OPTIONS
+  -h    help
+
+Major modes:
+  -f    follow connections
+  -p    promiscuous: sniff active connections
+  -a[address]   get/set access address (example: -a8e89bed6)
+  -s<address>   faux slave mode, using MAC addr (example: -s22:44:66:88:aa:cc)
+  -t<address>   set connection following target (example: -t22:44:66:88:aa:cc)
+
+Interference (use with -f or -p):
+  -i            interfere with one connection and return to idle
+  -I            interfere continuously
+
+Data source:
+  -U<0-7>   set ubertooth device to use
+
+Misc:
+  -r<filename>  capture packets to PCAPNG file
+  -q<filename>  capture packets to PCAP file (DLT_BLUETOOTH_LE_LL_WITH_PHDR)
+  -c<filename>  capture packets to PCAP file (DLT_PPI)
+  -d<filename>  dump packets to binary file
+  -A<index>     advertising channel index (default 37)
+  -v[01]        verify CRC mode, get status or enable/disable
+  -x<n>         allow n access address offenses (default 32)
+ 
+
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

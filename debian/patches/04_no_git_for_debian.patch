@@ -1,0 +1,34 @@
+From: Ruben Undheim <ruben.undheim@gmail.com>
+Date: Fri, 13 Jul 2018 16:36:06 +0200
+Subject: When building the package,
+ the source is not necessarily part of a git repository. This patch removes
+ all git command executions. Additionally it replaces GIT_REVISION with the
+ current Debian version number. This will go into some of the firmware files.
+
+---
+ firmware/common.mk | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/firmware/common.mk b/firmware/common.mk
+index e6b6245..44a5e00 100644
+--- a/firmware/common.mk
++++ b/firmware/common.mk
+@@ -52,13 +52,13 @@ ifeq ($(DISABLE_TX), )
+ 	UBERTOOTH_OPTS += -DTX_ENABLE
+ endif
+ 
+-DIRTY = $(shell git status -s --untracked-files=no)
+-ifneq ($(DIRTY), )
+-	DIRTY_FLAG = *
+-endif
++#DIRTY = $(shell git status -s --untracked-files=no)
++#ifneq ($(DIRTY), )
++#	DIRTY_FLAG = *
++#endif
+ 
+ # automatic git version when working out of git
+-GIT_REVISION ?= -D'GIT_REVISION="git-$(shell git log --pretty=format:'%h' -n 1)$(DIRTY_FLAG)"'
++GIT_REVISION ?= -D'GIT_REVISION="REPLACE_ME_WITH_VERSION"'
+ 
+ # compile info
+ COMPILE_BY ?= -D'COMPILE_BY="$(shell whoami)"'

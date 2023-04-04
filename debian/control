@@ -1,0 +1,109 @@
+Source: ubertooth
+Maintainer: Ruben Undheim <ruben.undheim@gmail.com>
+Section: science
+Priority: optional
+Build-Depends: debhelper-compat (= 12),
+               libusb-1.0-0-dev,
+               libpcap-dev,
+               cmake,
+               pkg-config,
+               libbluetooth-dev,
+               python3-all:any,
+               libbtbb-dev (>= 2018.12.R1),
+               txt2man
+Build-Depends-Indep: gcc-arm-none-eabi,
+                     libnewlib-arm-none-eabi,
+                     libstdc++-arm-none-eabi-newlib
+Standards-Version: 4.4.1
+Vcs-Browser: https://salsa.debian.org/rubund/ubertooth
+Vcs-Git: https://salsa.debian.org/rubund/ubertooth.git
+Homepage: http://ubertooth.sourceforge.net/
+
+Package: libubertooth1
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Description: Shared library for Bluetooth experimentation
+ Project Ubertooth is an open source wireless development platform suitable for
+ Bluetooth experimentation. Ubertooth ships with a capable BLE (Bluetooth Smart)
+ sniffer and can sniff some data from Basic Rate (BR) Bluetooth Classic
+ connections.
+ .
+ This package provides the shared library needed by Ubertooth.
+
+Package: libubertooth-dev
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends: libubertooth1 (= ${binary:Version}),
+         libusb-1.0-0-dev,
+         libpcap-dev,
+         libbluetooth-dev,
+         libbtbb-dev,
+         ${misc:Depends}
+Description: Shared library for Bluetooth experimentation - development files
+ Project Ubertooth is an open source wireless development platform suitable for
+ Bluetooth experimentation. Ubertooth ships with a capable BLE (Bluetooth Smart)
+ sniffer and can sniff some data from Basic Rate (BR) Bluetooth Classic
+ connections.
+ .
+ This package provides the development files for using the ubertooth library.
+
+Package: ubertooth-firmware
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Recommends: ubertooth
+Suggests: ubertooth-firmware-source
+Description: Firmware for Ubertooth
+ The Ubertooth hardware needs some firmware to run. The firmware is built with
+ arm-none-eabi-gcc. This package contains a number of firmware images that
+ may be programmed into the Ubertooth hardware using the 'ubertooth-dfu'
+ command.
+ .
+ The firmware images are installed in /usr/share/ubertooth/firmware/
+
+Package: ubertooth-firmware-source
+Architecture: all
+Depends: ${misc:Depends},
+         ubertooth,
+         libubertooth-dev
+Recommends: gcc-arm-none-eabi,
+            libnewlib-arm-none-eabi,
+            libstdc++-arm-none-eabi-newlib
+Suggests: ubertooth-firmware
+Description: Source code for the Ubertooth firmware
+ The Ubertooth hardware needs some firmware to run. The firmware is built with
+ arm-none-eabi-gcc. This package contains the source code for the firmware that
+ is found in the ubertooth-firmware package.
+ .
+ The firmware source may be found in /usr/src/ubertooth-firmware-source.tar.gz
+ after installing this package.
+
+Package: ubertooth
+Architecture: any
+Depends: libubertooth1 (= ${binary:Version}),
+         ${shlibs:Depends},
+         ${misc:Depends},
+         python3,
+         python3-numpy
+Recommends: ubertooth-firmware,
+            python3-pyside2.qtgui,
+            python3-pyside2.qtwidgets,
+            python3-pyside2.qtcore
+Suggests: ubertooth-firmware-source
+Description: 2.4 GHz wireless development platform for Bluetooth experimentation
+ Project Ubertooth is an open source wireless development platform suitable for
+ Bluetooth experimentation. This package contains everything necessary to use
+ the hardware dongle.
+ .
+ Ubertooth is capable of sniffing BLE (Bluetooth Smart) connections and it also
+ has some ability to sniff some data from Basic Rate (BR) Bluetooth Classic
+ connections.
+ .
+ In addition to the Bluetooth specific capabilities, there is also a simple
+ spectrum analyzer for the 2.4 GHz band included (ubertooth-specan-ui) which
+ can be used to also observe other things in this frequency band.

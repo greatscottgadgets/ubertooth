@@ -400,7 +400,8 @@ static void usage()
 	printf("\n");
 	printf("Miscellaneous:\n");
 	printf("\t-s <filename> add DFU suffix to binary firmware file\n");
-	printf("\t-U <0-7> set ubertooth device to use\n");
+	printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
 #define FUNC_DOWNLOAD (1<<0)
@@ -417,10 +418,12 @@ int main(int argc, char **argv) {
 	libusb_device_handle* devh = NULL;
 	uint8_t functions = 0;
 	int opt, ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	int r;
 	ubertooth_t* ut = NULL;
 
-	while ((opt=getopt(argc,argv,"hd:u:s:rU:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hd:u:s:rU:D:")) != EOF) {
 		switch(opt) {
 		case 'd':
 			downfile = fopen(optarg, "r+b");
@@ -460,14 +463,25 @@ int main(int argc, char **argv) {
 		case 'r':
 			functions |= FUNC_RESET;
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		default:
 		case 'h':
 			usage();
 			return 1;
 		}
+	}
+
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
 	}
 
 	if(functions & FUNC_SIGN) {
@@ -481,7 +495,11 @@ int main(int argc, char **argv) {
 		int rv, count= 0;
 		devh = find_ubertooth_dfu_device();
 		if(devh == NULL) {
-			ut = ubertooth_start(ubertooth_device);
+			if (device_serial)
+				ut = ubertooth_start_serial(serial_c);
+			else
+				ut = ubertooth_start(ubertooth_device);
+
 			if(ut == NULL) {
 				fprintf(stderr, "Unable to find Ubertooth\n");
 				return 1;

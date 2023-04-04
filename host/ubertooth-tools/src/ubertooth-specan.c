@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <string.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include "ubertooth.h"
@@ -89,7 +90,8 @@ static void usage(FILE *file)
 	fprintf(file, "\t-d <filename> output to file\n");
 	fprintf(file, "\t-l lower frequency (default 2402)\n");
 	fprintf(file, "\t-u upper frequency (default 2480)\n");
-	fprintf(file, "\t-U<0-7> set ubertooth device to use\n");
+	fprintf(file, "\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	fprintf(file, "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
 
 int main(int argc, char *argv[])
@@ -97,10 +99,12 @@ int main(int argc, char *argv[])
 	int opt, r = 0, output_mode = SPECAN_STDOUT;
 	int lower= 2402, upper= 2480;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 
 	ubertooth_t* ut = NULL;
 
-	while ((opt=getopt(argc,argv,"vhgGd:l::u::U:")) != EOF) {
+	while ((opt=getopt(argc,argv,"vhgGd:l::u::U:D:")) != EOF) {
 		switch(opt) {
 		case 'v':
 			debug++;
@@ -135,8 +139,13 @@ int main(int argc, char *argv[])
 			else
 				printf("upper: %d\n", upper);
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'h':
 			usage(stdout);
@@ -147,7 +156,16 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	ut = ubertooth_start(ubertooth_device);
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage(stderr);
+		return 1;
+	}
+
+	if (device_serial)
+		ut = ubertooth_start_serial(serial_c);
+	else
+		ut = ubertooth_start(ubertooth_device);
 
 	if (ut == NULL) {
 		usage(stderr);
