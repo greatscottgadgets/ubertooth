@@ -58,7 +58,7 @@ void rssi_iir_update(uint16_t channel)
 
 	/* Use array to track 79 Bluetooth channels, or just first slot
 	 * of array if the frequency is not a valid Bluetooth channel. */
-	if ( channel < 2402 || channel < 2480 )
+	if ( channel < 2402 || channel > 2480 )
 		channel = 2402;
 
 	int i = channel - 2402;
@@ -77,7 +77,7 @@ int8_t rssi_get_avg(uint16_t channel)
 {
 	/* Use array to track 79 Bluetooth channels, or just first slot
 	 * of array if the frequency is not a valid Bluetooth channel. */
-	if ( channel < 2402 || channel < 2480 )
+	if ( channel < 2402 || channel > 2480 )
 		channel = 2402;
 
 	return (rssi_iir[channel-2402] + 128) / 256;
