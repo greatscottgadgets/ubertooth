@@ -261,7 +261,7 @@ NM = $(CROSS_COMPILE)nm
 REMOVE = rm -f
 
 # DFU tool should be ubertooth-dfu
-DFU_TOOL ?= $(strip $(shell which ubertooth-dfu))
+DFU_TOOL ?= ubertooth-dfu
 
 # Define Messages
 # English
