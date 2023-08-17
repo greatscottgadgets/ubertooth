@@ -35,23 +35,24 @@ Note: If you get `User encapsulation not handled: DLT=147, check your Preference
 
 Capturing BLE in scapy
 ^^^^^^^^^^^^^^^^^^^^^^
+#. Run ubertooth-btle to capture data
 
-#. Do not use mkfifo for the filename, it will cause scapy to slow dramatically.
+  .. code-block:: sh
 
-#. In a terminal, run ubertooth-btle:
-
-	.. code-block:: sh
-
-		ubertooth-btle -f -q /tmp/pipe
+    ubertooth-btle -n -c /tmp/bluesCap
 
 #. Open python and run:
 
-	.. code-block:: sh
+  .. code-block:: py
 
-		from scapy.all import *
-		p = sniff(offline='/tmp/pipe')
+    import time
+    from scapy.all import *
+    snarf = PcapReader('/tmp/bluesCap')
+    pkts = [i for i in snarf]
 
-p is now a list of the packets captured!
+    ## Sleep for 3 seconds and then grab from the generator
+    time.sleep(3)
+    pkts = pkts + [i for i in snarf]
 
 
 
