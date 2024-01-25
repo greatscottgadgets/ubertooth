@@ -23,6 +23,8 @@ set(DEPS        ${CMAKE_CURRENT_SOURCE_DIR}/specan/__init__.py
                 ${CMAKE_CURRENT_SOURCE_DIR}/specan/Ubertooth.py)
 set(OUTPUT      ${CMAKE_CURRENT_BINARY_DIR}/build)
 
+set(PACKAGE_VERSION 1)
+
 configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
 add_custom_command(OUTPUT ${OUTPUT}/timestamp
