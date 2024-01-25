@@ -18,7 +18,7 @@ setup(
     author      = "Jared Boone, Michael Ossmann, Dominic Spill",
     url         = "https://github.com/greatscottgadgets/ubertooth/",
     license     = "GPL",
-    version     = '',
+    version     = '1',
     packages    = ['specan'],
     scripts     = ['ubertooth-specan-ui'],
     classifiers=[
