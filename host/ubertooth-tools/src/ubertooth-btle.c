@@ -335,6 +335,15 @@ int main(int argc, char *argv[])
 			cmd_btle_promisc(ut->devh);
 		}
 
+		// Set CRC verification *after* the mode has started (mode entry runs
+		// reset_le() which clears crc_verify) but *before* the capture loop —
+		// otherwise the do_crc block further below only ran after streaming
+		// ended, making -v1 a no-op for sniffing modes.
+		if (do_crc >= 0 && do_crc != 2) {
+			cmd_set_crc_verify(ut->devh, do_crc);
+			printf("CRC: %sverify\n", do_crc ? "" : "DO NOT ");
+		}
+
 		// running can be changed by signal handler
 		while (running) {
 			if (cancel_follow) {
@@ -366,7 +375,8 @@ int main(int argc, char *argv[])
 		printf("access address set to: %08x\n", access_address);
 	}
 
-	if (do_crc >= 0) {
+	// For sniffing modes this was already handled before the capture loop.
+	if (do_crc >= 0 && !(do_follow || do_no_follow || do_promisc)) {
 		int r;
 		if (do_crc == 2) {
 			r = cmd_get_crc_verify(ut->devh);
