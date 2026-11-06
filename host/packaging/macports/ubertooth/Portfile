@@ -1,0 +1,108 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           active_variants 1.1
+PortGroup           cmake 1.1
+PortGroup           github 1.0
+PortGroup           legacysupport 1.1
+
+name                ubertooth
+categories          devel net security
+description         Software, firmware and hardware designs for Ubertooth.
+long_description    Project Ubertooth is an open source wireless development platform suitable \
+                    for Bluetooth experimentation. Ubertooth ships with a capable BLE (Bluetooth Smart) \
+                    sniffer and can sniff some data from Basic Rate (BR) Bluetooth Classic connections.
+license             GPL-2
+maintainers         {@barracuda156 gmail.com:vital.had} openmaintainer
+homepage            https://ubertooth.readthedocs.io
+
+subport             ${name}-devel {}
+
+if {${subport} eq "${name}"} {
+    conflicts       ${name}-devel
+
+    github.setup    greatscottgadgets ubertooth 2020-12-R1
+    checksums       rmd160  078b6b2ae3dc7e003358d049800d804fa74ba834 \
+                    sha256  24dd76995419de73dcf4f17bb341f386826d68071191e1d7d2d30a699949102d \
+                    size    1373134
+
+} elseif {${subport} eq "${name}-devel"} {
+    conflicts       ${name}
+
+    github.setup    greatscottgadgets ubertooth 3e9de91f406ea13f4a5a76c3fd5e21c2a0375ad8
+    version         2022-07-19
+    checksums       rmd160  3a3545670f44bcb3a1ce257bf5dd5da42fba1014 \
+                    sha256  3ad1dc36accd8b7f69fdf4489df93afcaa4d1e7bdd9448b24a23eacc525deec5 \
+                    size    1307090
+}
+
+# clock_gettime
+legacysupport.newest_darwin_requires_legacy 15
+
+patchfiles          patch-python3.diff
+
+set python_branch   3.10
+set python_ver      [string map {. {}} ${python_branch}]
+configure.python    ${prefix}/bin/python${python_branch}
+
+depends_build-append \
+                    port:pkgconfig
+
+depends_lib-append  path:lib/pkgconfig/libusb-1.0.pc:libusb
+
+# It is advised to used paired versions:
+if {${subport} eq "${name}"} {
+    depends_lib-append  path:lib/pkgconfig/libbtbb.pc:libbtbb
+} elseif {${subport} eq "${name}-devel"} {
+    depends_lib-append  path:lib/pkgconfig/libbtbb.pc:libbtbb-devel
+}
+
+if {${build_arch} ni [list ppc ppc64]} {
+    depends_lib-append \
+                    port:python${python_ver} \
+                    port:py${python_ver}-numpy \
+                    port:py${python_ver}-pyside \
+                    port:py${python_ver}-qtpy
+    depends_build-append \
+                    port:py${python_ver}-setuptools
+}
+
+post-patch {
+    fs-traverse f ${worksrcpath}/host/python {
+        if {[file extension ${f}] eq ".py"} {
+            reinplace -q "s|/usr/bin/env python3|${configure.python}|" ${f}
+        }
+    }
+    reinplace "s|/usr/bin/env python3|${configure.python}|" ${worksrcpath}/host/python/ubtbr/ubertooth-btbr
+    reinplace "s|/usr/bin/env python3|${configure.python}|" ${worksrcpath}/host/python/specan_ui/ubertooth-specan-ui
+    reinplace "s|/usr/bin/env python3|${configure.python}|" ${worksrcpath}/host/python/specan_ui/setup.py.in
+    reinplace "s|@PYTHON3@|${configure.python}|g" ${worksrcpath}/host/python/ubtbr/CMakeLists.txt
+}
+
+cmake.source_dir    ${worksrcpath}/host
+cmake.module_path   ${cmake.source_dir}/cmake/modules
+
+compiler.blacklist-append *gcc-4.*
+
+platform darwin powerpc {
+    # Indirect dependency, py310-shiboken, currently fails on PPC: https://trac.macports.org/ticket/65708
+    configure.args-append \
+                    -DENABLE_PYTHON=OFF
+    # Needed for Rosetta
+    compiler.blacklist-append clang
+}
+
+# It is advised to used paired versions:
+pre-fetch {
+    if {${subport} eq "${name}-devel"} {
+        if {[catch {set result [active_variants libbtbb-devel ""]}]} {
+            ui_msg "Error: ${name} should be paired with libbtbb. Please install a libbtbb-devel subport."
+            return -code error "Version mismatch."
+        }
+    } elseif {${subport} eq "${name}"} {
+        if {[catch {set result [active_variants libbtbb ""]}]} {
+            ui_msg "Error: ${name} should be paired with libbtbb. Please install a libbtbb subport."
+            return -code error "Version mismatch."
+        }
+    }
+}
