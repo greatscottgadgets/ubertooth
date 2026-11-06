@@ -1,8 +1,9 @@
 # Sandbox test environment for Ubertooth
-FROM ubuntu:20.04
+FROM ubuntu:22.04
+USER root
 
 # Override interactive installations and install prerequisite programs
-ENV DEBIAN_FRONTEND=noninteractive 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     cmake \
     gcc \
@@ -19,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-qtpy \
     python3-setuptools \
-    python-is-python3 \
+    python3-yaml \
     wget \
     && rm -rf /var/lib/apt/lists/*
 RUN pip3 install git+https://github.com/CapableRobot/CapableRobot_USBHub_Driver --upgrade
