@@ -222,6 +222,7 @@ uint8_t btphy_whiten_seed(uint32_t clk)
 	{
 	case BT_MODE_INQUIRY:
 	case BT_MODE_PAGING:
+	case BT_MODE_PAGING_RESPONSE:
 	case BT_MODE_INQUIRY_SCAN:
 	case BT_MODE_PAGE_SCAN:
 	/* BT 5.1|Vol 2, Part B, 7.2 :
@@ -260,7 +261,7 @@ void btphy_set_mode(btphy_mode_t mode, uint32_t lap, uint8_t uap)
 	/* BT Core Spec v5.2|Vol 2, Part B, table 2.3:
 	 * A23_0=lap, and A27_24=uap3_0 */
 	hop_init(lap|(uap<<24));
-	btphy.mode = mode;
+	btphy_set_mode_no_ap(mode);
 }
 
 void btphy_set_bdaddr(uint64_t bdaddr)

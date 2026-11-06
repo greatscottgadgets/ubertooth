@@ -29,13 +29,20 @@
 #include <ubtbr/tx_task.h>
 #include <ubtbr/master_state.h>
 #include <ubtbr/btctl_intf.h>
+#include <ubtbr/hop.h>
 
 /* Max duration : 45 seconds */
 #define PAGING_MAX_TICKS (CLKN_RATE*45)
 #define TX_PREPARE_IDX	3  // We will transmit at clkn1_0 = 0
 
+#define PAGING_1ST_CALLBACK ((void *)0xCAFE)
+#define PAGING_2ND_CALLBACK ((void *)0xF00D)
+
+extern btphy_t btphy;
+
 static struct {
 	uint32_t clkn_start;
+	uint32_t clkn_got_id2;
 	bbhdr_t fhs_hdr;
 	uint8_t fhs_data[20];
 } paging_state;
@@ -45,13 +52,19 @@ static int paging_canceled(void)
 	return btctl_get_state() != BTCTL_STATE_PAGE;
 }
 
+static int page_response_timeout_exceeded()
+{
+	enum { PAGE_RESP_TO = 8*2 }; // Spec  pagerespTO = 8
+	return((btphy.master_clkn-paging_state.clkn_got_id2) > PAGE_RESP_TO);
+}
+
 static void paging_schedule(unsigned delay);
 
 /* Timeframe:
- * usec                 0             625                   1250              1875
- * clk          -1      0        1     2          3            4         5    6
- * master:      prep tx | tx id  |  .. |       	  | rx/prep tx | tx fhs  | .. |
- * slave:               |        |  .. | tx id(2) |            |         | .. |tx id(3)
+ * usec                 0                                625                      1250              1875
+ * clk          -1      0                1                2            3             4         5    6
+ * master:      prep tx | tx id/prep tx  |  tx id/prep rx | rx/prep rx | rx/prep tx* | tx fhs  | .. |rx
+ * slave:               |                |             .. | tx id(2)   |             |         | .. |tx id(3)
  */
 
 /* We received ID(3) from paged device */
@@ -73,8 +86,20 @@ static int paging_rx_ack_cb(msg_t *msg, void *arg, int time_offset)
 		master_state_init();
 	}
 	else{
-		cprintf("no ID(3)\n");
-		paging_schedule(3&(TX_PREPARE_IDX-CUR_MASTER_SLOT_IDX()));
+		uint8_t delay = 3&(TX_PREPARE_IDX-CUR_MASTER_SLOT_IDX());
+		/* If the setup fails before the CONNECTION state has been reached, the following procedure shall be carried out.
+		   The slave shall listen as long as no FHS packet is received until pagerespTO is exceeded.*/
+		if(page_response_timeout_exceeded())
+		{
+			cprintf("no ID(3)\n");
+			paging_schedule(delay);
+		}else{
+			/* Retry sending FHS; no need to tune to the same x-1 channel since `Slave Page Response` Hopping sequence
+			   advance `N` only when master's clock1 reaches 0. */
+			bbpkt_fhs_finalize_payload(paging_state.fhs_data, (btphy.master_clkn+delay+1)>>2);
+			tx_task_schedule(delay, NULL, NULL, &paging_state.fhs_hdr, paging_state.fhs_data);
+			rx_task_schedule(delay+2, paging_rx_ack_cb, NULL, 0);
+		}
 	}
 	msg_free(msg);
 	return 0;
@@ -94,11 +119,17 @@ static int paging_rx_cb(msg_t *msg, void *arg, int time_offset)
 	if (BBPKT_HAS_PKT(pkt))
 	{
 		/* We received the slave's ID(2) at t'(k).
+		 * Freeze the `calc_iterate_slave_page_scan_phase(clk)` value
+		 * as the X-phase we will carry.
 		 * Send FHS in next slot and start basic hopping
 		 * The FHS shall be sent on chan f(k+1), following the std paging hop
 		 * */
 		delay = 3&(TX_PREPARE_IDX-CUR_MASTER_SLOT_IDX());
+		paging_state.clkn_got_id2 = btphy.master_clkn;
 
+		btphy_set_mode_no_ap(BT_MODE_PAGING_RESPONSE);
+		hop_freeze_clock(btphy.master_clkn);
+		
 		/* Write clk27_2 in fhs payload
 		 * Will tx at (clkn+1) */
 		bbpkt_fhs_finalize_payload(paging_state.fhs_data, (btphy.master_clkn+delay+1)>>2);
@@ -117,8 +148,16 @@ static int paging_rx_cb(msg_t *msg, void *arg, int time_offset)
 	}
 	else
 	{
-		// schedule tx in next slot
-		paging_schedule(3&(TX_PREPARE_IDX-CUR_MASTER_SLOT_IDX()));
+		if (arg == PAGING_1ST_CALLBACK){
+			/* Schedule rx ID(2): this listens for ID(2) in the second clock of the master slot */
+			rx_task_schedule(0,
+				paging_rx_cb, PAGING_2ND_CALLBACK,	// ID rx callback
+				0			// no payload for an ID packet
+				);
+		}else{
+			/* schedule tx in next slot */
+			paging_schedule(3&(TX_PREPARE_IDX-CUR_MASTER_SLOT_IDX()));
+		}
 	}
 end:
 	msg_free(msg);
@@ -135,16 +174,27 @@ static void paging_schedule(unsigned delay)
 		return;
 	}
 
-	/* Schedule TX ID(1) */
+	/* In case we are coming here from paging_rx_ack_cb where page_response_timeout_exceeded
+	   is true, make sure we revert to mode BT_MODE_PAGING instead of BT_MODE_PAGING_RESPONSE */
+	btphy_set_mode_no_ap(BT_MODE_PAGING);
+
+	/* Schedule TX ID(1) in the 1st half of the master's TX slot */
 	tx_task_schedule(delay,
 		NULL, NULL,	// no tx callback
-		NULL, NULL); 	// no header / no payload
+		NULL, NULL);	// no header / no payload
+	
+	/* Schedule TX ID(1) in the 2nd half of the master's TX slot */
+	tx_task_schedule(delay+1,
+		NULL, NULL,	// no tx callback
+		NULL, NULL);	// no header / no payload 
 
-	/* Schedule rx ID(2): */
+	/* Schedule RX ID(2) in the `1st half of the master's TX slot` + 625uS. 
+	   If ID(2) fails to arrive, paging_rx_cb will schedule another consequtive
+	   RX in the 2nd half of the same slot */
 	rx_task_schedule(delay+2,
-		paging_rx_cb, NULL,	// ID rx callback
+		paging_rx_cb, PAGING_1ST_CALLBACK,	// ID rx callback
 		0			// no payload for an ID packet
-		);
+	);
 }
 
 /* dummy tick handler to start TX'ing with a proper clock */

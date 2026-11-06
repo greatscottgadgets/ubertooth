@@ -19,6 +19,7 @@
 typedef enum btphy_mode_e {
 	BT_MODE_INQUIRY,
 	BT_MODE_PAGING,
+	BT_MODE_PAGING_RESPONSE,
 	BT_MODE_INQUIRY_SCAN,
 	BT_MODE_PAGE_SCAN,
 	BT_MODE_MASTER,
@@ -70,5 +71,10 @@ uint8_t btphy_whiten_seed(uint32_t clk);
 void btphy_adj_clkn_delay(int delay);
 void btphy_cancel_clkn_delay(void);
 void btphy_timer_add(uint32_t instant, btphy_timer_fn_t cb, void *cb_arg, uint8_t anyway);
+
+static inline void btphy_set_mode_no_ap(btphy_mode_t mode)
+{
+	btphy.mode = mode;
+}
 
 #endif

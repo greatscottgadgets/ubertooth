@@ -71,14 +71,14 @@ static uint8_t hop_selection_kernel(uint8_t x, uint8_t y1, uint8_t y2,
 	return (perm5((a+x)^b, y1^c, d) + e + f + y2);
 }
 
-uint8_t hop_inquiry(uint32_t clk)
+static uint8_t hop_inquiry_with_phase(uint32_t clk, uint8_t x)
 {
 	uint8_t clk1, sel;
 
 	clk1 = 1&(clk>>1);
 
 	sel = hop_selection_kernel(
-			hop_state.x,		// X = the x
+			x,		// X = the x
 			clk1,			// Y1 = clk1
 			clk1<<5,		// Y2 = 32*clk1
 			hop_state.a27_23,	// A = A27_23
@@ -89,6 +89,16 @@ uint8_t hop_inquiry(uint32_t clk)
 			0) % NUM_BREDR_CHANNELS;
 
 	return hop_state.basic_bank[sel];
+}
+
+uint8_t hop_inquiry(uint32_t clk)
+{
+	return hop_inquiry_with_phase(clk, hop_state.x);
+}
+
+static uint8_t hop_paging(uint32_t clk)
+{
+	return hop_inquiry_with_phase(clk, calc_iterate_slave_page_scan_phase(clk));
 }
 
 static void hop_set_afh_map(uint8_t *afh_map)
@@ -155,13 +165,15 @@ uint8_t hop_channel(uint32_t clk)
 	switch(btphy.mode)
 	{
 	case BT_MODE_INQUIRY:
-	case BT_MODE_PAGING:
+	case BT_MODE_PAGING_RESPONSE:
 	case BT_MODE_INQUIRY_SCAN:
 	case BT_MODE_PAGE_SCAN:
 		return hop_inquiry(clk);
 	case BT_MODE_MASTER:
 	case BT_MODE_SLAVE:
 		return hop_basic(clk);
+	case BT_MODE_PAGING:
+		return hop_paging(clk);
 	default:
 		DIE("Invalid hop mode %d\n", btphy.mode);
 	}

@@ -77,7 +77,7 @@ static int tx_prepare(uint8_t p1, uint8_t p2, uint16_t p3)
 
 	/* In inquiry/paging, hop.x must be incremented before each tx
 	 * of the master / RX of the slave */
-	if (btphy.mode == BT_MODE_INQUIRY || btphy.mode == BT_MODE_PAGING)
+	if (btphy.mode == BT_MODE_INQUIRY || btphy.mode == BT_MODE_PAGING_RESPONSE)
 		hop_increment();
 
 	/* Hop & prepare TX (SFSON) */
@@ -117,7 +117,14 @@ static int tx_prepare(uint8_t p1, uint8_t p2, uint16_t p3)
 		tx_task.data_size -= len;
 	}
 	/* Schedule end of transmission */
-	tdma_schedule(2*nslots, tx_finalize, 0, 0, 0, -3);
+	if(btphy.mode == BT_MODE_PAGING ){
+		/* Page messages should start and end in the same TDAM slot(clk) as we need to finalize() current one
+		   And prepare() the next one for sending at clk+1 the 2nd page */
+		tdma_schedule(1*nslots, tx_finalize, 0, 0, 0, -2); 
+	}else{
+		/* End of transmission in most packets CAN be in the following TDAM window post-tx. */
+		tdma_schedule(2*nslots, tx_finalize, 0, 0, 0, -3);
+	}
 
 	return 0; 
 }
@@ -138,8 +145,11 @@ static int tx_execute(uint8_t p1, uint8_t p2, uint16_t p3)
 	btphy_rf_tx();
 	if (tx_task.data_size)
 		btphy_rf_enable_int(tx_fifo_cb, NULL, 1);
-	if (btphy_cur_clkn() & 1)
+	
+	if ( btphy.mode!=BT_MODE_PAGING && btphy_cur_clkn() & 1 )
 		DIE("txe: wrong clkn %x", btphy_cur_clkn());
+	else if ( btphy.mode==BT_MODE_PAGING && (btphy_cur_clkn() & 2) )
+		DIE("txe: wrong clkn %x: should be in master slot (0 or 1 mod 4) when paging");
 
 	return 0;
 }
@@ -150,7 +160,7 @@ static int tx_finalize(uint8_t p1, uint8_t p2, uint16_t p3)
 	/* Wait end of transmission .. */
 	while (CLKN_OFFSET < TX_MAX_WAIT && (cc2400_get(FSMSTATE) & 0x1f) != STATE_STROBE_FS_ON);
 	
-	/* Stop phy RX */ 
+	/* Stop phy TX */ 
 	btphy_rf_idle();
 
 	tx_task_reset();
