@@ -1,0 +1,177 @@
+From: Ruben Undheim <ruben.undheim@gmail.com>
+Date: Tue, 14 Mar 2017 19:41:53 +0000
+Subject: Try fixing two lintians
+
+---
+ host/doc/man/ubertooth-afh.1    | 4 +---
+ host/doc/man/ubertooth-btle.1   | 5 ++---
+ host/doc/man/ubertooth-debug.1  | 4 +---
+ host/doc/man/ubertooth-dfu.1    | 4 +---
+ host/doc/man/ubertooth-dump.1   | 4 +---
+ host/doc/man/ubertooth-ego.1    | 4 +---
+ host/doc/man/ubertooth-rx.1     | 4 +---
+ host/doc/man/ubertooth-scan.1   | 4 +---
+ host/doc/man/ubertooth-specan.1 | 4 +---
+ host/doc/man/ubertooth-util.1   | 4 +---
+ host/doc/man/ubertooth.7        | 4 +---
+ 11 files changed, 12 insertions(+), 33 deletions(-)
+
+diff --git a/host/doc/man/ubertooth-afh.1 b/host/doc/man/ubertooth-afh.1
+index b90fed6..a2cdec9 100644
+--- a/host/doc/man/ubertooth-afh.1
++++ b/host/doc/man/ubertooth-afh.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-AFH 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-.BR ubertooth-afh (1) 
+-\- passive detection of AFH channel map
++ubertooth-afh \- passive detection of AFH channel map
+ .SH SYNOPSIS
+ .PP
+ .RS
+diff --git a/host/doc/man/ubertooth-btle.1 b/host/doc/man/ubertooth-btle.1
+index 110bd00..bd22f01 100644
+--- a/host/doc/man/ubertooth-btle.1
++++ b/host/doc/man/ubertooth-btle.1
+@@ -1,7 +1,6 @@
+ .TH UBERTOOTH\-BTLE 1 "July 2018" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-ubertooth\-btle \-\- Bluetooth Low Energy (BLE) sniffing and more
++ubertooth-btle \- Bluetooth Low Energy (BLE) sniffing and more
+ .SH SYNOPSIS
+ .PP
+ .RS
+@@ -235,4 +234,4 @@ Refer to \fB\fCcrackle\fR documentation for further details.
+ .SH COPYRIGHT
+ .PP
+ \fB\fCubertooth\-btle\fR is Copyright (C) 2012\-2018 Mike Ryan. This tool is
+-released under the GPLv2. Refer to COPYING for futher details.
++released under the GPLv2. Refer to COPYING for further details.
+diff --git a/host/doc/man/ubertooth-debug.1 b/host/doc/man/ubertooth-debug.1
+index 391080e..856cb73 100644
+--- a/host/doc/man/ubertooth-debug.1
++++ b/host/doc/man/ubertooth-debug.1
+@@ -1,8 +1,6 @@
+ .TH ubertooth\-debug 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-ubertooth\-debug(1) \- Classic Bluetooth discovery, sniffing, and decoding
+-
++ubertooth-debug \- Classic Bluetooth discovery, sniffing, and decoding
+ .SH SYNOPSIS
+ .PP
+ .RS
+diff --git a/host/doc/man/ubertooth-dfu.1 b/host/doc/man/ubertooth-dfu.1
+index 2f72a53..5324d78 100644
+--- a/host/doc/man/ubertooth-dfu.1
++++ b/host/doc/man/ubertooth-dfu.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-DFU 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-.BR ubertooth-dfu (1) 
+-\- Device firmware update for Ubertooth
++ubertooth-dfu \- Device firmware update for Ubertooth
+ .SH SYNOPSIS
+ .PP
+ To update firmware, run:
+diff --git a/host/doc/man/ubertooth-dump.1 b/host/doc/man/ubertooth-dump.1
+index 0d76152..ddf27e6 100644
+--- a/host/doc/man/ubertooth-dump.1
++++ b/host/doc/man/ubertooth-dump.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-DUMP 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-.BR ubertooth-dump (1) 
+-\- output a continuous stream of received bits
++ubertooth-dump \- output a continuous stream of received bits
+ .SH SYNOPSIS
+ .PP
+ .RS
+diff --git a/host/doc/man/ubertooth-ego.1 b/host/doc/man/ubertooth-ego.1
+index e6a2c82..d9e0212 100644
+--- a/host/doc/man/ubertooth-ego.1
++++ b/host/doc/man/ubertooth-ego.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-EGO 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-.BR ubertooth-ego (1) 
+-\- Yuneec E\-Go sniffing
++ubertooth-ego \- Yuneec E-Go sniffing
+ .SH SYNOPSIS
+ .PP
+ .RS
+diff --git a/host/doc/man/ubertooth-rx.1 b/host/doc/man/ubertooth-rx.1
+index e95515e..54ed6c8 100644
+--- a/host/doc/man/ubertooth-rx.1
++++ b/host/doc/man/ubertooth-rx.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-RX 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-ubertooth\-rx(1) \- Classic Bluetooth discovery, sniffing, and decoding
+-
++ubertooth-rx \- Classic Bluetooth discovery, sniffing, and decoding
+ .SH SYNOPSIS
+ .PP
+ .RS
+diff --git a/host/doc/man/ubertooth-scan.1 b/host/doc/man/ubertooth-scan.1
+index 0235689..67e2e6e 100644
+--- a/host/doc/man/ubertooth-scan.1
++++ b/host/doc/man/ubertooth-scan.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-SCAN 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-.BR ubertooth-scan (1) 
+-\- 
++ubertooth-scan \- Scan frequency band
+ .BR active (Bluez) 
+ device scan and inquiry supported by Ubertooth
+ .SH SYNOPSIS
+diff --git a/host/doc/man/ubertooth-specan.1 b/host/doc/man/ubertooth-specan.1
+index edbf0fa..b9b6a08 100644
+--- a/host/doc/man/ubertooth-specan.1
++++ b/host/doc/man/ubertooth-specan.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-SPECAN 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-ubertooth\-specan(1) \- a spectrum analyzer for Ubertooth
+-
++ubertooth-specan \- a spectrum analyzer for Ubertooth
+ .SH SYNOPSIS
+ .PP
+ ubertooth\-specan [\-l <freq>] [\-u <freq>] [\-g|G]
+diff --git a/host/doc/man/ubertooth-util.1 b/host/doc/man/ubertooth-util.1
+index 95c8297..a0752c8 100644
+--- a/host/doc/man/ubertooth-util.1
++++ b/host/doc/man/ubertooth-util.1
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH\-UTIL 1 "March 2017" "Project Ubertooth" "User Commands"
+ .SH NAME
+-.PP
+-.BR ubertooth-util (1) 
+-\- general purpose Ubertooth utility
++ubertooth-util \- general purpose Ubertooth utility
+ .SH SYNOPSIS
+ .PP
+ ubertooth\-util [\-abcdefghijk\-ellemenop\-qrstuvwxyZ]
+diff --git a/host/doc/man/ubertooth.7 b/host/doc/man/ubertooth.7
+index a3cb73c..dff7a5a 100644
+--- a/host/doc/man/ubertooth.7
++++ b/host/doc/man/ubertooth.7
+@@ -1,8 +1,6 @@
+ .TH UBERTOOTH 7 "March 2017" "Project Ubertooth" "Project Ubertooth Overview"
+ .SH NAME
+-.PP
+-.BR ubertooth (7) 
+-\- Project Ubertooth
++ubertooth \- Project Ubertooth
+ .SH OVERVIEW
+ .PP
+ Ubertooth is a platform for Bluetooth experimentation. It is able to

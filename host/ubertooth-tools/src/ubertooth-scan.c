@@ -59,9 +59,9 @@ static void usage()
 	printf("\t-t scan Time (seconds) - length of time to sniff packets. [Default: 20s]\n");
 	printf("\t-e max_ac_errors (default: %d, range: 0-4)\n", max_ac_errors);
 	printf("\t-b Bluetooth device (hci0)\n");
-	printf("\t-U<0-7> set Ubertooth device to use\n");
+	printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 }
-
 
 void extra_info(int dd, int dev_id, bdaddr_t* bdaddr)
 {
@@ -190,7 +190,6 @@ void print_name_and_class(int dev_handle, int dev_id, bdaddr_t *bdaddr,
 		extra_info(dev_handle, dev_id, bdaddr);
 }
 
-
 int main(int argc, char *argv[])
 {
 	inquiry_info *ii = NULL;
@@ -199,16 +198,23 @@ int main(int argc, char *argv[])
 	uint8_t uap, extended = 0;
 	uint8_t scan = 0;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
 	ubertooth_t* ut = NULL;
 	btbb_piconet* pn;
 	bdaddr_t bdaddr;
 
-	while ((opt=getopt(argc,argv,"hU:t:e:xsb:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hU:D:t:e:xsb:")) != EOF) {
 		switch(opt) {
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'b':
 			bt_dev = optarg;
@@ -236,6 +242,12 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage();
+		return 1;
+	}
+
 	dev_id = hci_devid(bt_dev);
 	if (dev_id < 0) {
 		printf("error: Unable to find %s (%d)\n", bt_dev, dev_id);
@@ -248,7 +260,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	ut = ubertooth_start(ubertooth_device);
+	if (device_serial)
+		ut = ubertooth_start_serial(serial_c);
+	else
+		ut = ubertooth_start(ubertooth_device);
+
 	if (ut == NULL) {
 		usage();
 		return 1;

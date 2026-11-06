@@ -67,5 +67,5 @@ if( ${BUILD_STATIC_LIB} )
 endif( ${BUILD_STATIC_LIB} )
 
 install(FILES ${c_headers}
-		DESTINATION include
+		DESTINATION include/ubertooth
 		COMPONENT headers)

@@ -1,0 +1,21 @@
+NAME
+  ubertooth-dump - output a continuous stream of received bits
+
+SYNOPSIS
+  ubertooth-dump [options]
+
+
+OPTIONS
+  -h   help
+  -b   only dump received bitstream (GnuRadio style)
+  -c   classic modulation
+  -l   LE modulation
+  -U<0-7>    set ubertooth device to use
+  -d    filename
+ 
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

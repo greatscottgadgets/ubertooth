@@ -1,0 +1,13 @@
+host/doc/man/ubertooth.7
+host/doc/man/ubertooth-afh.1
+host/doc/man/ubertooth-btle.1
+host/doc/man/ubertooth-debug.1
+host/doc/man/ubertooth-dfu.1
+host/doc/man/ubertooth-dump.1
+debian/man/ubertooth-follow.1
+host/doc/man/ubertooth-rx.1
+host/doc/man/ubertooth-scan.1
+debian/man/ubertooth-specan-ui.1
+host/doc/man/ubertooth-util.1
+debian/man/ubertooth-ego.1
+host/doc/man/ubertooth-specan.1

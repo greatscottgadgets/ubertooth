@@ -1,0 +1,74 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+include /usr/share/dpkg/pkg-info.mk
+
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+SOURCE_DATE_UTC ?= $(shell LC_ALL=C date -u -d @$(SOURCE_DATE_EPOCH))
+CHANGELOG_DATE ?= $(shell LC_ALL=C date -u -d @$(SOURCE_DATE_EPOCH) +"%d %B %Y")
+DOPACKAGES = $(shell dh_listpackages)
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+UPSTREAM_PACKAGE_VERSION ?= $(shell echo $(DEB_VERSION) | sed 's/-[^-]*$$//')
+
+UPSTREAM_PACKAGE_VERSION_ORIGINAL = $(shell echo $(UPSTREAM_PACKAGE_VERSION) | sed 's/\./-/g')
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	dh_auto_clean --sourcedirectory=host
+	dh_auto_clean --sourcedirectory=firmware
+	$(RM) debian/man/*.1
+	$(RM) -r ubertooth-firmware-source
+	$(RM) ubertooth-firmware-source.tar.gz
+	$(RM) debian/ubertooth.pc
+
+override_dh_auto_configure:
+	# Creating ubertooth-firmare-source.tar.gz:
+	cp -rf firmware ubertooth-firmware-source
+	cd ubertooth-firmware-source ; patch -R -Np2 < ../debian/patches/02_fix_missing_dfu.patch ; \
+	  patch -Np2 < ../debian/patches_extra/patch_include_source.patch
+	cd ubertooth-firmware-source ; sed -i 's/REPLACE_ME_WITH_VERSION/$(UPSTREAM_PACKAGE_VERSION_ORIGINAL)/' common.mk
+	GZIP=-9n tar --mtime='$(SOURCE_DATE_UTC)' --sort=name --owner=root --group=root \
+	  --mode=go=rX,u+rw,a-s -czvf ubertooth-firmware-source.tar.gz \
+	  ubertooth-firmware-source/
+	#
+	
+	dh_auto_configure --sourcedirectory=host -- -DLIB_SUFFIX=/$(DEB_HOST_MULTIARCH) \
+	  -DUBERTOOTH_GROUP=plugdev -DUDEV_RULES_PATH=/lib/udev/rules.d
+ifneq ($(filter ubertooth-firmware,$(DOPACKAGES)),)
+	dh_auto_configure --sourcedirectory=firmware
+endif
+
+override_dh_auto_build:
+	dh_auto_build --sourcedirectory=host
+ifneq ($(filter ubertooth-firmware,$(DOPACKAGES)),)
+	dh_auto_build --sourcedirectory=firmware --no-parallel -- \
+	  TIMESTAMP="-DTIMESTAMP=''" COMPILE_BY="-D'COMPILE_BY=\"user\"'" \
+	  COMPILE_HOST="-D'COMPILE_HOST=\"localhost\"'" \
+	  GIT_REVISION="-D'GIT_REVISION=\"$(UPSTREAM_PACKAGE_VERSION_ORIGINAL)\"'"
+endif
+	cat debian/ubertooth.pc.in | sed 's/DEB_HOST_MULTIARCH/$(DEB_HOST_MULTIARCH)/' | \
+	  sed 's/UPSTREAM_PACKAGE_VERSION/$(UPSTREAM_PACKAGE_VERSION)/' > debian/ubertooth.pc
+
+override_dh_auto_install:
+	dh_auto_install --sourcedirectory=host
+ifneq ($(filter ubertooth-firmware,$(DOPACKAGES)),)
+	chmod a-x firmware/*/*.bin
+	dh_auto_install --sourcedirectory=firmware
+endif
+	mkdir -p debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	cp debian/ubertooth.pc debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/
+	rm debian/tmp/usr/bin/ubertooth-tx # The tool does nothing - not fully implemented. Skip installing
+	                                   # TODO: remove line when tool has been implemented
+
+override_dh_installman:
+	cd debian/man ; CHANGELOG_DATE="$(CHANGELOG_DATE)" ./genmanpages.sh
+	dh_installman

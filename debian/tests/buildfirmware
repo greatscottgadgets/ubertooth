@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+rm -rf /tmp/test_build_firmware
+mkdir -p /tmp/test_build_firmware
+cd /tmp/test_build_firmware
+tar -xvf /usr/src/ubertooth-firmware-source.tar.gz
+cd ubertooth-firmware-source/
+make 2>&1
+echo "run: OK"

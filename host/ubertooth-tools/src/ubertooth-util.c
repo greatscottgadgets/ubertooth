@@ -20,6 +20,7 @@
  */
 
 #include "ubertooth.h"
+#include <string.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -43,7 +44,8 @@ static void usage(FILE *output)
 	fprintf(output, "\t-l[0-1] get/set USR LED\n");
 	fprintf(output, "\t-S stop current operation\n");
 	fprintf(output, "\t-r full reset\n");
-	fprintf(output, "\t-U<0-7> set ubertooth device to use\n");
+	fprintf(output, "\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+	fprintf(output, "\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
 	fprintf(output, "\t-N print total number of Uberteeth and exit\n");
 	fprintf(output, "\n");
 	fprintf(output, "Radio options:\n");
@@ -84,6 +86,9 @@ int main(int argc, char *argv[])
 	int do_something, do_compile_info;
 	int do_number, do_xmas;
 	int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
+
 	char version_string[MAX_VERSION_STRING_LEN];
 
 	/* set command states to negative as a starter
@@ -97,10 +102,15 @@ int main(int argc, char *argv[])
 	do_something= 0; do_compile_info= -1;
 	do_number= 0; do_xmas= 0;
 
-	while ((opt=getopt(argc,argv,"U:hnmefiIprsStvbl::a::C::c::d::q::z::9VNx")) != EOF) {
+	while ((opt=getopt(argc,argv,"U:D:hnmefiIprsStvbl::a::C::c::d::q::z::9VNx")) != EOF) {
 		switch(opt) {
+		case 'D':
+			snprintf(serial_c, sizeof(serial_c), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'f':
 			fprintf(stderr, "ubertooth-util -f is no longer required - use ubertooth-dfu instead\n");
@@ -214,18 +224,33 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
+		usage(stderr);
+		return 1;
+	}
+
 	/* initialise device */
-	ut = ubertooth_start(ubertooth_device);
+	if (device_serial)
+		ut = ubertooth_start_serial(serial_c);
+	else
+		ut = ubertooth_start(ubertooth_device);
+
 	if (ut == NULL) {
 		usage(stderr);
 		return 1;
 	}
+
 	if(do_reset == 0) {
 		fprintf(stdout, "Resetting ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		r = cmd_reset(ut->devh);
 		sleep(2);
-		ut = ubertooth_start(ubertooth_device);
+		if (device_serial)
+			ut = ubertooth_start_serial(serial_c);
+		else
+			ut = ubertooth_start(ubertooth_device);
 	}
+
 	if(do_stop == 0) {
 		fprintf(stdout, "Stopping ubertooth device number %d\n", (ubertooth_device >= 0) ? ubertooth_device : 0);
 		r = cmd_stop(ut->devh);
@@ -238,6 +263,7 @@ int main(int argc, char *argv[])
 		r= cmd_set_txled(ut->devh, do_all_leds);
 		r = (r >= 0) ? 0 : r;
 	}
+
 	if(do_channel > 0)
 		r= cmd_set_channel(ut->devh, do_channel);
 	if(do_leds == 0 || do_leds == 1)
@@ -269,7 +295,6 @@ int main(int argc, char *argv[])
 			fprintf(stdout, " (API:%x.%02x)\n", (usb_version>>8)&0xFF, usb_version&0xFF);
 		else
 			fprintf(stdout, "\n");
-
 	}
 	if(do_compile_info == 0) {
 		cmd_get_compile_info(ut->devh, version_string, MAX_VERSION_STRING_LEN);

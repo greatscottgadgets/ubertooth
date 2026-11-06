@@ -1,0 +1,21 @@
+From: Ruben Undheim <ruben.undheim@gmail.com>
+Date: Fri, 13 Jul 2018 16:36:06 +0200
+Subject: Fixes install location of python package
+
+---
+ host/python/specan_ui/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/host/python/specan_ui/CMakeLists.txt b/host/python/specan_ui/CMakeLists.txt
+index c365bd5..21b206d 100644
+--- a/host/python/specan_ui/CMakeLists.txt
++++ b/host/python/specan_ui/CMakeLists.txt
+@@ -31,7 +31,7 @@ add_custom_command(OUTPUT ${OUTPUT}/timestamp
+                    DEPENDS ${DEPS})
+ 
+ add_custom_target(specan ALL DEPENDS ${OUTPUT}/timestamp)
+-install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build -b ${OUTPUT} install)")
++install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build -b ${OUTPUT} install --root=${CMAKE_SOURCE_DIR}/../debian/tmp --install-layout=deb)")
+ 
+ add_custom_target(ubertooth-specan-ui ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ubertooth-specan-ui)
+ install(PROGRAMS ubertooth-specan-ui DESTINATION ${INSTALL_DEFAULT_BINDIR})

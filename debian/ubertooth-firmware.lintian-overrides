@@ -1,0 +1,2 @@
+# This is firmware for external hardware and not the kernel
+ubertooth-firmware: wrong-section-according-to-package-name ubertooth-firmware => kernel

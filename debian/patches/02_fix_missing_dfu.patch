@@ -1,0 +1,25 @@
+From: Ruben Undheim <ruben.undheim@gmail.com>
+Date: Fri, 13 Jul 2018 16:36:06 +0200
+Subject: Fixes problem with ubertooth-dfu not found. The install script
+ assumes that ubertooth-dfu is already in the path. It is not when building
+ the deb package,
+ but it is available from a relative path since it has already been built.
+
+---
+ firmware/common.mk | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/firmware/common.mk b/firmware/common.mk
+index f3deef4..e6b6245 100644
+--- a/firmware/common.mk
++++ b/firmware/common.mk
+@@ -261,7 +261,8 @@ NM = $(CROSS_COMPILE)nm
+ REMOVE = rm -f
+ 
+ # DFU tool should be ubertooth-dfu
+-DFU_TOOL ?= $(strip $(shell which ubertooth-dfu))
++#DFU_TOOL ?= $(strip $(shell which ubertooth-dfu))
++DFU_TOOL = ../../obj-$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)/ubertooth-tools/src/ubertooth-dfu
+ 
+ # Define Messages
+ # English

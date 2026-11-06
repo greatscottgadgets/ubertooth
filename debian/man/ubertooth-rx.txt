@@ -1,0 +1,26 @@
+NAME
+  ubertooth-rx - passive Bluetooth discovery/decode
+
+SYNOPSIS
+  ubertooth-rx [options]
+
+
+OPTIONS
+  -h         help
+  -V         print version information
+  -i         filename
+  -l <LAP>   to decode (6 hex), otherwise sniff all LAPs
+  -u <UAP>   to decode (2 hex), otherwise try to calculate (requires LAP)
+  -U <0-7>   set ubertooth device to use
+  -r<filename>  capture packets to PCAPNG file
+  -q<filename>  capture packets to PCAP file
+  -d<filename>  dump packets to binary file
+  -e <0-4>   max_ac_errors (default: 2, range: 0-4)
+  -s         reset channel scanning
+  -t <SECONDS>   sniff timeout - 0 means no timeout [Default: 0] 
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

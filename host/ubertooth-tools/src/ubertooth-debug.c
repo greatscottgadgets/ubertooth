@@ -40,7 +40,8 @@ static void usage()
     printf("\t-h this message\n");
     printf("\t-r <reg>[,<reg>[,...]] read the contents of CC2400 register(s)\n");
     printf("\t-r <start>-<end> read a consecutive set of CC2400 register(s)\n");
-    printf("\t-U<0-7> set ubertooth device to use\n");
+    printf("\t-U <0-7> set ubertooth device to use (cannot be used with -D)\n");
+    printf("\t-D <serial> set ubertooth serial to use (cannot be used with -U)\n");
     printf("\t-v<0-2> verbosity (default=1)\n");
 }
 
@@ -65,6 +66,8 @@ int main(int argc, char *argv[])
     ubertooth_t* ut = NULL;
     int do_read_register;
     int ubertooth_device = -1;
+    char serial_c[34] = {0};
+    int device_index = 0, device_serial = 0;
     int *regList = NULL;
     int regListN = 0;
     int i;
@@ -73,13 +76,18 @@ int main(int argc, char *argv[])
      * setting to positive is value of specified argument */
     do_read_register = -1;
 
-    while ((opt = getopt(argc, argv, "hU:r:v:")) != EOF) {
+    while ((opt = getopt(argc, argv, "hU:D:r:v:")) != EOF) {
 	switch (opt) {
 	case 'h':
 	    usage();
 	    return 0;
+	case 'D':
+            snprintf(serial_c, strlen(optarg), "%s", optarg);
+            device_serial = 1;
+            break;
 	case 'U':
 	    ubertooth_device = atoi(optarg);
+            device_index = 1;
 	    break;
 	case 'v':
 	    verbose = atoi(optarg);
@@ -109,13 +117,24 @@ int main(int argc, char *argv[])
 	}
     }
 
-	if(regListN == 0) {
-		fprintf(stderr, "At least one register must be provided\n");
-	    usage();
-	    return 1;
-	}
+    if (regListN == 0) {
+        fprintf(stderr, "At least one register must be provided\n");
+        usage();
+        return 1;
+    }
+
+    if (device_serial && device_index) {
+        printf("Error: Cannot use both index and serial simultaneously\n");
+        usage();
+        return 1;
+    }
+
     /* initialise device */
-    ut = ubertooth_start(ubertooth_device);
+    if (device_serial)
+        ut = ubertooth_start_serial(serial_c);
+    else
+        ut = ubertooth_start(ubertooth_device);
+
     if (ut == NULL) {
 	usage();
 	return 1;

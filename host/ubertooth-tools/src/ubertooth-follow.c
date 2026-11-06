@@ -59,8 +59,11 @@ int main(int argc, char *argv[])
 	int have_uap = 0;
 	int afh_enabled = 0;
 	uint8_t mode, afh_map[10];
+	int r;
 	char *end;
         int ubertooth_device = -1;
+	char serial_c[34] = {0};
+	int device_index = 0, device_serial = 0;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
 	uint32_t clock;
@@ -73,7 +76,7 @@ int main(int argc, char *argv[])
 	pn = btbb_piconet_new();
 	ubertooth_t* ut = ubertooth_init();
 
-	while ((opt=getopt(argc,argv,"hl:u:U:e:d:ab:w:r:q:")) != EOF) {
+	while ((opt=getopt(argc,argv,"hl:u:U:D:e:d:ab:w:r:q:")) != EOF) {
 		switch(opt) {
 		case 'l':
 			lap = strtol(optarg, &end, 16);
@@ -87,8 +90,13 @@ int main(int argc, char *argv[])
 				++have_uap;
 			}
 			break;
+		case 'D':
+			snprintf(serial_c, strlen(optarg), "%s", optarg);
+			device_serial = 1;
+			break;
 		case 'U':
 			ubertooth_device = atoi(optarg);
+			device_index = 1;
 			break;
 		case 'r':
 			if (!ut->h_pcapng_bredr) {
@@ -208,13 +216,24 @@ int main(int argc, char *argv[])
 	/* Clean up on exit. */
 	register_cleanup_handler(ut, 0);
 
-	ubertooth_connect(ut, ubertooth_device);
-	if (ut == NULL) {
+	if (device_serial && device_index) {
+		printf("Error: Cannot use both index and serial simultaneously\n");
 		usage();
 		return 1;
 	}
 
-	int r = ubertooth_check_api(ut);
+	/* initialise device */
+	if (device_serial)
+		r = ubertooth_connect_serial(ut, serial_c);
+	else
+		r = ubertooth_connect(ut, ubertooth_device);
+
+	if (r < 0) {
+		usage();
+		return 1;
+	}
+
+	r = ubertooth_check_api(ut);
 	if (r < 0)
 		return 1;
 
@@ -235,15 +254,15 @@ int main(int argc, char *argv[])
 	cmd_set_clock(ut->devh, 0);
 	if(afh_enabled)
 		cmd_set_afh_map(ut->devh, afh_map);
-    
-    // Read clocks here to ensure clock is closest to real value
-    hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
-    if (cc) {
-        if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-            perror("Reading clock offset failed\n");
-        }
-        clock += (offset<<2);   // Correct offset
-    }
+	
+	// Read clocks here to ensure clock is closest to real value
+	hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+	if (cc) {
+		if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+			perror("Reading clock offset failed\n");
+		}
+		clock += (offset<<2);   // Correct offset
+	}
 	btbb_piconet_set_clk_offset(pn, clock+delay);
 	btbb_piconet_set_flag(pn, BTBB_FOLLOWING, 1);
 	btbb_piconet_set_flag(pn, BTBB_CLK27_VALID, 1);
@@ -253,7 +272,7 @@ int main(int argc, char *argv[])
 	if (r < 0)
 		return r;
 
-    if (cc) {
+	if (cc) {
 		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
 	}
 

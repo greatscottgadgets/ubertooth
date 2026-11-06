@@ -1,0 +1,37 @@
+NAME
+  ubertooth-util - command line utility for Ubertooth Zero and Ubertooth One
+
+SYNOPSIS
+  ubertooth-util [options]
+
+
+OPTIONS
+  -a[0-7]       get/set power amplifier level
+  -b            get hardware board id number
+  -c[2400-2483]     get/set channel in MHz
+  -C[0-78]      get/set channel
+  -d[0-1]       get/set all LEDs
+  -e            start repeater mode
+  -f            activate flash programming (DFU) mode
+  -h            display help message
+  -i            activate In-System Programming (ISP) mode
+  -I            identify ubertooth device by flashing all LEDs
+  -l[0-1]       get/set USR LED
+  -m            display range test result
+  -n            initiate range test
+  -p            get microcontroller Part ID
+  -q[1-225 (RSSI threshold)]        start LED spectrum analyzer
+  -r            full reset
+  -s            get microcontroller serial number
+  -S            stop current operation
+  -t            intitiate continuous transmit test
+  -U<0-7>       set ubertooth device to use
+  -v            get firmware revision number
+  -V            get compile info
+  -z            set squelch level 
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+

@@ -1,0 +1,19 @@
+NAME
+  ubertooth-debug - command line utility for debugging Ubertooth Zero and Ubertooth One
+
+SYNOPSIS
+  ubertooth-debug [options]
+
+
+OPTIONS
+  -h   help
+  -r <name>     read the contents of a 16 bit CC2400 register
+  -r <number,number,low-high>     read the contents of a 16 bit CC2400 register(s)
+  -U<0-7>    set ubertooth device to use
+  -v<0-2>    verbosity (default=1) 
+
+AUTHOR
+  This manual page was written by Ruben Undheim <ruben.undheim@gmail.com> for the Debian project (and may be used by others).
+
+
+
